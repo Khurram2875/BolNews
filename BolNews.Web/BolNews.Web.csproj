@@ -1,9 +1,23 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.25">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BolNews.Application\BolNews.Application.csproj" />
+    <ProjectReference Include="..\BolNews.Domain\BolNews.Domain.csproj" />
+    <ProjectReference Include="..\BolNews.Infrastructure\BolNews.Infrastructure.csproj" />
+    <ProjectReference Include="..\BolNews.Persistence\BolNews.Persistence.csproj" />
+  </ItemGroup>
 
 </Project>
