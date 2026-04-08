@@ -1,0 +1,85 @@
+﻿@model BolNews.Web.Areas.Admin.ViewModels.ArticleVM
+
+@{
+    ViewData["Title"] = "Edit Article";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-warning text-dark">
+        <h4 class="mb-0">Edit Article</h4>
+    </div>
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+
+            <!-- same fields as Create view -->
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Slug" class="form-label"></label>
+                <input asp-for="Slug" class="form-control" />
+                <span asp-validation-for="Slug" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Summary" class="form-label"></label>
+                <textarea asp-for="Summary" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Summary" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Content" class="form-label"></label>
+                <textarea asp-for="Content" class="form-control" rows="6"></textarea>
+                <span asp-validation-for="Content" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Featured Image</label>
+                <input asp-for="FeaturedImageUrl" type="file" name="FeaturedImage" class="form-control" />
+                <span asp-validation-for="FeaturedImageUrl" class="text-danger"></span>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.FeaturedImageUrl))
+            {
+                <div class="mb-3">
+                    <img src="@Model.FeaturedImageUrl" alt="Current Image" class="img-fluid rounded" style="max-height:150px;" />
+                </div>
+            }
+
+            <div class="mb-3">
+                <label asp-for="CategoryId" class="form-label">Category</label>
+                <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories"></select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="AuthorId" class="form-label">Author</label>
+                <select asp-for="AuthorId" class="form-select" asp-items="ViewBag.Authors"></select>
+                <span asp-validation-for="AuthorId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="PublishedAt" class="form-label"></label>
+                <input asp-for="PublishedAt" type="datetime-local" class="form-control" />
+                <span asp-validation-for="PublishedAt" class="text-danger"></span>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="IsPublished" class="form-check-input" />
+                <label asp-for="IsPublished" class="form-check-label"></label>
+            </div>
+
+            <button type="submit" class="btn btn-warning">
+                <i class="bi bi-pencil-square"></i> Update
+            </button>
+            <a asp-action="Index" class="btn btn-secondary ms-2">
+                <i class="bi bi-arrow-left-circle"></i> Cancel
+            </a>
+        </form>
+    </div>
+</div>

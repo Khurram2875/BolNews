@@ -1,13 +1,14 @@
 using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
 using BolNews.Persistence.Context;
+using BolNews.Web;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IArticleService, ArticleService>();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -29,8 +30,12 @@ app.UseRouting();
 
 app.UseAuthorization();
 
+//app.MapControllerRoute(
+//    name: "default",
+//    pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+);
 
 app.Run();
