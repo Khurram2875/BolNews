@@ -4,6 +4,7 @@ using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
 using BolNews.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BolNews.Web.Areas.Admin.Controllers
 {
@@ -39,11 +40,19 @@ namespace BolNews.Web.Areas.Admin.Controllers
         }
 
         // GET: Admin/Articles/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View();
+            await PopulateDropdowns();
+            return View(new ArticleVM());
         }
+        private async Task PopulateDropdowns(int? categoryId = null, int? authorId = null)
+        {
+            var categories = await _categoryService.GetAllAsync();
+            var authors = await _authorService.GetAllAsync();
 
+            ViewBag.Categories = new SelectList(categories, "Id", "Name", categoryId);
+            ViewBag.Authors = new SelectList(authors, "Id", "Name", authorId);
+        }
         // POST: Admin/Articles/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -66,6 +75,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 return NotFound();
 
             var model = _mapper.Map<ArticleVM>(dto);
+            await PopulateDropdowns();
             return View(model);
         }
 
@@ -75,7 +85,11 @@ namespace BolNews.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Edit(ArticleVM model)
         {
             if (!ModelState.IsValid)
+            {
+                await PopulateDropdowns(model.CategoryId, model.AuthorId);
                 return View(model);
+            }
+                
 
             var dto = _mapper.Map<ArticleDto>(model);
             await _articleService.UpdateAsync(dto);

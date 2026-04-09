@@ -1,0 +1,29 @@
+﻿@using BolNews.Web.Areas.Admin.ViewModels
+@model CategoryVM2
+
+<tr>
+    <td>
+        @Html.Raw(new string('-', (int)ViewBag.Level * 3))
+        <i class="bi bi-arrow-return-right"><strong>@Model.Name</strong></i>
+    </td>
+    <td>@Model.Slug</td>
+    <td>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning btn-sm me-1">Edit</a>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display:inline">
+            <button class="btn btn-danger btn-sm"
+                    onclick="return confirm('Delete this category?');">
+                Delete
+            </button>
+        </form>
+    </td>
+</tr>
+
+@if (Model.Children != null && Model.Children.Any())
+{
+    foreach (var child in Model.Children)
+    {
+        ViewBag.Level = (int)ViewBag.Level + 1;
+        @await Html.PartialAsync("_CategoryRow", child)
+    }
+}

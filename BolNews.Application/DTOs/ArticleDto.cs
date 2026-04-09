@@ -19,7 +19,9 @@ namespace BolNews.Application.DTOs
         public string? FeaturedImageUrl { get; set; }
 
         public int CategoryId { get; set; }
+        public string? CategoryName { get; set; }
         public int AuthorId { get; set; }
+        public string? AuthorName { get; set; }
 
         public bool IsPublished { get; set; }
         public DateTime? PublishedAt { get; set; }

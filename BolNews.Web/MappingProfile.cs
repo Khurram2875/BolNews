@@ -9,11 +9,16 @@ namespace BolNews.Web
         public MappingProfile()
         {
             CreateMap<ArticleVM, ArticleDto>()
-    .ForMember(dest => dest.PublishedAt, opt => opt.MapFrom(src => src.PublishedAt ?? DateTime.Now));
+            .ForMember(dest => dest.PublishedAt, opt => opt.MapFrom(src => src.PublishedAt ?? DateTime.Now));
 
             CreateMap<ArticleDto, ArticleVM>()
-                .ForMember(dest => dest.AuthorName, opt => opt.Ignore())
-                .ForMember(dest => dest.CategoryName, opt => opt.Ignore());
+             .ForMember(dest => dest.AuthorName, opt => opt.MapFrom(src => src.AuthorName))
+             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryName));
+
+            CreateMap<ArticleVM, ArticleDto>();
+
+            CreateMap<CategoryDto, CategoryVM>().ReverseMap();
+            CreateMap<CategoryDto, CategoryVM2>().ReverseMap();
         }
     }
 }

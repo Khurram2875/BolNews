@@ -98,18 +98,29 @@ namespace BolNews.Application.Services
         public async Task<IEnumerable<ArticleDto>> GetAllAsync()
         {
             return await _context.Articles
-                .OrderByDescending(x => x.CreatedAt)
-                .Select(x => new ArticleDto
-                {
-                    Id = x.Id,
-                    Title = x.Title,
-                    Slug = x.Slug,
-                    Summary = x.Summary,
-                    FeaturedImageUrl = x.FeaturedImageUrl,
-                    IsPublished = x.IsPublished,
-                    PublishedAt = x.PublishedAt
-                })
-                .ToListAsync();
+           .Include(a => a.Author)
+           .Include(a => a.Category)
+           .Where(a => !a.IsDeleted)
+           .Select(a => new ArticleDto
+           {
+               Id = a.Id,
+               Title = a.Title,
+               Slug = a.Slug,
+               Summary = a.Summary,
+               Content = a.Content,
+               FeaturedImageUrl = a.FeaturedImageUrl,
+
+               AuthorId = a.AuthorId,
+               CategoryId = a.CategoryId,
+
+               IsPublished = a.IsPublished,
+               PublishedAt = a.PublishedAt,
+
+               // 🔥 IMPORTANT PART
+               AuthorName = a.Author.Name != null ? a.Author.Name : null,
+               CategoryName = a.Category.Name != null ? a.Category.Name : null
+           })
+           .ToListAsync();
         }
     }
 }
