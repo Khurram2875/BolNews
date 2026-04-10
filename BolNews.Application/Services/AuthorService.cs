@@ -99,5 +99,14 @@ namespace BolNews.Application.Services
 
             await _context.SaveChangesAsync();
         }
+        public async Task UpdateImageAsync(int id, string imagePath)
+        {
+            var entity = await _context.Authors.FindAsync(id);
+            if (entity != null)
+            {
+                entity.ProfileImageUrl = imagePath;
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

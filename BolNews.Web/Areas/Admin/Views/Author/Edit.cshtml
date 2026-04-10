@@ -1,0 +1,67 @@
+﻿@using BolNews.Web.Areas.Admin.ViewModels
+@model AuthorVM
+
+@{
+    ViewData["Title"] = "Edit Author";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<h2>Edit Author</h2>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
+
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group mb-3">
+        <label>Name</label>
+        <input asp-for="Name" class="form-control" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label>Bio</label>
+        <textarea asp-for="Bio" class="form-control"></textarea>
+    </div>
+
+    <!-- 🔹 Current Image -->
+    <div class="form-group mb-3">
+        <label>Current Image</label><br />
+
+        @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
+        {
+            <img id="previewImage"
+                 src="@Model.ProfileImageUrl"
+                 style="width:120px; height:120px; object-fit:cover; border-radius:50%;" />
+        }
+        else
+        {
+            <img id="previewImage"
+                 src="/images/default-user.png"
+                 style="width:120px; height:120px; border-radius:50%;" />
+        }
+    </div>
+
+    <!-- 🔹 Upload New Image -->
+    <div class="form-group mb-3">
+        <label>Upload New Image</label>
+        <input type="file" asp-for="ImageFile" class="form-control" onchange="previewFile(event)" />
+        <span asp-validation-for="ImageFile" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">Update</button>
+</form>
+
+<script>
+    function previewFile(event) {
+        const input = event.target;
+        const preview = document.getElementById('previewImage');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>

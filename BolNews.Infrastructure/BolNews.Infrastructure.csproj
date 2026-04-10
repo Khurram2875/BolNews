@@ -9,7 +9,14 @@
   <ItemGroup>
     <Folder Include="External\" />
     <Folder Include="Caching\" />
-    <Folder Include="Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BolNews.Application\BolNews.Application.csproj" />
   </ItemGroup>
 
 </Project>

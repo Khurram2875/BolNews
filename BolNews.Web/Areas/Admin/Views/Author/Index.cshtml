@@ -1,0 +1,73 @@
+﻿@model IEnumerable<BolNews.Web.Areas.Admin.ViewModels.AuthorVM>
+
+@{
+	ViewData["Title"] = "Authors List";
+	Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="mb-4">Authors</h2>
+
+<div class="mb-3">
+	<a asp-action="Create" class="btn btn-primary">
+		<i class="bi bi-plus-circle"></i> Add New Author
+	</a>
+</div>
+<div class="card shadow-sm">
+	<div class="card-header bg-primary text-white">
+		<h5 class="mb-0">Authors List</h5>
+	</div>
+	<div class="card-body p-0">
+		<table class="table-striped table-hover mb-0 table align-middle">
+			<thead class="table-dark">
+				<tr>
+					<th>
+						Image
+					</th>
+					<th>
+						Author Name
+					</th>
+					<th>
+						Bio
+					</th>
+					
+
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var item in Model)
+				{
+					<tr>
+						<td>
+							@if (!string.IsNullOrEmpty(item.ProfileImageUrl))
+							{
+								<img src="@item.ProfileImageUrl"
+									 alt="@item.Name"
+									 style="width:60px; height:60px; object-fit:cover; border-radius:50%;" />
+							}
+							else
+							{
+								<img src="/images/default-user.png"
+									 style="width:60px; height:60px; border-radius:50%;" />
+							}
+							@* @Html.DisplayFor(modelItem => item.ProfileImageUrl) *@
+						</td>
+						<td>
+							@Html.DisplayFor(modelItem => item.Name)
+						</td>
+						<td>
+							@Html.DisplayFor(modelItem => item.Bio)
+						</td>
+						
+
+						<td>
+							<a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning me-1">Edit</a> |
+							<a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info me-1">Details</a> |
+							<a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+</div>

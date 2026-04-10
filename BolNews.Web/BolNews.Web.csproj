@@ -12,6 +12,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.23" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,6 +21,13 @@
     <ProjectReference Include="..\BolNews.Domain\BolNews.Domain.csproj" />
     <ProjectReference Include="..\BolNews.Infrastructure\BolNews.Infrastructure.csproj" />
     <ProjectReference Include="..\BolNews.Persistence\BolNews.Persistence.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Interfaces\" />
+    <Folder Include="Services\" />
+    <Folder Include="wwwroot\images\" />
+    <Folder Include="wwwroot\uploads\authors\" />
   </ItemGroup>
 
 </Project>

@@ -14,5 +14,6 @@ namespace BolNews.Application.Interfaces
         Task<AuthorDto> CreateAsync(AuthorDto dto);
         Task<AuthorDto> UpdateAsync(AuthorDto dto);
         Task DeleteAsync(int id);
+        Task UpdateImageAsync(int id, string imagePath);
     }
 }

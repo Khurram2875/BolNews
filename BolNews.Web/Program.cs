@@ -1,5 +1,6 @@
 using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
+using BolNews.Infrastructure.Services;
 using BolNews.Persistence.Context;
 using BolNews.Web;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
+builder.Services.AddScoped<IImageService, ImageService>();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 

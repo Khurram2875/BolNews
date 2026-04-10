@@ -2,33 +2,40 @@
 @model List<CategoryVM2>
 
 @{
-    ViewData["Title"] = "Categories";
-    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+	ViewData["Title"] = "Categories";
+	Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 
 <h2 class="mb-4">Categories</h2>
 
-<a asp-action="Create" class="btn btn-primary mb-3">
-    Create Category
-</a>
-
-<table class="table-striped table-hover table">
-    <thead class="table-dark">
-        <tr>
-            <th>Name</th>
-            <th>Slug</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            ViewBag.Level = 0;
-            @await Html.PartialAsync("_CategoryRow", item)
-        }
-    </tbody>
-</table>
-
+<div class="mb-3">
+	<a asp-action="Create" class="btn btn-primary">
+		<i class="bi bi-plus-circle"></i> Add Author
+	</a>
+</div>
+<div class="card shadow-sm">
+	<div class="card-header bg-primary text-white">
+		<h5 class="mb-0">Categories</h5>
+	</div>
+	<div class="card-body p-0">
+		<table class="table-striped table-hover mb-0 table align-middle">
+			<thead class="table-dark">
+				<tr>
+					<th>Name</th>
+					<th>Slug</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var item in Model)
+				{
+					ViewBag.Level = 0;
+					@await Html.PartialAsync("_CategoryRow", item)
+				}
+			</tbody>
+		</table>
+	</div>
+</div>
 @* @functions {
     void RenderTree(List<CategoryVM> categories, int level)
     {
