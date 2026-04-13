@@ -4,7 +4,16 @@
     ViewData["Title"] = "Articles";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
+<style>
+    .lazy-image {
+        filter: blur(10px);
+        transition: filter 0.3s;
+    }
 
+        .lazy-image.loaded {
+            filter: blur(0);
+        }
+</style>
 <h2 class="mb-4">Articles</h2>
 
 <div class="mb-3">
@@ -21,6 +30,7 @@
         <table class="table-striped table-hover mb-0 table align-middle">
             <thead class="table-dark">
                 <tr>
+                    <th>Thumbnail</th>
                     <th>Title</th>
                     <th>Author</th>
                     <th>Category</th>
@@ -33,6 +43,24 @@
                 @foreach (var article in Model)
                 {
                     <tr>
+                        <td>
+                            @if (!string.IsNullOrEmpty(article.FeaturedImageThumb))
+                            {
+                                <img class="lazy-image"
+                                     src="/images/placeholder.png"
+                                     data-src="@($"{article.FeaturedImageThumb}?v={DateTime.Now.Ticks}")"
+                                     data-srcset="
+                                        @($"{article.FeaturedImageThumb}?v={DateTime.Now.Ticks}") 150w,
+                                        @($"{article.FeaturedImageMedium}?v={DateTime.Now.Ticks}") 400w,
+                                        @($"{article.FeaturedImageLarge}?v={DateTime.Now.Ticks}") 800w"
+                                     style="width:80px; height:80px; object-fit:cover;" />
+                            }
+                            else
+                            {
+                                <img src="/images/default-news.png"
+                                     style="width:100%;" />
+                            }
+                        </td>
                         <td>@article.Title</td>
                         <td>@article.AuthorName</td>
                         <td>@article.CategoryName</td>
@@ -62,3 +90,27 @@
         </table>
     </div>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const images = document.querySelectorAll(".lazy-image");
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+
+                    img.src = img.dataset.src;
+
+                    if (img.dataset.srcset) {
+                        img.srcset = img.dataset.srcset;
+                    }
+
+                    img.classList.add("loaded");
+                    observer.unobserve(img);
+                }
+            });
+        });
+
+        images.forEach(img => observer.observe(img));
+    });
+</script>

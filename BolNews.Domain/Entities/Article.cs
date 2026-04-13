@@ -16,6 +16,10 @@ namespace BolNews.Domain.Entities
         public string Content { get; set; }
 
         public string? FeaturedImageUrl { get; set; }
+        // Featured Images (Multi Size)
+        public string? FeaturedImageThumb { get; set; }
+        public string? FeaturedImageMedium { get; set; }
+        public string? FeaturedImageLarge { get; set; }
 
         public int CategoryId { get; set; }
         public Category Category { get; set; }

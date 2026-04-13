@@ -15,5 +15,6 @@ namespace BolNews.Application.Interfaces
 
         Task<ArticleDto?> GetByIdAsync(int id);
         Task<IEnumerable<ArticleDto>> GetAllAsync();
+        Task UpdateImagesAsync(int articleId, string thumb, string medium, string large);
     }
 }

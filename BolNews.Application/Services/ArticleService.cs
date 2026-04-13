@@ -86,7 +86,10 @@ namespace BolNews.Application.Services
                     Slug = x.Slug,
                     Summary = x.Summary,
                     Content = x.Content,
-                    FeaturedImageUrl = x.FeaturedImageUrl,
+                    FeaturedImageUrl = x.FeaturedImageLarge,
+                    FeaturedImageLarge= x.FeaturedImageLarge,
+                    FeaturedImageMedium = x.FeaturedImageMedium,
+                    FeaturedImageThumb = x.FeaturedImageThumb,
                     CategoryId = x.CategoryId,
                     AuthorId = x.AuthorId,
                     IsPublished = x.IsPublished,
@@ -109,7 +112,9 @@ namespace BolNews.Application.Services
                Summary = a.Summary,
                Content = a.Content,
                FeaturedImageUrl = a.FeaturedImageUrl,
-
+               FeaturedImageThumb= a.FeaturedImageThumb,
+               FeaturedImageMedium = a.FeaturedImageMedium,
+               FeaturedImageLarge = a.FeaturedImageLarge,
                AuthorId = a.AuthorId,
                CategoryId = a.CategoryId,
 
@@ -121,6 +126,18 @@ namespace BolNews.Application.Services
                CategoryName = a.Category.Name != null ? a.Category.Name : null
            })
            .ToListAsync();
+        }
+        public async Task UpdateImagesAsync(int id, string thumb, string medium, string large)
+        {
+            var article = await _context.Articles.FindAsync(id);
+            if (article != null)
+            {
+                article.FeaturedImageThumb = thumb;
+                article.FeaturedImageMedium = medium;
+                article.FeaturedImageLarge = large;
+
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

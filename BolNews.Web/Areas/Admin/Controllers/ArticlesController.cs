@@ -1,10 +1,15 @@
 ﻿using AutoMapper;
+using BolNews.Application.Common.Helpers;
 using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
+using BolNews.Infrastructure.Services;
 using BolNews.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Processing;
 
 namespace BolNews.Web.Areas.Admin.Controllers
 {
@@ -14,6 +19,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly IArticleService _articleService;
         private readonly ICategoryService _categoryService;
         private readonly IAuthorService _authorService;
+        private readonly IImageService _imageService;
         private readonly IWebHostEnvironment _env;
 
         private readonly IMapper _mapper;
@@ -22,13 +28,14 @@ namespace BolNews.Web.Areas.Admin.Controllers
              IArticleService articleService,
              ICategoryService categoryService,
              IAuthorService authorService,
-             IWebHostEnvironment env, IMapper mapper)
+             IWebHostEnvironment env, IMapper mapper, IImageService imageService)
         {
             _articleService = articleService;
             _categoryService = categoryService;
             _authorService = authorService;
             _env = env;
             _mapper = mapper;
+            _imageService = imageService;
         }
 
         // GET: Admin/Articles
@@ -62,8 +69,23 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 return View(model);
 
             var dto = _mapper.Map<ArticleDto>(model);
-            await _articleService.CreateAsync(dto);
+            //await _articleService.CreateAsync(dto);
+            var articleId = await _articleService.CreateAsync(dto);
+            if (model.ImageFile != null)
+            {
+                if (!ImageValidator.IsValid(model.ImageFile, out var error))
+                {
+                    ModelState.AddModelError("ImageFile", error);
+                    return View(model);
+                }
 
+                using var stream = model.ImageFile.OpenReadStream();
+
+                var (thumb, medium, large) =
+                    await _imageService.SaveArticleImagesAsync(stream, articleId, _env.WebRootPath);
+
+                await _articleService.UpdateImagesAsync(articleId, thumb, medium, large);
+            }
             return RedirectToAction(nameof(Index));
         }
 
@@ -85,14 +107,28 @@ namespace BolNews.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Edit(ArticleVM model)
         {
             if (!ModelState.IsValid)
-            {
-                await PopulateDropdowns(model.CategoryId, model.AuthorId);
                 return View(model);
-            }
-                
 
             var dto = _mapper.Map<ArticleDto>(model);
             await _articleService.UpdateAsync(dto);
+
+            if (model.ImageFile != null)
+            {
+                if (!ImageValidator.IsValid(model.ImageFile, out var error))
+                {
+                    ModelState.AddModelError("ImageFile", error);
+                    return View(model);
+                }
+
+                _imageService.DeleteArticleImages(model.Id, _env.WebRootPath);
+
+                using var stream = model.ImageFile.OpenReadStream();
+
+                var (thumb, medium, large) =
+                    await _imageService.SaveArticleImagesAsync(stream, model.Id, _env.WebRootPath);
+
+                await _articleService.UpdateImagesAsync(model.Id, thumb, medium, large);
+            }
 
             return RedirectToAction(nameof(Index));
         }
@@ -115,6 +151,44 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             var model = _mapper.Map<ArticleVM>(dto);
             return View(model);
+        }
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> UploadEditorImage(IFormFile upload)
+        {
+            try
+            {
+                if (upload == null || upload.Length == 0)
+                    return Json(new { error = new { message = "No file uploaded" } });
+
+                var folderPath = Path.Combine(_env.WebRootPath, "uploads", "articles", "content");
+
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+
+                var fileName = $"{Guid.NewGuid()}.webp";
+                var filePath = Path.Combine(folderPath, fileName);
+
+                using (var stream = upload.OpenReadStream())
+                using (var image = await Image.LoadAsync(stream))
+                {
+                    image.Mutate(x => x.Resize(new ResizeOptions
+                    {
+                        Size = new Size(500, 0),
+                        Mode = ResizeMode.Max
+                    }));
+                    await image.SaveAsync(filePath, new WebpEncoder { Quality = 75 });
+                }
+
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+                var url = $"{baseUrl}/uploads/articles/content/{fileName}";
+
+                return Json(new { url = url });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = new { message = ex.Message } });
+            }
         }
     }
 }

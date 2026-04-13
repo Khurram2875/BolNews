@@ -11,6 +11,11 @@
         public string Content { get; set; } = string.Empty;
 
         public string? FeaturedImageUrl { get; set; }
+        public string? FeaturedImageThumb { get; set; }
+        public string? FeaturedImageMedium { get; set; }
+        public string? FeaturedImageLarge { get; set; }
+
+        public IFormFile? ImageFile { get; set; } // 👈 
 
         public int CategoryId { get; set; }
         public int AuthorId { get; set; }
