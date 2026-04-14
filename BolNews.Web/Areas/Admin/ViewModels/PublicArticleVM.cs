@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BolNews.Domain.Entities.Base;
-
-namespace BolNews.Domain.Entities
+﻿namespace BolNews.Web.Areas.Admin.ViewModels
 {
-    public class Article : BaseEntity
+    public class PublicArticleVM
     {
         public string Title { get; set; }
-        // ✅ SEO Fields
         public string Slug { get; set; }
+
         public string MetaTitle { get; set; }
         public string MetaDescription { get; set; }
 
@@ -19,20 +12,15 @@ namespace BolNews.Domain.Entities
         public string Content { get; set; }
 
         public string? FeaturedImageUrl { get; set; }
-        // Featured Images (Multi Size)
         public string? FeaturedImageThumb { get; set; }
         public string? FeaturedImageMedium { get; set; }
         public string? FeaturedImageLarge { get; set; }
 
-        public int CategoryId { get; set; }
-        public Category Category { get; set; }
+        public string CategoryName { get; set; }
+        public string CategorySlug { get; set; }
 
-        public int AuthorId { get; set; }
-        public Author Author { get; set; }
+        public string AuthorName { get; set; }
 
-        public bool IsPublished { get; set; }
         public DateTime? PublishedAt { get; set; }
-
-        public int ViewCount { get; set; }
     }
 }

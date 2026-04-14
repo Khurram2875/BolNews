@@ -65,10 +65,30 @@ namespace BolNews.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ArticleVM model)
         {
-            if (!ModelState.IsValid)
-                return View(model);
 
+            if (!ModelState.IsValid)
+            {
+                var errorList = ModelState.Where(x => x.Value.Errors.Count > 0)
+                .Select(x => new {
+                    Property = x.Key,
+                    Errors = x.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                }).ToList();
+
+                foreach (var error in errorList)
+                {
+                    // Print to the Output window in Visual Studio
+                    Console.WriteLine($"Property: {error.Property}, Error: {string.Join(", ", error.Errors)}");
+                }
+                return View(model);
+            }
+                
+            var slug = await _articleService.GenerateUniqueSlugAsync(model.Title);
+            
             var dto = _mapper.Map<ArticleDto>(model);
+
+            dto.Slug = slug;
+            dto.MetaTitle = model.MetaTitle ?? model.Title;
+            dto.MetaDescription = model.MetaDescription;
             //await _articleService.CreateAsync(dto);
             var articleId = await _articleService.CreateAsync(dto);
             if (model.ImageFile != null)
@@ -108,9 +128,17 @@ namespace BolNews.Web.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
                 return View(model);
-
+            var existing = await _articleService.GetByIdAsync(model.Id);
             var dto = _mapper.Map<ArticleDto>(model);
-            await _articleService.UpdateAsync(dto);
+            if (existing.Title != model.Title)
+            {
+                dto.Slug = await _articleService.GenerateUniqueSlugAsync(model.Title);
+            }
+            else
+            {
+                dto.Slug = existing.Slug;
+            }
+                await _articleService.UpdateAsync(dto);
 
             if (model.ImageFile != null)
             {

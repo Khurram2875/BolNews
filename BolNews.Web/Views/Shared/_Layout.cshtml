@@ -1,23 +1,57 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - BolNews.Web</title>
+    <meta name="robots" content="index, follow" />
+    <!-- ✅ SEO -->
+    <title>@(ViewBag.MetaTitle ?? "Bol News")</title>
+    <meta name="description" content="@(ViewBag.MetaDescription ?? "Latest news from Bol News")" />
+    <link rel="canonical" href="@(ViewBag.CanonicalUrl ?? "")" />
+
+    <!-- ✅ Open Graph -->
+    <meta property="og:title" content="@(ViewBag.MetaTitle ?? "")" />
+    <meta property="og:description" content="@(ViewBag.MetaDescription ?? "")" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="@(ViewBag.CanonicalUrl ?? "")" />
+    <meta property="og:image" content="@(ViewBag.OgImage ?? "")" />
+
+    <!-- ✅ Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@(ViewBag.MetaTitle ?? "")" />
+    <meta name="twitter:description" content="@(ViewBag.MetaDescription ?? "")" />
+    <meta name="twitter:image" content="@(ViewBag.OgImage ?? "")" />
+
+    <!-- Styles -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BolNews.Web.styles.css" asp-append-version="true" />
+
+    @if (ViewBag.CategorySlug != null)
+    {
+        if (ViewBag.Page > 1)
+        {
+            <link rel="prev" href="/news/@ViewBag.CategorySlug?page=@(ViewBag.Page - 1)" />
+        }
+
+        if (ViewBag.HasNextPage == true)
+        {
+            <link rel="next" href="/news/@ViewBag.CategorySlug?page=@(ViewBag.Page + 1)" />
+        }
+    }
 </head>
+
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow mb-3 bg-white">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">BolNews.Web</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <div class="navbar-collapse d-sm-inline-flex justify-content-between collapse">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>

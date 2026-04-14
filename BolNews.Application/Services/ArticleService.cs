@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BolNews.Application.Common.Helpers;
 using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
 using BolNews.Domain.Entities;
@@ -29,6 +30,8 @@ namespace BolNews.Application.Services
                 Summary = dto.Summary,
                 Content = dto.Content,
                 FeaturedImageUrl = dto.FeaturedImageUrl,
+                MetaDescription = dto.MetaDescription,
+                MetaTitle = dto.MetaTitle,
                 CategoryId = dto.CategoryId,
                 AuthorId = dto.AuthorId,
                 IsPublished = dto.IsPublished,
@@ -52,6 +55,8 @@ namespace BolNews.Application.Services
             article.Slug = dto.Slug;
             article.Summary = dto.Summary;
             article.Content = dto.Content;
+            article.MetaTitle = dto.MetaTitle;
+            article.MetaDescription = dto.MetaDescription;
             article.FeaturedImageUrl = dto.FeaturedImageUrl;
             article.CategoryId = dto.CategoryId;
             article.AuthorId = dto.AuthorId;
@@ -86,6 +91,8 @@ namespace BolNews.Application.Services
                     Slug = x.Slug,
                     Summary = x.Summary,
                     Content = x.Content,
+                    MetaTitle = x.MetaTitle,
+                    MetaDescription=x.MetaDescription,
                     FeaturedImageUrl = x.FeaturedImageLarge,
                     FeaturedImageLarge= x.FeaturedImageLarge,
                     FeaturedImageMedium = x.FeaturedImageMedium,
@@ -138,6 +145,40 @@ namespace BolNews.Application.Services
 
                 await _context.SaveChangesAsync();
             }
+        }
+        public async Task<string> GenerateUniqueSlugAsync(string title)
+        {
+            var baseSlug = SlugHelper.GenerateSlug(title);
+            var slug = baseSlug;
+            int count = 1;
+
+            while (await _context.Articles.AnyAsync(a => a.Slug == slug))
+            {
+                slug = $"{baseSlug}-{count}";
+                count++;
+            }
+
+            return slug;
+        }
+        public async Task<Article> GetBySlugAsync(string slug)
+        {
+            return await _context.Articles
+                .Include(c=>c.Category)
+         .FirstOrDefaultAsync(a => a.Slug == slug && !a.IsDeleted);
+        }
+        public async Task<List<Article>> GetByCategorySlugAsync(string categorySlug, int page)
+        {
+            int pageSize = 10;
+
+            var article = await _context.Articles
+                .Include(a => a.Author)
+                .Include(a => a.Category)
+                .Where(a => a.Category.Slug == categorySlug && !a.IsDeleted)
+                .OrderByDescending(a => a.PublishedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+            return article;
         }
     }
 }

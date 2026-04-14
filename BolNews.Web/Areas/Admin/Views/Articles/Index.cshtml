@@ -48,11 +48,11 @@
                             {
                                 <img class="lazy-image"
                                      src="/images/placeholder.png"
-                                     data-src="@($"{article.FeaturedImageThumb}?v={DateTime.Now.Ticks}")"
+                                     data-src="@($"{article.FeaturedImageThumb}?v=@{article.Id}")"
                                      data-srcset="
-                                        @($"{article.FeaturedImageThumb}?v={DateTime.Now.Ticks}") 150w,
-                                        @($"{article.FeaturedImageMedium}?v={DateTime.Now.Ticks}") 400w,
-                                        @($"{article.FeaturedImageLarge}?v={DateTime.Now.Ticks}") 800w"
+                                                @($"{article.FeaturedImageThumb}?v=@{article.Id}") 150w,
+                                     @($"{article.FeaturedImageMedium}?v=@{article.Id}") 400w,
+                                                @($"{article.FeaturedImageLarge}?v=@{article.Id}") 800w"
                                      style="width:80px; height:80px; object-fit:cover;" />
                             }
                             else

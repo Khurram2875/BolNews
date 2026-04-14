@@ -27,6 +27,17 @@
             </div>
 
             <div class="mb-3">
+                <label>Meta Title</label>
+                <input asp-for="MetaTitle" class="form-control" />
+                <span asp-validation-for="MetaTitle" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label>Meta Description</label>
+                <textarea asp-for="MetaDescription" class="form-control"></textarea>
+            </div>
+
+            <div class="mb-3">
                 <label asp-for="Summary" class="form-label"></label>
                 <textarea asp-for="Summary" class="form-control" rows="3"></textarea>
                 <span asp-validation-for="Summary" class="text-danger"></span>

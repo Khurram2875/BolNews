@@ -1,4 +1,4 @@
-using BolNews.Application.Interfaces;
+﻿using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
 using BolNews.Infrastructure.Services;
 using BolNews.Persistence.Context;
@@ -40,12 +40,34 @@ app.UseRouting();
 
 app.UseAuthorization();
 
-//app.MapControllerRoute(
-//    name: "default",
-//    pattern: "{controller=Home}/{action=Index}/{id?}");
+// ✅ SEO Friendly Public Route
+app.MapControllerRoute(
+    name: "articleDetails",
+    pattern: "news/{categorySlug}/{slug}",
+    defaults: new { controller = "Article", action = "Details" }
+);
+
+// 2️⃣ LESS SPECIFIC AFTER
+app.MapControllerRoute(
+    name: "categoryListing",
+    pattern: "news/{categorySlug}",
+    defaults: new { controller = "Category", action = "Details" }
+);
+
+// ✅ Area Route (Admin)
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
 );
 
+// ✅ Default Route
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
+app.MapControllerRoute(
+    name: "sitemap",
+    pattern: "sitemap.xml",
+    defaults: new { controller = "Sitemap", action = "Index" }
+);
 app.Run();

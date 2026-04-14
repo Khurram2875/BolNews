@@ -13,6 +13,9 @@ namespace BolNews.Application.DTOs
         public string Title { get; set; }
         public string Slug { get; set; }
 
+        public string MetaTitle { get; set; }
+        public string MetaDescription { get; set; }
+
         public string Summary { get; set; }
         public string Content { get; set; }
 
@@ -23,10 +26,13 @@ namespace BolNews.Application.DTOs
 
         public int CategoryId { get; set; }
         public string? CategoryName { get; set; }
+        public string? CategorySlug { get; set; } // 🔥 ADD THIS
+
         public int AuthorId { get; set; }
         public string? AuthorName { get; set; }
 
         public bool IsPublished { get; set; }
         public DateTime? PublishedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
     }
 }

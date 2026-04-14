@@ -1,0 +1,101 @@
+﻿@using BolNews.Web.Areas.Admin.ViewModels
+@model PublicArticleVM
+
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+
+		<li class="breadcrumb-item">
+			<a href="/">Home</a>
+		</li>
+
+		<li class="breadcrumb-item">
+			<a href="/news">News</a>
+		</li>
+
+		<li class="breadcrumb-item">
+			<a href="/news/@Model.CategorySlug">
+				@Model.CategoryName
+			</a>
+		</li>
+
+		<li class="breadcrumb-item active" aria-current="page">
+			@Model.Title
+		</li>
+
+	</ol>
+</nav>
+<div class="= container">
+	<div class="row">
+
+		<div class="col-md-8">
+			<article class="container mt-4">
+
+				<h4 style="color:#C4161C">@Model.Title</h4>
+				<h6>@Model.MetaTitle</h6>
+
+				<img src="@Model.FeaturedImageLarge"
+					 alt="@Model.Title"
+					 class="img-fluid mb-3" />
+				<p style="font-weight:bold">@Model.Summary</p>
+				<div>
+					@Html.Raw(Model.Content)
+				</div>
+
+			</article>
+		</div>
+		<div class="col-md-4">
+
+		</div>
+	</div>
+</div>
+<script type="application/ld+json">
+	{
+	  "@@context": "https://schema.org",
+	  "@@type": "NewsArticle",
+	  "headline": "@Model.Title",
+	  "description": "@Model.MetaDescription",
+	  "image": "@(ViewBag.OgImage ?? Model.FeaturedImageLarge)",
+	  "author": {
+		"@@type": "Person",
+		"name": "@Model.AuthorName"
+	  },
+	  "datePublished": "@Model.PublishedAt?.ToString("yyyy-MM-ddTHH:mm:ssZ")",
+	  "dateModified": "@Model.PublishedAt?.ToString("yyyy-MM-ddTHH:mm:ssZ")",
+	  "mainEntityOfPage": {
+		"@@type": "WebPage",
+		"@@id": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news/{Model.CategorySlug}/{Model.Slug}")"
+	  }
+	}
+</script>
+<script type="application/ld+json">
+	{
+	  "@@context": "https://schema.org",
+	  "@@type": "BreadcrumbList",
+	  "itemListElement": [
+		{
+		  "@@type": "ListItem",
+		  "position": 1,
+		  "name": "Home",
+		  "item": "@($"{Context.Request.Scheme}://{Context.Request.Host}/")"
+		},
+		{
+		  "@@type": "ListItem",
+		  "position": 2,
+		  "name": "News",
+		  "item": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news")"
+		},
+		{
+		  "@@type": "ListItem",
+		  "position": 3,
+		  "name": "@Model.CategoryName",
+		  "item": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news/{Model.CategorySlug}")"
+		},
+		{
+		  "@@type": "ListItem",
+		  "position": 4,
+		  "name": "@Model.Title",
+		  "item": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news/{Model.CategorySlug}/{Model.Slug}")"
+		}
+	  ]
+	}
+</script>

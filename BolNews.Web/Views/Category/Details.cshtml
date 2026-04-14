@@ -1,0 +1,44 @@
+﻿<h1>@ViewBag.CategorySlug</h1>
+
+@foreach (var article in Model)
+{
+    <div>
+       @*  <a href="@Url.RouteUrl("articleDetails", new {
+                categorySlug = article.CategorySlug,
+                slug = article.Slug
+            })">
+            @article.Title
+        </a> *@
+       @*  <a href="/news/@article.CategorySlug/@article.Slug">
+            @article.Title
+        </a> *@
+        <a asp-route="articleDetails"
+           asp-route-categorySlug="@article.CategorySlug"
+           asp-route-slug="@article.Slug">
+            @article.Title
+        </a>
+    </div>
+}
+<div class="pagination">
+
+    @if (ViewBag.Page > 1)
+    {
+        <a href="/news/@ViewBag.CategorySlug?page=@(ViewBag.Page - 1)">Previous</a>
+    }
+
+    <span>Page @ViewBag.Page</span>
+
+    @if (Model.Count == ViewBag.PageSize)
+    {
+        <a href="/news/@ViewBag.CategorySlug?page=@(ViewBag.Page + 1)">Next</a>
+    }
+
+</div>
+<script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "CollectionPage",
+      "name": "@ViewBag.MetaTitle",
+      "url": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news/{ViewBag.CategorySlug}")"
+    }
+</script>

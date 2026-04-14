@@ -100,5 +100,16 @@ namespace BolNews.Application.Services
 
             await _context.SaveChangesAsync();
         }
+
+        public async Task<string> GetCategorySlug(int catId)
+        {
+            // Fix: Use FirstOrDefaultAsync to get a single string result asynchronously
+            var catSlug = await _context.Categories
+                .Where(x => x.Id == catId)
+                .Select(x => x.Slug)
+                .FirstOrDefaultAsync();
+
+            return catSlug;
+        }
     }
 }
