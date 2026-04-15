@@ -20,5 +20,6 @@ namespace BolNews.Application.Interfaces
         Task<string> GenerateUniqueSlugAsync(string title);
         Task<Article> GetBySlugAsync(string slug);
         Task<List<Article>> GetByCategorySlugAsync(string categorySlug, int page);
+        Task<List<Article>> GetRelatedArticlesAsync(int categoryId, int excludeArticleId, int count = 5);
     }
 }

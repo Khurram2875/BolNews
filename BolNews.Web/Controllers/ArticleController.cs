@@ -21,7 +21,11 @@ namespace BolNews.Web.Controllers
                 return NotFound();
 
             var article = await _articleService.GetBySlugAsync(slug);
-
+            var relatedArticles = await _articleService.GetRelatedArticlesAsync(
+                article.CategoryId,
+                article.Id,
+                5
+            );
             if (article == null || article.IsDeleted)
                 return NotFound();
 
@@ -37,7 +41,9 @@ namespace BolNews.Web.Controllers
 
             // ✅ Map to Public VM
             var vm = _mapper.Map<PublicArticleVM>(article);
+            var relatedVM = _mapper.Map<List<PublicArticleVM>>(relatedArticles);
 
+            ViewBag.RelatedArticles = relatedVM;
             // ✅ SEO
             ViewBag.MetaTitle = string.IsNullOrWhiteSpace(article.MetaTitle)
                 ? article.Title

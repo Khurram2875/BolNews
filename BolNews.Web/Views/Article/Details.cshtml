@@ -1,19 +1,19 @@
 ﻿@using BolNews.Web.Areas.Admin.ViewModels
 @model PublicArticleVM
 
-<nav aria-label="breadcrumb">
+<nav style="--bs-breadcrumb-divider: url(&#34;data:image /svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' %3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor' /%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
 	<ol class="breadcrumb">
-
+		
 		<li class="breadcrumb-item">
-			<a href="/">Home</a>
+			<a  href="/">Home</a>
+		</li>
+		
+		<li class="breadcrumb-item">
+			<a  href="/news">News</a>
 		</li>
 
 		<li class="breadcrumb-item">
-			<a href="/news">News</a>
-		</li>
-
-		<li class="breadcrumb-item">
-			<a href="/news/@Model.CategorySlug">
+			<a  href="/news/@Model.CategorySlug">
 				@Model.CategoryName
 			</a>
 		</li>
@@ -24,10 +24,11 @@
 
 	</ol>
 </nav>
+
 <div class="= container">
 	<div class="row">
 
-		<div class="col-md-8">
+		<div class="col-md-9">
 			<article class="container mt-4">
 
 				<h4 style="color:#C4161C">@Model.Title</h4>
@@ -43,10 +44,41 @@
 
 			</article>
 		</div>
-		<div class="col-md-4">
+		<div class="col-md-3">
 
 		</div>
 	</div>
+</div>
+<hr />
+
+<h3>Related Articles</h3>
+
+<div class="row">
+
+	@foreach (var item in (List<PublicArticleVM>)ViewBag.RelatedArticles)
+	{
+		<div class="col-md-3 mb-3">
+			<div class="card h-100">
+
+				@if (!string.IsNullOrEmpty(item.FeaturedImageThumb))
+				{
+					<img src="@item.FeaturedImageThumb"
+						 class="card-img-top"
+						 style="height:150px; object-fit:cover;" />
+				}
+
+				<div class="card-body">
+					<h6 class="card-title">
+						<a href="/news/@item.CategorySlug/@item.Slug">
+							@item.Title
+						</a>
+					</h6>
+				</div>
+
+			</div>
+		</div>
+	}
+
 </div>
 <script type="application/ld+json">
 	{

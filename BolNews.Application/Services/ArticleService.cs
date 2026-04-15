@@ -111,6 +111,7 @@ namespace BolNews.Application.Services
            .Include(a => a.Author)
            .Include(a => a.Category)
            .Where(a => !a.IsDeleted)
+            .OrderByDescending(x => x.CreatedAt)
            .Select(a => new ArticleDto
            {
                Id = a.Id,
@@ -132,6 +133,7 @@ namespace BolNews.Application.Services
                AuthorName = a.Author.Name != null ? a.Author.Name : null,
                CategoryName = a.Category.Name != null ? a.Category.Name : null
            })
+          
            .ToListAsync();
         }
         public async Task UpdateImagesAsync(int id, string thumb, string medium, string large)
@@ -179,6 +181,18 @@ namespace BolNews.Application.Services
                 .Take(pageSize)
                 .ToListAsync();
             return article;
+        }
+        public async Task<List<Article>> GetRelatedArticlesAsync(int categoryId, int excludeArticleId, int count = 5)
+        {
+            return await _context.Articles
+                .Include(a => a.Category)
+                .Where(a => a.CategoryId == categoryId
+                            && a.Id != excludeArticleId
+                            && a.IsPublished
+                            && !a.IsDeleted)
+                .OrderByDescending(a => a.PublishedAt)
+                .Take(count)
+                .ToListAsync();
         }
     }
 }
