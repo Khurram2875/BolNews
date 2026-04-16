@@ -21,11 +21,7 @@ namespace BolNews.Web.Controllers
                 return NotFound();
 
             var article = await _articleService.GetBySlugAsync(slug);
-            var relatedArticles = await _articleService.GetRelatedArticlesAsync(
-                article.CategoryId,
-                article.Id,
-                5
-            );
+           
             if (article == null || article.IsDeleted)
                 return NotFound();
 
@@ -40,10 +36,20 @@ namespace BolNews.Web.Controllers
             }
 
             // ✅ Map to Public VM
-            var vm = _mapper.Map<PublicArticleVM>(article);
+            var articleVM = _mapper.Map<PublicArticleVM>(article);
+            var relatedArticles = await _articleService.GetRelatedArticlesAsync(
+               article.CategoryId,
+               article.Id,
+               5
+           );
             var relatedVM = _mapper.Map<List<PublicArticleVM>>(relatedArticles);
+            var pageVM = new ArticleDetailsPageVM
+            {
+                Article = articleVM,
+                RelatedArticles = relatedVM
+            };
 
-            ViewBag.RelatedArticles = relatedVM;
+            
             // ✅ SEO
             ViewBag.MetaTitle = string.IsNullOrWhiteSpace(article.MetaTitle)
                 ? article.Title
@@ -57,7 +63,7 @@ namespace BolNews.Web.Controllers
             ViewBag.CategoryName = article.Category?.Name;
             ViewBag.CategorySlug = article.Category?.Slug;
 
-            return View(vm);
+            return View(pageVM);
         }
     }
 }

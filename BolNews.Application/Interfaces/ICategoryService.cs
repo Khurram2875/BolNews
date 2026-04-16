@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BolNews.Application.DTOs;
+using BolNews.Domain.Entities;
 
 namespace BolNews.Application.Interfaces
 {
@@ -15,5 +16,8 @@ namespace BolNews.Application.Interfaces
         Task<CategoryDto> UpdateAsync(CategoryDto dto);
         Task DeleteAsync(int id);
         Task<string> GetCategorySlug(int categoryId);
+        Task<Category> GetBySlugAsync(string slug);
+        Task<List<Category>> GetAllAsyncNew();
+        Task<List<Category>> GetHomeCategoriesAsync();
     }
 }

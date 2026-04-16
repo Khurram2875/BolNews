@@ -1,0 +1,11 @@
+﻿namespace BolNews.Web.Areas.Admin.ViewModels
+{
+    public class HomePageVM
+    {
+        public PublicArticleVM? TopStory { get; set; }
+
+        public List<PublicArticleVM> SecondaryStories { get; set; } = new();
+
+        public List<CategorySectionVM> CategorySections { get; set; } = new();
+    }
+}

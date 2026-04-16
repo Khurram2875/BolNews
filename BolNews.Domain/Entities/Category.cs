@@ -12,6 +12,13 @@ namespace BolNews.Domain.Entities
         public string Name { get; set; }
         public string Slug { get; set; }
 
+        // 🔥 NEW SEO FIELDS
+        public string? MetaTitle { get; set; }
+        public string? MetaDescription { get; set; }
+
+        // Optional (future SEO content)
+        public string? Description { get; set; }
+
         public int? ParentCategoryId { get; set; }
         public Category? ParentCategory { get; set; }
 

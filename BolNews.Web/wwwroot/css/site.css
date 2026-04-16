@@ -23,3 +23,105 @@ body {
 .bg-dark-red {
     background-color: #950606 !important;
 }
+/*breaking ticker*/
+/* ?? BREAKING NEWS BAR */
+.breaking-news-bar {
+    display: flex;
+    align-items: center;
+    background: #111;
+    color: #fff;
+    padding: 8px 12px;
+    overflow: hidden;
+    border-bottom: 2px solid #e60023;
+    font-size: 14px;
+}
+
+    /* ?? BREAKING LABEL */
+    .breaking-news-bar .badge {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        padding: 6px 10px;
+    }
+
+/* ?? TICKER WRAPPER */
+.ticker-wrapper {
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+
+/* ?? TICKER CONTENT */
+.ticker {
+    display: inline-block;
+    white-space: nowrap;
+    padding-left: 100%;
+    animation: ticker-scroll 75s linear infinite;
+}
+
+    /* ?? INDIVIDUAL ITEM */
+    .ticker span {
+        display: inline-block;
+        margin-right: 40px;
+    }
+
+    /* ?? LINKS */
+    .ticker a {
+        color: #fff;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .ticker a:hover {
+            color: #ffcc00;
+            text-decoration: underline;
+        }
+
+/* ? SMOOTH SCROLL ANIMATION */
+@keyframes ticker-scroll {
+    0% {
+        transform: translateX(0%);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+/* ?? PAUSE ON HOVER */
+.ticker:hover {
+    animation-play-state: paused;
+}
+
+/* ?? RESPONSIVE */
+@media (max-width: 768px) {
+    .breaking-news-bar {
+        font-size: 12px;
+        padding: 6px 8px;
+    }
+
+    .ticker span {
+        margin-right: 25px;
+    }
+}
+
+/* ? OPTIONAL: FADE EDGES (PRO LOOK) */
+.ticker-wrapper::before,
+.ticker-wrapper::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 40px;
+    height: 100%;
+    z-index: 2;
+}
+
+.ticker-wrapper::before {
+    left: 0;
+    background: linear-gradient(to right, #111, transparent);
+}
+
+.ticker-wrapper::after {
+    right: 0;
+    background: linear-gradient(to left, #111, transparent);
+}

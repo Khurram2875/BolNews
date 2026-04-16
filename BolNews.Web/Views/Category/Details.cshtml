@@ -1,5 +1,10 @@
 ﻿<h1>@ViewBag.CategorySlug</h1>
-
+@if (!string.IsNullOrEmpty(ViewBag.CategoryDescription))
+{
+    <div class="mb-4">
+        @Html.Raw(ViewBag.CategoryDescription)
+    </div>
+}
 @foreach (var article in Model)
 {
     <div>

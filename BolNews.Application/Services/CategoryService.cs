@@ -111,5 +111,20 @@ namespace BolNews.Application.Services
 
             return catSlug;
         }
+        public async Task<Category> GetBySlugAsync(string slug)
+        {
+            return await _context.Categories
+                .FirstOrDefaultAsync(c => c.Slug == slug);
+        }
+        public async Task<List<Category>> GetAllAsyncNew()
+        {
+            return await _context.Categories.ToListAsync();
+        }
+        public async Task<List<Category>> GetHomeCategoriesAsync()
+        {
+            return await _context.Categories
+                .Where(c => c.ParentCategoryId == null) // only main categories
+                .ToListAsync();
+        }
     }
 }

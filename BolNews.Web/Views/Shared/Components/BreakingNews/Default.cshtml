@@ -1,0 +1,29 @@
+﻿<div class="breaking-news-bar">
+
+    <span class="badge bg-danger me-2">HEADLINES</span>
+
+    <div class="ticker-wrapper">
+        <div class="ticker">
+
+            @foreach (var item in Model)
+            {
+                <span class="d-inline-flex align-items-center me-4">
+                    <span class="badge rounded-circle bg-danger ms-1 p-1" style="width: 8px; height: 8px;">
+                       @*  <span class="visually-hidden">New post</span> *@
+                    </span>
+                    <a href="/news/@item.CategorySlug/@item.Slug" class="text-decoration-none">
+                        @item.Title
+                    </a>
+                   
+                </span>
+                @* <span class="me-4">
+                    <a href="/news/@item.CategorySlug/@item.Slug">
+                        @item.Title
+                    </a>
+                </span> *@
+            }
+
+        </div>
+    </div>
+
+</div>

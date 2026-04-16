@@ -1,8 +1,128 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿@using BolNews.Web.Areas.Admin.ViewModels
+@model HomePageVM
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@{
+    ViewData["Title"] = "Home";
+}
+<style>
+    .card {
+        border-radius: 10px;
+    }
+
+        .card:hover {
+            transform: translateY(-3px);
+            transition: 0.2s;
+        }
+
+    h4.text-danger {
+        font-weight: 600;
+    }
+</style>
+<div class="container mt-4">
+    <div class="row">
+
+        <!-- 🟢 LEFT SIDEBAR (Latest) -->
+        <div class="col-md-3" style="border-right:solid; border-width:thin;">
+            <div class="container-fluid" style="border-top:solid; border-bottom:solid;border-width:thin; align-items:center;height: 40px;padding-top:05px">
+                <h5 class="fw-bold mb-4 text-center">Latest</h5>
+            </div>
+            
+          
+            @await Component.InvokeAsync("LatestNews", new { count = 6 })
+
+        </div>
+
+        <!-- 🔴 CENTER CONTENT -->
+        <div class="col-md-6">
+            <div class="container-fluid mb-2" style="background-color:red; color:white; display:flex; align-items:center; height: 40px; padding-left: 15px;">
+                <h5 class="fw-bold m-0">Top Stories</h5>
+            </div>
+            <!-- 🔥 TOP STORY -->
+            @if (Model.TopStory != null)
+            {
+                <div class="card mb-4 shadow-sm">
+                    
+
+                    <a href="/news/@Model.TopStory.CategorySlug/@Model.TopStory.Slug">
+                        <img src="@Model.TopStory.FeaturedImageLarge"
+                             style="width:100%; height:350px; object-fit:cover;" />
+                    </a>
+
+                    <div class="card-body text-center">
+                        <h5 class="text-danger">
+                            @Model.TopStory.Title
+                        </h5>
+                        <p>@Model.TopStory.MetaTitle</p>
+                    </div>
+                </div>
+            }
+
+            <!-- 🔥 SECONDARY STORIES (2 GRID) -->
+            <div class="row" >
+                @foreach (var item in Model.SecondaryStories)
+                {
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+
+                            <img src="@item.FeaturedImageThumb"
+                                 style="height:150px; object-fit:cover;" />
+
+                            <div class="card-body">
+                                <a href="/news/@item.CategorySlug/@item.Slug"
+                                   class="text-dark text-decoration-none">
+                                    <h6>@item.Title</h6>
+                                </a>
+                                <small class="text-muted">@item.TimeAgo</small>
+                            </div>
+
+                        </div>
+                    </div>
+                }
+            </div>
+
+        </div>
+
+        <!-- 🔵 RIGHT SIDEBAR -->
+        <div class="col-md-3" style="border-left:solid; border-width:thin;">
+
+            <!-- Discover More -->
+            <div class="card mb-3">
+                <div class="card-header">Discover more</div>
+                <div class="card-body">
+                    <p>Oil consumption monitors</p>
+                    <p>Live news streaming</p>
+                    <p>Home organization products</p>
+                </div>
+            </div>
+
+            <!-- Featured -->
+            <div class="card">
+                <div class="card-header">Featured</div>
+
+                <div class="card-body">
+                    @foreach (var item in Model.SecondaryStories.Take(3))
+                    {
+                        <div class="d-flex mb-3">
+
+                            <img src="@item.FeaturedImageThumb"
+                                 style="width:80px; height:60px; object-fit:cover;" />
+
+                            <div class="ms-2">
+                                <a href="/news/@item.CategorySlug/@item.Slug">
+                                    @item.Title
+                                </a>
+                                <div class="text-muted small">
+                                    @item.TimeAgo
+                                </div>
+                            </div>
+
+                        </div>
+                    }
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
 </div>

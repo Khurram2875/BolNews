@@ -1,5 +1,5 @@
 ﻿@using BolNews.Web.Areas.Admin.ViewModels
-@model PublicArticleVM
+@model ArticleDetailsPageVM
 
 <nav style="--bs-breadcrumb-divider: url(&#34;data:image /svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' %3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor' /%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
 	<ol class="breadcrumb">
@@ -13,13 +13,13 @@
 		</li>
 
 		<li class="breadcrumb-item">
-			<a  href="/news/@Model.CategorySlug">
-				@Model.CategoryName
+			<a  href="/news/@Model.Article.CategorySlug">
+				@Model.Article.CategoryName
 			</a>
 		</li>
 
 		<li class="breadcrumb-item active" aria-current="page">
-			@Model.Title
+			@Model.Article.Title
 		</li>
 
 	</ol>
@@ -28,24 +28,24 @@
 <div class="= container">
 	<div class="row">
 
-		<div class="col-md-9">
+		<div class="col-md-8">
 			<article class="container mt-4">
 
-				<h4 style="color:#C4161C">@Model.Title</h4>
-				<h6>@Model.MetaTitle</h6>
+				<h4 style="color:#C4161C">@Model.Article.Title</h4>
+				<h6>@Model.Article.MetaTitle</h6>
 
-				<img src="@Model.FeaturedImageLarge"
-					 alt="@Model.Title"
+				<img src="@Model.Article.FeaturedImageLarge"
+					 alt="@Model.Article.Title"
 					 class="img-fluid mb-3" />
-				<p style="font-weight:bold">@Model.Summary</p>
+				<p style="font-weight:bold">@Model.Article.Summary</p>
 				<div>
-					@Html.Raw(Model.Content)
+					@Html.Raw(Model.Article.Content)
 				</div>
 
 			</article>
 		</div>
-		<div class="col-md-3">
-
+		<div class="col-md-4">
+			@await Component.InvokeAsync("LatestNews", new { count = 8 })
 		</div>
 	</div>
 </div>
@@ -54,48 +54,50 @@
 <h3>Related Articles</h3>
 
 <div class="row">
-
-	@foreach (var item in (List<PublicArticleVM>)ViewBag.RelatedArticles)
+	@foreach (var item in Model.RelatedArticles)
 	{
 		<div class="col-md-3 mb-3">
-			<div class="card h-100">
+			<div class="card h-100 shadow-sm">
 
-				@if (!string.IsNullOrEmpty(item.FeaturedImageThumb))
-				{
+				<a href="/news/@item.CategorySlug/@item.Slug">
 					<img src="@item.FeaturedImageThumb"
 						 class="card-img-top"
-						 style="height:150px; object-fit:cover;" />
-				}
+						 style="height:160px; object-fit:cover;" />
+				</a>
 
 				<div class="card-body">
-					<h6 class="card-title">
-						<a href="/news/@item.CategorySlug/@item.Slug">
+					<h6>
+						<a href="/news/@item.CategorySlug/@item.Slug" class="text-dark">
 							@item.Title
 						</a>
 					</h6>
+
+					<small class="text-muted">
+						@item.TimeAgo (@item.PublishedAt?.ToString("dd MMM yyyy"))
+					@* 	@item.PublishedAt?.ToString("dd MMM yyyy") *@
+					</small>
 				</div>
 
 			</div>
 		</div>
 	}
-
 </div>
 <script type="application/ld+json">
 	{
 	  "@@context": "https://schema.org",
 	  "@@type": "NewsArticle",
-	  "headline": "@Model.Title",
-	  "description": "@Model.MetaDescription",
-	  "image": "@(ViewBag.OgImage ?? Model.FeaturedImageLarge)",
+	  "headline": "@Model.Article.Title",
+	  "description": "@Model.Article.MetaDescription",
+	  "image": "@(ViewBag.OgImage ?? Model.Article.FeaturedImageLarge)",
 	  "author": {
 		"@@type": "Person",
-		"name": "@Model.AuthorName"
+		"name": "@Model.Article.AuthorName"
 	  },
-	  "datePublished": "@Model.PublishedAt?.ToString("yyyy-MM-ddTHH:mm:ssZ")",
-	  "dateModified": "@Model.PublishedAt?.ToString("yyyy-MM-ddTHH:mm:ssZ")",
+	  "datePublished": "@Model.Article.PublishedAt?.ToString("yyyy-MM-ddTHH:mm:ssZ")",
+	  "dateModified": "@Model.Article.PublishedAt?.ToString("yyyy-MM-ddTHH:mm:ssZ")",
 	  "mainEntityOfPage": {
 		"@@type": "WebPage",
-		"@@id": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news/{Model.CategorySlug}/{Model.Slug}")"
+		"@@id": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news/{Model.Article.CategorySlug}/{Model.Article.Slug}")"
 	  }
 	}
 </script>
@@ -119,14 +121,14 @@
 		{
 		  "@@type": "ListItem",
 		  "position": 3,
-		  "name": "@Model.CategoryName",
-		  "item": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news/{Model.CategorySlug}")"
+		  "name": "@Model.Article.CategoryName",
+		  "item": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news/{Model.Article.CategorySlug}")"
 		},
 		{
 		  "@@type": "ListItem",
 		  "position": 4,
-		  "name": "@Model.Title",
-		  "item": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news/{Model.CategorySlug}/{Model.Slug}")"
+		  "name": "@Model.Article.Title",
+		  "item": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news/{Model.Article.CategorySlug}/{Model.Article.Slug}")"
 		}
 	  ]
 	}

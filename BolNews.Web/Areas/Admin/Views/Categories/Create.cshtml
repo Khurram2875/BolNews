@@ -16,7 +16,20 @@
         <label>Slug</label>
         <input asp-for="Slug" class="form-control" />
     </div>
+    <div class="mb-3">
+        <label>Meta Title</label>
+        <input asp-for="MetaTitle" class="form-control" />
+    </div>
 
+    <div class="mb-3">
+        <label>Meta Description</label>
+        <textarea asp-for="MetaDescription" class="form-control"></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label>Description (Optional SEO Content)</label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
     <div class="mb-3">
         <label>Parent Category</label>
         <select asp-for="ParentCategoryId" class="form-select" asp-items="ViewBag.ParentCategories">

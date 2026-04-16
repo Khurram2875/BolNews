@@ -9,16 +9,19 @@ using BolNews.Application.Interfaces;
 using BolNews.Domain.Entities;
 using BolNews.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BolNews.Application.Services
 {
     public class ArticleService : IArticleService
     {
         private readonly AppDbContext _context;
+        private readonly IMemoryCache _cache;
 
-        public ArticleService(AppDbContext context)
+        public ArticleService(AppDbContext context, IMemoryCache cache)
         {
             _context = context;
+            _cache = cache;
         }
 
         public async Task<int> CreateAsync(ArticleDto dto)
@@ -184,12 +187,91 @@ namespace BolNews.Application.Services
         }
         public async Task<List<Article>> GetRelatedArticlesAsync(int categoryId, int excludeArticleId, int count = 5)
         {
-            return await _context.Articles
+            string cacheKey = $"related_{categoryId}_{excludeArticleId}";
+
+            if (_cache.TryGetValue(cacheKey, out List<Article> cached))
+                return cached;
+
+            var articles = await _context.Articles
                 .Include(a => a.Category)
                 .Where(a => a.CategoryId == categoryId
                             && a.Id != excludeArticleId
                             && a.IsPublished
                             && !a.IsDeleted)
+                .OrderByDescending(a => a.PublishedAt)
+                .Take(count)
+                .ToListAsync();
+
+            _cache.Set(cacheKey, articles, TimeSpan.FromMinutes(5));
+
+            return articles;
+        }
+        public async Task<List<Article>> GetLatestArticlesAsync(int count = 8)
+        {
+            return await _context.Articles
+                .Include(a => a.Category)
+                .Where(a => a.IsPublished && !a.IsDeleted)
+                .OrderByDescending(a => a.PublishedAt)
+                .Take(count)
+                .ToListAsync();
+        }
+        public async Task<List<Article>> GetAllPublishedAsync()
+        {
+            return await _context.Articles
+                .Include(a => a.Category)
+                .Where(a => a.IsPublished && !a.IsDeleted)
+                .ToListAsync();
+        }
+        public async Task<Article?> GetTopStoryAsync()
+        {
+            return await _context.Articles
+                .Include(a => a.Category)
+                .Where(a => a.IsPublished && !a.IsDeleted)
+                .OrderByDescending(a => a.PublishedAt)
+                .FirstOrDefaultAsync();
+        }
+        public async Task<List<Article>> GetSecondaryStoriesAsync(int count = 4)
+        {
+            return await _context.Articles
+                .Include(a => a.Category)
+                .Where(a => a.IsPublished && !a.IsDeleted)
+                .OrderByDescending(a => a.PublishedAt)
+                .Skip(1)
+                .Take(count)
+                .ToListAsync();
+        }
+        
+
+        public async Task<List<Article>> GetArticlesByCategoryAsync(int categoryId, int count = 5)
+        {
+            return await _context.Articles
+                .Include(a => a.Category)
+                .Where(a => a.CategoryId == categoryId
+                            && a.IsPublished
+                            && !a.IsDeleted)
+                .OrderByDescending(a => a.PublishedAt)
+                .Take(count)
+                .ToListAsync();
+        }
+        public async Task<Dictionary<int, List<Article>>> GetArticlesForCategoriesAsync(List<int> categoryIds, int count)
+        {
+            var articles = await _context.Articles
+                .Include(a => a.Category)
+                .Where(a => categoryIds.Contains(a.CategoryId)
+                            && a.IsPublished
+                            && !a.IsDeleted)
+                .OrderByDescending(a => a.PublishedAt)
+                .ToListAsync();
+
+            return articles
+                .GroupBy(a => a.CategoryId)
+                .ToDictionary(g => g.Key, g => g.Take(count).ToList());
+        }
+        public async Task<List<Article>> GetBreakingNewsAsync(int count = 5)
+        {
+            return await _context.Articles
+                .Include(a => a.Category)
+                .Where(a => a.IsPublished && !a.IsDeleted)
                 .OrderByDescending(a => a.PublishedAt)
                 .Take(count)
                 .ToListAsync();
