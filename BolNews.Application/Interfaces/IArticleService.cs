@@ -29,5 +29,6 @@ namespace BolNews.Application.Interfaces
         Task<List<Article>> GetArticlesByCategoryAsync(int categoryId, int count = 5);
         Task<Dictionary<int, List<Article>>> GetArticlesForCategoriesAsync(List<int> categoryIds, int count);
         Task<List<Article>> GetBreakingNewsAsync(int count = 5);
+        Task<List<Article>> SearchAsync(string query, int page, int pageSize);
     }
 }

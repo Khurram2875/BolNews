@@ -59,6 +59,13 @@ app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
 );
+// ✅ Search Route
+
+app.MapControllerRoute(
+    name: "search",
+    pattern: "search",
+    defaults: new { controller = "Search", action = "Index" }
+);
 
 // ✅ Default Route
 app.MapControllerRoute(

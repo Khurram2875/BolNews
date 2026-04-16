@@ -1,0 +1,65 @@
+﻿@using BolNews.Web.Areas.Admin.ViewModels
+@model List<PublicArticleVM>
+
+@{
+    ViewData["Title"] = "Search";
+}
+
+<div class="container mt-4">
+
+    <h4 class="mb-4">
+        Search Results for "@ViewBag.Query"
+    </h4>
+
+    @if (!Model.Any())
+    {
+        <p>No results found.</p>
+    }
+    else
+    {
+        foreach (var item in Model)
+        {
+            <div class="row border-bottom mb-3 pb-3">
+
+                <div class="col-md-3">
+                    <img src="@item.FeaturedImageThumb"
+                         style="width:100%; height:120px; object-fit:cover;" />
+                </div>
+
+                <div class="col-md-9">
+
+                    <a href="/news/@item.CategorySlug/@item.Slug"
+                       class="text-dark text-decoration-none">
+                        <h5>@item.Title</h5>
+                    </a>
+
+                    <p class="text-muted">@item.Summary</p>
+
+                    <small>@item.TimeAgo</small>
+
+                </div>
+
+            </div>
+        }
+    }
+
+    <!-- 🔁 Pagination -->
+    <div class="d-flex justify-content-between mt-4">
+
+        @if (ViewBag.CurrentPage > 1)
+        {
+            <a href="/search?q=@ViewBag.Query&page=@(ViewBag.CurrentPage - 1)">
+                ← Previous
+            </a>
+        }
+
+        @if (ViewBag.HasNextPage)
+        {
+            <a href="/search?q=@ViewBag.Query&page=@(ViewBag.CurrentPage + 1)">
+                Next →
+            </a>
+        }
+
+    </div>
+
+</div>

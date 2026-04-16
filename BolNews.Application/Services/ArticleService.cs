@@ -276,5 +276,23 @@ namespace BolNews.Application.Services
                 .Take(count)
                 .ToListAsync();
         }
+        public async Task<List<Article>> SearchAsync(string query, int page, int pageSize)
+        {
+            var normalized = query.Trim().ToLower();
+
+            return await _context.Articles
+                .Include(a => a.Category)
+                .Where(a =>
+                    a.IsPublished &&
+                    !a.IsDeleted &&
+                    (
+                        a.Title.ToLower().Contains(normalized) ||
+                        a.Content.ToLower().Contains(normalized)
+                    ))
+                .OrderByDescending(a => a.PublishedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
     }
 }
