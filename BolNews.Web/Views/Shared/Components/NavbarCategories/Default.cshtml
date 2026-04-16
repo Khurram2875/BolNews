@@ -1,0 +1,50 @@
+﻿@using BolNews.Domain.Entities
+@model List<Category>
+
+<ul class="navbar-nav mb-lg-0 mb-2 me-auto">
+
+    <!-- Home -->
+    <li class="nav-item">
+        <a class="nav-link" href="/">Home</a>
+    </li>
+
+    @foreach (var parent in Model)
+    {
+        if (parent.SubCategories != null && parent.SubCategories.Any())
+        {
+            <!-- 🔽 Dropdown -->
+            <li class="nav-item dropdown">
+
+                <a class="nav-link dropdown-toggle"
+                   href="/news/@parent.Slug"
+                   data-bs-toggle="dropdown">
+                    @parent.Name
+                </a>
+
+                <ul class="dropdown-menu">
+
+                    @foreach (var child in parent.SubCategories)
+                    {
+                        <li>
+                            <a class="dropdown-item"
+                               href="/news/@child.Slug">
+                                @child.Name
+                            </a>
+                        </li>
+                    }
+
+                </ul>
+            </li>
+        }
+        else
+        {
+            <!-- 🔹 Simple Link -->
+            <li class="nav-item">
+                <a class="nav-link" href="/news/@parent.Slug">
+                    @parent.Name
+                </a>
+            </li>
+        }
+    }
+
+</ul>

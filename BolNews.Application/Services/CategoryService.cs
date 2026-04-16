@@ -126,5 +126,20 @@ namespace BolNews.Application.Services
                 .Where(c => c.ParentCategoryId == null) // only main categories
                 .ToListAsync();
         }
+        public async Task<List<Category>> GetParentCategoriesAsync()
+        {
+            return await _context.Categories
+                .Where(c => c.ParentCategoryId == null)
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+        }
+        public async Task<List<Category>> GetParentCategoriesWithChildrenAsync()
+        {
+            return await _context.Categories
+                .Where(c => c.ParentCategoryId == null)
+                .Include(c => c.SubCategories) // IMPORTANT
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+        }
     }
 }

@@ -19,5 +19,7 @@ namespace BolNews.Application.Interfaces
         Task<Category> GetBySlugAsync(string slug);
         Task<List<Category>> GetAllAsyncNew();
         Task<List<Category>> GetHomeCategoriesAsync();
+        Task<List<Category>> GetParentCategoriesAsync();
+        Task<List<Category>> GetParentCategoriesWithChildrenAsync();
     }
 }

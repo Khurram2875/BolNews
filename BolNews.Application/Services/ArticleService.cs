@@ -185,6 +185,7 @@ namespace BolNews.Application.Services
                 .ToListAsync();
             return article;
         }
+
         public async Task<List<Article>> GetRelatedArticlesAsync(int categoryId, int excludeArticleId, int count = 5)
         {
             string cacheKey = $"related_{categoryId}_{excludeArticleId}";
