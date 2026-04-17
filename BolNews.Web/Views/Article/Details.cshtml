@@ -1,5 +1,9 @@
 ﻿@using BolNews.Web.Areas.Admin.ViewModels
+@using System.Text.Json
+@using BolNews.Web.SEO
+
 @model ArticleDetailsPageVM
+
 
 <nav style="--bs-breadcrumb-divider: url(&#34;data:image /svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' %3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor' /%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
 	<ol class="breadcrumb">
@@ -82,8 +86,14 @@
 		</div>
 	}
 </div>
+@{
+	var baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
+	var newsSchema = StructuredDataBuilder.BuildNewsArticle(Model.Article, baseUrl);
+	var breadcrumbSchema = StructuredDataBuilder.BuildBreadcrumb(Model.Article, baseUrl);
+}
 <script type="application/ld+json">
-	{
+	@Html.Raw(JsonSerializer.Serialize(newsSchema))
+	@* {
 	  "@@context": "https://schema.org",
 	  "@@type": "NewsArticle",
 	  "headline": "@Model.Article.Title",
@@ -99,10 +109,11 @@
 		"@@type": "WebPage",
 		"@@id": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news/{Model.Article.CategorySlug}/{Model.Article.Slug}")"
 	  }
-	}
+	} *@
 </script>
 <script type="application/ld+json">
-	{
+	@Html.Raw(JsonSerializer.Serialize(breadcrumbSchema))
+	@* {
 	  "@@context": "https://schema.org",
 	  "@@type": "BreadcrumbList",
 	  "itemListElement": [
@@ -131,5 +142,5 @@
 		  "item": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news/{Model.Article.CategorySlug}/{Model.Article.Slug}")"
 		}
 	  ]
-	}
+	} *@
 </script>

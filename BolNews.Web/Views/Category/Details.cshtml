@@ -1,49 +1,73 @@
-﻿<h1>@ViewBag.CategorySlug</h1>
-@if (!string.IsNullOrEmpty(ViewBag.CategoryDescription))
-{
-    <div class="mb-4">
-        @Html.Raw(ViewBag.CategoryDescription)
-    </div>
-}
-@foreach (var article in Model)
-{
-    <div>
-       @*  <a href="@Url.RouteUrl("articleDetails", new {
-                categorySlug = article.CategorySlug,
-                slug = article.Slug
-            })">
-            @article.Title
-        </a> *@
-       @*  <a href="/news/@article.CategorySlug/@article.Slug">
-            @article.Title
-        </a> *@
-        <a asp-route="articleDetails"
-           asp-route-categorySlug="@article.CategorySlug"
-           asp-route-slug="@article.Slug">
-            @article.Title
-        </a>
-    </div>
-}
-<div class="pagination">
+﻿@model CategorySectionVM
+<div class="container mt-4">
+	<div class="row">
 
-    @if (ViewBag.Page > 1)
-    {
-        <a href="/news/@ViewBag.CategorySlug?page=@(ViewBag.Page - 1)">Previous</a>
-    }
+		<!-- 🟢 LEFT SIDEBAR (Latest) -->
+		<div class="col-md-3" style="border-right:solid; border-width:thin;">
+			@await Component.InvokeAsync("LatestNews", new { count = 6 })
+		</div>
 
-    <span>Page @ViewBag.Page</span>
+		<div class="col-md-6">
+			@if (!string.IsNullOrEmpty(ViewBag.CategoryDescription))
+			{
+				<div class="mb-4">
+					@Html.Raw(ViewBag.CategoryDescription)
+				</div>
+			}
 
-    @if (Model.Count == ViewBag.PageSize)
-    {
-        <a href="/news/@ViewBag.CategorySlug?page=@(ViewBag.Page + 1)">Next</a>
-    }
+			<h1>@ViewBag.CategorySlug</h1>
+			@foreach (var article in Model.Articles)
+			{
+				<div>
 
+					<a asp-route="articleDetails"
+					   asp-route-categorySlug="@article.CategorySlug"
+					   asp-route-slug="@article.Slug">
+						@article.Title
+					</a>
+				</div>
+			}
+			<div class="pagination">
+
+				@if (ViewBag.Page > 1)
+				{
+					<a href="/news/@ViewBag.CategorySlug?page=@(ViewBag.Page - 1)">Previous</a>
+				}
+
+				<span>Page @ViewBag.Page</span>
+
+				@if (Model.Articles.Count == ViewBag.PageSize)
+				{
+					<a href="/news/@ViewBag.CategorySlug?page=@(ViewBag.Page + 1)">Next</a>
+				}
+
+			</div>
+		</div>
+		<div class="col-md-3">
+			@await Component.InvokeAsync("TrendingNews",
+			new { type = Context.Request.Query["type"].ToString() })
+		</div>
+	</div>
 </div>
-<script type="application/ld+json">
-    {
-      "@@context": "https://schema.org",
-      "@@type": "CollectionPage",
-      "name": "@ViewBag.MetaTitle",
-      "url": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news/{ViewBag.CategorySlug}")"
-    }
-</script>
+@using System.Text.Json
+@using BolNews.Web.Areas.Admin.ViewModels
+@using BolNews.Web.SEO
+
+@* @{
+	var schema = StructuredDataBuilder.BuildCategoryPage(
+		ViewBag.MetaTitle,
+		ViewBag.CategorySlug,
+		ViewBag.MetaDescription,
+		Model.Articles,
+		Model.BaseUrl
+	);
+} *@
+	<script type="application/ld+json">
+		@* {
+		  "@@context": "https://schema.org",
+		  "@@type": "CollectionPage",
+		  "name": "@ViewBag.MetaTitle",
+		  "url": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news/{ViewBag.CategorySlug}")"
+		} *@
+	@Html.Raw(JsonSerializer.Serialize(Model.SchemaJson))
+	</script>

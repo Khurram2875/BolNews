@@ -32,7 +32,7 @@ namespace BolNews.Application.Services
                 Slug = dto.Slug,
                 Summary = dto.Summary,
                 Content = dto.Content,
-                FeaturedImageUrl = dto.FeaturedImageUrl,
+                FeaturedImageLarge = dto.FeaturedImageLarge,
                 MetaDescription = dto.MetaDescription,
                 MetaTitle = dto.MetaTitle,
                 CategoryId = dto.CategoryId,
@@ -60,7 +60,7 @@ namespace BolNews.Application.Services
             article.Content = dto.Content;
             article.MetaTitle = dto.MetaTitle;
             article.MetaDescription = dto.MetaDescription;
-            article.FeaturedImageUrl = dto.FeaturedImageUrl;
+            article.FeaturedImageLarge = dto.FeaturedImageLarge;
             article.CategoryId = dto.CategoryId;
             article.AuthorId = dto.AuthorId;
             article.IsPublished = dto.IsPublished;
@@ -96,7 +96,6 @@ namespace BolNews.Application.Services
                     Content = x.Content,
                     MetaTitle = x.MetaTitle,
                     MetaDescription=x.MetaDescription,
-                    FeaturedImageUrl = x.FeaturedImageLarge,
                     FeaturedImageLarge= x.FeaturedImageLarge,
                     FeaturedImageMedium = x.FeaturedImageMedium,
                     FeaturedImageThumb = x.FeaturedImageThumb,
@@ -122,7 +121,6 @@ namespace BolNews.Application.Services
                Slug = a.Slug,
                Summary = a.Summary,
                Content = a.Content,
-               FeaturedImageUrl = a.FeaturedImageUrl,
                FeaturedImageThumb= a.FeaturedImageThumb,
                FeaturedImageMedium = a.FeaturedImageMedium,
                FeaturedImageLarge = a.FeaturedImageLarge,
@@ -139,7 +137,7 @@ namespace BolNews.Application.Services
           
            .ToListAsync();
         }
-        public async Task UpdateImagesAsync(int id, string thumb, string medium, string large)
+        public async Task UpdateImagesAsync(int id, string thumb, string medium, string large, string xl)
         {
             var article = await _context.Articles.FindAsync(id);
             if (article != null)
@@ -147,6 +145,7 @@ namespace BolNews.Application.Services
                 article.FeaturedImageThumb = thumb;
                 article.FeaturedImageMedium = medium;
                 article.FeaturedImageLarge = large;
+                article.FeaturedImageXl = xl;
 
                 await _context.SaveChangesAsync();
             }
@@ -294,6 +293,63 @@ namespace BolNews.Application.Services
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+        }
+        public async Task IncrementViewCountAsync(int articleId)
+        {
+            var article = await _context.Articles.FindAsync(articleId);
+
+            if (article != null)
+            {
+                article.ViewCount++;
+                await _context.SaveChangesAsync();
+            }
+        }
+        //public async Task<List<Article>> GetTrendingAsync(int count = 5)
+        //{
+        //    var last7Days = DateTime.UtcNow.AddDays(-7);
+
+        //    return await _context.Articles
+        //        .Include(a => a.Category)
+        //        .Where(a => a.IsPublished &&
+        //                    !a.IsDeleted &&
+        //                    a.PublishedAt >= last7Days)
+        //        .OrderByDescending(a => a.ViewCount)
+        //        .Take(count)
+        //        .ToListAsync();
+        //}
+        public async Task<List<Article>> GetTrendingAsync(int count = 5, string type = "week")
+        {
+            DateTime fromDate = type switch
+            {
+                "today" => DateTime.UtcNow.AddDays(-1),
+                "week" => DateTime.UtcNow.AddDays(-7),
+                "month" => DateTime.UtcNow.AddDays(-30),
+                _ => DateTime.UtcNow.AddDays(-7)
+            };
+
+            var articles = await _context.Articles
+                .Include(a => a.Category)
+                .Where(a => a.IsPublished &&
+                            !a.IsDeleted &&
+                            a.PublishedAt >= fromDate)
+                .ToListAsync();
+
+            var now = DateTime.UtcNow;
+
+            return articles
+                .Select(a =>
+                {
+                    var hours = (now - a.PublishedAt.Value).TotalHours;
+                    var recencyScore = 1 / (1 + hours);
+
+                    var score = a.ViewCount + (recencyScore * 200);
+
+                    return new { a, score };
+                })
+                .OrderByDescending(x => x.score)
+                .Take(count)
+                .Select(x => x.a)
+                .ToList();
         }
     }
 }

@@ -43,11 +43,11 @@
                 </div>
             </dd>
 
-            @if (!string.IsNullOrEmpty(Model.FeaturedImageUrl))
+            @if (!string.IsNullOrEmpty(Model.FeaturedImageLarge))
             {
                 <dt class="col-sm-3">Featured Image</dt>
                 <dd class="col-sm-9">
-                    <img src="@Model.FeaturedImageUrl" alt="Featured Image" class="img-fluid rounded" />
+                    <img src="@Model.FeaturedImageLarge" alt="Featured Image" class="img-fluid rounded" />
                 </dd>
             }
         </dl>

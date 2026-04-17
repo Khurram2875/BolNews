@@ -56,7 +56,7 @@ body {
     display: inline-block;
     white-space: nowrap;
     padding-left: 100%;
-    animation: ticker-scroll 75s linear infinite;
+    animation: ticker-scroll 90s linear infinite;
 }
 
     /* ?? INDIVIDUAL ITEM */
@@ -161,3 +161,51 @@ body {
         color: #e60023 !important;
         border-bottom: 2px solid #e60023;
     }
+
+
+/*Tremding tabs*/
+.trending-tabs a {
+    margin-right: 10px;
+    text-decoration: none;
+    color: #555;
+    font-weight: 500;
+}
+
+    .trending-tabs a.active {
+        color: #e60023;
+        border-bottom: 2px solid #e60023;
+        padding-bottom: 2px;
+    }
+
+/*for Sticky hideable Navbar*/
+/* Ensure the navbar stays at the top of the viewport when active */
+/* Fix for the sticky transition */
+.fixed-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: white;
+    z-index: 1050;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* We wrap the fixed nav content back into a container when sticky */
+.fixed-nav .container-fluid {
+    max-width: 1320px; /* Standard Bootstrap Container width */
+    margin: 0 auto;
+}
+
+#sticky-navbar .nav-link {
+    color: #b32025 !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 12px 15px !important;
+}
+
+/* Matches the BOL News active state */
+#sticky-navbar .active-red {
+    background-color: #bd1d22 !important;
+    color: white !important;
+}

@@ -21,11 +21,11 @@ namespace BolNews.Web.Controllers
                 return NotFound();
 
             var article = await _articleService.GetBySlugAsync(slug);
-           
+
             if (article == null || article.IsDeleted)
                 return NotFound();
 
-            // ✅ Enforce correct category URL (SEO)
+            // ✅ Correct category URL
             if (article.Category?.Slug != categorySlug)
             {
                 return RedirectToRoutePermanent("articleDetails", new
@@ -35,21 +35,32 @@ namespace BolNews.Web.Controllers
                 });
             }
 
-            // ✅ Map to Public VM
+            // 🔥 Increment View Count (session-safe)
+            var viewedKey = $"viewed_article_{article.Id}";
+
+            if (!HttpContext.Session.Keys.Contains(viewedKey))
+            {
+                await _articleService.IncrementViewCountAsync(article.Id);
+                HttpContext.Session.SetString(viewedKey, "true");
+            }
+
+            // ✅ Map
             var articleVM = _mapper.Map<PublicArticleVM>(article);
+
             var relatedArticles = await _articleService.GetRelatedArticlesAsync(
-               article.CategoryId,
-               article.Id,
-               5
-           );
+                article.CategoryId,
+                article.Id,
+                5
+            );
+
             var relatedVM = _mapper.Map<List<PublicArticleVM>>(relatedArticles);
+
             var pageVM = new ArticleDetailsPageVM
             {
                 Article = articleVM,
                 RelatedArticles = relatedVM
             };
 
-            
             // ✅ SEO
             ViewBag.MetaTitle = string.IsNullOrWhiteSpace(article.MetaTitle)
                 ? article.Title
@@ -59,7 +70,6 @@ namespace BolNews.Web.Controllers
 
             ViewBag.CanonicalUrl = $"/news/{article.Category?.Slug}/{article.Slug}";
 
-            // ✅ Breadcrumb support
             ViewBag.CategoryName = article.Category?.Name;
             ViewBag.CategorySlug = article.Category?.Slug;
 

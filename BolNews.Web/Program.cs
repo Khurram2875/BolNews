@@ -15,13 +15,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });     ////connection string for MySQL
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
 builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<IUrlService, UrlService>();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSession();
+
 
 var app = builder.Build();
 
@@ -35,7 +39,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
+app.UseSession();
 app.UseRouting();
 
 app.UseAuthorization();

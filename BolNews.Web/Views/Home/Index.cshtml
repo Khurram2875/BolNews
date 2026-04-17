@@ -23,9 +23,7 @@
 
         <!-- 🟢 LEFT SIDEBAR (Latest) -->
         <div class="col-md-3" style="border-right:solid; border-width:thin;">
-            <div class="container-fluid" style="border-top:solid; border-bottom:solid;border-width:thin; align-items:center;height: 40px;padding-top:05px">
-                <h5 class="fw-bold mb-4 text-center">Latest</h5>
-            </div>
+            
             
           
             @await Component.InvokeAsync("LatestNews", new { count = 6 })
@@ -84,16 +82,17 @@
 
         <!-- 🔵 RIGHT SIDEBAR -->
         <div class="col-md-3" style="border-left:solid; border-width:thin;">
-
+            @await Component.InvokeAsync("TrendingNews",
+            new { type = Context.Request.Query["type"].ToString() })
             <!-- Discover More -->
-            <div class="card mb-3">
+           @*  <div class="card mb-3">
                 <div class="card-header">Discover more</div>
                 <div class="card-body">
                     <p>Oil consumption monitors</p>
                     <p>Live news streaming</p>
                     <p>Home organization products</p>
                 </div>
-            </div>
+            </div> *@
 
             <!-- Featured -->
             <div class="card">

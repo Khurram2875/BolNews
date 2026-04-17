@@ -49,10 +49,10 @@
                 <span asp-validation-for="ImageFile" class="text-danger"></span>
             </div>
 
-            @if (!string.IsNullOrEmpty(Model.FeaturedImageUrl))
+            @if (!string.IsNullOrEmpty(Model.FeaturedImageLarge))
             {
                 <div class="mb-3">
-                    <img src="@Model.FeaturedImageUrl" alt="Current Image" class="img-fluid rounded" style="max-height:150px;" />
+                    <img src="@Model.FeaturedImageLarge" alt="Current Image" class="img-fluid rounded" style="max-height:150px;" />
                 </div>
             }
 

@@ -101,10 +101,10 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
                 using var stream = model.ImageFile.OpenReadStream();
 
-                var (thumb, medium, large) =
+                var (thumb, medium, large, xl) =
                     await _imageService.SaveArticleImagesAsync(stream, articleId, _env.WebRootPath);
 
-                await _articleService.UpdateImagesAsync(articleId, thumb, medium, large);
+                await _articleService.UpdateImagesAsync(articleId, thumb, medium, large, xl);
             }
             return RedirectToAction(nameof(Index));
         }
@@ -152,10 +152,10 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
                 using var stream = model.ImageFile.OpenReadStream();
 
-                var (thumb, medium, large) =
+                var (thumb, medium, large, xl) =
                     await _imageService.SaveArticleImagesAsync(stream, model.Id, _env.WebRootPath);
 
-                await _articleService.UpdateImagesAsync(model.Id, thumb, medium, large);
+                await _articleService.UpdateImagesAsync(model.Id, thumb, medium, large, xl);
             }
 
             return RedirectToAction(nameof(Index));

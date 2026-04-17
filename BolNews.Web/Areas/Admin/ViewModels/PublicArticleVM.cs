@@ -11,10 +11,11 @@
         public string Summary { get; set; }
         public string Content { get; set; }
 
-        public string? FeaturedImageUrl { get; set; }
+        //public string? FeaturedImageUrl { get; set; }
         public string? FeaturedImageThumb { get; set; }
         public string? FeaturedImageMedium { get; set; }
         public string? FeaturedImageLarge { get; set; }
+        public string? FeaturedImageXl { get; set; }
 
         public string CategoryName { get; set; }
         public string CategorySlug { get; set; }
@@ -22,6 +23,7 @@
         public string AuthorName { get; set; }
 
         public DateTime? PublishedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public string TimeAgo
         {
             get
@@ -52,5 +54,6 @@
                 return $"{(int)(timeSpan.TotalDays / 365)} years ago";
             }
         }
+       
     }
 }

@@ -37,7 +37,7 @@ namespace BolNews.Infrastructure.Services
             if (Directory.Exists(folderPath))
                 Directory.Delete(folderPath, true);
         }
-        public async Task<(string thumb, string medium, string large)>
+        public async Task<(string thumb, string medium, string large, string xl)>
     SaveArticleImagesAsync(Stream stream, int articleId, string rootPath)
         {
             var folderPath = Path.Combine(rootPath, "uploads", "articles", articleId.ToString());
@@ -50,23 +50,43 @@ namespace BolNews.Infrastructure.Services
 
             // 🔹 THUMB (150x150)
             var thumbPath = Path.Combine(folderPath, "thumb.webp");
-            var thumbImage = image.Clone(x => x.Resize(150, 150));
+            var thumbImage = image.Clone(x => x.Resize(new ResizeOptions
+            {
+                Size = new Size(150, 150),
+                Mode = ResizeMode.Crop
+            }));
             await thumbImage.SaveAsync(thumbPath, new WebpEncoder { Quality = 75 });
 
             // 🔹 MEDIUM (400x250)
             var mediumPath = Path.Combine(folderPath, "medium.webp");
-            var mediumImage = image.Clone(x => x.Resize(400, 250));
+            var mediumImage = image.Clone(x => x.Resize(new ResizeOptions
+            {
+                Size = new Size(400, 250),
+                Mode = ResizeMode.Crop
+            }));
             await mediumImage.SaveAsync(mediumPath, new WebpEncoder { Quality = 80 });
 
             // 🔹 LARGE (800x450)
             var largePath = Path.Combine(folderPath, "large.webp");
-            var largeImage = image.Clone(x => x.Resize(800, 450));
+            var largeImage = image.Clone(x => x.Resize(new ResizeOptions
+            {
+                Size = new Size(800, 450),
+                Mode = ResizeMode.Crop
+            }));
             await largeImage.SaveAsync(largePath, new WebpEncoder { Quality = 85 });
-
+            var xlPath = Path.Combine(folderPath, "xl.webp");
+            var xlImage = image.Clone(x => x.Resize(new ResizeOptions
+            {
+                Size = new Size(1200, 675),
+                Mode = ResizeMode.Crop
+            }));
+            await xlImage.SaveAsync(xlPath, new WebpEncoder { Quality = 90 });
             return (
                 $"/uploads/articles/{articleId}/thumb.webp",
                 $"/uploads/articles/{articleId}/medium.webp",
-                $"/uploads/articles/{articleId}/large.webp"
+                $"/uploads/articles/{articleId}/large.webp",
+                $"/uploads/articles/{articleId}/xl.webp"
+
             );
         }
         public void DeleteArticleImages(int articleId, string rootPath)

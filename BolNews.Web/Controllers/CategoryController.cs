@@ -1,6 +1,9 @@
-﻿using AutoMapper;
+﻿using System.Text.Json;
+using AutoMapper;
 using BolNews.Application.Interfaces;
+using BolNews.Application.Services;
 using BolNews.Web.Areas.Admin.ViewModels;
+using BolNews.Web.SEO;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BolNews.Web.Controllers
@@ -10,12 +13,14 @@ namespace BolNews.Web.Controllers
         private readonly IArticleService _articleService;
         private readonly ICategoryService _categoryService;
         private readonly IMapper _mapper;
+        private readonly IUrlService _urlService;
 
-        public CategoryController(IArticleService articleService, ICategoryService categoryService, IMapper mapper)
+        public CategoryController(IArticleService articleService, ICategoryService categoryService, IMapper mapper, IUrlService urlService)
         {
             _articleService = articleService;
             _categoryService = categoryService;
             _mapper = mapper;
+            _urlService = urlService;
         }
         public async Task<IActionResult> Details(string categorySlug, int page = 1)
         {
@@ -51,7 +56,26 @@ namespace BolNews.Web.Controllers
 
             ViewBag.HasNextPage = articles.Count == 10;
 
-            return View(vm);
+            var baseUrl = _urlService.GetBaseUrl();
+            var vm2 = new CategorySectionVM
+            {
+                Articles = vm,
+                CategoryName = category.Name,
+                CategorySlug = category.Slug,
+                MetaTitle = category.MetaTitle,
+                MetaDescription = category.MetaDescription,
+                BaseUrl = baseUrl
+            };
+            var schema = StructuredDataBuilder.BuildCategoryPage(
+                vm2.MetaTitle,
+                vm2.CategorySlug,
+                vm2.MetaDescription,
+                vm2.Articles,
+                vm2.BaseUrl
+            );
+
+            vm2.SchemaJson = JsonSerializer.Serialize(schema);
+            return View(vm2);
         }
         //public async Task<IActionResult> Details(string categorySlug, int page = 1)
         //{

@@ -1,0 +1,44 @@
+﻿<div class="container-fluid" style="border-top:solid; border-bottom:solid;border-width:thin; align-items:center;height: 40px;padding-top:05px">
+    <h5 class="fw-bold mb-4 text-center">Trending</h5>
+</div>
+
+<!-- 🔥 Tabs -->
+<div class="trending-tabs mb-3">
+
+    <a href="?type=today"
+       class="@(ViewBag.Type == "today" ? "active" : "")">
+        Today
+    </a>
+
+    <a href="?type=week"
+       class="@(ViewBag.Type == "week" ? "active" : "")">
+        This Week
+    </a>
+
+    <a href="?type=month"
+       class="@(ViewBag.Type == "month" ? "active" : "")">
+        This Month
+    </a>
+
+</div>
+
+<!-- 🔥 Articles -->
+@foreach (var item in Model)
+{
+    <div class="d-flex mb-3">
+
+        <img src="@item.FeaturedImageThumb"
+             style="width:80px; height:60px; object-fit:cover;" />
+
+        <div class="ms-2">
+            <a href="/news/@item.CategorySlug/@item.Slug">
+                @item.Title
+            </a>
+
+            <div class="text-muted small">
+                @item.TimeAgo
+            </div>
+        </div>
+
+    </div>
+}
