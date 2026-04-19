@@ -2,3 +2,4 @@
 Disallow:
 
 Sitemap: https://localhost:7017/sitemap.xml
+Sitemap: https://localhost:7017/news-sitemap.xml
