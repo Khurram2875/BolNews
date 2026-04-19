@@ -351,5 +351,14 @@ namespace BolNews.Application.Services
                 .Select(x => x.a)
                 .ToList();
         }
+        public async Task<List<Article>> GetLatestPublishedAsync(DateTime fromDate, int limit)
+        {
+            return await _context.Articles
+                .Where(a => a.PublishedAt >= fromDate && a.IsPublished == true)
+                .OrderByDescending(a => a.PublishedAt)
+                .Include(a => a.Category)
+                .Take(limit)
+                .ToListAsync();
+        }
     }
 }

@@ -3,6 +3,8 @@ using BolNews.Application.Services;
 using BolNews.Infrastructure.Services;
 using BolNews.Persistence.Context;
 using BolNews.Web;
+using BolNews.Web.Interfaces;
+using BolNews.Web.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +24,9 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IUrlService, UrlService>();
+builder.Services.AddScoped<ISeoService, SeoService>();
+builder.Services.AddScoped<ISitemapService, SitemapService>();
+builder.Services.AddMemoryCache();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();

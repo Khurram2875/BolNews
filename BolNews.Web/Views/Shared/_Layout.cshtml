@@ -1,4 +1,7 @@
-﻿@using BolNews.Web.SEO
+﻿@using BolNews.Application.Interfaces
+@using BolNews.Web.Interfaces
+@using BolNews.Web.SEO
+@using BolNews.Web.Services
 
 <!DOCTYPE html>
 <html lang="en">
@@ -6,6 +9,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="index, follow" />
+    <meta name="robots" content="max-image-preview:large">
     <!-- ✅ SEO -->
     <title>@(ViewBag.MetaTitle ?? "Bol News")</title>
     <meta name="description" content="@(ViewBag.MetaDescription ?? "Latest news from Bol News")" />
@@ -29,18 +33,31 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BolNews.Web.styles.css" asp-append-version="true" />
     @* <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> *@
+    
+    @inject ISeoService SeoService
+    @inject IUrlService UrlService
+
+    @{
+        var baseUrl = UrlService.GetBaseUrl();
+        var orgSchema = SeoService.BuildOrganizationSchema(baseUrl);
+    }
     @if (ViewBag.CategorySlug != null)
     {
         if (ViewBag.Page > 1)
         {
-            <link rel="prev" href="/news/@ViewBag.CategorySlug?page=@(ViewBag.Page - 1)" />
+            <link rel="prev" href="@($"{baseUrl}/news/{ViewBag.CategorySlug}?page={ViewBag.Page - 1}")" />
         }
 
         if (ViewBag.HasNextPage == true)
         {
-            <link rel="next" href="/news/@ViewBag.CategorySlug?page=@(ViewBag.Page + 1)" />
+            <link rel="prev" href="@($"{baseUrl}/news/{ViewBag.CategorySlug}?page={ViewBag.Page + 1}")" />
         }
     }
+    
+    
+    <script type="application/ld+json">
+        @Html.Raw(orgSchema)
+    </script>
 </head>
 
 <body>
@@ -84,45 +101,7 @@
             </div>
         </nav>
     </header>
-   @*  <header>
-        <div class="container mb-4">
-            <div class="row">
-                <div class="col-md-4">@DateTime.UtcNow.Date.ToString("ddd, dd-MMMM-yyyy")</div>
-				<div class="col-md-4"><img src="~/images/logo-black.png" sizes="80%" /></div>
-                <div class="col-md-4">Place holder for a link</div>
-            </div>
-            
-        </div>
-        <div class="container-md mb-4">
-           
-                @await Component.InvokeAsync("BreakingNews")
-            
-        </div>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow mb-3 bg-white">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">BolNews.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse d-sm-inline-flex justify-content-between collapse">
-                    @await Component.InvokeAsync("NavbarCategories")
-                </div>
-                
-            </div>
-            <form method="get" action="/search" class="d-flex">
-                <input type="text"
-                       name="q"
-                       class="form-control me-2"
-                       placeholder="Search news..."
-                       required />
-
-                <button class="btn btn-outline-light" type="submit">
-                    Search
-                </button>
-            </form>
-        </nav>
-    </header> *@
+   
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -142,7 +121,3 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-@{
-	var baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
-    var orgSchema = StructuredDataBuilder.BuildOrganization(baseUrl);
-}

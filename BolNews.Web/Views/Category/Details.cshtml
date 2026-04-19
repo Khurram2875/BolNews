@@ -49,25 +49,11 @@
 		</div>
 	</div>
 </div>
-@using System.Text.Json
-@using BolNews.Web.Areas.Admin.ViewModels
-@using BolNews.Web.SEO
 
-@* @{
-	var schema = StructuredDataBuilder.BuildCategoryPage(
-		ViewBag.MetaTitle,
-		ViewBag.CategorySlug,
-		ViewBag.MetaDescription,
-		Model.Articles,
-		Model.BaseUrl
-	);
-} *@
-	<script type="application/ld+json">
-		@* {
-		  "@@context": "https://schema.org",
-		  "@@type": "CollectionPage",
-		  "name": "@ViewBag.MetaTitle",
-		  "url": "@($"{Context.Request.Scheme}://{Context.Request.Host}/news/{ViewBag.CategorySlug}")"
-		} *@
-	@Html.Raw(JsonSerializer.Serialize(Model.SchemaJson))
-	</script>
+@using BolNews.Web.Areas.Admin.ViewModels
+
+<script type="application/ld+json">
+	@Html.Raw(Model.CategorySchemaJson)
+<script type="application/ld+json">
+	@Html.Raw(Model.BreadcrumbSchemaJson)
+</script>

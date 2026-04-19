@@ -1,0 +1,159 @@
+﻿using System.Text.Json;
+using BolNews.Web.Areas.Admin.ViewModels;
+using BolNews.Web.Interfaces;
+namespace BolNews.Web.Services
+{
+    public class SeoService : ISeoService
+    {
+        public string BuildArticleSchema(PublicArticleVM article, string baseUrl)
+        {
+            var schema = new
+            {
+                @context = "https://schema.org",
+                @type = "NewsArticle",
+
+                mainEntityOfPage = new
+                {
+                    @type = "WebPage",
+                    @id = $"{baseUrl}/news/{article.CategorySlug}/{article.Slug}"
+                },
+
+                headline = article.Title,
+                description = article.MetaDescription,
+
+                image = new[] { article.FeaturedImageXl },
+
+                datePublished = article.PublishedAt?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                dateModified = article.UpdatedAt?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+
+                author = new
+                {
+                    @type = "Person",
+                    name = article.AuthorName
+                },
+
+                publisher = new
+                {
+                    @type = "Organization",
+                    name = "Bol News",
+                    logo = new
+                    {
+                        @type = "ImageObject",
+                        url = $"{baseUrl}/logo.png"
+                    }
+                }
+            };
+
+            return JsonSerializer.Serialize(schema);
+        }
+
+        public string BuildCategorySchema(
+            string categoryName,
+            string categorySlug,
+            string metaDescription,
+            List<PublicArticleVM> articles,
+            string baseUrl)
+        {
+            var schema = new
+            {
+                @context = "https://schema.org",
+                @type = "CollectionPage",
+
+                name = categoryName,
+                description = metaDescription,
+                url = $"{baseUrl}/news/{categorySlug}",
+
+                mainEntity = new
+                {
+                    @type = "ItemList",
+                    itemListElement = articles.Select((a, index) => new
+                    {
+                        @type = "ListItem",
+                        position = index + 1,
+                        url = $"{baseUrl}/news/{a.CategorySlug}/{a.Slug}"
+                    })
+                }
+            };
+
+            return JsonSerializer.Serialize(schema);
+        }
+
+        public string BuildOrganizationSchema(string baseUrl)
+        {
+            var schema = new
+            {
+                @context = "https://schema.org",
+                @type = "Organization",
+
+                name = "Bol News",
+                url = baseUrl,
+
+                logo = new
+                {
+                    @type = "ImageObject",
+                    url = $"{baseUrl}/logo.png"
+                }
+            };
+
+            return JsonSerializer.Serialize(schema);
+        }
+        public string BuildBreadcrumb(PublicArticleVM article, string baseUrl)
+        {
+            var schema = new
+            {
+                @context = "https://schema.org",
+                @type = "BreadcrumbList",
+                itemListElement = new object[]
+                {
+                new {
+                    @type = "ListItem",
+                    position = 1,
+                    name = "Home",
+                    item = baseUrl
+                },
+                new {
+                    @type = "ListItem",
+                    position = 2,
+                    name = article.CategoryName,
+                    item = $"{baseUrl}/category/{article.CategorySlug}"
+                },
+                new {
+                        @type = "ListItem",
+                        position = 3,
+                        name = article.Title,
+                        item = $"{baseUrl}/news/{article.CategorySlug}/{article.Slug}"
+                    }
+                }
+            };
+            return JsonSerializer.Serialize(schema);
+        }
+        public string BuildCategoryBreadcrumb(string categoryName, string categorySlug, string baseUrl)
+        {
+            var schema = new
+            {
+                @context = "https://schema.org",
+                @type = "BreadcrumbList",
+
+                itemListElement = new object[]
+                {
+            new
+            {
+                @type = "ListItem",
+                position = 1,
+                name = "Home",
+                item = baseUrl
+            },
+            new
+            {
+                @type = "ListItem",
+                position = 2,
+                name = categoryName,
+                item = $"{baseUrl}/news/{categorySlug}"
+            }
+                }
+            };
+
+            return JsonSerializer.Serialize(schema);
+        }
+    }
+}

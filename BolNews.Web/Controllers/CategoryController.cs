@@ -3,6 +3,7 @@ using AutoMapper;
 using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
 using BolNews.Web.Areas.Admin.ViewModels;
+using BolNews.Web.Interfaces;
 using BolNews.Web.SEO;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,13 +15,15 @@ namespace BolNews.Web.Controllers
         private readonly ICategoryService _categoryService;
         private readonly IMapper _mapper;
         private readonly IUrlService _urlService;
+        private readonly ISeoService _seoService;
 
-        public CategoryController(IArticleService articleService, ICategoryService categoryService, IMapper mapper, IUrlService urlService)
+        public CategoryController(IArticleService articleService, ICategoryService categoryService, IMapper mapper, IUrlService urlService, ISeoService seoService)
         {
             _articleService = articleService;
             _categoryService = categoryService;
             _mapper = mapper;
             _urlService = urlService;
+            _seoService = seoService;
         }
         public async Task<IActionResult> Details(string categorySlug, int page = 1)
         {
@@ -36,8 +39,11 @@ namespace BolNews.Web.Controllers
 
             var vm = _mapper.Map<List<PublicArticleVM>>(articles);
 
+            var baseUrl = _urlService.GetBaseUrl();
             // ✅ SEO FROM DATABASE
             ViewBag.CategoryDescription = category.Description;
+
+            ViewBag.OgImage = vm.FirstOrDefault()?.FeaturedImageXl;
 
             ViewBag.MetaTitle = string.IsNullOrWhiteSpace(category.MetaTitle)
                 ? category.Name
@@ -48,65 +54,43 @@ namespace BolNews.Web.Controllers
                 : category.MetaDescription;
 
             ViewBag.CanonicalUrl = page == 1
-                ? $"/news/{category.Slug}"
-                : $"/news/{category.Slug}?page={page}";
+                ? $"{baseUrl}/news/{category.Slug}"
+                : $"{baseUrl}/news/{category.Slug}?page={page}";
 
             ViewBag.CategoryName = category.Name;
             ViewBag.CategorySlug = category.Slug;
-
+            ViewBag.page = page;
             ViewBag.HasNextPage = articles.Count == 10;
 
-            var baseUrl = _urlService.GetBaseUrl();
+            
             var vm2 = new CategorySectionVM
             {
                 Articles = vm,
                 CategoryName = category.Name,
                 CategorySlug = category.Slug,
-                MetaTitle = category.MetaTitle,
+                MetaTitle = string.IsNullOrWhiteSpace(category.MetaTitle)
+                            ? category.Name
+                            : category.MetaTitle,
                 MetaDescription = category.MetaDescription,
-                BaseUrl = baseUrl
+                BaseUrl = baseUrl,
+                Page = page,                       // ✅
+                HasNextPage = articles.Count == 10
             };
-            var schema = StructuredDataBuilder.BuildCategoryPage(
-                vm2.MetaTitle,
+            vm2.CategorySchemaJson = _seoService.BuildCategorySchema(
+                 vm2.CategoryName,
+                 vm2.CategorySlug,
+                 vm2.MetaDescription,
+                 vm2.Articles,
+                 vm2.BaseUrl
+             );
+            vm2.BreadcrumbSchemaJson = _seoService.BuildCategoryBreadcrumb(
+                vm2.CategoryName,
                 vm2.CategorySlug,
-                vm2.MetaDescription,
-                vm2.Articles,
                 vm2.BaseUrl
             );
 
-            vm2.SchemaJson = JsonSerializer.Serialize(schema);
             return View(vm2);
         }
-        //public async Task<IActionResult> Details(string categorySlug, int page = 1)
-        //{
-        //    int pageSize = 10;
-
-        //    var articles = await _articleService.GetByCategorySlugAsync(categorySlug, page);
-
-        //    if (articles == null || !articles.Any())
-        //        return NotFound();
-
-        //    var vm = articles.Select(a => new PublicArticleVM
-        //    {
-        //        Title = a.Title,
-        //        Slug = a.Slug,
-        //        CategorySlug = a.Category.Slug,
-        //        FeaturedImageUrl = a.FeaturedImageUrl
-        //    }).ToList();
-
-        //    ViewBag.CategorySlug = categorySlug;
-        //    ViewBag.Page = page;
-        //    ViewBag.PageSize = pageSize;
-        //    ViewBag.HasNextPage = articles.Count == pageSize;
-        //    // SEO
-        //    ViewBag.MetaTitle = $"{categorySlug} News - Page {page}";
-        //    ViewBag.MetaDescription = $"Latest {categorySlug} news - Page {page}";
-        //    ViewBag.CanonicalUrl = page == 1
-        //        ? $"/news/{categorySlug}"
-        //        : $"/news/{categorySlug}?page={page}";
-
-
-        //    return View(vm);
-        //}
+        
     }
 }

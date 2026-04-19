@@ -8,7 +8,10 @@
         public string MetaDescription { get; set; }
 
         public List<PublicArticleVM> Articles { get; set; } = new();
+        public int Page { get; set; }
+        public bool HasNextPage { get; set; }
         public string BaseUrl { get; set; }
-        public string? SchemaJson { get; set; }
+        public string? CategorySchemaJson { get; set; }
+        public string? BreadcrumbSchemaJson { get; set; }
     }
 }

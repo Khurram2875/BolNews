@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BolNews.Application.Interfaces;
 using BolNews.Web.Areas.Admin.ViewModels;
+using BolNews.Web.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BolNews.Web.Controllers
@@ -9,10 +10,14 @@ namespace BolNews.Web.Controllers
     {
         private readonly IArticleService _articleService;
         private readonly IMapper _mapper;
-        public ArticleController(IArticleService articleService, IMapper mapper)
+        private readonly IUrlService _urlService;
+        private readonly ISeoService _seoService;
+        public ArticleController(IArticleService articleService, IMapper mapper, IUrlService urlService, ISeoService seoService)
         {
             _articleService = articleService;
             _mapper = mapper;
+            _urlService = urlService;
+            _seoService = seoService;
         }
 
         public async Task<IActionResult> Details(string categorySlug, string slug)
@@ -54,14 +59,17 @@ namespace BolNews.Web.Controllers
             );
 
             var relatedVM = _mapper.Map<List<PublicArticleVM>>(relatedArticles);
-
+            var baseUrl = _urlService.GetBaseUrl();
             var pageVM = new ArticleDetailsPageVM
             {
                 Article = articleVM,
-                RelatedArticles = relatedVM
+                RelatedArticles = relatedVM,
+                BaseUrl = baseUrl
             };
 
             // ✅ SEO
+            ViewBag.OgImage = articleVM.FeaturedImageXl;
+
             ViewBag.MetaTitle = string.IsNullOrWhiteSpace(article.MetaTitle)
                 ? article.Title
                 : article.MetaTitle;
@@ -72,6 +80,9 @@ namespace BolNews.Web.Controllers
 
             ViewBag.CategoryName = article.Category?.Name;
             ViewBag.CategorySlug = article.Category?.Slug;
+
+            pageVM.ArticleSchemaJson = _seoService.BuildArticleSchema(pageVM.Article, pageVM.BaseUrl);
+            pageVM.BreadcrumbSchemaJson = _seoService.BuildBreadcrumb(pageVM.Article, pageVM.BaseUrl);
 
             return View(pageVM);
         }
