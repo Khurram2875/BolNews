@@ -1,4 +1,6 @@
-﻿namespace BolNews.Web.Areas.Admin.ViewModels
+﻿using BolNews.Web.Models;
+
+namespace BolNews.Web.Areas.Admin.ViewModels
 {
     public class ArticleVM
     {
@@ -30,5 +32,6 @@
         public string AuthorName { get; set; } = string.Empty;
         public string CategoryName { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
+        public DiscoverScoreResult? DiscoverScore { get; set; }
     }
 }

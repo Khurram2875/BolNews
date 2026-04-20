@@ -360,5 +360,18 @@ namespace BolNews.Application.Services
                 .Take(limit)
                 .ToListAsync();
         }
+
+        public async Task<List<Article>> GetRecentArticlesAsync(int hours = 48)
+        {
+            var fromDate = DateTime.UtcNow.AddHours(-hours);
+
+            return await _context.Articles
+                .Where(a => a.PublishedAt >= fromDate && a.IsPublished == true)
+                .Include(a => a.Category)
+                .OrderByDescending(a => a.ViewCount)
+                .ThenByDescending(a => a.PublishedAt)
+                .Take(200)
+                .ToListAsync();
+        }
     }
 }

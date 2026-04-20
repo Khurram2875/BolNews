@@ -5,6 +5,8 @@ using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
 using BolNews.Infrastructure.Services;
 using BolNews.Web.Areas.Admin.ViewModels;
+using BolNews.Web.Interfaces;
+using BolNews.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SixLabors.ImageSharp;
@@ -21,6 +23,9 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly IAuthorService _authorService;
         private readonly IImageService _imageService;
         private readonly IWebHostEnvironment _env;
+        private readonly IDiscoverService _discoverService;
+        private readonly IHeadlineService _headlineService;
+        private readonly ITrendingService _trendingService;
 
         private readonly IMapper _mapper;
 
@@ -28,7 +33,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
              IArticleService articleService,
              ICategoryService categoryService,
              IAuthorService authorService,
-             IWebHostEnvironment env, IMapper mapper, IImageService imageService)
+             IWebHostEnvironment env, IMapper mapper, IImageService imageService, IDiscoverService discoverService, IHeadlineService headlineService, ITrendingService trendingService)
         {
             _articleService = articleService;
             _categoryService = categoryService;
@@ -36,6 +41,9 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _env = env;
             _mapper = mapper;
             _imageService = imageService;
+            _discoverService = discoverService;
+            _headlineService = headlineService;
+            _trendingService = trendingService;
         }
 
         // GET: Admin/Articles
@@ -117,6 +125,15 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 return NotFound();
 
             var model = _mapper.Map<ArticleVM>(dto);
+            model.DiscoverScore = _discoverService.Evaluate(new PublicArticleVM
+            {
+                Title = model.Title,
+                MetaDescription = model.MetaDescription,
+                Content = model.Content,
+                FeaturedImageXl = model.FeaturedImageXl,
+                PublishedAt = model.PublishedAt
+            });
+
             await PopulateDropdowns();
             return View(model);
         }
@@ -127,7 +144,20 @@ namespace BolNews.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Edit(ArticleVM model)
         {
             if (!ModelState.IsValid)
+            {
+                model.DiscoverScore = _discoverService.Evaluate(new PublicArticleVM
+                {
+                    Title = model.Title,
+                    MetaDescription = model.MetaDescription,
+                    Content = model.Content,
+                    FeaturedImageXl = model.FeaturedImageXl,
+                    PublishedAt = model.PublishedAt
+                });
+
+                await PopulateDropdowns();
                 return View(model);
+            }
+
             var existing = await _articleService.GetByIdAsync(model.Id);
             var dto = _mapper.Map<ArticleDto>(model);
             if (existing.Title != model.Title)
@@ -217,6 +247,19 @@ namespace BolNews.Web.Areas.Admin.Controllers
             {
                 return Json(new { error = new { message = ex.Message } });
             }
+        }
+        [HttpPost]
+        public IActionResult GenerateHeadlines([FromBody] string title)
+        {
+            var result = _headlineService.Generate(title);
+            return Json(result);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TrendingTopics()
+        {
+            var topics = await _trendingService.GetTrendingTopicsAsync();
+            return Json(topics);
         }
     }
 }

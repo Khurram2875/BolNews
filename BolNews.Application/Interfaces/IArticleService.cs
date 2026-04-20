@@ -33,5 +33,7 @@ namespace BolNews.Application.Interfaces
         //Task<List<Article>> GetTrendingAsync(int count = 5);
         Task<List<Article>> GetTrendingAsync(int count = 5, string type = "week");
         Task<List<Article>> GetLatestPublishedAsync(DateTime fromDate, int limit);
+        Task<List<Article>> GetRecentArticlesAsync(int hours = 48);
+
     }
 }

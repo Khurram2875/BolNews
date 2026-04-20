@@ -4,7 +4,25 @@
     ViewData["Title"] = "Edit Article";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
+<div class="card mt-3 p-3">
+    <h5>
+        Discover Score: @Model.DiscoverScore?.Score / 100
+    </h5>
 
+    @if (Model.DiscoverScore != null && Model.DiscoverScore.Suggestions.Any())
+    {
+        <ul class="text-danger">
+            @foreach (var suggestion in Model.DiscoverScore.Suggestions)
+            {
+                <li>@suggestion</li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p class="text-success">✅ Fully optimized for Discover</p>
+    }
+</div>
 <div class="card shadow-sm">
     <div class="card-header bg-warning text-dark">
         <h4 class="mb-0">Edit Article</h4>

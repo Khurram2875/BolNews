@@ -4,7 +4,7 @@
     ViewData["Title"] = "Create Article";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
-
+<div id="headlineSuggestions"></div>
 <div class="card shadow-sm">
     <div class="card-header bg-primary text-white">
         <h4 class="mb-0">Create New Article</h4>
@@ -13,8 +13,19 @@
         <form asp-action="Create" method="post" enctype="multipart/form-data">
             <div class="mb-3">
                 <label asp-for="Title" class="form-label"></label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
+                <div class="row">
+                    <div class="btn-group">
+                        
+                        <input asp-for="Title" class="form-control" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    
+                        <button type="button" class="btn btn-sm btn-info" onclick="generateHeadlines()">
+                            Suggestions
+                        </button>
+                    </div>
+                </div>
+                
+                
             </div>
 
             <div class="mb-3">
@@ -92,3 +103,28 @@
         </form>
     </div>
 </div>
+<script>
+        async function generateHeadlines() {
+        const title = document.getElementById("Title").value;
+
+        const res = await fetch('/admin/articles/generateheadlines', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(title)
+        });
+
+        const data = await res.json();
+
+        let html = "<ul>";
+        data.suggestions.forEach(s => {
+            html += `<li onclick="useHeadline('${s}')">${s}</li>`;
+        });
+        html += "</ul>";
+
+        document.getElementById("headlineSuggestions").innerHTML = html;
+    }
+
+    function useHeadline(text) {
+        document.getElementById("Title").value = text;
+    }
+</script>

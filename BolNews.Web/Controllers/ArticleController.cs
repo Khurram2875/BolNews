@@ -2,6 +2,7 @@
 using BolNews.Application.Interfaces;
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Interfaces;
+using BolNews.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BolNews.Web.Controllers
@@ -12,12 +13,14 @@ namespace BolNews.Web.Controllers
         private readonly IMapper _mapper;
         private readonly IUrlService _urlService;
         private readonly ISeoService _seoService;
-        public ArticleController(IArticleService articleService, IMapper mapper, IUrlService urlService, ISeoService seoService)
+        private readonly IInternalLinkingService _internalLinkingService;
+        public ArticleController(IArticleService articleService, IMapper mapper, IUrlService urlService, ISeoService seoService, IInternalLinkingService internalLinkingService)
         {
             _articleService = articleService;
             _mapper = mapper;
             _urlService = urlService;
             _seoService = seoService;
+            _internalLinkingService = internalLinkingService;
         }
 
         public async Task<IActionResult> Details(string categorySlug, string slug)
@@ -51,6 +54,8 @@ namespace BolNews.Web.Controllers
 
             // ✅ Map
             var articleVM = _mapper.Map<PublicArticleVM>(article);
+            articleVM.Content = await _internalLinkingService
+                        .InjectInternalLinksAsync(articleVM.Content);
 
             var relatedArticles = await _articleService.GetRelatedArticlesAsync(
                 article.CategoryId,
