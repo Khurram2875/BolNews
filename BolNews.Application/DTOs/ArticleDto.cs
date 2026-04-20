@@ -19,7 +19,7 @@ namespace BolNews.Application.DTOs
         public string Summary { get; set; }
         public string Content { get; set; }
 
-        //public string? FeaturedImageUrl { get; set; }
+        public string? FeaturedImageXl { get; set; }
         public string? FeaturedImageThumb { get; set; }
         public string? FeaturedImageMedium { get; set; }
         public string? FeaturedImageLarge { get; set; }

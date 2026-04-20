@@ -23,7 +23,6 @@ namespace BolNews.Application.Services
             _context = context;
             _cache = cache;
         }
-
         public async Task<int> CreateAsync(ArticleDto dto)
         {
             var article = new Article
@@ -60,7 +59,7 @@ namespace BolNews.Application.Services
             article.Content = dto.Content;
             article.MetaTitle = dto.MetaTitle;
             article.MetaDescription = dto.MetaDescription;
-            article.FeaturedImageLarge = dto.FeaturedImageLarge;
+            article.FeaturedImageXl = dto.FeaturedImageXl;
             article.CategoryId = dto.CategoryId;
             article.AuthorId = dto.AuthorId;
             article.IsPublished = dto.IsPublished;
@@ -96,6 +95,7 @@ namespace BolNews.Application.Services
                     Content = x.Content,
                     MetaTitle = x.MetaTitle,
                     MetaDescription=x.MetaDescription,
+                    FeaturedImageXl = x.FeaturedImageXl,
                     FeaturedImageLarge= x.FeaturedImageLarge,
                     FeaturedImageMedium = x.FeaturedImageMedium,
                     FeaturedImageThumb = x.FeaturedImageThumb,
