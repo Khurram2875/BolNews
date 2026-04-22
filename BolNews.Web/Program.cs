@@ -30,6 +30,7 @@ builder.Services.AddScoped<IDiscoverService, DiscoverService>();
 builder.Services.AddScoped<IHeadlineService, HeadlineService>();
 builder.Services.AddScoped<ITrendingService, TrendingService>();
 builder.Services.AddScoped<IInternalLinkingService, InternalLinkingService>();
+builder.Services.AddHttpClient<IGoogleTrendsService, GoogleTrendsService>();
 builder.Services.AddMemoryCache();
 // Add services to the container.
 builder.Services.AddControllersWithViews();

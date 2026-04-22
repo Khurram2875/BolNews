@@ -1,0 +1,142 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<div class="row">
+    <div class="col-md-6">
+        <h5>📈 Articles Published</h5>
+        <canvas id="articlesChart"></canvas>
+    </div>
+
+   
+    <div class="col-md-6">
+        <h5>📊 Category Performance</h5>
+        <canvas id="categoryChart"></canvas>
+    </div>
+</div>
+@* <canvas id="topArticlesChart"></canvas> *@
+<div class="row">
+    <div class="col-md-6">
+        <h5>🔥 Top Articles</h5>
+        <canvas id="topArticlesChart"></canvas>
+    </div>
+    <div class="col-md-6">
+        </div>
+</div>
+<h4>🏆 Top Editor: @ViewBag.TopEditor</h4>
+<h5>👨‍💻 Editor Performance</h5>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Editor</th>
+            <th>Articles</th>
+            <th>Total Views</th>
+            <th>Avg Views</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var e in Model.EditorPerformance)
+        {
+            <tr>
+                <td>@e.AuthorName</td>
+                <td>@e.ArticleCount</td>
+                <td>@e.TotalViews</td>
+                <td>@Math.Round(e.AvgViewsPerArticle)</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<canvas id="editorChart"></canvas>
+
+<div>
+    <h3>Total Articles: @Model.TotalArticles</h3>
+    <h3>Today’s Articles: @Model.ArticlesToday</h3>
+</div>
+<h4>🔥 Top Articles</h4>
+<ul>
+    @foreach (var a in Model.TopArticles)
+    {
+        <li>
+            @a.Title (Views)
+
+        </li>
+    }
+</ul>
+<h4>📈 Trending Topics</h4>
+<ul>
+    @foreach (var t in Model.TrendingTopics)
+    {
+        <li>@t.Topic (@t.Score)</li>
+    }
+</ul>
+<h4>⚠ Needs Attention</h4>
+<ul>
+    @foreach (var a in Model.LowPerformingArticles)
+    {
+        <li>@a.Title</li>
+    }
+</ul>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+        const articlesChart = new Chart(document.getElementById('articlesChart'), {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(Json.Serialize(Model.Dates)),
+            datasets: [{
+                label: 'Articles Published',
+                data: @Html.Raw(Json.Serialize(Model.ArticlesPerDay)),
+                fill: false,
+                tension: 0.3
+            }]
+        }
+    });
+
+        const topArticlesChart = new Chart(document.getElementById('topArticlesChart'), {
+        type: 'bar',
+        
+        data: {
+            labels: @Html.Raw(Json.Serialize(Model.TopArticleTitles)),
+            datasets: [{
+               
+                label: 'Views',
+                data: @Html.Raw(Json.Serialize(Model.TopArticleViews))
+            }]
+        }
+         
+    });
+
+        const categoryChart = new Chart(document.getElementById('categoryChart'), {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(Json.Serialize(Model.CategoryNames)),
+            datasets: [
+                {
+                    label: 'Total Views',
+                    data: @Html.Raw(Json.Serialize(Model.CategoryViews))
+                },
+                {
+                    label: 'Avg Views per Article',
+                    data: @Html.Raw(Json.Serialize(Model.CategoryAvgViews))
+                }
+            ]
+        }
+    });
+        const editorChart = new Chart(document.getElementById('editorChart'), {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(Json.Serialize(Model.EditorNames)),
+            datasets: [
+                {
+                    label: 'Total Views',
+                    data: @Html.Raw(Json.Serialize(Model.EditorViews))
+                },
+                {
+                    label: 'Avg Views',
+                    data: @Html.Raw(Json.Serialize(Model.EditorAvgViews))
+                }
+            ]
+        }
+    });
+</script>

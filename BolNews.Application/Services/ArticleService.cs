@@ -11,6 +11,7 @@ using BolNews.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
+
 namespace BolNews.Application.Services
 {
     public class ArticleService : IArticleService
@@ -371,6 +372,92 @@ namespace BolNews.Application.Services
                 .OrderByDescending(a => a.ViewCount)
                 .ThenByDescending(a => a.PublishedAt)
                 .Take(200)
+                .ToListAsync();
+        }
+        public async Task<int> GetTotalArticlesAsync()
+        {
+            return await _context.Articles.CountAsync(a => !a.IsDeleted);
+        }
+
+        public async Task<int> GetTodayArticlesCountAsync()
+        {
+            var today = DateTime.UtcNow.Date;
+            return await _context.Articles
+                .CountAsync(a => a.PublishedAt >= today && !a.IsDeleted);
+        }
+
+        public async Task<List<Article>> GetTopArticlesAsync(int count = 10)
+        {
+            return await _context.Articles
+                .Where(a => !a.IsDeleted && a.IsPublished == true)
+                .OrderByDescending(a => a.ViewCount)
+                .Take(count)
+                .ToListAsync();
+        }
+
+        public async Task<List<Article>> GetLowPerformingArticlesAsync()
+        {
+            var since = DateTime.UtcNow.AddDays(-2);
+
+            return await _context.Articles
+                .Where(a => a.PublishedAt >= since && a.ViewCount < 50)
+                .OrderByDescending(a => a.PublishedAt)
+                .Take(10)
+                .ToListAsync();
+        }
+        public async Task<List<(DateTime date, int count)>> GetArticlesPerDayAsync(int days = 7)
+        {
+            var fromDate = DateTime.UtcNow.Date.AddDays(-days);
+
+            var data = await _context.Articles
+                .Where(a => a.PublishedAt >= fromDate && !a.IsDeleted)
+                .GroupBy(a => a.PublishedAt.Value.Date)
+                .Select(g => new
+                {
+                    Date = g.Key,
+                    Count = g.Count()
+                })
+                .OrderBy(x => x.Date)
+                .ToListAsync();
+
+            return data.Select(x => (x.Date, x.Count)).ToList();
+        }
+        public async Task<List<CategoryPerformanceDto>> GetCategoryPerformanceAsync(int days = 7)
+        {
+            var fromDate = DateTime.UtcNow.AddDays(-days);
+
+            return await _context.Articles
+                .Where(a => a.PublishedAt >= fromDate && !a.IsDeleted && a.IsPublished == true)
+                .Include(a => a.Category)
+                .GroupBy(a => a.Category.Name)
+                .Select(g => new CategoryPerformanceDto
+                {
+                    CategoryName = g.Key,
+                    ArticleCount = g.Count(),
+                    TotalViews = g.Sum(a => a.ViewCount),
+                    AvgViewsPerArticle = g.Average(a => a.ViewCount)
+                })
+                .OrderByDescending(x => x.TotalViews)
+                .ToListAsync();
+        }
+        public async Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(int days = 7)
+        {
+            var fromDate = DateTime.UtcNow.AddDays(-days);
+
+            return await _context.Articles
+                .Where(a => a.PublishedAt >= fromDate &&
+                            !a.IsDeleted &&
+                            a.IsPublished == true)
+                .Include(a => a.Author)
+                .GroupBy(a => a.Author.Name)
+                .Select(g => new EditorPerformanceDto
+                {
+                    AuthorName = g.Key,
+                    ArticleCount = g.Count(),
+                    TotalViews = g.Sum(a => a.ViewCount),
+                    AvgViewsPerArticle = g.Average(a => a.ViewCount)
+                })
+                .OrderByDescending(x => x.TotalViews)
                 .ToListAsync();
         }
     }

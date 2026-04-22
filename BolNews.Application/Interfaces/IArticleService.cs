@@ -34,6 +34,13 @@ namespace BolNews.Application.Interfaces
         Task<List<Article>> GetTrendingAsync(int count = 5, string type = "week");
         Task<List<Article>> GetLatestPublishedAsync(DateTime fromDate, int limit);
         Task<List<Article>> GetRecentArticlesAsync(int hours = 48);
+        Task<int> GetTotalArticlesAsync();
+        Task<int> GetTodayArticlesCountAsync();
+        Task<List<Article>> GetTopArticlesAsync(int count = 10);
+        Task<List<Article>> GetLowPerformingArticlesAsync();
+        Task<List<(DateTime date, int count)>> GetArticlesPerDayAsync(int days = 7);
+        Task<List<CategoryPerformanceDto>> GetCategoryPerformanceAsync(int days = 7);
+        Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(int days = 7);
 
     }
 }

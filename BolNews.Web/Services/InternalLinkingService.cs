@@ -1,5 +1,9 @@
 ﻿using BolNews.Application.Interfaces;
+using BolNews.Application.Services;
 using BolNews.Web.Interfaces;
+using HtmlAgilityPack;
+using HtmlAgilityPack;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BolNews.Web.Services
 {
@@ -7,55 +11,91 @@ namespace BolNews.Web.Services
     {
         private readonly IArticleService _articleService;
         private readonly IUrlService _urlService;
+        private readonly IMemoryCache _cache;
 
         public InternalLinkingService(
             IArticleService articleService,
-            IUrlService urlService)
+            IUrlService urlService, IMemoryCache cache)
         {
             _articleService = articleService;
             _urlService = urlService;
+            _cache = cache;
         }
 
-        public async Task<string> InjectInternalLinksAsync(string content)
-        {
-            if (string.IsNullOrWhiteSpace(content))
-                return content;
+  
 
-            var articles = await _articleService.GetRecentArticlesAsync(48);
+    public async Task<string> InjectInternalLinksAsync(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return content;
+
+            var articles = await _cache.GetOrCreateAsync("internal_link_articles", async entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+                return await _articleService.GetRecentArticlesAsync(48);
+            });
             var baseUrl = _urlService.GetBaseUrl();
 
-            foreach (var article in articles.Take(5))
+        var doc = new HtmlDocument();
+        doc.LoadHtml(content);
+
+        var textNodes = doc.DocumentNode
+            .SelectNodes("//text()[not(ancestor::a)]"); // 🚀 avoid existing links
+
+        if (textNodes == null)
+            return content;
+
+        int linksAdded = 0;
+        int maxLinks = 5;
+
+        foreach (var article in articles)
+        {
+            if (linksAdded >= maxLinks)
+                break;
+
+                // ❌ Prevent self-linking
+                var url = $"{baseUrl}/news/{article.Category.Slug}/{article.Slug}";
+                if (content.Contains(url))
+                continue;
+
+            var keywords = article.Title
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Where(w => w.Length > 4)
+                .Take(2);
+
+            foreach (var keyword in keywords)
             {
-                if (content.Contains(article.Slug))
-                    continue;
-
-                if (content.Contains("<a"))
-                    continue;
-
-                var keywords = article.Title
-                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                    .Where(w => w.Length > 4)
-                    .Take(2);
-
-                foreach (var keyword in keywords)
+                foreach (var node in textNodes)
                 {
-                    if (!content.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                    if (linksAdded >= maxLinks)
+                        break;
+
+                    var text = node.InnerText;
+
+                    if (!text.Contains(keyword, StringComparison.OrdinalIgnoreCase))
                         continue;
 
-                    var url = $"{baseUrl}/news/{article.Category.Slug}/{article.Slug}";
+                    //var url = $"{baseUrl}/news/{article.Category.Slug}/{article.Slug}";
 
-                    content = ReplaceFirst(
-                        content,
+                    // 🔥 Replace only first occurrence in THIS node
+                    var newHtml = ReplaceFirst(
+                        text,
                         keyword,
                         $"<a href=\"{url}\">{keyword}</a>"
                     );
 
+                    var newNode = HtmlNode.CreateNode($"<span>{newHtml}</span>");
+
+                    node.ParentNode.ReplaceChild(newNode, node);
+
+                    linksAdded++;
                     break;
                 }
             }
-
-            return content;
         }
+
+        return doc.DocumentNode.InnerHtml;
+    }
 
         private string ReplaceFirst(string text, string search, string replace)
         {
