@@ -39,10 +39,12 @@ button.accept-policy {
   line-height: inherit;
 }
 
+/* Footer: make it flow with document to avoid overlapping content when page is short */
 .footer {
-  position: absolute;
-  bottom: 0;
+  position: relative;
+  bottom: auto;
   width: 100%;
-  white-space: nowrap;
+  white-space: normal;
   line-height: 60px;
+  padding: 10px 0;
 }

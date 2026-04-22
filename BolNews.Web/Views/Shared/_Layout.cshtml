@@ -3,6 +3,9 @@
 @using BolNews.Web.SEO
 @using BolNews.Web.Services
 
+@inject ISeoService SeoService
+@inject IUrlService UrlService
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,10 +41,6 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BolNews.Web.styles.css" asp-append-version="true" />
-    @* <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> *@
-    
-    @inject ISeoService SeoService
-    @inject IUrlService UrlService
 
     @{
         var baseUrl = UrlService.GetBaseUrl();
@@ -56,16 +55,14 @@
 
         if (ViewBag.HasNextPage == true)
         {
-            <link rel="prev" href="@($"{baseUrl}/news/{ViewBag.CategorySlug}?page={ViewBag.Page + 1}")" />
+            <link rel="next" href="@($"{baseUrl}/news/{ViewBag.CategorySlug}?page={ViewBag.Page + 1}")" />
         }
     }
-    
-    
+
     <script type="application/ld+json">
         @Html.Raw(orgSchema)
     </script>
 </head>
-
 <body>
     <header id="main-header">
         <div class="container py-3">
