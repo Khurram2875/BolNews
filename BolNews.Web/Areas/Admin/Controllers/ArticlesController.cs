@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using BolNews.Application.Common;
 using BolNews.Application.Common.Helpers;
 using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
@@ -26,14 +27,14 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly IDiscoverService _discoverService;
         private readonly IHeadlineService _headlineService;
         private readonly ITrendingService _trendingService;
-
+        private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
 
         public ArticlesController(
              IArticleService articleService,
              ICategoryService categoryService,
              IAuthorService authorService,
-             IWebHostEnvironment env, IMapper mapper, IImageService imageService, IDiscoverService discoverService, IHeadlineService headlineService, ITrendingService trendingService)
+             IWebHostEnvironment env, IMapper mapper, IImageService imageService, IDiscoverService discoverService, IHeadlineService headlineService, ITrendingService trendingService, ICacheService cacheService)
         {
             _articleService = articleService;
             _categoryService = categoryService;
@@ -44,6 +45,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _discoverService = discoverService;
             _headlineService = headlineService;
             _trendingService = trendingService;
+            _cacheService = cacheService;
         }
 
         // GET: Admin/Articles
@@ -159,7 +161,14 @@ namespace BolNews.Web.Areas.Admin.Controllers
             }
 
             var existing = await _articleService.GetByIdAsync(model.Id);
+            if (existing == null)
+                return NotFound();
+
+            var oldSlug = existing.Slug; // 🔥 IMPORTANT
+
             var dto = _mapper.Map<ArticleDto>(model);
+
+            // 🔹 Slug handling
             if (existing.Title != model.Title)
             {
                 dto.Slug = await _articleService.GenerateUniqueSlugAsync(model.Title);
@@ -168,13 +177,17 @@ namespace BolNews.Web.Areas.Admin.Controllers
             {
                 dto.Slug = existing.Slug;
             }
-                await _articleService.UpdateAsync(dto);
 
+            // 🔹 Update article
+            await _articleService.UpdateAsync(dto);
+
+            // 🔹 Image handling
             if (model.ImageFile != null)
             {
                 if (!ImageValidator.IsValid(model.ImageFile, out var error))
                 {
                     ModelState.AddModelError("ImageFile", error);
+                    await PopulateDropdowns(); // 🔥 FIX
                     return View(model);
                 }
 
@@ -186,6 +199,23 @@ namespace BolNews.Web.Areas.Admin.Controllers
                     await _imageService.SaveArticleImagesAsync(stream, model.Id, _env.WebRootPath);
 
                 await _articleService.UpdateImagesAsync(model.Id, thumb, medium, large, xl);
+            }
+
+            // 🔥 CACHE INVALIDATION (AFTER EVERYTHING SUCCESSFUL)
+            _cacheService.Remove(CacheKeys.Article(oldSlug));   // old slug
+            _cacheService.Remove(CacheKeys.Article(dto.Slug));  // new slug
+
+            _cacheService.Remove($"article_content_{dto.Id}");
+            _cacheService.Remove($"related_{dto.Id}");
+
+            _cacheService.Remove(CacheKeys.Trending);
+            _cacheService.Remove(CacheKeys.Dashboard);
+            _cacheService.Remove(CacheKeys.Sitemap + "_index");
+            _cacheService.Remove(CacheKeys.Sitemap + "_articles");
+            _cacheService.Remove(CacheKeys.Sitemap + "_news");
+            for (int i = 1; i <= 3; i++) // first 3 pages
+            {
+                _cacheService.Remove(CacheKeys.Category(dto.CategorySlug, i));
             }
 
             return RedirectToAction(nameof(Index));

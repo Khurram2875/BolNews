@@ -14,13 +14,15 @@ namespace BolNews.Web.Controllers
         private readonly IUrlService _urlService;
         private readonly ISeoService _seoService;
         private readonly IInternalLinkingService _internalLinkingService;
-        public ArticleController(IArticleService articleService, IMapper mapper, IUrlService urlService, ISeoService seoService, IInternalLinkingService internalLinkingService)
+        private readonly ICacheService _cacheService;
+        public ArticleController(IArticleService articleService, IMapper mapper, IUrlService urlService, ISeoService seoService, IInternalLinkingService internalLinkingService, ICacheService cacheService)
         {
             _articleService = articleService;
             _mapper = mapper;
             _urlService = urlService;
             _seoService = seoService;
             _internalLinkingService = internalLinkingService;
+            _cacheService = cacheService;
         }
 
         public async Task<IActionResult> Details(string categorySlug, string slug)
@@ -54,13 +56,20 @@ namespace BolNews.Web.Controllers
 
             // ✅ Map
             var articleVM = _mapper.Map<PublicArticleVM>(article);
-            articleVM.Content = await _internalLinkingService
-                        .InjectInternalLinksAsync(articleVM.Content);
+            articleVM.Content = await _cacheService.GetOrCreateAsync(
+                    $"article_content_{article.Id}",
+                    async () => await _internalLinkingService.InjectInternalLinksAsync(articleVM.Content),
+                    10
+                );
 
-            var relatedArticles = await _articleService.GetRelatedArticlesAsync(
-                article.CategoryId,
-                article.Id,
-                5
+            var relatedArticles = await _cacheService.GetOrCreateAsync(
+                $"related_{article.Id}",
+                async () => await _articleService.GetRelatedArticlesAsync(
+                    article.CategoryId,
+                    article.Id,
+                    5
+                ),
+                10
             );
 
             var relatedVM = _mapper.Map<List<PublicArticleVM>>(relatedArticles);
