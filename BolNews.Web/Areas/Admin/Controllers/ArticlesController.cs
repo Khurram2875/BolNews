@@ -8,6 +8,7 @@ using BolNews.Infrastructure.Services;
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Interfaces;
 using BolNews.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SixLabors.ImageSharp;
@@ -16,6 +17,7 @@ using SixLabors.ImageSharp.Processing;
 
 namespace BolNews.Web.Areas.Admin.Controllers
 {
+    [Authorize]
     [Area("Admin")]
     public class ArticlesController : Controller
     {

@@ -5,12 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using BolNews.Domain.Entities;
 using BolNews.Domain.Entities.Base;// Ensure this using directive is present and correct
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 
 namespace BolNews.Persistence.Context
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options)
@@ -24,6 +26,18 @@ namespace BolNews.Persistence.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<IdentityRole>(entity =>
+            {
+                entity.Property(x => x.Name).HasMaxLength(100);
+                entity.Property(x => x.NormalizedName).HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<ApplicationUser>(entity =>
+            {
+                entity.Property(x => x.NormalizedUserName).HasMaxLength(100);
+                entity.Property(x => x.NormalizedEmail).HasMaxLength(100);
+            });
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 

@@ -1,11 +1,16 @@
-﻿<!DOCTYPE html>
+﻿@using BolNews.Domain.Entities
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+<!DOCTYPE html>
 <html lang="en">
 <head>
+
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Admin Panel</title>
 
     <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 	<link href="~/css/site.css" rel="stylesheet" />
 	
@@ -17,31 +22,63 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-md-2 d-none d-md-block bg-dark-red sidebar">
-                <div class="position-sticky pt-3">
-                    <h4 class="text-light ps-3">Admin Panel</h4>
-                    <ul class="nav flex-column">
+            <nav class="col-md-2 d-none d-md-block sidebar admin-sidebar-bg">
+                <div class="position-sticky d-flex flex-column h-100 pt-3">
+                    <div class="sidebar-brand mb-4 px-3">
+                        <h4 class="fw-bold text-danger">BOL<span class="text-white">NEWS</span></h4>
+                        <small class="text-uppercase fw-bold text-white" style="font-size: 0.65rem;">Admin Control</small>
+                    </div>
+
+                    <ul class="nav flex-column mb-auto">
                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="Admin" asp-controller="Articles" asp-action="Index">
-                                Articles
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-globe2 me-2"></i> News Home
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="Admin" asp-controller="Categories" asp-action="Index">
-                                Categories
+                            <a class="nav-link active" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="Admin" asp-controller="Author" asp-action="Index">
-                                Authors
+                            <a class="nav-link" asp-area="Admin" asp-controller="User" asp-action="Index">
+                                <i class="bi bi-people me-2"></i> User Mgmt.
                             </a>
                         </li>
-                        <!-- Add more links for Users, Categories, etc. -->
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="Admin" asp-controller="Articles" asp-action="Index">
+                                <i class="bi bi-journal-text me-2"></i> Articles
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="Admin" asp-controller="Categories" asp-action="Index">
+                                <i class="bi bi-tags me-2"></i> Categories
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="Admin" asp-controller="Author" asp-action="Index">
+                                <i class="bi bi-person-badge me-2"></i> Authors
+                            </a>
+                        </li>
+                        <li>
+                            
+                            <div class="mt-auto px-3 pb-4">
+                                
+                                <hr class="text-secondary" />
+
+                                @{
+                                    var user = await UserManager.GetUserAsync(User);
+
+                                    <span class="me-2 text-white">Hello, @user.FullName</span>
+                                }
+                                <a href="/Account/Logout" class="nav-link text-danger-emphasis d-flex align-items-center hover-bg-danger rounded p-2">
+                                    <i class="bi bi-box-arrow-left me-2"></i> <span>Sign Out</span>
+                                </a>
+                            </div>
+                        </li>
                     </ul>
-                </div>
-                <div>
-                    <h4 style="color:white">🔥 Trending Topics</h4>
-                    <div style="color:white" id="trendingTopics"></div>
+
+                    
                 </div>
             </nav>
          
@@ -61,19 +98,81 @@
     @RenderSection("Scripts", required: false)
 </body>
 </html>
-<script>
-        async function loadTrending() {
-        const res = await fetch('/admin/articles/trendingtopics');
-        const data = await res.json();
-
-        let html = "<ul>";
-        data.forEach(t => {
-            html += `<li>${t.topic} (${t.score.toFixed(0)})</li>`;
-        });
-        html += "</ul>";
-
-        document.getElementById("trendingTopics").innerHTML = html;
+<style>
+    /* Sidebar Container Styling */
+    .admin-sidebar-bg {
+        background-color: #1a1a27; /* Deep Navy Dark */
+        min-height: 100vh;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
     }
 
-    loadTrending();
+    /* Sidebar Links */
+    .sidebar .nav-link {
+        color: #9899ac !important;
+        font-weight: 500;
+        padding: 12px 20px;
+        margin: 4px 12px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+    }
+
+        /* Hover Effect */
+        .sidebar .nav-link:hover {
+            color: #ffffff !important;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Active Page Styling */
+        .sidebar .nav-link.active {
+            color: #ffffff !important;
+            background-color: #2b2b40 !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+            .sidebar .nav-link.active i {
+                color: #0d6efd; /* Blue icon for active state */
+            }
+
+        /* Sidebar Icons */
+        .sidebar .nav-link i {
+            font-size: 1.1rem;
+            line-height: 0;
+        }
+
+    /* Brand Section */
+    .sidebar-brand h4 {
+        letter-spacing: 1px;
+        margin-bottom: 0;
+    }
+
+    /* Logout Styling */
+    .hover-bg-danger:hover {
+        background-color: rgba(220, 53, 69, 0.1) !important;
+        color: #ea868f !important;
+    }
+
+    /* Main Content Adjustment */
+    main {
+        background-color: #f5f7f9; /* Light grey background for the dashboard area */
+        min-height: 100vh;
+    }
+</style>
+<script>
+    //     async function loadTrending() {
+    //     const res = await fetch('/admin/articles/trendingtopics');
+    //     const data = await res.json();
+
+    //     let html = "<ul>";
+    //     data.forEach(t => {
+    //         html += `<li>${t.topic} (${t.score.toFixed(0)})</li>`;
+    //     });
+    //     html += "</ul>";
+
+    //     document.getElementById("trendingTopics").innerHTML = html;
+    // }
+
+    //  loadTrending();
 </script>

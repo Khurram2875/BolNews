@@ -1,10 +1,13 @@
 ﻿@using BolNews.Application.Interfaces
+@using BolNews.Domain.Entities
 @using BolNews.Web.Interfaces
 @using BolNews.Web.SEO
 @using BolNews.Web.Services
 
 @inject ISeoService SeoService
 @inject IUrlService UrlService
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
 
 <!DOCTYPE html>
 <html lang="en">
@@ -102,6 +105,36 @@
                     </button>
                 </form>
             </div>
+            <div class="d-flex align-items-center ms-3">
+
+                @if (User.Identity.IsAuthenticated)
+                {
+                    var user = await UserManager.GetUserAsync(User);
+
+                    <span class="me-2">Hello, @user.FullName</span>
+
+                    <a class="btn btn-sm btn-outline-danger"
+                       asp-controller="Account"
+                       asp-action="Logout">
+                        Logout
+                    </a>
+                }
+                else
+                {
+                    <a class="btn btn-sm btn-outline-primary me-2"
+                       asp-controller="Account"
+                       asp-action="Login">
+                        Login
+                    </a>
+
+                    <a class="btn btn-sm btn-primary"
+                       asp-controller="Account"
+                       asp-action="Register">
+                        Register
+                    </a>
+                }
+
+            </div>
         </nav>
     </header>
    
@@ -118,6 +151,8 @@
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/lazyload.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

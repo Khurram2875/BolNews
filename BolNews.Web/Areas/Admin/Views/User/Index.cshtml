@@ -1,0 +1,91 @@
+﻿@using BolNews.Domain.Entities
+@using BolNews.Web.Models
+@model List<UserWithRolesVM>
+
+@{
+    ViewData["Title"] = "User Management";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>User Management</h2>
+        <span class="badge bg-secondary">Total Users: @Model.Count</span>
+    </div>
+
+    <div class="table-responsive rounded shadow-sm">
+        <table class="table-hover mb-0 table align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col" class="ps-4">Full Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Current Role</th>
+                    <th scope="col" class="pe-4 text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold">@user.FullName</div>
+                        </td>
+                        <td>
+                            <span class="text-muted">@user.Email</span>
+                        </td>
+                        <td>
+                            @foreach (var role in user.Roles)
+                            {
+                                <span class="badge bg-info text-dark rounded-pill me-1">@role</span>
+                            }
+                            @if (!user.Roles.Any())
+                            {
+                                <span class="text-muted small">No Role</span>
+                            }
+                        </td>
+                        <td class="pe-4 text-end">
+                            <a href="/Admin/User/AssignRole/@user.Id" class="btn btn-outline-primary btn-sm rounded-pill">
+                                <i class="bi bi-shield-lock me-1"></i> Assign Role
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<style>
+    /* Table Styling */
+    .table {
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+    }
+
+        .table thead th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            border: none;
+        }
+
+        .table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+    /* Rounded corners for the table container */
+    .table-responsive {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    /* Button hover effect */
+    .btn-outline-primary {
+        border-width: 1.5px;
+        font-weight: 500;
+    }
+
+        .btn-outline-primary:hover {
+            box-shadow: 0 2px 5px rgba(13, 110, 253, 0.2);
+        }
+</style>

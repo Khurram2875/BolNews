@@ -2,10 +2,12 @@
 using BolNews.Application.Interfaces;
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BolNews.Web.Areas.Admin.Controllers
 {
+    [Authorize]
     [Area("Admin")]
     public class DashboardController : Controller
     {

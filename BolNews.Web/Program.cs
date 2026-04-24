@@ -1,11 +1,14 @@
 ﻿using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
 using BolNews.Infrastructure.Services;
+using BolNews.Persistence;
 using BolNews.Persistence.Context;
+using BolNews.Persistence.Identity;
 using BolNews.Web;
 using BolNews.Web.Interfaces;
 using BolNews.Web.Services;
 using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,9 +40,15 @@ builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();
 
+builder.Services.AddPersistence(builder.Configuration);
+
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+app.UseAuthentication();
+app.UseAuthorization();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -92,4 +101,8 @@ app.MapControllerRoute(
     pattern: "sitemap.xml",
     defaults: new { controller = "Sitemap", action = "Index" }
 );
+using (var scope = app.Services.CreateScope())
+{
+    await IdentitySeeder.SeedAsync(scope.ServiceProvider);
+}
 app.Run();

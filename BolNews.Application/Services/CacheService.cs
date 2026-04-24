@@ -37,3 +37,4 @@ namespace BolNews.Application.Services
             _cache.Remove(key);
         }
     }
+}

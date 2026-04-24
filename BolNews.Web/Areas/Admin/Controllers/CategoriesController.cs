@@ -2,11 +2,13 @@
 using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
 using BolNews.Web.Areas.Admin.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BolNews.Web.Areas.Admin.Controllers
 {
+    [Authorize]
     [Area("Admin")]
     public class CategoriesController : Controller
     {
