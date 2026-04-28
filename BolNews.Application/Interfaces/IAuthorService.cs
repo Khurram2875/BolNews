@@ -11,6 +11,7 @@ namespace BolNews.Application.Interfaces
     {
         Task<IEnumerable<AuthorDto>> GetAllAsync();
         Task<AuthorDto?> GetByIdAsync(int id);
+        Task<AuthorDto?> GetAuthorByUserId(string userId);
         Task<AuthorDto> CreateAsync(AuthorDto dto);
         Task<AuthorDto> UpdateAsync(AuthorDto dto);
         Task DeleteAsync(int id);

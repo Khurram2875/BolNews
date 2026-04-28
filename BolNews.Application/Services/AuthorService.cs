@@ -49,7 +49,9 @@ namespace BolNews.Application.Services
                     ProfileImageUrl = a.ProfileImageUrl,
                     CreatedAt = a.CreatedAt,
                     UpdatedAt = a.UpdatedAt,
-                    IsDeleted = a.IsDeleted
+                    IsDeleted = a.IsDeleted,
+                    UserId = a.UserId
+
                 })
                 .FirstOrDefaultAsync();
         }
@@ -62,7 +64,8 @@ namespace BolNews.Application.Services
                 Bio = dto.Bio,
                 ProfileImageUrl = dto.ProfileImageUrl,
                 CreatedAt = DateTime.UtcNow,
-                IsDeleted = false
+                IsDeleted = false,
+                UserId = dto.UserId
             };
 
             _context.Authors.Add(entity);
@@ -107,6 +110,23 @@ namespace BolNews.Application.Services
                 entity.ProfileImageUrl = imagePath;
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task<AuthorDto?> GetAuthorByUserId(string userId)
+        {
+            return await _context.Authors
+                 .Where(a => a.UserId == userId && !a.IsDeleted)
+                 .Select(a => new AuthorDto
+                 {
+                     Id = a.Id,
+                     Name = a.Name,
+                     Bio = a.Bio,
+                     ProfileImageUrl = a.ProfileImageUrl,
+                     CreatedAt = a.CreatedAt,
+                     UpdatedAt = a.UpdatedAt,
+                     IsDeleted = a.IsDeleted
+                 })
+                 .FirstOrDefaultAsync();
         }
     }
 }

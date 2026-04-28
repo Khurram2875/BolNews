@@ -13,5 +13,13 @@ namespace BolNews.Web.Areas.Admin.ViewModels
 
         public string? ProfileImageUrl { get; set; }
         public IFormFile? ImageFile { get; set; }
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+
+        //[Required]
+        public string Password { get; set; }
+
+        public string? NewPassword { get; set; }
     }
 }

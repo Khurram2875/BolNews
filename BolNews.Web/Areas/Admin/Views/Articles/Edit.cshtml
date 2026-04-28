@@ -103,9 +103,9 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="AuthorId" class="form-label">Author</label>
-                <select asp-for="AuthorId" class="form-select" asp-items="ViewBag.Authors"></select>
-                <span asp-validation-for="AuthorId" class="text-danger"></span>
+                <label>Author</label>
+                <input value="@Model.AuthorName" readonly class="form-control" />
+                
             </div>
 
             <div class="mb-3">

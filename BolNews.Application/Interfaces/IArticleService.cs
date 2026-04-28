@@ -15,7 +15,7 @@ namespace BolNews.Application.Interfaces
         Task DeleteAsync(int id);
 
         Task<ArticleDto?> GetByIdAsync(int id);
-        Task<IEnumerable<ArticleDto>> GetAllAsync();
+        Task<IEnumerable<ArticleDto>> GetAllAsync(string Id, IList<string> roles);
         Task UpdateImagesAsync(int articleId, string thumb, string medium, string large, string xl);
         Task<string> GenerateUniqueSlugAsync(string title);
         Task<Article> GetBySlugAsync(string slug);
@@ -41,6 +41,8 @@ namespace BolNews.Application.Interfaces
         Task<List<(DateTime date, int count)>> GetArticlesPerDayAsync(int days = 7);
         Task<List<CategoryPerformanceDto>> GetCategoryPerformanceAsync(int days = 7);
         Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(int days = 7);
+        Task<bool> CanEditAsync(int articleId, string userId, IList<string> roles);
+        Task<bool> CanDeleteAsync(int articleId, string userId, IList<string> roles);
 
     }
 }

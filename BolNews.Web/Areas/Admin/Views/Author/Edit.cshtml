@@ -20,7 +20,15 @@
         <label>Bio</label>
         <textarea asp-for="Bio" class="form-control"></textarea>
     </div>
-
+    <div>
+        <label>Email</label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+    <div>
+        <label>New Password</label>
+        <input asp-for="NewPassword" type="password" class="form-control" />
+        <small>Leave blank to keep current password</small>
+    </div>
     <!-- 🔹 Current Image -->
     <div class="form-group mb-3">
         <label>Current Image</label><br />

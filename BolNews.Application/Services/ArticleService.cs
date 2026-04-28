@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using BolNews.Application.Common.Helpers;
 using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
+using BolNews.Domain.Common;
 using BolNews.Domain.Entities;
 using BolNews.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
@@ -62,7 +63,7 @@ namespace BolNews.Application.Services
             article.MetaDescription = dto.MetaDescription;
             article.FeaturedImageXl = dto.FeaturedImageXl;
             article.CategoryId = dto.CategoryId;
-            article.AuthorId = dto.AuthorId;
+            //article.AuthorId = dto.AuthorId;
             article.IsPublished = dto.IsPublished;
 
             if (dto.IsPublished && article.PublishedAt == null)
@@ -108,35 +109,86 @@ namespace BolNews.Application.Services
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<ArticleDto>> GetAllAsync()
+        public async Task<IEnumerable<ArticleDto>> GetAllAsync(string userId, IList<string> roles)
         {
-            return await _context.Articles
-           .Include(a => a.Author)
-           .Include(a => a.Category)
-           .Where(a => !a.IsDeleted)
-            .OrderByDescending(x => x.CreatedAt)
-           .Select(a => new ArticleDto
-           {
-               Id = a.Id,
-               Title = a.Title,
-               Slug = a.Slug,
-               Summary = a.Summary,
-               Content = a.Content,
-               FeaturedImageThumb= a.FeaturedImageThumb,
-               FeaturedImageMedium = a.FeaturedImageMedium,
-               FeaturedImageLarge = a.FeaturedImageLarge,
-               AuthorId = a.AuthorId,
-               CategoryId = a.CategoryId,
+            var query = _context.Articles
+        .Include(a => a.Author)
+        .Include(a => a.Category)
+        .Where(a => !a.IsDeleted)
+        .AsQueryable();
 
-               IsPublished = a.IsPublished,
-               PublishedAt = a.PublishedAt,
+            // 🔥 Admin & Editor → see ALL
+            if (roles.Contains("Admin") || roles.Contains("Editor"))
+            {
+                query = query;
+            }
+            // 🔥 Author → only own articles
+            else if (roles.Contains("Author"))
+            {
+                var author = await _context.Authors
+                    .FirstOrDefaultAsync(a => a.UserId == userId);
 
-               // 🔥 IMPORTANT PART
-               AuthorName = a.Author.Name != null ? a.Author.Name : null,
-               CategoryName = a.Category.Name != null ? a.Category.Name : null
-           })
-          
-           .ToListAsync();
+                if (author == null)
+                    return new List<ArticleDto>();
+
+                query = query.Where(a => a.AuthorId == author.Id);
+            }
+            // 🔥 SubEditor → define behavior (for now: all)
+            else if (roles.Contains("SubEditor"))
+            {
+                // optionally filter later
+            }
+
+            return await query
+                .OrderByDescending(x => x.CreatedAt)
+                .Select(a => new ArticleDto
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    Slug = a.Slug,
+                    Summary = a.Summary,
+                    Content = a.Content,
+                    FeaturedImageThumb = a.FeaturedImageThumb,
+                    FeaturedImageMedium = a.FeaturedImageMedium,
+                    FeaturedImageLarge = a.FeaturedImageLarge,
+                    AuthorId = a.AuthorId,
+                    CategoryId = a.CategoryId,
+
+                    IsPublished = a.IsPublished,
+                    PublishedAt = a.PublishedAt,
+
+                    // 👇 safer null handling
+                    AuthorName = a.Author != null ? a.Author.User.FullName : null,
+                    CategoryName = a.Category != null ? a.Category.Name : null
+                })
+                .ToListAsync();
+            // return await _context.Articles
+            //.Include(a => a.Author)
+            //.Include(a => a.Category)
+            //.Where(a => !a.IsDeleted)
+            // .OrderByDescending(x => x.CreatedAt)
+            //.Select(a => new ArticleDto
+            //{
+            //    Id = a.Id,
+            //    Title = a.Title,
+            //    Slug = a.Slug,
+            //    Summary = a.Summary,
+            //    Content = a.Content,
+            //    FeaturedImageThumb = a.FeaturedImageThumb,
+            //    FeaturedImageMedium = a.FeaturedImageMedium,
+            //    FeaturedImageLarge = a.FeaturedImageLarge,
+            //    AuthorId = a.AuthorId,
+            //    CategoryId = a.CategoryId,
+
+            //    IsPublished = a.IsPublished,
+            //    PublishedAt = a.PublishedAt,
+
+            //     //🔥 IMPORTANT PART
+            //    AuthorName = a.Author.Name != null ? a.Author.Name : null,
+            //    CategoryName = a.Category.Name != null ? a.Category.Name : null
+            //})
+
+            //.ToListAsync();
         }
         public async Task UpdateImagesAsync(int id, string thumb, string medium, string large, string xl)
         {
@@ -459,6 +511,51 @@ namespace BolNews.Application.Services
                 })
                 .OrderByDescending(x => x.TotalViews)
                 .ToListAsync();
+        }
+        public async Task<bool> CanEditAsync(int articleId, string userId, IList<string> roles)
+        {
+            var article = await _context.Articles
+                .Include(a => a.Author)
+                .FirstOrDefaultAsync(a => a.Id == articleId);
+
+            if (article == null)
+                return false;
+
+            // Admin & Editor → full access
+            if (roles.Contains("Admin") || roles.Contains("Editor"))
+                return true;
+
+            // SubEditor → can edit but not publish
+            if (roles.Contains("SubEditor"))
+                return true;
+
+            // Author → only own article
+            if (roles.Contains("Author"))
+            {
+                return article.Author.UserId == userId;
+            }
+
+            return false;
+        }
+        public async Task<bool> CanDeleteAsync(int articleId, string userId, IList<string> roles)
+        {
+            var article = await _context.Articles
+                .Include(a => a.Author)
+                .FirstOrDefaultAsync(a => a.Id == articleId);
+
+            if (article == null)
+                return false;
+
+            // Admin & Editor → full access
+            if (roles.Contains("Admin") || roles.Contains("Editor"))
+                return true;
+
+            // Author → only own article
+            if (roles.Contains("Author"))
+                return article.Author.UserId == userId;
+
+            // SubEditor → no delete
+            return false;
         }
     }
 }

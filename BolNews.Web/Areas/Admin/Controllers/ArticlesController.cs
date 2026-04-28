@@ -4,13 +4,16 @@ using BolNews.Application.Common.Helpers;
 using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
+using BolNews.Domain.Entities;
 using BolNews.Infrastructure.Services;
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Interfaces;
 using BolNews.Web.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
@@ -31,12 +34,13 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly ITrendingService _trendingService;
         private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public ArticlesController(
              IArticleService articleService,
              ICategoryService categoryService,
              IAuthorService authorService,
-             IWebHostEnvironment env, IMapper mapper, IImageService imageService, IDiscoverService discoverService, IHeadlineService headlineService, ITrendingService trendingService, ICacheService cacheService)
+             IWebHostEnvironment env, IMapper mapper, IImageService imageService, IDiscoverService discoverService, IHeadlineService headlineService, ITrendingService trendingService, ICacheService cacheService, UserManager<ApplicationUser> userManager)
         {
             _articleService = articleService;
             _categoryService = categoryService;
@@ -48,15 +52,26 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _headlineService = headlineService;
             _trendingService = trendingService;
             _cacheService = cacheService;
+            _userManager = userManager;
         }
 
         // GET: Admin/Articles
         public async Task<IActionResult> Index()
         {
-            var dtos = await _articleService.GetAllAsync();
+            var userId = _userManager.GetUserId(User);
+            var roles = await _userManager.GetRolesAsync(await _userManager.GetUserAsync(User));
+
+            var dtos = await _articleService.GetAllAsync(userId, roles);
             var viewModels = _mapper.Map<List<ArticleVM>>(dtos);
             return View(viewModels);
         }
+        //var userid=string.Empty;
+        //if (User.Identity.IsAuthenticated)
+        //{
+        //    var user = await _userManager.GetUserAsync(User);
+        //    userid = user.Id;
+        //}
+
 
         // GET: Admin/Articles/Create
         public async Task<IActionResult> Create()
@@ -67,19 +82,19 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private async Task PopulateDropdowns(int? categoryId = null, int? authorId = null)
         {
             var categories = await _categoryService.GetAllAsync();
-            var authors = await _authorService.GetAllAsync();
+            //var authors = await _authorService.GetAllAsync();
 
             ViewBag.Categories = new SelectList(categories, "Id", "Name", categoryId);
-            ViewBag.Authors = new SelectList(authors, "Id", "Name", authorId);
+            //ViewBag.Authors = new SelectList(authors, "Id", "Name", authorId);
         }
         // POST: Admin/Articles/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ArticleVM model)
         {
-
             if (!ModelState.IsValid)
             {
+                await PopulateDropdowns(model.CategoryId);
                 var errorList = ModelState.Where(x => x.Value.Errors.Count > 0)
                 .Select(x => new {
                     Property = x.Key,
@@ -93,10 +108,21 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 }
                 return View(model);
             }
-                
+            var userId = _userManager.GetUserId(User);
+
+            var author = await _authorService.GetAuthorByUserId(userId);
+                //.FirstOrDefaultAsync(a => a.UserId == userId);
+
+            if (author == null)
+            {
+                ModelState.AddModelError("", "Author profile not found.");
+                return View(model);
+            }
+
             var slug = await _articleService.GenerateUniqueSlugAsync(model.Title);
             
             var dto = _mapper.Map<ArticleDto>(model);
+            dto.AuthorId = author.Id;
 
             dto.Slug = slug;
             dto.MetaTitle = model.MetaTitle ?? model.Title;
@@ -124,11 +150,24 @@ namespace BolNews.Web.Areas.Admin.Controllers
         // GET: Admin/Articles/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
+            var user = await _userManager.GetUserAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            // 🔥 AUTHORIZATION CHECK
+            var canEdit = await _articleService.CanEditAsync(id, user.Id, roles);
+
+            if (!canEdit)
+                return Forbid();
+
             var dto = await _articleService.GetByIdAsync(id);
             if (dto == null)
                 return NotFound();
 
             var model = _mapper.Map<ArticleVM>(dto);
+
+            // 🔥 show author name (read-only in UI)
+            model.AuthorName = user.FullName;
+
             model.DiscoverScore = _discoverService.Evaluate(new PublicArticleVM
             {
                 Title = model.Title,
@@ -138,7 +177,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 PublishedAt = model.PublishedAt
             });
 
-            await PopulateDropdowns();
+            await PopulateDropdowns(model.CategoryId);
+
             return View(model);
         }
 
@@ -147,6 +187,15 @@ namespace BolNews.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(ArticleVM model)
         {
+            var user = await _userManager.GetUserAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            // 🔥 AUTHORIZATION CHECK
+            var canEdit = await _articleService.CanEditAsync(model.Id, user.Id, roles);
+
+            if (!canEdit)
+                return Forbid();
+
             if (!ModelState.IsValid)
             {
                 model.DiscoverScore = _discoverService.Evaluate(new PublicArticleVM
@@ -158,7 +207,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
                     PublishedAt = model.PublishedAt
                 });
 
-                await PopulateDropdowns();
+                await PopulateDropdowns(model.CategoryId);
                 return View(model);
             }
 
@@ -166,11 +215,21 @@ namespace BolNews.Web.Areas.Admin.Controllers
             if (existing == null)
                 return NotFound();
 
-            var oldSlug = existing.Slug; // 🔥 IMPORTANT
+            var oldSlug = existing.Slug;
 
             var dto = _mapper.Map<ArticleDto>(model);
 
-            // 🔹 Slug handling
+            // 🔥 CRITICAL: PRESERVE AUTHOR
+            dto.AuthorId = existing.AuthorId;
+
+            // 🔥 ROLE-BASED PUBLISH CONTROL
+            if (!(roles.Contains("Admin") || roles.Contains("Editor")))
+            {
+                dto.IsPublished = existing.IsPublished;
+                dto.PublishedAt = existing.PublishedAt;
+            }
+
+            // 🔹 Slug logic
             if (existing.Title != model.Title)
             {
                 dto.Slug = await _articleService.GenerateUniqueSlugAsync(model.Title);
@@ -180,16 +239,15 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 dto.Slug = existing.Slug;
             }
 
-            // 🔹 Update article
             await _articleService.UpdateAsync(dto);
 
-            // 🔹 Image handling
+            // 🔹 Image handling (unchanged)
             if (model.ImageFile != null)
             {
                 if (!ImageValidator.IsValid(model.ImageFile, out var error))
                 {
                     ModelState.AddModelError("ImageFile", error);
-                    await PopulateDropdowns(); // 🔥 FIX
+                    await PopulateDropdowns(model.CategoryId);
                     return View(model);
                 }
 
@@ -203,9 +261,9 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 await _articleService.UpdateImagesAsync(model.Id, thumb, medium, large, xl);
             }
 
-            // 🔥 CACHE INVALIDATION (AFTER EVERYTHING SUCCESSFUL)
-            _cacheService.Remove(CacheKeys.Article(oldSlug));   // old slug
-            _cacheService.Remove(CacheKeys.Article(dto.Slug));  // new slug
+            // 🔥 Cache invalidation (unchanged)
+            _cacheService.Remove(CacheKeys.Article(oldSlug));
+            _cacheService.Remove(CacheKeys.Article(dto.Slug));
 
             _cacheService.Remove($"article_content_{dto.Id}");
             _cacheService.Remove($"related_{dto.Id}");
@@ -215,7 +273,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _cacheService.Remove(CacheKeys.Sitemap + "_index");
             _cacheService.Remove(CacheKeys.Sitemap + "_articles");
             _cacheService.Remove(CacheKeys.Sitemap + "_news");
-            for (int i = 1; i <= 3; i++) // first 3 pages
+
+            for (int i = 1; i <= 3; i++)
             {
                 _cacheService.Remove(CacheKeys.Category(dto.CategorySlug, i));
             }
@@ -228,7 +287,34 @@ namespace BolNews.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
+            var user = await _userManager.GetUserAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var canDelete = await _articleService.CanDeleteAsync(id, user.Id, roles);
+
+            if (!canDelete)
+                return Forbid();
+
+            var article = await _articleService.GetByIdAsync(id);
+
+            if (article == null)
+                return NotFound();
+
             await _articleService.DeleteAsync(id);
+
+            // 🔥 Cache invalidation
+            _cacheService.Remove(CacheKeys.Article(article.Slug));
+            _cacheService.Remove($"article_content_{article.Id}");
+            _cacheService.Remove($"related_{article.Id}");
+
+            _cacheService.Remove(CacheKeys.Trending);
+            _cacheService.Remove(CacheKeys.Dashboard);
+
+            for (int i = 1; i <= 3; i++)
+            {
+                _cacheService.Remove(CacheKeys.Category(article.CategorySlug, i));
+            }
+
             return RedirectToAction(nameof(Index));
         }
 

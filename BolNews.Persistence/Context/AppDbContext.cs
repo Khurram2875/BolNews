@@ -53,7 +53,20 @@ namespace BolNews.Persistence.Context
                     method?.Invoke(null, new object[] { modelBuilder });
                 }
             }
+            // Author ↔ User (1:1)
+            modelBuilder.Entity<Author>()
+                .HasOne(a => a.User)
+                .WithOne()
+                .HasForeignKey<Author>(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Article ↔ Author (1:M)
+            modelBuilder.Entity<Article>()
+                .HasOne(a => a.Author)
+                .WithMany(a => a.Articles)
+                .HasForeignKey(a => a.AuthorId);
         }
+        
 
         private static void SetSoftDeleteFilter<T>(ModelBuilder modelBuilder)
             where T : BaseEntity

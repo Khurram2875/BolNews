@@ -9,6 +9,8 @@ namespace BolNews.Domain.Entities
 {
     public class Author : BaseEntity
     {
+        public string UserId { get; set; }
+        public ApplicationUser User { get; set; }
         public string Name { get; set; }
         public string Bio { get; set; }
 
