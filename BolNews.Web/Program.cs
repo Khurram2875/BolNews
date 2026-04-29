@@ -77,6 +77,11 @@ app.MapControllerRoute(
     pattern: "news/{categorySlug}",
     defaults: new { controller = "Category", action = "Details" }
 );
+app.MapControllerRoute(
+    name: "authorDetails",
+    pattern: "author/{authorSlug}",
+    defaults: new { controller = "Author", action = "Details" }
+);
 
 // ✅ Area Route (Admin)
 app.MapControllerRoute(

@@ -65,6 +65,8 @@ namespace BolNews.Persistence.Context
                 .HasOne(a => a.Author)
                 .WithMany(a => a.Articles)
                 .HasForeignKey(a => a.AuthorId);
+
+
         }
         
 

@@ -20,6 +20,7 @@ namespace BolNews.Web.Interfaces
             string BuildBreadcrumb(PublicArticleVM article, string baseUrl);
 
             string BuildCategoryBreadcrumb(string categoryName, string categorySlug, string baseUrl);
+            string BuildAuthorSchema(AuthorPageVM author);
         }
     
 }

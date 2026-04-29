@@ -35,7 +35,7 @@
 
 				<h4 style="color:#C4161C">@Model.Article.Title</h4>
 				<h6>@Model.Article.MetaTitle</h6>
-
+				
 				<img src="@Model.Article.FeaturedImageLarge"
 					 alt="@Model.Article.Title"
 					 class="img-fluid mb-3" />
@@ -43,7 +43,9 @@
 				<div>
 					@Html.Raw(Model.Article.Content)
 				</div>
-
+				<a href="/author/@Model.Article.AuthorName.Replace(" ", "-").ToLower()">
+					@Model.Article.AuthorName
+				</a>
 			</article>
 		</div>
 		<div class="col-md-4">

@@ -43,6 +43,8 @@ namespace BolNews.Application.Interfaces
         Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(int days = 7);
         Task<bool> CanEditAsync(int articleId, string userId, IList<string> roles);
         Task<bool> CanDeleteAsync(int articleId, string userId, IList<string> roles);
+        Task<List<Article>> GetByAuthorAsync(int authorId);
+        
 
     }
 }

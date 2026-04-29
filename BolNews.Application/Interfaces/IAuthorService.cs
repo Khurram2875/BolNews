@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BolNews.Application.DTOs;
+using BolNews.Domain.Entities;
 
 namespace BolNews.Application.Interfaces
 {
@@ -16,5 +17,6 @@ namespace BolNews.Application.Interfaces
         Task<AuthorDto> UpdateAsync(AuthorDto dto);
         Task DeleteAsync(int id);
         Task UpdateImageAsync(int id, string imagePath);
+        Task<Author?> GetBySlugAsync(string slug);
     }
 }

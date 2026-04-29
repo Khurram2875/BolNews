@@ -58,6 +58,7 @@ namespace BolNews.Application.Services
 
         public async Task<AuthorDto> CreateAsync(AuthorDto dto)
         {
+            var slug = NormalizeName(dto.Name);
             var entity = new Author
             {
                 Name = dto.Name,
@@ -65,7 +66,9 @@ namespace BolNews.Application.Services
                 ProfileImageUrl = dto.ProfileImageUrl,
                 CreatedAt = DateTime.UtcNow,
                 IsDeleted = false,
-                UserId = dto.UserId
+                UserId = dto.UserId,
+                Slug = slug
+
             };
 
             _context.Authors.Add(entity);
@@ -127,6 +130,22 @@ namespace BolNews.Application.Services
                      IsDeleted = a.IsDeleted
                  })
                  .FirstOrDefaultAsync();
+        }
+        public async Task<Author?> GetBySlugAsync(string slug)
+        {
+            if (string.IsNullOrWhiteSpace(slug))
+                return null;
+
+            
+
+
+            return await _context.Authors
+                .Include(a => a.User) // optional
+                 .FirstOrDefaultAsync(a => a.Slug == slug);
+        }
+        private string NormalizeName(string name)
+        {
+            return name.Replace("-", " ").Trim().ToLower();
         }
     }
 }

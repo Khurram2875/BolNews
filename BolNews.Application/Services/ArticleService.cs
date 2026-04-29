@@ -219,9 +219,15 @@ namespace BolNews.Application.Services
         }
         public async Task<Article> GetBySlugAsync(string slug)
         {
-            return await _context.Articles
-                .Include(c=>c.Category)
-         .FirstOrDefaultAsync(a => a.Slug == slug && !a.IsDeleted);
+            var query = _context.Articles
+                       .Include(a => a.Category)
+                       .Where(a => a.Slug == slug && !a.IsDeleted)
+                       .AsQueryable();
+            var article = await _context.Articles
+                  .Include(c => c.Category)
+                  .Include(a=>a.Author)
+                  .FirstOrDefaultAsync(a => a.Slug == slug && !a.IsDeleted);
+            return article;
         }
         public async Task<List<Article>> GetByCategorySlugAsync(string categorySlug, int page)
         {
@@ -557,5 +563,14 @@ namespace BolNews.Application.Services
             // SubEditor → no delete
             return false;
         }
+        public async Task<List<Article>> GetByAuthorAsync(int authorId)
+        {
+            return await _context.Articles
+                .Include(a => a.Category)
+                .Where(a => a.AuthorId == authorId && a.IsPublished)
+                .OrderByDescending(a => a.PublishedAt)
+                .Take(20)
+                .ToListAsync();
+        }   
     }
 }

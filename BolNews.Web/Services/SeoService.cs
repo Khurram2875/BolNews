@@ -155,5 +155,23 @@ namespace BolNews.Web.Services
 
             return JsonSerializer.Serialize(schema);
         }
+        public string BuildAuthorSchema(AuthorPageVM author)
+        {
+            var schema = new
+            {
+                @context = "https://schema.org",
+                @type = "Person",
+                name = author.Name,
+                description = author.Bio,
+                image = author.ProfileImage,
+                url = $"{author.BaseUrl}/author/{author.Name.Replace(" ", "-").ToLower()}",
+                sameAs = new string[]
+                {
+                    // optional social links later
+                }
+            };
+
+            return JsonSerializer.Serialize(schema);
+        }
     }
 }
