@@ -2,6 +2,7 @@
 using BolNews.Application.Common;
 using BolNews.Application.Interfaces;
 using BolNews.Web.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace BolNews.Web.Services
@@ -9,6 +10,7 @@ namespace BolNews.Web.Services
     public class SitemapService : ISitemapService
     {
         private readonly IArticleService _articleService;
+        private readonly IAuthorService _authorService;
         private readonly ICategoryService _categoryService;
         private readonly IUrlService _urlService;
         private readonly ICacheService _cache;
@@ -18,12 +20,14 @@ namespace BolNews.Web.Services
             IArticleService articleService,
             ICategoryService categoryService,
             IUrlService urlService,
-            ICacheService cache)
+            ICacheService cache,
+            IAuthorService authorService)
         {
             _articleService = articleService;
             _categoryService = categoryService;
             _urlService = urlService;
             _cache = cache;
+            _authorService = authorService;
         }
 
         // ✅ SITEMAP INDEX
@@ -47,6 +51,9 @@ namespace BolNews.Web.Services
                             ),
                             new XElement(ns + "sitemap",
                                 new XElement(ns + "loc", $"{baseUrl}/news-sitemap.xml")
+                            ),
+                            new XElement("sitemap",
+                                new XElement("loc", $"{baseUrl}/sitemap-authors.xml")
                             )
                         )
                     );
@@ -148,6 +155,31 @@ namespace BolNews.Web.Services
                 },
                 5
             );
+        }
+
+        public async Task<string> GenerateAuthorSitemapAsync()
+        {
+            var authors = await _authorService.GetAll();
+            //var filteredAuthors = authors.Where(a => a.Articles.Any(ar => ar.IsPublished)).ToList();
+
+            var baseUrl = _urlService.GetBaseUrl();
+
+            XNamespace ns = "http://www.sitemaps.org/schemas/sitemap/0.9";
+
+            var urls = authors.Select(a =>
+                new XElement(ns + "url",
+                    new XElement(ns + "loc", $"{baseUrl}/author/{a.slug}"),
+                    new XElement(ns + "lastmod", $"{(a.UpdatedAt ?? a.CreatedAt):yyyy-MM-ddTHH:mm:ssZ}"),
+                    new XElement(ns + "changefreq", "weekly"),
+                    new XElement(ns + "priority", "0.6")
+                )
+            );
+
+            var xml = new XDocument(
+                new XElement(ns + "urlset", urls)
+            );
+
+            return xml.ToString();
         }
     }
 }

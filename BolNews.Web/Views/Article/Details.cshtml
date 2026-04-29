@@ -32,10 +32,36 @@
 
 		<div class="col-md-8">
 			<article class="container mt-4">
+				@if (Model.Article.UpdatedAt.HasValue)
+				{
+					<p class="text-muted">
+						Last updated: @Model.Article.UpdatedAt.Value.ToString("MMM dd, yyyy")
+					</p>
+				}
 
 				<h4 style="color:#C4161C">@Model.Article.Title</h4>
+				<div class="author-box mb-3 mt-3 rounded border p-3">
+
+					<div class="d-flex align-items-center">
+
+						<img src="@Model.Article.AuthorImage"
+							 style="width:50px;height:50px;border-radius:50%;object-fit:cover;"
+							 class="me-2" />
+
+						<div>
+							<a href="/author/@Model.Article.AuthorSlug">
+								<strong>@Model.Article.AuthorName</strong>
+							</a>
+							<p class="text-muted small mb-0">
+								Journalist at Bol News
+							</p>
+						</div>
+
+					</div>
+
+				</div>
 				<h6>@Model.Article.MetaTitle</h6>
-				
+				<span>@Model.Article.ReadingTimeMinutes min read</span>
 				<img src="@Model.Article.FeaturedImageLarge"
 					 alt="@Model.Article.Title"
 					 class="img-fluid mb-3" />

@@ -21,6 +21,12 @@
         public string CategorySlug { get; set; }
 
         public string AuthorName { get; set; }
+        public string AuthorSlug { get; set; } 
+        public string AuthorImage { get; set; }
+        public int ReadingTimeMinutes =>
+    string.IsNullOrEmpty(Content)
+        ? 0
+        : Math.Max(1, Content.Split(' ').Length / 200);
 
         public DateTime? PublishedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

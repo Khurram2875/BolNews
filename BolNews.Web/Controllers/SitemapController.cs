@@ -45,6 +45,12 @@ namespace BolNews.Web.Controllers
             var xml = await _sitemapService.GenerateNewsSitemapAsync();
             return Content(xml, "application/xml");
         }
+        [HttpGet("sitemap-authors.xml")]
+        public async Task<IActionResult> AuthorSitemap()
+        {
+            var xml = await _sitemapService.GenerateAuthorSitemapAsync();
+            return Content(xml, "application/xml");
+        }
         //[HttpGet("/sitemap.xml")]
         //public async Task<IActionResult> Index()
         //{

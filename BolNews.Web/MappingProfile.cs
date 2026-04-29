@@ -23,8 +23,13 @@ namespace BolNews.Web
      .ForMember(dest => dest.CategoryId,
          opt => opt.MapFrom(src => src.Category.ParentCategoryId));
 
-            CreateMap<Article, PublicArticleVM>().ReverseMap();
-     
+            CreateMap<Article, PublicArticleVM>()
+     .ForMember(dest => dest.AuthorName, opt => opt.MapFrom(src => src.Author.Name))
+     .ForMember(dest => dest.AuthorSlug, opt => opt.MapFrom(src => src.Author.Slug))
+     .ForMember(dest => dest.AuthorImage, opt => opt.MapFrom(src => src.Author.ProfileImageUrl))
+     .ForMember(dest => dest.CategorySlug, opt => opt.MapFrom(src => src.Category.Slug))
+     .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
+
 
             CreateMap<CategoryDto, CategoryVM>().ReverseMap();
             CreateMap<CategoryDto, CategoryVM2>().ReverseMap();

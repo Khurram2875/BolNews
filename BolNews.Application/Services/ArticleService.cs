@@ -221,6 +221,7 @@ namespace BolNews.Application.Services
         {
             var query = _context.Articles
                        .Include(a => a.Category)
+                       .Include(a => a.Author)
                        .Where(a => a.Slug == slug && !a.IsDeleted)
                        .AsQueryable();
             var article = await _context.Articles

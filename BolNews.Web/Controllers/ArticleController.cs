@@ -56,6 +56,8 @@ namespace BolNews.Web.Controllers
 
             // ✅ Map
             var articleVM = _mapper.Map<PublicArticleVM>(article);
+            articleVM.AuthorImage = article.Author.ProfileImageUrl;
+
             articleVM.Content = await _cacheService.GetOrCreateAsync(
                     $"article_content_{article.Id}",
                     async () => await _internalLinkingService.InjectInternalLinksAsync(articleVM.Content),

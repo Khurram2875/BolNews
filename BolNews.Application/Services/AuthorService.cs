@@ -23,6 +23,7 @@ namespace BolNews.Application.Services
         public async Task<IEnumerable<AuthorDto>> GetAllAsync()
         {
             return await _context.Authors
+                .Include(ar=>ar.Articles)
                 .Where(a => !a.IsDeleted)
                 .Select(a => new AuthorDto
                 {
@@ -36,6 +37,26 @@ namespace BolNews.Application.Services
                 })
                 .ToListAsync();
         }
+        //public async Task<List<AuthorDto2>> GetAll()
+        //{
+        //    var authorwitharticle =
+        //     _context.Authors
+        //        .Include(a=>a.Articles)
+        //        .Where(a => !a.IsDeleted)
+        //        .Select(a => new AuthorDto2
+        //        {
+        //            Id = a.Id,
+        //            Name = a.Name,
+        //            Bio = a.Bio,
+        //            ProfileImageUrl = a.ProfileImageUrl,
+        //            CreatedAt = a.CreatedAt,
+        //            UpdatedAt = a.UpdatedAt,
+        //            IsDeleted = a.IsDeleted
+        //        })
+        //        .ToListAsync();
+
+        //    return await authorwitharticle;
+        //}
 
         public async Task<AuthorDto?> GetByIdAsync(int id)
         {
@@ -146,6 +167,28 @@ namespace BolNews.Application.Services
         private string NormalizeName(string name)
         {
             return name.Replace("-", " ").Trim().ToLower();
+        }
+
+        public async Task<List<AuthorDto2>> GetAll()
+        {
+            var authorwitharticle = await
+             _context.Authors
+                .Include(a => a.Articles)
+                .Where(a => !a.IsDeleted)
+                .Select(a => new AuthorDto2
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    Bio = a.Bio,
+                    slug = a.Slug,
+                    ProfileImageUrl = a.ProfileImageUrl,
+                    CreatedAt = a.CreatedAt,
+                    UpdatedAt = a.UpdatedAt,
+                    IsDeleted = a.IsDeleted
+                })
+                .ToListAsync();
+
+            return  authorwitharticle;
         }
     }
 }

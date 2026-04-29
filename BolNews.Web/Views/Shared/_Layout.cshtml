@@ -23,7 +23,8 @@
     <!-- ✅ SEO -->
     <title>@(ViewBag.MetaTitle ?? "Bol News")</title>
     <meta name="description" content="@(ViewBag.MetaDescription ?? "Latest news from Bol News")" />
-    <link rel="canonical" href="@(ViewBag.CanonicalUrl ?? "")" />
+    @* <link rel="canonical" href="@(ViewBag.CanonicalUrl ?? "")" /> *@
+    <link rel="canonical" href="@($"{Context.Request.Scheme}://{Context.Request.Host}{ViewBag.CanonicalUrl}")" />
 
     <!-- ✅ Open Graph -->
     <meta property="og:title" content="@(ViewBag.MetaTitle ?? "")" />
@@ -49,19 +50,37 @@
         var baseUrl = UrlService.GetBaseUrl();
         var orgSchema = SeoService.BuildOrganizationSchema(baseUrl);
     }
-    @if (ViewBag.CategorySlug != null)
+    @if (ViewBag.Page is int page)
     {
-        if (ViewBag.Page > 1)
+        var basePath = Context.Request.Path;
+        var query = Context.Request.Query;
+
+        var queryString = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(query.ToString())
+        .Where(q => q.Key.ToLower() != "page")
+        .SelectMany(q => q.Value, (k, v) => $"{k.Key}={v}");
+
+        var baseQuery = string.Join("&", queryString);
+
+        string BuildUrl(int targetPage)
         {
-            <link rel="prev" href="@($"{baseUrl}/news/{ViewBag.CategorySlug}?page={ViewBag.Page - 1}")" />
+            var pagePart = targetPage > 1 ? $"page={targetPage}" : "";
+            var fullQuery = string.Join("&", new[] { baseQuery, pagePart }.Where(x => !string.IsNullOrEmpty(x)));
+
+            return string.IsNullOrEmpty(fullQuery)
+            ? basePath
+            : $"{basePath}?{fullQuery}";
+        }
+
+        if (page > 1)
+        {
+            <link rel="prev" href="@BuildUrl(page - 1)" />
         }
 
         if (ViewBag.HasNextPage == true)
         {
-            <link rel="next" href="@($"{baseUrl}/news/{ViewBag.CategorySlug}?page={ViewBag.Page + 1}")" />
+            <link rel="next" href="@BuildUrl(page + 1)" />
         }
     }
-
     <script type="application/ld+json">
         @Html.Raw(orgSchema)
     </script>
