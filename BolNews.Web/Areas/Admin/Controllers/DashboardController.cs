@@ -14,15 +14,14 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly IArticleService _articleService;
         private readonly ITrendingService _trendingService;
         private readonly IMapper _mapper;
+        private readonly IAnalyticsService _analyticsService;
 
-        public DashboardController(
-            IArticleService articleService,
-            ITrendingService trendingService,
-            IMapper mapper)
+        public DashboardController(IArticleService articleService, ITrendingService trendingService,IMapper mapper, IAnalyticsService analyticsService)
         {
             _articleService = articleService;
             _trendingService = trendingService;
             _mapper = mapper;
+            _analyticsService = analyticsService;
         }
 
         public async Task<IActionResult> Index()
@@ -60,7 +59,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             var categoryStats = await _articleService.GetCategoryPerformanceAsync(7);
 
-            
+            var lowCtrArticles = await _analyticsService.GetLowCTRArticlesAsync();
+            ViewBag.LowCTRArticles = lowCtrArticles;
 
             vm.CategoryPerformance = categoryStats;
 

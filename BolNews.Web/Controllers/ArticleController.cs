@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BolNews.Application.Interfaces;
+using BolNews.Application.Services;
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Interfaces;
 using BolNews.Web.Services;
@@ -15,7 +16,9 @@ namespace BolNews.Web.Controllers
         private readonly ISeoService _seoService;
         private readonly IInternalLinkingService _internalLinkingService;
         private readonly ICacheService _cacheService;
-        public ArticleController(IArticleService articleService, IMapper mapper, IUrlService urlService, ISeoService seoService, IInternalLinkingService internalLinkingService, ICacheService cacheService)
+        private readonly IAnalyticsService _analyticsService;
+
+        public ArticleController(IArticleService articleService, IMapper mapper, IUrlService urlService, ISeoService seoService, IInternalLinkingService internalLinkingService, ICacheService cacheService, IAnalyticsService analyticsService)
         {
             _articleService = articleService;
             _mapper = mapper;
@@ -23,6 +26,7 @@ namespace BolNews.Web.Controllers
             _seoService = seoService;
             _internalLinkingService = internalLinkingService;
             _cacheService = cacheService;
+            _analyticsService = analyticsService;
         }
 
         public async Task<IActionResult> Details(string categorySlug, string slug)
@@ -44,7 +48,7 @@ namespace BolNews.Web.Controllers
                     slug = article.Slug
                 });
             }
-
+            await _analyticsService.TrackImpressionAsync(article.Id);
             // 🔥 Increment View Count (session-safe)
             var viewedKey = $"viewed_article_{article.Id}";
 
@@ -102,5 +106,6 @@ namespace BolNews.Web.Controllers
 
             return View(pageVM);
         }
+       
     }
 }

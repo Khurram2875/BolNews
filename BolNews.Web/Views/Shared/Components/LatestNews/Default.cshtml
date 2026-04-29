@@ -20,8 +20,10 @@
                 <div class="ms-3">
                     @* Title styled to be bold and dark, removing standard link blue if desired *@
                     <h5 class="mb-1">
+
                         <a href="/news/@item.CategorySlug/@item.Slug"
-                           class="text-decoration-none text-dark"
+                           class="track-click text-decoration-none text-dark"
+                           data-article-id="@item.Id"
                            style="font-size: small;">
                             @item.Title
                         </a>

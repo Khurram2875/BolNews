@@ -113,6 +113,14 @@
         <canvas id="editorChart" class="mt-4" style="max-height: 250px;"></canvas>
     </div>
 </div>
+<h3>Low CTR Articles</h3>
+
+@foreach (var article in ViewBag.LowCTRArticles)
+{
+    <div>
+        <strong>@article.Title</strong>
+    </div>
+}
 <style>
     .stat-card {
         transition: transform 0.3s ease;

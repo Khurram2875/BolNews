@@ -3,6 +3,7 @@
 
 @{
     ViewData["Title"] = "Search";
+
 }
 
 <div class="container mt-4">
@@ -29,7 +30,8 @@
                 <div class="col-md-9">
 
                     <a href="/news/@item.CategorySlug/@item.Slug"
-                       class="text-dark text-decoration-none">
+                       class="track-click text-dark text-decoration-none"
+                       data-article-id="@item.Id">
                         <h5>@item.Title</h5>
                     </a>
 

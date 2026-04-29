@@ -90,13 +90,14 @@
 
 				<a href="/news/@item.CategorySlug/@item.Slug">
 					<img src="@item.FeaturedImageThumb"
-						 class="card-img-top"
+						 class="track-click card-img-top"
+						 data-article-id="@item.Id"
 						 style="height:160px; object-fit:cover;" />
 				</a>
 
 				<div class="card-body">
 					<h6>
-						<a href="/news/@item.CategorySlug/@item.Slug" class="text-dark">
+						<a href="/news/@item.CategorySlug/@item.Slug" class="track-click text-dark" data-article-id="@item.Id">
 							@item.Title
 						</a>
 					</h6>

@@ -22,7 +22,9 @@
 
 					<a asp-route="articleDetails"
 					   asp-route-categorySlug="@article.CategorySlug"
-					   asp-route-slug="@article.Slug">
+					   asp-route-slug="@article.Slug"
+					   class="track-click"
+					   data-article-id="@article.Id">
 						@article.Title
 					</a>
 				</div>

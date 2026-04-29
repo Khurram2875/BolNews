@@ -22,6 +22,7 @@ namespace BolNews.Persistence.Context
         public DbSet<Article> Articles { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Author> Authors { get; set; }
+        public DbSet<ArticleAnalytics> ArticleAnalytics { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -40,6 +41,13 @@ namespace BolNews.Persistence.Context
             });
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+            modelBuilder.Entity<ArticleAnalytics>()
+                .HasOne(a => a.Article)
+                .WithMany()
+                .HasForeignKey(a => a.ArticleId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired(false); // ✅ KEY FIX
 
             // Soft delete filter
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())

@@ -15,3 +15,27 @@ window.onscroll = function () {
         body.classList.remove("nav-fixed");
     }
 };
+
+//function trackClick(articleId) {
+//    if (!articleId) return;
+
+//    navigator.sendBeacon('/analytics/click/' + articleId);
+
+//}
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.querySelectorAll(".track-click").forEach(link => {
+
+        link.addEventListener("click", function () {
+
+            const id = this.dataset.articleId;
+
+            if (!id) return;
+
+            navigator.sendBeacon('/analytics/click/' + id);
+
+        });
+
+    });
+
+});
