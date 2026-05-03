@@ -37,6 +37,8 @@ builder.Services.AddHttpClient<IGoogleTrendsService, GoogleTrendsService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IWeatherService, WeatherService>();
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();

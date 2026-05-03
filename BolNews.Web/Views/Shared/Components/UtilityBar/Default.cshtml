@@ -1,0 +1,23 @@
+﻿<div class="utility-bar d-flex justify-content-between bg-light px-3 py-2">
+
+    <!-- Weather -->
+    <div>
+        <img src="@Model.Weather.Icon" style="width:24px;" />
+        @Model.Weather.City:
+        <strong>@Model.Weather.Temperature°C</strong>
+        (@Model.Weather.Condition)
+    </div>
+
+    <!-- Forex -->
+   @*  <div>
+        💱 USD: <strong>@Model.Forex.USD</strong> |
+        EUR: <strong>@Model.Forex.EUR</strong>
+    </div>
+
+    <!-- Gold -->
+    <div>
+        🟡 Gold (24K):
+        <strong>Rs. @Model.Gold.Price24K</strong>
+    </div> *@
+
+</div>
