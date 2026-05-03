@@ -1,26 +1,28 @@
-﻿@* TrendingNews/Default.cshtml — updated with bn- classes *@
+﻿@using BolNews.Web.Areas.Admin.ViewModels
+@model List<PublicArticleVM>
 
-<div class="bn-widget-title">Trending</div>
-
-<div class="trending-tabs">
-    <a href="?type=today" class="@(ViewBag.Type == "today" ? "active" : "")">Today</a>
-    <a href="?type=week" class="@(ViewBag.Type == "week" ? "active" : "")">This Week</a>
-    <a href="?type=month" class="@(ViewBag.Type == "month" ? "active" : "")">This Month</a>
+<div class="container-fluid" style="border-top:solid; border-bottom:solid;border-width:thin; align-items:center;height: 40px;padding-top:05px">
+    <h5 class="fw-bold mb-4 text-center">Trending</h5>
 </div>
 
-@{
-    int rank = 1;
-}
-@foreach (var item in Model)
-{
-    <a href="/news/@item.CategorySlug/@item.Slug"
-       class="bn-trending-item track-click"
-       data-article-id="@item.Id">
-        <div class="bn-trending-num">@(rank.ToString("D2"))</div>
-        <div>
-            <div class="bn-trending-title">@item.Title</div>
-            <div class="bn-trending-meta">@item.CategoryName · @item.TimeAgo</div>
-        </div>
+<!-- 🔥 Tabs -->
+<div class="trending-tabs mb-3">
+
+    <a href="#" class="trend-tab @(ViewBag.Type == "today" ? "active" : "")" data-type="today">
+        Today
     </a>
-    rank++;
-}
+
+    <a href="#" class="trend-tab @(ViewBag.Type == "week" ? "active" : "")" data-type="week">
+        This Week
+    </a>
+
+    <a href="#" class="trend-tab @(ViewBag.Type == "month" ? "active" : "")" data-type="month">
+        This Month
+    </a>
+
+</div>
+
+<!-- 🔥 CONTENT CONTAINER -->
+<div id="trending-container">
+    @await Html.PartialAsync("~/Views/Shared/Components/TrendingNews/_TrendingList.cshtml", Model)
+</div>

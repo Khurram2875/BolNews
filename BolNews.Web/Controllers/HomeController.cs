@@ -25,7 +25,7 @@ namespace BolNews.Web.Controllers
             _cache = cache;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string type = "today")
         {
             //var vm = new HomePageVM();
             var vm = await _cache.GetOrCreateAsync("homepage", async entry =>
@@ -59,6 +59,7 @@ namespace BolNews.Web.Controllers
                 }
                 return model;
             });
+            ViewBag.Type = type;
             return View(vm);
         }
 
@@ -71,6 +72,13 @@ namespace BolNews.Web.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+        public async Task<IActionResult> GetTrending(string type = "today")
+        {
+            var articles = await _articleService.GetTrendingAsync(5, type);
+            var vm = _mapper.Map<List<PublicArticleVM>>(articles);
+
+            return PartialView("~/Views/Shared/Components/TrendingNews/_TrendingList.cshtml", vm);
         }
     }
 }

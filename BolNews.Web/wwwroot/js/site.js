@@ -27,3 +27,27 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.querySelectorAll(".trend-tab").forEach(tab => {
+
+        tab.addEventListener("click", function (e) {
+            e.preventDefault();
+
+            const type = this.dataset.type;
+
+            // 🔥 Update active tab
+            document.querySelectorAll(".trend-tab").forEach(t => t.classList.remove("active"));
+            this.classList.add("active");
+
+            // 🔥 Fetch new data
+            fetch(`/Home/GetTrending?type=${type}`)
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById("trending-container").innerHTML = html;
+                });
+        });
+
+    });
+
+});

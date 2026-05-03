@@ -24,6 +24,12 @@ namespace BolNews.Web.ViewComponents
 
         public async Task<IViewComponentResult> InvokeAsync(string type = "week", int count = 5)
         {
+            // ✅ FIX 1: normalize FIRST
+            type = string.IsNullOrEmpty(type) ? "today" : type;
+
+            // ✅ FIX 2: set ViewBag OUTSIDE cache
+            ViewBag.Type = type;
+
             var cacheKey = $"trending_{type}";
 
             var vm = await _cache.GetOrCreateAsync(cacheKey, async entry =>
@@ -33,8 +39,6 @@ namespace BolNews.Web.ViewComponents
                 var articles = await _articleService.GetTrendingAsync(count, type);
                 return _mapper.Map<List<PublicArticleVM>>(articles);
             });
-
-            ViewBag.Type = type; // 👈 important for active tab
 
             return View(vm);
         }

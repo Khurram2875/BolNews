@@ -1,0 +1,22 @@
+﻿@using BolNews.Web.Areas.Admin.ViewModels
+@model List<PublicArticleVM>
+
+@foreach (var item in Model)
+{
+    <div class="d-flex mb-3">
+
+        <img src="@item.FeaturedImageThumb"
+             style="width:80px; height:60px; object-fit:cover;" />
+
+        <div class="ms-2">
+            <a href="/news/@item.CategorySlug/@item.Slug">
+                @item.Title
+            </a>
+
+            <div class="text-muted small">
+                @item.TimeAgo
+            </div>
+        </div>
+
+    </div>
+}
