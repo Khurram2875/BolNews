@@ -1,4 +1,5 @@
-﻿using BolNews.Application.Interfaces;
+using BolNews.Application.Interfaces;
+using BolNews.Application.Models;
 using BolNews.Application.Services;
 using BolNews.Infrastructure.Services;
 using BolNews.Persistence;
@@ -12,14 +13,6 @@ using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.Services.AddDbContext<AppDbContext>(options =>
-//    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))); ////Connection string for SQL Server
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-});     ////connection string for MySQL
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IArticleService, ArticleService>();
@@ -37,8 +30,13 @@ builder.Services.AddHttpClient<IGoogleTrendsService, GoogleTrendsService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
-builder.Services.AddScoped<IWeatherService, WeatherService>();
+builder.Services.AddHttpClient<IWeatherService, WeatherService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.weatherapi.com/v1/");
+});
 
+builder.Services.Configure<WeatherApiOptions>(
+    builder.Configuration.GetSection("WeatherApi"));
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();

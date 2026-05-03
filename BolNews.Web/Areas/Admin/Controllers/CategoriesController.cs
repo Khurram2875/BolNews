@@ -37,16 +37,16 @@ namespace BolNews.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Index()
         {
             var dtos = await _categoryService.GetAllAsync();
-            var flatList = _mapper.Map<List<CategoryVM2>>(dtos);
+            var flatList = _mapper.Map<List<CategoryTreeVM>>(dtos);
             var tree = BuildTree(flatList);
 
             return View(tree);
         }
-        private List<CategoryVM2> BuildTree(List<CategoryVM2> categories, int? parentId = null)
+        private List<CategoryTreeVM> BuildTree(List<CategoryTreeVM> categories, int? parentId = null)
         {
             return categories
                 .Where(c => c.ParentCategoryId == parentId)
-                .Select(c => new CategoryVM2
+                .Select(c => new CategoryTreeVM
                 {
                     Id = c.Id,
                     Name = c.Name,

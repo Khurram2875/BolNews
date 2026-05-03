@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Json;
-using System.Text;
-using System.Threading.Tasks;
 using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
-
+using BolNews.Application.Models;
+using Microsoft.Extensions.Options;
 
 namespace BolNews.Application.Services
 {
@@ -14,11 +10,13 @@ namespace BolNews.Application.Services
     {
         private readonly HttpClient _http;
         private readonly ICacheService _cache;
+        private readonly string _apiKey;
 
-        public WeatherService(HttpClient http, ICacheService cache)
+        public WeatherService(HttpClient http, ICacheService cache, IOptions<WeatherApiOptions> options)
         {
             _http = http;
             _cache = cache;
+            _apiKey = options.Value.Key;
         }
 
         public async Task<WeatherDto> GetWeatherAsync(string city)
@@ -27,32 +25,23 @@ namespace BolNews.Application.Services
                 $"weather_{city}",
                 async () =>
                 {
-                    var response = await _http.GetFromJsonAsync<dynamic>(
-    $"https://api.weatherapi.com/v1/current.json?key=4413c03ccb994158aaf180644262904&q={city}&aqi=no");
+                    var url = $"https://api.weatherapi.com/v1/current.json?key={_apiKey}&q={Uri.EscapeDataString(city)}&aqi=no";
 
-                    //if (response == null)
-                    //    return new WeatherDto { City = city };
+                    var response = await _http.GetFromJsonAsync<WeatherApiResponse>(url);
+
+                    if (response == null)
+                        return new WeatherDto { City = city };
 
                     return new WeatherDto
                     {
-                        City = response.GetProperty("location").GetProperty("name").GetString(),
-
-                        // Note: temp_c is 36.1 in your JSON, so we convert double to int
-                        Temperature = (int)response.GetProperty("current").GetProperty("temp_c").GetDouble(),
-
-                        Condition = response.GetProperty("current")
-                                .GetProperty("condition")
-                                .GetProperty("text").GetString(),
-
-                        Icon = response.GetProperty("current")
-                           .GetProperty("condition")
-                           .GetProperty("icon").GetString()
+                        City = response.Location?.Name ?? city,
+                        Temperature = (int)response.Current.Temp_C,
+                        Condition = response.Current.Condition?.Text ?? string.Empty,
+                        Icon = response.Current.Condition?.Icon ?? string.Empty
                     };
                 },
-               20
+                20
             );
         }
     }
-
-    
 }

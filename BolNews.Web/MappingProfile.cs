@@ -32,7 +32,7 @@ namespace BolNews.Web
 
 
             CreateMap<CategoryDto, CategoryVM>().ReverseMap();
-            CreateMap<CategoryDto, CategoryVM2>().ReverseMap();
+            CreateMap<CategoryDto, CategoryTreeVM>().ReverseMap();
 
             CreateMap<AuthorDto, AuthorVM>().ReverseMap();
         }

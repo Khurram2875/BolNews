@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using BolNews.Application.Common;
 using BolNews.Application.Common.Helpers;
 using BolNews.Application.DTOs;
@@ -65,14 +65,6 @@ namespace BolNews.Web.Areas.Admin.Controllers
             var viewModels = _mapper.Map<List<ArticleVM>>(dtos);
             return View(viewModels);
         }
-        //var userid=string.Empty;
-        //if (User.Identity.IsAuthenticated)
-        //{
-        //    var user = await _userManager.GetUserAsync(User);
-        //    userid = user.Id;
-        //}
-
-
         // GET: Admin/Articles/Create
         public async Task<IActionResult> Create()
         {

@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Interfaces;
 namespace BolNews.Web.Services
@@ -42,48 +42,6 @@ namespace BolNews.Web.Services
 
             return JsonSerializer.Serialize(schema);
         }
-        //public string BuildArticleSchema(PublicArticleVM article, string baseUrl)
-        //{
-        //    var schema = new
-        //    {
-        //        @context = "https://schema.org",
-        //        @type = "NewsArticle",
-
-        //        mainEntityOfPage = new
-        //        {
-        //            @type = "WebPage",
-        //            @id = $"{baseUrl}/news/{article.CategorySlug}/{article.Slug}"
-        //        },
-
-        //        headline = article.Title,
-        //        description = article.MetaDescription,
-
-        //        image = new[] { article.FeaturedImageXl },
-
-        //        datePublished = article.PublishedAt?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-        //        dateModified = article.UpdatedAt?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-
-        //        author = new
-        //        {
-        //            @type = "Person",
-        //            name = article.AuthorName,
-        //            url = $"{baseUrl}/author/{article.AuthorSlug}"
-        //        },
-
-        //        publisher = new
-        //        {
-        //            @type = "Organization",
-        //            name = "Bol News",
-        //            logo = new
-        //            {
-        //                @type = "ImageObject",
-        //                url = $"{baseUrl}/logo.png"
-        //            }
-        //        }
-        //    };
-
-        //    return JsonSerializer.Serialize(schema);
-        //}
 
         public string BuildCategorySchema(
             string categoryName,

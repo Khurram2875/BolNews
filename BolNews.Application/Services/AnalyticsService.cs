@@ -1,8 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using BolNews.Application.Interfaces;
 using BolNews.Domain.Entities;
 using BolNews.Persistence.Context;
@@ -19,54 +14,67 @@ namespace BolNews.Application.Services
             _context = context;
         }
 
+        // Fix: atomic upsert — no read-modify-write race condition.
+        // Try to insert a new row for today; if it already exists increment atomically.
         public async Task TrackImpressionAsync(int articleId)
         {
             var today = DateTime.UtcNow.Date;
 
-            var record = await _context.ArticleAnalytics
-                .FirstOrDefaultAsync(a => a.ArticleId == articleId && a.Date == today);
+            var updated = await _context.ArticleAnalytics
+                .Where(a => a.ArticleId == articleId && a.Date == today)
+                .ExecuteUpdateAsync(s => s.SetProperty(a => a.Impressions, a => a.Impressions + 1));
 
-            if (record == null)
+            if (updated == 0)
             {
-                record = new ArticleAnalytics
+                // No row yet for today — insert one. Handle the rare concurrent-insert case.
+                try
                 {
-                    ArticleId = articleId,
-                    Date = today,
-                    Impressions = 1
-                };
-                _context.ArticleAnalytics.Add(record);
+                    _context.ArticleAnalytics.Add(new ArticleAnalytics
+                    {
+                        ArticleId   = articleId,
+                        Date        = today,
+                        Impressions = 1
+                    });
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    // Another request inserted the row between our check and insert.
+                    // Retry the atomic increment — this path is extremely rare.
+                    await _context.ArticleAnalytics
+                        .Where(a => a.ArticleId == articleId && a.Date == today)
+                        .ExecuteUpdateAsync(s => s.SetProperty(a => a.Impressions, a => a.Impressions + 1));
+                }
             }
-            else
-            {
-                record.Impressions++;
-            }
-
-            await _context.SaveChangesAsync();
         }
 
         public async Task TrackClickAsync(int articleId)
         {
             var today = DateTime.UtcNow.Date;
 
-            var record = await _context.ArticleAnalytics
-                .FirstOrDefaultAsync(a => a.ArticleId == articleId && a.Date == today);
+            var updated = await _context.ArticleAnalytics
+                .Where(a => a.ArticleId == articleId && a.Date == today)
+                .ExecuteUpdateAsync(s => s.SetProperty(a => a.Clicks, a => a.Clicks + 1));
 
-            if (record == null)
+            if (updated == 0)
             {
-                record = new ArticleAnalytics
+                try
                 {
-                    ArticleId = articleId,
-                    Date = today,
-                    Clicks = 1
-                };
-                _context.ArticleAnalytics.Add(record);
+                    _context.ArticleAnalytics.Add(new ArticleAnalytics
+                    {
+                        ArticleId = articleId,
+                        Date      = today,
+                        Clicks    = 1
+                    });
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    await _context.ArticleAnalytics
+                        .Where(a => a.ArticleId == articleId && a.Date == today)
+                        .ExecuteUpdateAsync(s => s.SetProperty(a => a.Clicks, a => a.Clicks + 1));
+                }
             }
-            else
-            {
-                record.Clicks++;
-            }
-
-            await _context.SaveChangesAsync();
         }
 
         public async Task<double> GetCTRAsync(int articleId)
@@ -76,24 +84,23 @@ namespace BolNews.Application.Services
                 .ToListAsync();
 
             var impressions = data.Sum(a => a.Impressions);
-            var clicks = data.Sum(a => a.Clicks);
+            var clicks      = data.Sum(a => a.Clicks);
 
             return impressions == 0 ? 0 : (double)clicks / impressions * 100;
         }
 
         public async Task<List<Article>> GetLowCTRArticlesAsync()
         {
-
-            var d1 = await _context.ArticleAnalytics.ToListAsync();
             var data = await _context.ArticleAnalytics
                 .GroupBy(a => a.ArticleId)
                 .Select(g => new
                 {
-                    ArticleId = g.Key,
+                    ArticleId   = g.Key,
                     Impressions = g.Sum(x => x.Impressions),
-                    Clicks = g.Sum(x => x.Clicks)
+                    Clicks      = g.Sum(x => x.Clicks)
                 })
-                .Where(x => x.Impressions > 100 && (double)x.Clicks / x.Impressions < 0.02) // <2% CTR
+                .Where(x => x.Impressions > 100 &&
+                            (double)x.Clicks / x.Impressions < 0.02)
                 .ToListAsync();
 
             var ids = data.Select(x => x.ArticleId).ToList();
