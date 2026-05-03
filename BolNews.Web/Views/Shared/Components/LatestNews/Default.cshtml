@@ -1,65 +1,23 @@
-﻿<div class="container-fluid" style="border-top:solid; border-bottom:solid;border-width:thin; align-items:center;height: 40px;padding-top:05px">
-    <h5 class="fw-bold mb-4 text-center">Latest</h5>
-</div>
-<div class="container py-3">
-   
+﻿@* LatestNews/Default.cshtml — updated with bn- classes *@
 
-    @foreach (var item in Model)
-    {
-        @* Added 'card', 'shadow-sm', and 'p-2' to create the box effect *@
-        <div class="card rounded-3 mb-3 shadow-sm">
-            <div class="card-body d-flex align-items-center p-2">
+<div class="bn-latest-header mb-3">Latest</div>
 
-                @* Image with larger dimensions and rounded corners *@
-                <img class="lazy-image rounded-2"
-                     src="/images/placeholder.png"
-                     data-src="@item.FeaturedImageThumb"
-                     style="width: 160px; height: 90px; object-fit: cover;"
-                     alt="@item.Title" />
-
-                <div class="ms-3">
-                    @* Title styled to be bold and dark, removing standard link blue if desired *@
-                    <h5 class="mb-1">
-
-                        <a href="/news/@item.CategorySlug/@item.Slug"
-                           class="track-click text-decoration-none text-dark"
-                           data-article-id="@item.Id"
-                           style="font-size: small;">
-                            @item.Title
-                        </a>
-                    </h5>
-
-                    @* Time stamp matches the image's muted small text *@
-                    <div class="text-muted" style="font-size:x-small">
-                        @item.TimeAgo
-                    </div>
-                </div>
-
-            </div>
+@foreach (var item in Model)
+{
+    <a href="/news/@item.CategorySlug/@item.Slug"
+       class="bn-card-h track-click"
+       data-article-id="@item.Id">
+        <div class="bn-card-h-img">
+            <img class="lazy-image"
+                 src="/images/placeholder.png"
+                 data-src="@item.FeaturedImageThumb"
+                 alt="@item.Title"
+                 loading="lazy" />
         </div>
-    }
-</div>
-@* <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const images = document.querySelectorAll(".lazy-image");
-
-        const observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-
-                    img.src = img.dataset.src;
-
-                    if (img.dataset.srcset) {
-                        img.srcset = img.dataset.srcset;
-                    }
-
-                    img.classList.add("loaded");
-                    observer.unobserve(img);
-                }
-            });
-        });
-
-        images.forEach(img => observer.observe(img));
-    });
-</script> *@
+        <div class="bn-card-h-body">
+            <div class="bn-card-h-tag">@item.CategoryName</div>
+            <div class="bn-card-h-title">@item.Title</div>
+            <div class="bn-card-h-meta">@item.TimeAgo</div>
+        </div>
+    </a>
+}

@@ -114,6 +114,7 @@ namespace BolNews.Application.Services
         public async Task<Category> GetBySlugAsync(string slug)
         {
             return await _context.Categories
+                .Include(a=>a.Articles)
                 .FirstOrDefaultAsync(c => c.Slug == slug);
         }
         public async Task<List<Category>> GetAllAsyncNew()

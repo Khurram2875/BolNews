@@ -10,7 +10,7 @@
 @inject UserManager<ApplicationUser> UserManager
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="default">
 <head>
     @{
         var defaultImage = $"{UrlService.GetBaseUrl()}/default-og.jpg";
@@ -20,13 +20,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="index, follow" />
     <meta name="robots" content="max-image-preview:large">
-    <!-- ✅ SEO -->
+
+    <!-- SEO -->
     <title>@(ViewBag.MetaTitle ?? "Bol News")</title>
     <meta name="description" content="@(ViewBag.MetaDescription ?? "Latest news from Bol News")" />
-    @* <link rel="canonical" href="@(ViewBag.CanonicalUrl ?? "")" /> *@
     <link rel="canonical" href="@($"{Context.Request.Scheme}://{Context.Request.Host}{ViewBag.CanonicalUrl}")" />
 
-    <!-- ✅ Open Graph -->
+    <!-- Open Graph -->
     <meta property="og:title" content="@(ViewBag.MetaTitle ?? "")" />
     <meta property="og:description" content="@(ViewBag.MetaDescription ?? "")" />
     <meta property="og:type" content="article" />
@@ -35,11 +35,11 @@
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="675" />
 
-    <!-- ✅ Twitter -->
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="@(ViewBag.MetaTitle ?? "")" />
     <meta name="twitter:description" content="@(ViewBag.MetaDescription ?? "")" />
-    <meta name="twitter:image" content="@ogImage"/>
+    <meta name="twitter:image" content="@ogImage" />
 
     <!-- Styles -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -50,6 +50,7 @@
         var baseUrl = UrlService.GetBaseUrl();
         var orgSchema = SeoService.BuildOrganizationSchema(baseUrl);
     }
+
     @if (ViewBag.Page is int page)
     {
         var basePath = Context.Request.Path;
@@ -65,117 +66,201 @@
         {
             var pagePart = targetPage > 1 ? $"page={targetPage}" : "";
             var fullQuery = string.Join("&", new[] { baseQuery, pagePart }.Where(x => !string.IsNullOrEmpty(x)));
-
-            return string.IsNullOrEmpty(fullQuery)
-            ? basePath
-            : $"{basePath}?{fullQuery}";
+            return string.IsNullOrEmpty(fullQuery) ? basePath : $"{basePath}?{fullQuery}";
         }
 
         if (page > 1)
         {
             <link rel="prev" href="@BuildUrl(page - 1)" />
         }
-
         if (ViewBag.HasNextPage == true)
         {
             <link rel="next" href="@BuildUrl(page + 1)" />
         }
     }
-    <script type="application/ld+json">
-        @Html.Raw(orgSchema)
+
+    <script type="application/ld+json">@Html.Raw(orgSchema)</script>
+
+    <!-- Theme init: apply saved theme before paint to avoid flash -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('bolnews-theme');
+                if (t && ['default','dark','editorial','bold'].includes(t)) {
+                    document.documentElement.setAttribute('data-theme', t);
+                }
+            } catch (e) {}
+        })();
     </script>
 </head>
 <body>
+
     <header id="main-header">
-        <div class="container py-3">
-            <div class="row align-items-center">
-                <div class="col-4 fw-bold">
-                    @DateTime.UtcNow.Date.ToString("ddd, dd-MMMM-yyyy")
+        <!-- ── Top bar: date / logo / live ── -->
+        <div class="container">
+            <div class="bn-header-top">
+                <div class="bn-header-date">
+                    @DateTime.UtcNow.ToString("dddd, dd MMMM yyyy")
                 </div>
-                <div class="col-4 text-center">
-                    <img src="/images/logo-black.png" style="height: 60px; width: auto;" alt="Logo" />
+                <div class="bn-header-logo">
+                    <a href="/">
+                        <img src="/images/logo-black.png" alt="BolNews" />
+                    </a>
                 </div>
-                <div class="col-4 text-end">
-                    <a href="#" class="text-danger fw-bold text-decoration-none">Watch Live</a>
+                <div>
+                    <a href="#" class="bn-header-live">Watch Live</a>
                 </div>
             </div>
         </div>
 
-        <div class="container-md mb-2">
+        <!-- ── Breaking news ticker ── -->
+        <div class="container-fluid px-0">
             @await Component.InvokeAsync("BreakingNews")
+        </div>
+
+        <!-- ── Utility bar ── -->
+        <div class="container-fluid px-0">
             @await Component.InvokeAsync("UtilityBar")
         </div>
 
-        <nav id="sticky-navbar" class="navbar navbar-expand-lg navbar-light border-bottom border-top bg-white p-0" style="padding-left:20%">
-            <div class="d-flex justify-content-between align-items-center container">
-                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <i class="bi bi-list fs-2"></i>
+        <!-- ── Sticky navbar ── -->
+        <nav id="sticky-navbar" class="navbar navbar-expand-lg p-0">
+            <div class="container">
+                <button class="navbar-toggler border-0 py-3" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="white" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z" />
+                    </svg>
                 </button>
 
-                <div class="navbar-collapse justify-content-center collapse" id="navbarNav">
+                <div class="navbar-collapse collapse" id="navbarNav">
                     @await Component.InvokeAsync("NavbarCategories")
                 </div>
 
-                <form method="get" action="/search" class="d-flex align-items-center ms-2">
-                    <input type="text" name="q" class="form-control form-control-sm d-none d-lg-block me-1" placeholder="Search..." style="width: 150px;">
-                    <button class="btn btn-link text-dark p-0" type="submit">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
-                        </svg>
-                    </button>
-                </form>
-            </div>
-            <div class="d-flex align-items-center ms-3">
+                <!-- Right side: search + auth + theme switcher -->
+                <div class="d-flex align-items-center gap-2 py-2">
+                    <!-- Search -->
+                    <form method="get" action="/search" class="d-flex align-items-center">
+                        <input type="text" name="q"
+                               class="form-control form-control-sm d-none d-lg-block me-1"
+                               placeholder="Search..."
+                               style="width:140px;" />
+                        <button class="btn btn-link p-1" type="submit" aria-label="Search">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                            </svg>
+                        </button>
+                    </form>
 
-                @if (User.Identity.IsAuthenticated)
-                {
-                    var user = await UserManager.GetUserAsync(User);
+                    <!-- Auth -->
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        var user = await UserManager.GetUserAsync(User);
+                        <span class="d-none d-lg-inline" style="color:rgba(255,255,255,0.65);font-family:var(--bn-font-ui);font-size:13px;">@user.FullName</span>
+                        <a class="btn btn-sm btn-outline-danger" asp-controller="Account" asp-action="Logout">Logout</a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-sm btn-outline-primary" asp-controller="Account" asp-action="Login">Login</a>
+                        <a class="btn btn-sm btn-primary" asp-controller="Account" asp-action="Register">Register</a>
+                    }
 
-                    <span class="me-2">Hello, @user.FullName</span>
-
-                    <a class="btn btn-sm btn-outline-danger"
-                       asp-controller="Account"
-                       asp-action="Logout">
-                        Logout
-                    </a>
-                }
-                else
-                {
-                    <a class="btn btn-sm btn-outline-primary me-2"
-                       asp-controller="Account"
-                       asp-action="Login">
-                        Login
-                    </a>
-
-                    <a class="btn btn-sm btn-primary"
-                       asp-controller="Account"
-                       asp-action="Register">
-                        Register
-                    </a>
-                }
-
+                    <!-- Theme switcher -->
+                    <div class="bn-theme-switcher" role="group" aria-label="Choose theme">
+                        <button class="bn-theme-btn active" data-t="default" title="Default" onclick="bnSetTheme('default',this)"></button>
+                        <button class="bn-theme-btn" data-t="dark" title="Dark" onclick="bnSetTheme('dark',this)"></button>
+                        <button class="bn-theme-btn" data-t="editorial" title="Editorial" onclick="bnSetTheme('editorial',this)"></button>
+                        <button class="bn-theme-btn" data-t="bold" title="Bold" onclick="bnSetTheme('bold',this)"></button>
+                    </div>
+                </div>
             </div>
         </nav>
     </header>
-   
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-      
-    </div>
 
-    <footer class="border-top footer text-muted">
+    <!-- ── Page content ── -->
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <!-- ── Footer ── -->
+    <footer class="bn-footer">
         <div class="container">
-            &copy; 2026 - BolNews.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="bn-footer-grid">
+                <div>
+                    <a href="/" class="bn-footer-logo">Bol<span>News</span></a>
+                    <p class="bn-footer-desc">
+                        Pakistan's trusted source for breaking news, in-depth analysis,
+                        and comprehensive coverage of national and international affairs.
+                    </p>
+                </div>
+                <div class="bn-footer-col">
+                    <h4>Sections</h4>
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/news/pakistan">Pakistan</a></li>
+                        <li><a href="/news/world">World</a></li>
+                        <li><a href="/news/business">Business</a></li>
+                        <li><a href="/news/sports">Sports</a></li>
+                        <li><a href="/news/technology">Technology</a></li>
+                    </ul>
+                </div>
+                <div class="bn-footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Our Team</a></li>
+                        <li><a href="#">Advertise</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="bn-footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="/Home/Privacy">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Use</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                        <li><a href="#">Corrections</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="bn-footer-bottom">
+                <span>&copy; @DateTime.UtcNow.Year BolNews. All rights reserved.</span>
+                <span>Built with ASP.NET Core 8 in Pakistan</span>
+            </div>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/lazyload.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        // ── Theme switcher ──────────────────────────────────────
+        function bnSetTheme(name, btn) {
+            document.documentElement.setAttribute('data-theme', name);
+            document.querySelectorAll('.bn-theme-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            try { localStorage.setItem('bolnews-theme', name); } catch (e) {}
+        }
+
+        // Mark correct button active on load
+        (function () {
+            try {
+                var saved = localStorage.getItem('bolnews-theme') || 'default';
+                var btn = document.querySelector('.bn-theme-btn[data-t="' + saved + '"]');
+                if (btn) {
+                    document.querySelectorAll('.bn-theme-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                }
+            } catch (e) {}
+        })();
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
