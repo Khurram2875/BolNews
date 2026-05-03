@@ -21,5 +21,8 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         public string Password { get; set; }
 
         public string? NewPassword { get; set; }
+
+        public DateTime UpdatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

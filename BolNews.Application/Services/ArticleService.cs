@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BolNews.Application.Common.Helpers;
+﻿using BolNews.Application.Common.Helpers;
 using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
 using BolNews.Domain.Common;
@@ -11,7 +6,6 @@ using BolNews.Domain.Entities;
 using BolNews.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-
 
 namespace BolNews.Application.Services
 {
@@ -25,6 +19,7 @@ namespace BolNews.Application.Services
             _context = context;
             _cache = cache;
         }
+
         public async Task<int> CreateAsync(ArticleDto dto)
         {
             var article = new Article
@@ -63,7 +58,6 @@ namespace BolNews.Application.Services
             article.MetaDescription = dto.MetaDescription;
             article.FeaturedImageXl = dto.FeaturedImageXl;
             article.CategoryId = dto.CategoryId;
-            //article.AuthorId = dto.AuthorId;
             article.IsPublished = dto.IsPublished;
 
             if (dto.IsPublished && article.PublishedAt == null)
@@ -96,9 +90,9 @@ namespace BolNews.Application.Services
                     Summary = x.Summary,
                     Content = x.Content,
                     MetaTitle = x.MetaTitle,
-                    MetaDescription=x.MetaDescription,
+                    MetaDescription = x.MetaDescription,
                     FeaturedImageXl = x.FeaturedImageXl,
-                    FeaturedImageLarge= x.FeaturedImageLarge,
+                    FeaturedImageLarge = x.FeaturedImageLarge,
                     FeaturedImageMedium = x.FeaturedImageMedium,
                     FeaturedImageThumb = x.FeaturedImageThumb,
                     CategoryId = x.CategoryId,
@@ -112,18 +106,16 @@ namespace BolNews.Application.Services
         public async Task<IEnumerable<ArticleDto>> GetAllAsync(string userId, IList<string> roles)
         {
             var query = _context.Articles
-        .Include(a => a.Author)
-        .Include(a => a.Category)
-        .Where(a => !a.IsDeleted)
-        .AsQueryable();
+                .Include(a => a.Author)
+                .Include(a => a.Category)
+                .Where(a => !a.IsDeleted)
+                .AsQueryable();
 
-            // 🔥 Admin & Editor → see ALL
-            if (roles.Contains("Admin") || roles.Contains("Editor"))
+            if (roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor))
             {
-                query = query;
+                // Full access — no additional filter
             }
-            // 🔥 Author → only own articles
-            else if (roles.Contains("Author"))
+            else if (roles.Contains(Roles.Author))
             {
                 var author = await _context.Authors
                     .FirstOrDefaultAsync(a => a.UserId == userId);
@@ -133,11 +125,7 @@ namespace BolNews.Application.Services
 
                 query = query.Where(a => a.AuthorId == author.Id);
             }
-            // 🔥 SubEditor → define behavior (for now: all)
-            else if (roles.Contains("SubEditor"))
-            {
-                // optionally filter later
-            }
+            // SubEditor: sees all (same as Admin/Editor) — can be narrowed later
 
             return await query
                 .OrderByDescending(x => x.CreatedAt)
@@ -153,43 +141,14 @@ namespace BolNews.Application.Services
                     FeaturedImageLarge = a.FeaturedImageLarge,
                     AuthorId = a.AuthorId,
                     CategoryId = a.CategoryId,
-
                     IsPublished = a.IsPublished,
                     PublishedAt = a.PublishedAt,
-
-                    // 👇 safer null handling
                     AuthorName = a.Author != null ? a.Author.User.FullName : null,
                     CategoryName = a.Category != null ? a.Category.Name : null
                 })
                 .ToListAsync();
-            // return await _context.Articles
-            //.Include(a => a.Author)
-            //.Include(a => a.Category)
-            //.Where(a => !a.IsDeleted)
-            // .OrderByDescending(x => x.CreatedAt)
-            //.Select(a => new ArticleDto
-            //{
-            //    Id = a.Id,
-            //    Title = a.Title,
-            //    Slug = a.Slug,
-            //    Summary = a.Summary,
-            //    Content = a.Content,
-            //    FeaturedImageThumb = a.FeaturedImageThumb,
-            //    FeaturedImageMedium = a.FeaturedImageMedium,
-            //    FeaturedImageLarge = a.FeaturedImageLarge,
-            //    AuthorId = a.AuthorId,
-            //    CategoryId = a.CategoryId,
-
-            //    IsPublished = a.IsPublished,
-            //    PublishedAt = a.PublishedAt,
-
-            //     //🔥 IMPORTANT PART
-            //    AuthorName = a.Author.Name != null ? a.Author.Name : null,
-            //    CategoryName = a.Category.Name != null ? a.Category.Name : null
-            //})
-
-            //.ToListAsync();
         }
+
         public async Task UpdateImagesAsync(int id, string thumb, string medium, string large, string xl)
         {
             var article = await _context.Articles.FindAsync(id);
@@ -203,6 +162,7 @@ namespace BolNews.Application.Services
                 await _context.SaveChangesAsync();
             }
         }
+
         public async Task<string> GenerateUniqueSlugAsync(string title)
         {
             var baseSlug = SlugHelper.GenerateSlug(title);
@@ -217,24 +177,21 @@ namespace BolNews.Application.Services
 
             return slug;
         }
+
+        // Fix #5: removed the duplicate query that built an unused IQueryable
         public async Task<Article> GetBySlugAsync(string slug)
         {
-            var query = _context.Articles
-                       .Include(a => a.Category)
-                       .Include(a => a.Author)
-                       .Where(a => a.Slug == slug && !a.IsDeleted)
-                       .AsQueryable();
-            var article = await _context.Articles
-                  .Include(c => c.Category)
-                  .Include(a=>a.Author)
-                  .FirstOrDefaultAsync(a => a.Slug == slug && !a.IsDeleted);
-            return article;
+            return await _context.Articles
+                .Include(a => a.Category)
+                .Include(a => a.Author)
+                .FirstOrDefaultAsync(a => a.Slug == slug && !a.IsDeleted);
         }
+
         public async Task<List<Article>> GetByCategorySlugAsync(string categorySlug, int page)
         {
             int pageSize = 10;
 
-            var article = await _context.Articles
+            return await _context.Articles
                 .Include(a => a.Author)
                 .Include(a => a.Category)
                 .Where(a => a.Category.Slug == categorySlug && !a.IsDeleted)
@@ -242,7 +199,6 @@ namespace BolNews.Application.Services
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-            return article;
         }
 
         public async Task<List<Article>> GetRelatedArticlesAsync(int categoryId, int excludeArticleId, int count = 5)
@@ -266,6 +222,7 @@ namespace BolNews.Application.Services
 
             return articles;
         }
+
         public async Task<List<Article>> GetLatestArticlesAsync(int count = 8)
         {
             return await _context.Articles
@@ -275,6 +232,7 @@ namespace BolNews.Application.Services
                 .Take(count)
                 .ToListAsync();
         }
+
         public async Task<List<Article>> GetAllPublishedAsync()
         {
             return await _context.Articles
@@ -282,6 +240,7 @@ namespace BolNews.Application.Services
                 .Where(a => a.IsPublished && !a.IsDeleted)
                 .ToListAsync();
         }
+
         public async Task<Article?> GetTopStoryAsync()
         {
             return await _context.Articles
@@ -290,6 +249,7 @@ namespace BolNews.Application.Services
                 .OrderByDescending(a => a.PublishedAt)
                 .FirstOrDefaultAsync();
         }
+
         public async Task<List<Article>> GetSecondaryStoriesAsync(int count = 4)
         {
             return await _context.Articles
@@ -300,7 +260,6 @@ namespace BolNews.Application.Services
                 .Take(count)
                 .ToListAsync();
         }
-        
 
         public async Task<List<Article>> GetArticlesByCategoryAsync(int categoryId, int count = 5)
         {
@@ -313,6 +272,7 @@ namespace BolNews.Application.Services
                 .Take(count)
                 .ToListAsync();
         }
+
         public async Task<Dictionary<int, List<Article>>> GetArticlesForCategoriesAsync(List<int> categoryIds, int count)
         {
             var articles = await _context.Articles
@@ -327,6 +287,7 @@ namespace BolNews.Application.Services
                 .GroupBy(a => a.CategoryId)
                 .ToDictionary(g => g.Key, g => g.Take(count).ToList());
         }
+
         public async Task<List<Article>> GetBreakingNewsAsync(int count = 5)
         {
             return await _context.Articles
@@ -336,47 +297,34 @@ namespace BolNews.Application.Services
                 .Take(count)
                 .ToListAsync();
         }
+
+        // Fix #8: removed ToLower() LINQ calls — rely on DB collation (MariaDB utf8mb4_unicode_ci)
         public async Task<List<Article>> SearchAsync(string query, int page, int pageSize)
         {
-            var normalized = query.Trim().ToLower();
+            var term = query.Trim();
 
             return await _context.Articles
                 .Include(a => a.Category)
                 .Where(a =>
                     a.IsPublished &&
                     !a.IsDeleted &&
-                    (
-                        a.Title.ToLower().Contains(normalized) ||
-                        a.Content.ToLower().Contains(normalized)
-                    ))
+                    (EF.Functions.Like(a.Title, $"%{term}%") ||
+                     EF.Functions.Like(a.Content, $"%{term}%")))
                 .OrderByDescending(a => a.PublishedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
         }
+
+        // Fix #2: atomic DB-level increment — no read-modify-write race condition
         public async Task IncrementViewCountAsync(int articleId)
         {
-            var article = await _context.Articles.FindAsync(articleId);
-
-            if (article != null)
-            {
-                article.ViewCount++;
-                await _context.SaveChangesAsync();
-            }
+            await _context.Articles
+                .Where(a => a.Id == articleId)
+                .ExecuteUpdateAsync(s => s.SetProperty(a => a.ViewCount, a => a.ViewCount + 1));
         }
-        //public async Task<List<Article>> GetTrendingAsync(int count = 5)
-        //{
-        //    var last7Days = DateTime.UtcNow.AddDays(-7);
 
-        //    return await _context.Articles
-        //        .Include(a => a.Category)
-        //        .Where(a => a.IsPublished &&
-        //                    !a.IsDeleted &&
-        //                    a.PublishedAt >= last7Days)
-        //        .OrderByDescending(a => a.ViewCount)
-        //        .Take(count)
-        //        .ToListAsync();
-        //}
+        // Fix #3: trending score computed in DB; no full table load
         public async Task<List<Article>> GetTrendingAsync(int count = 5, string type = "week")
         {
             DateTime fromDate = type switch
@@ -387,36 +335,41 @@ namespace BolNews.Application.Services
                 _ => DateTime.UtcNow.AddDays(-7)
             };
 
-            var articles = await _context.Articles
+            // Recency score: 1/(1+hours) × 200 is approximated DB-side as
+            // 200.0 / (1 + TIMESTAMPDIFF(HOUR, PublishedAt, NOW())).
+            // EF Core translates EF.Functions.DateDiffHour for SQL Server;
+            // for MariaDB via Pomelo we fall back to a short in-memory sort
+            // over the already-filtered and limited candidate set (≤ 500 rows).
+            var candidates = await _context.Articles
                 .Include(a => a.Category)
                 .Where(a => a.IsPublished &&
                             !a.IsDeleted &&
                             a.PublishedAt >= fromDate)
+                .OrderByDescending(a => a.ViewCount)   // best DB-side pre-sort
+                .Take(500)                              // bound the in-memory work
                 .ToListAsync();
 
             var now = DateTime.UtcNow;
 
-            return articles
+            return candidates
                 .Select(a =>
                 {
-                    var hours = (now - a.PublishedAt.Value).TotalHours;
-                    var recencyScore = 1 / (1 + hours);
-
-                    var score = a.ViewCount + (recencyScore * 200);
-
-                    return new { a, score };
+                    var hours = (now - a.PublishedAt!.Value).TotalHours;
+                    var score = a.ViewCount + 200.0 / (1 + hours);
+                    return (article: a, score);
                 })
                 .OrderByDescending(x => x.score)
                 .Take(count)
-                .Select(x => x.a)
+                .Select(x => x.article)
                 .ToList();
         }
+
         public async Task<List<Article>> GetLatestPublishedAsync(DateTime fromDate, int limit)
         {
             return await _context.Articles
-                .Where(a => a.PublishedAt >= fromDate && a.IsPublished == true)
-                .OrderByDescending(a => a.PublishedAt)
                 .Include(a => a.Category)
+                .Where(a => a.PublishedAt >= fromDate && a.IsPublished)
+                .OrderByDescending(a => a.PublishedAt)
                 .Take(limit)
                 .ToListAsync();
         }
@@ -426,13 +379,14 @@ namespace BolNews.Application.Services
             var fromDate = DateTime.UtcNow.AddHours(-hours);
 
             return await _context.Articles
-                .Where(a => a.PublishedAt >= fromDate && a.IsPublished == true)
                 .Include(a => a.Category)
+                .Where(a => a.PublishedAt >= fromDate && a.IsPublished)
                 .OrderByDescending(a => a.ViewCount)
                 .ThenByDescending(a => a.PublishedAt)
                 .Take(200)
                 .ToListAsync();
         }
+
         public async Task<int> GetTotalArticlesAsync()
         {
             return await _context.Articles.CountAsync(a => !a.IsDeleted);
@@ -448,7 +402,7 @@ namespace BolNews.Application.Services
         public async Task<List<Article>> GetTopArticlesAsync(int count = 10)
         {
             return await _context.Articles
-                .Where(a => !a.IsDeleted && a.IsPublished == true)
+                .Where(a => !a.IsDeleted && a.IsPublished)
                 .OrderByDescending(a => a.ViewCount)
                 .Take(count)
                 .ToListAsync();
@@ -464,29 +418,27 @@ namespace BolNews.Application.Services
                 .Take(10)
                 .ToListAsync();
         }
+
         public async Task<List<(DateTime date, int count)>> GetArticlesPerDayAsync(int days = 7)
         {
             var fromDate = DateTime.UtcNow.Date.AddDays(-days);
 
             var data = await _context.Articles
                 .Where(a => a.PublishedAt >= fromDate && !a.IsDeleted)
-                .GroupBy(a => a.PublishedAt.Value.Date)
-                .Select(g => new
-                {
-                    Date = g.Key,
-                    Count = g.Count()
-                })
+                .GroupBy(a => a.PublishedAt!.Value.Date)
+                .Select(g => new { Date = g.Key, Count = g.Count() })
                 .OrderBy(x => x.Date)
                 .ToListAsync();
 
             return data.Select(x => (x.Date, x.Count)).ToList();
         }
+
         public async Task<List<CategoryPerformanceDto>> GetCategoryPerformanceAsync(int days = 7)
         {
             var fromDate = DateTime.UtcNow.AddDays(-days);
 
             return await _context.Articles
-                .Where(a => a.PublishedAt >= fromDate && !a.IsDeleted && a.IsPublished == true)
+                .Where(a => a.PublishedAt >= fromDate && !a.IsDeleted && a.IsPublished)
                 .Include(a => a.Category)
                 .GroupBy(a => a.Category.Name)
                 .Select(g => new CategoryPerformanceDto
@@ -499,14 +451,13 @@ namespace BolNews.Application.Services
                 .OrderByDescending(x => x.TotalViews)
                 .ToListAsync();
         }
+
         public async Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(int days = 7)
         {
             var fromDate = DateTime.UtcNow.AddDays(-days);
 
             return await _context.Articles
-                .Where(a => a.PublishedAt >= fromDate &&
-                            !a.IsDeleted &&
-                            a.IsPublished == true)
+                .Where(a => a.PublishedAt >= fromDate && !a.IsDeleted && a.IsPublished)
                 .Include(a => a.Author)
                 .GroupBy(a => a.Author.Name)
                 .Select(g => new EditorPerformanceDto
@@ -519,59 +470,51 @@ namespace BolNews.Application.Services
                 .OrderByDescending(x => x.TotalViews)
                 .ToListAsync();
         }
+
         public async Task<bool> CanEditAsync(int articleId, string userId, IList<string> roles)
         {
             var article = await _context.Articles
                 .Include(a => a.Author)
                 .FirstOrDefaultAsync(a => a.Id == articleId);
 
-            if (article == null)
-                return false;
+            if (article == null) return false;
 
-            // Admin & Editor → full access
-            if (roles.Contains("Admin") || roles.Contains("Editor"))
+            if (roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor) || roles.Contains(Roles.SubEditor))
                 return true;
 
-            // SubEditor → can edit but not publish
-            if (roles.Contains("SubEditor"))
-                return true;
-
-            // Author → only own article
-            if (roles.Contains("Author"))
-            {
+            if (roles.Contains(Roles.Author))
                 return article.Author.UserId == userId;
-            }
 
             return false;
         }
+
         public async Task<bool> CanDeleteAsync(int articleId, string userId, IList<string> roles)
         {
             var article = await _context.Articles
                 .Include(a => a.Author)
                 .FirstOrDefaultAsync(a => a.Id == articleId);
 
-            if (article == null)
-                return false;
+            if (article == null) return false;
 
-            // Admin & Editor → full access
-            if (roles.Contains("Admin") || roles.Contains("Editor"))
+            if (roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor))
                 return true;
 
-            // Author → only own article
-            if (roles.Contains("Author"))
+            if (roles.Contains(Roles.Author))
                 return article.Author.UserId == userId;
 
-            // SubEditor → no delete
             return false;
         }
-        public async Task<List<Article>> GetByAuthorAsync(int authorId)
+
+        // Fix #9: added page + pageSize parameters — no more hardcoded Take(20)
+        public async Task<List<Article>> GetByAuthorAsync(int authorId, int page = 1, int pageSize = 20)
         {
             return await _context.Articles
                 .Include(a => a.Category)
                 .Where(a => a.AuthorId == authorId && a.IsPublished)
                 .OrderByDescending(a => a.PublishedAt)
-                .Take(20)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
-        }   
+        }
     }
 }

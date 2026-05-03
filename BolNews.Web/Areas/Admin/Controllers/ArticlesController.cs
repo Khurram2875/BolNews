@@ -111,7 +111,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             var userId = _userManager.GetUserId(User);
 
             var author = await _authorService.GetAuthorByUserId(userId);
-                //.FirstOrDefaultAsync(a => a.UserId == userId);
+            //.FirstOrDefaultAsync(a => a.UserId == userId);
 
             if (author == null)
             {
@@ -120,7 +120,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             }
 
             var slug = await _articleService.GenerateUniqueSlugAsync(model.Title);
-            
+
             var dto = _mapper.Map<ArticleDto>(model);
             dto.AuthorId = author.Id;
 
@@ -336,6 +336,10 @@ namespace BolNews.Web.Areas.Admin.Controllers
             {
                 if (upload == null || upload.Length == 0)
                     return Json(new { error = new { message = "No file uploaded" } });
+
+                // Fix #7: validate MIME type and file size before processing
+                if (!ImageValidator.IsValid(upload, out var validationError))
+                    return Json(new { error = new { message = validationError } });
 
                 var folderPath = Path.Combine(_env.WebRootPath, "uploads", "articles", "content");
 

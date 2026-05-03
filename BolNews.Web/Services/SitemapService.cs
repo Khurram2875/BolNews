@@ -168,7 +168,7 @@ namespace BolNews.Web.Services
 
             var urls = authors.Select(a =>
                 new XElement(ns + "url",
-                    new XElement(ns + "loc", $"{baseUrl}/author/{a.slug}"),
+                    new XElement(ns + "loc", $"{baseUrl}/author/{a.Slug}"),
                     new XElement(ns + "lastmod", $"{(a.UpdatedAt ?? a.CreatedAt):yyyy-MM-ddTHH:mm:ssZ}"),
                     new XElement(ns + "changefreq", "weekly"),
                     new XElement(ns + "priority", "0.6")

@@ -169,18 +169,18 @@ namespace BolNews.Application.Services
             return name.Replace("-", " ").Trim().ToLower();
         }
 
-        public async Task<List<AuthorDto2>> GetAll()
+        public async Task<List<AuthorDto>> GetAll()
         {
             var authorwitharticle = await
              _context.Authors
                 .Include(a => a.Articles)
                 .Where(a => !a.IsDeleted)
-                .Select(a => new AuthorDto2
+                .Select(a => new AuthorDto
                 {
                     Id = a.Id,
                     Name = a.Name,
                     Bio = a.Bio,
-                    slug = a.Slug,
+                    Slug = a.Slug,
                     ProfileImageUrl = a.ProfileImageUrl,
                     CreatedAt = a.CreatedAt,
                     UpdatedAt = a.UpdatedAt,

@@ -18,6 +18,6 @@ namespace BolNews.Application.Interfaces
         Task DeleteAsync(int id);
         Task UpdateImageAsync(int id, string imagePath);
         Task<Author?> GetBySlugAsync(string slug);
-        Task<List<AuthorDto2>> GetAll();
+        Task<List<AuthorDto>> GetAll();
     }
 }
