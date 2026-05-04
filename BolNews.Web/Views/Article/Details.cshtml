@@ -4,119 +4,312 @@
 
 @model ArticleDetailsPageVM
 
-<nav style="--bs-breadcrumb-divider: url(&#34;data:image /svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' %3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor' /%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
-	<ol class="breadcrumb">
-		
-		<li class="breadcrumb-item">
-			<a  href="/">Home</a>
-		</li>
-		
-		<li class="breadcrumb-item">
-			<a  href="/news">News</a>
-		</li>
+@{
+    ViewData["Title"] = Model.Article.MetaTitle ?? Model.Article.Title;
+}
 
-		<li class="breadcrumb-item">
-			<a  href="/news/@Model.Article.CategorySlug">
-				@Model.Article.CategoryName
-			</a>
-		</li>
-
-		<li class="breadcrumb-item active" aria-current="page">
-			@Model.Article.Title
-		</li>
-
-	</ol>
-</nav>
-<div class="= container">
-	<div class="row">
-
-		<div class="col-md-8">
-			<article class="container mt-4">
-				@if (Model.Article.UpdatedAt.HasValue)
-				{
-					<p class="text-muted">
-						Last updated: @Model.Article.UpdatedAt.Value.ToString("MMM dd, yyyy")
-					</p>
-				}
-
-				<h4 style="color:#C4161C">@Model.Article.Title</h4>
-				<div class="author-box mb-3 mt-3 rounded border p-3">
-
-					<div class="d-flex align-items-center">
-
-						<img src="@Model.Article.AuthorImage"
-							 style="width:50px;height:50px;border-radius:50%;object-fit:cover;"
-							 class="me-2" />
-
-						<div>
-							<a href="/author/@Model.Article.AuthorSlug">
-								<strong>@Model.Article.AuthorName</strong>
-							</a>
-							<p class="text-muted small mb-0">
-								Journalist at Bol News
-							</p>
-						</div>
-
-					</div>
-
-				</div>
-				<h6>@Model.Article.MetaTitle</h6>
-				<span>@Model.Article.ReadingTimeMinutes min read</span>
-				<img src="@Model.Article.FeaturedImageLarge"
-					 alt="@Model.Article.Title"
-					 class="img-fluid mb-3" />
-				<p style="font-weight:bold">@Model.Article.Summary</p>
-				<div>
-					@Html.Raw(Model.Article.Content)
-				</div>
-				<a href="/author/@Model.Article.AuthorName.Replace(" ", "-").ToLower()">
-					@Model.Article.AuthorName
-				</a>
-			</article>
-		</div>
-		<div class="col-md-4">
-			@await Component.InvokeAsync("LatestNews", new { count = 8 })
-		</div>
-	</div>
+<!-- ── Breadcrumb ──────────────────────────────────────────── -->
+<div style="background:var(--bn-surface-alt);border-bottom:1px solid var(--bn-border);">
+    <div class="container py-2">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0" style="font-family:var(--bn-font-ui);font-size:12px;">
+                <li class="breadcrumb-item"><a href="/" style="color:var(--bn-text-muted);text-decoration:none;">Home</a></li>
+                <li class="breadcrumb-item"><a href="/news" style="color:var(--bn-text-muted);text-decoration:none;">News</a></li>
+                <li class="breadcrumb-item">
+                    <a href="/news/@Model.Article.CategorySlug" style="color:var(--bn-accent);text-decoration:none;">@Model.Article.CategoryName</a>
+                </li>
+                <li class="breadcrumb-item active" style="color:var(--bn-text-muted);" aria-current="page">
+                    @(Model.Article.Title.Length > 50 ? Model.Article.Title.Substring(0, 50) + "…" : Model.Article.Title)
+                </li>
+            </ol>
+        </nav>
+    </div>
 </div>
-<hr />
 
-<h3>Related Articles</h3>
-<div class="row">
-	@foreach (var item in Model.RelatedArticles)
-	{
-		<div class="col-md-3 mb-3">
-			<div class="card h-100 shadow-sm">
+<!-- ── Main layout ────────────────────────────────────────── -->
+<div class="container" style="padding-top:32px;padding-bottom:48px;">
+    <div class="row g-4">
 
-				<a href="/news/@item.CategorySlug/@item.Slug">
-					<img src="@item.FeaturedImageThumb"
-						 class="track-click card-img-top"
-						 data-article-id="@item.Id"
-						 style="height:160px; object-fit:cover;" />
-				</a>
+        <!-- ── Article column ──────────────────────────────── -->
+        <div class="col-lg-8">
+            <article itemscope itemtype="https://schema.org/NewsArticle">
 
-				<div class="card-body">
-					<h6>
-						<a href="/news/@item.CategorySlug/@item.Slug" class="track-click text-dark" data-article-id="@item.Id">
-							@item.Title
-						</a>
-					</h6>
+                <!-- Category tag + title -->
+                <div class="mb-3">
+                    <a href="/news/@Model.Article.CategorySlug" class="bn-tag d-inline-block mb-3">@Model.Article.CategoryName</a>
+                    <h1 itemprop="headline" style="
+                        font-family:var(--bn-font-display);
+                        font-size:clamp(22px,3.5vw,34px);
+                        font-weight:800;
+                        line-height:1.2;
+                        color:var(--bn-text-primary);
+                        margin-top:10px;">
+                        @Model.Article.Title
+                    </h1>
+                </div>
 
-					<small class="text-muted">
-						@item.TimeAgo (@item.PublishedAt?.ToString("dd MMM yyyy"))
-					@* 	@item.PublishedAt?.ToString("dd MMM yyyy") *@
-					</small>
-				</div>
+                <!-- Summary / deck -->
+                @if (!string.IsNullOrEmpty(Model.Article.Summary))
+                {
+                    <p style="
+                            font-family:var(--bn-font-body);
+                            font-size:18px;
+                            font-weight:600;
+                            color:var(--bn-text-body);
+                            line-height:1.55;
+                            border-left:3px solid var(--bn-accent);
+                            padding-left:14px;
+                            margin-bottom:20px;">
+                        @Model.Article.Summary
+                    </p>
+                }
 
-			</div>
-		</div>
-	}
+                <!-- Author bar -->
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    justify-content:space-between;
+                    flex-wrap:wrap;
+                    gap:12px;
+                    padding:14px 16px;
+                    background:var(--bn-surface-alt);
+                    border-radius:var(--bn-radius-md);
+                    margin-bottom:22px;
+                    border:1px solid var(--bn-border);">
+                    <a href="/author/@Model.Article.AuthorSlug"
+                       style="display:flex;align-items:center;gap:11px;text-decoration:none;color:inherit;">
+                        <img src="@Model.Article.AuthorImage"
+                             alt="@Model.Article.AuthorName"
+                             itemprop="image"
+                             style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;"
+                             loading="lazy" />
+                        <div>
+                            <div style="font-family:var(--bn-font-ui);font-size:13px;font-weight:700;color:var(--bn-text-primary);">
+                                @Model.Article.AuthorName
+                            </div>
+                            <div style="font-family:var(--bn-font-ui);font-size:11px;color:var(--bn-text-muted);">
+                                Journalist at Bol News
+                            </div>
+                        </div>
+                    </a>
+                    <div style="font-family:var(--bn-font-ui);font-size:11px;color:var(--bn-text-muted);display:flex;gap:14px;flex-wrap:wrap;">
+                        @if (Model.Article.PublishedAt.HasValue)
+                        {
+                            <span itemprop="datePublished" content="@Model.Article.PublishedAt.Value.ToString("yyyy-MM-dd")">
+                                📅 @Model.Article.PublishedAt.Value.ToString("dd MMM yyyy")
+                            </span>
+                        }
+                        @if (Model.Article.UpdatedAt.HasValue)
+                        {
+                            <span itemprop="dateModified" content="@Model.Article.UpdatedAt.Value.ToString("yyyy-MM-dd")">
+                                🔄 Updated @Model.Article.UpdatedAt.Value.ToString("dd MMM yyyy")
+                            </span>
+                        }
+                        @if (Model.Article.ReadingTimeMinutes > 0)
+                        {
+                            <span>⏱ @Model.Article.ReadingTimeMinutes min read</span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Featured image -->
+                @if (!string.IsNullOrEmpty(Model.Article.FeaturedImageLarge))
+                {
+                    <figure style="margin:0 0 24px;" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+                        <img src="@Model.Article.FeaturedImageLarge"
+                             alt="@Model.Article.Title"
+                             itemprop="url"
+                             style="width:100%;border-radius:var(--bn-radius-md);display:block;max-height:500px;object-fit:cover;"
+                             loading="eager" />
+                        <meta itemprop="width" content="1200" />
+                        <meta itemprop="height" content="675" />
+                    </figure>
+                }
+
+                <!-- Article body -->
+                <div class="bn-article-body" itemprop="articleBody">
+                    @Html.Raw(Model.Article.Content)
+                </div>
+
+                <!-- Share bar -->
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    gap:10px;
+                    flex-wrap:wrap;
+                    padding:18px 0;
+                    margin-top:28px;
+                    border-top:1px solid var(--bn-border);
+                    border-bottom:1px solid var(--bn-border);">
+                    <span style="font-family:var(--bn-font-ui);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--bn-text-muted);">Share</span>
+                    <a href="https://twitter.com/intent/tweet?url=@Uri.EscapeDataString($"{Model.BaseUrl}/news/{Model.Article.CategorySlug}/{Model.Article.Slug}")&text=@Uri.EscapeDataString(Model.Article.Title)"
+                       target="_blank" rel="noopener"
+                       style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-family:var(--bn-font-ui);font-size:12px;font-weight:600;background:#000;color:#fff;text-decoration:none;">
+                        𝕏 Twitter
+                    </a>
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=@Uri.EscapeDataString($"{Model.BaseUrl}/news/{Model.Article.CategorySlug}/{Model.Article.Slug}")"
+                       target="_blank" rel="noopener"
+                       style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-family:var(--bn-font-ui);font-size:12px;font-weight:600;background:#1877f2;color:#fff;text-decoration:none;">
+                        Facebook
+                    </a>
+                    <a href="https://wa.me/?text=@Uri.EscapeDataString($"{Model.Article.Title} - {Model.BaseUrl}/news/{Model.Article.CategorySlug}/{Model.Article.Slug}")"
+                       target="_blank" rel="noopener"
+                       style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-family:var(--bn-font-ui);font-size:12px;font-weight:600;background:#25d366;color:#fff;text-decoration:none;">
+                        WhatsApp
+                    </a>
+                    <button onclick="navigator.clipboard.writeText(window.location.href).then(()=>this.textContent='Copied!')"
+                            style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-family:var(--bn-font-ui);font-size:12px;font-weight:600;background:var(--bn-surface-alt);color:var(--bn-text-body);border:1px solid var(--bn-border);cursor:pointer;">
+                        Copy Link
+                    </button>
+                </div>
+
+                <!-- Author bio card -->
+                <div style="
+                    display:flex;
+                    gap:18px;
+                    padding:22px;
+                    background:var(--bn-surface);
+                    border:1px solid var(--bn-border);
+                    border-radius:var(--bn-radius-md);
+                    margin-top:28px;
+                    box-shadow:var(--bn-shadow);">
+                    <img src="@Model.Article.AuthorImage"
+                         alt="@Model.Article.AuthorName"
+                         style="width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0;"
+                         loading="lazy" />
+                    <div>
+                        <div style="font-family:var(--bn-font-ui);font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--bn-text-muted);margin-bottom:4px;">About the author</div>
+                        <a href="/author/@Model.Article.AuthorSlug"
+                           style="font-family:var(--bn-font-display);font-size:17px;font-weight:700;color:var(--bn-text-primary);text-decoration:none;">
+                            @Model.Article.AuthorName
+                        </a>
+                        <p style="font-family:var(--bn-font-body);font-size:13px;color:var(--bn-text-muted);margin-top:5px;margin-bottom:0;line-height:1.6;">
+                            Journalist at Bol News
+                        </p>
+                    </div>
+                </div>
+
+            </article>
+
+            <!-- ── Related Articles ──────────────────────────── -->
+            @if (Model.RelatedArticles != null && Model.RelatedArticles.Any())
+            {
+                <div style="margin-top:40px;">
+                    <div class="bn-section-header">
+                        <span class="bn-section-title">Related Articles</span>
+                        <a href="/news/@Model.Article.CategorySlug" class="bn-section-link">More in @Model.Article.CategoryName →</a>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        @foreach (var item in Model.RelatedArticles)
+                        {
+                            <div class="col-sm-6">
+                                <a href="/news/@item.CategorySlug/@item.Slug"
+                                   class="bn-card track-click d-flex flex-column h-100"
+                                   data-article-id="@item.Id"
+                                   style="text-decoration:none;">
+                                    <div class="bn-card-img">
+                                        <img src="@item.FeaturedImageThumb"
+                                             alt="@item.Title"
+                                             loading="lazy"
+                                             style="width:100%;height:100%;object-fit:cover;" />
+                                    </div>
+                                    <div class="bn-card-body">
+                                        <div class="bn-card-tag">@item.CategoryName</div>
+                                        <h3 class="bn-card-title">@item.Title</h3>
+                                        <div class="bn-card-meta">
+                                            <span>@item.TimeAgo</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- ── Sidebar ──────────────────────────────────────── -->
+        <aside class="col-lg-4">
+            <div style="position:sticky;top:70px;">
+
+                <!-- Latest news widget -->
+                <div class="bn-widget mb-4">
+                    <div class="bn-widget-title">Latest News</div>
+                    @await Component.InvokeAsync("LatestNews", new { count = 8 })
+                </div>
+
+                <!-- Trending widget -->
+                <div class="bn-widget">
+                    @await Component.InvokeAsync("TrendingNews",
+                    new { type = Context.Request.Query["type"].ToString() })
+                </div>
+
+            </div>
+        </aside>
+
+    </div>
 </div>
-<script type="application/ld+json">
-	@Html.Raw(Model.ArticleSchemaJson)
-	
-</script>
-<script type="application/ld+json">
-	@Html.Raw(Model.BreadcrumbSchemaJson)
-	
-</script>
+
+<!-- ── Article body typography ───────────────────────────── -->
+<style>
+    .bn-article-body {
+        font-family: var(--bn-font-body);
+        font-size: 17px;
+        line-height: 1.8;
+        color: var(--bn-text-body);
+    }
+
+        .bn-article-body p {
+            margin-bottom: 1.4em;
+        }
+
+        .bn-article-body h2 {
+            font-family: var(--bn-font-display);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--bn-text-primary);
+            margin: 1.8em 0 0.6em;
+        }
+
+        .bn-article-body h3 {
+            font-family: var(--bn-font-display);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--bn-text-primary);
+            margin: 1.5em 0 0.5em;
+        }
+
+        .bn-article-body img {
+            max-width: 100%;
+            border-radius: var(--bn-radius-md);
+            margin: 1em 0;
+        }
+
+        .bn-article-body blockquote {
+            border-left: 3px solid var(--bn-accent);
+            padding: 10px 18px;
+            margin: 1.5em 0;
+            background: var(--bn-surface-alt);
+            border-radius: 0 var(--bn-radius-sm) var(--bn-radius-sm) 0;
+            font-style: italic;
+            color: var(--bn-text-muted);
+        }
+
+        .bn-article-body a {
+            color: var(--bn-accent);
+            text-decoration: underline;
+        }
+
+        .bn-article-body ul, .bn-article-body ol {
+            padding-left: 1.5em;
+            margin-bottom: 1.4em;
+        }
+
+        .bn-article-body li {
+            margin-bottom: 0.4em;
+        }
+</style>
+
+<!-- ── SEO Schemas (preserved exactly) ───────────────────── -->
+<script type="application/ld+json">@Html.Raw(Model.ArticleSchemaJson)</script>
+<script type="application/ld+json">@Html.Raw(Model.BreadcrumbSchemaJson)</script>

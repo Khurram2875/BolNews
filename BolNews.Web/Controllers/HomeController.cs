@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using AutoMapper;
 using BolNews.Application.Interfaces;
 using BolNews.Web.Areas.Admin.ViewModels;
@@ -41,22 +41,52 @@ namespace BolNews.Web.Controllers
                 var secondary = await _articleService.GetSecondaryStoriesAsync();
                 model.SecondaryStories = _mapper.Map<List<PublicArticleVM>>(secondary);
 
-                var categories = await _categoryService.GetHomeCategoriesAsync();
-                var categoryIds = categories.Select(c => c.Id).ToList();
-                var articlesDict = await _articleService
-               .GetArticlesForCategoriesAsync(categoryIds, 5);
+                 // Use GetParentCategoriesWithChildrenAsync so we know which
+                // parent categories have subcategories (e.g. Sports → Cricket, Football)
+                var categories = await _categoryService.GetParentCategoriesWithChildrenAsync();
+
+                // Build a flat map: parentCategoryId → [parentId, subId1, subId2, ...]
+                // This lets us fetch articles from sub-categories and display them
+                // under the parent section (Sports shows Cricket + Football articles)
+                var categoryIdMap = categories.ToDictionary(
+                    c => c.Id,
+                    c =>
+                    {
+                        var ids = new List<int> { c.Id };
+                        if (c.SubCategories != null)
+                            ids.AddRange(c.SubCategories.Select(s => s.Id));
+                        return ids;
+                    }
+                );
+
+                // Fetch articles for ALL relevant IDs in one DB call
+                var allCategoryIds = categoryIdMap.Values.SelectMany(ids => ids).Distinct().ToList();
+                var articlesDict = await _articleService.GetArticlesForCategoriesAsync(allCategoryIds, 5);
 
                 foreach (var category in categories)
                 {
-                    //var articles = await _articleService.GetArticlesByCategoryAsync(category.Id, 5);
-                    articlesDict.TryGetValue(category.Id, out var articles);
+                    // Merge articles from the parent + all its subcategories
+                    var relevantIds = categoryIdMap[category.Id];
+                    var mergedArticles = relevantIds
+                        .Where(id => articlesDict.ContainsKey(id))
+                        .SelectMany(id => articlesDict[id])
+                        .OrderByDescending(a => a.PublishedAt)
+                        .Take(5)
+                        .ToList();
+
+                    // Skip categories that have no articles at all
+                    // (neither direct nor via subcategories)
+                    if (!mergedArticles.Any())
+                        continue;
+
                     model.CategorySections.Add(new CategorySectionVM
                     {
                         CategoryName = category.Name,
                         CategorySlug = category.Slug,
-                        Articles = _mapper.Map<List<PublicArticleVM>>(articles)
+                        Articles = _mapper.Map<List<PublicArticleVM>>(mergedArticles)
                     });
                 }
+
                 return model;
             });
             ViewBag.Type = type;

@@ -2,66 +2,186 @@
 @model List<PublicArticleVM>
 
 @{
-    ViewData["Title"] = "Search";
-
+    ViewData["Title"] = $"Search: {ViewBag.Query}";
+    var query = ViewBag.Query as string ?? "";
 }
 
-<div class="container mt-4">
+<!-- ── Search header ──────────────────────────────────────── -->
+<div style="background:var(--bn-nav-bg);padding:28px 0 24px;">
+    <div class="container">
+        <div style="font-family:var(--bn-font-ui);font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:8px;">Search Results</div>
+        <h1 style="font-family:var(--bn-font-display);font-size:clamp(20px,3vw,30px);font-weight:800;color:#fff;margin:0 0 6px;">
+            "@query"
+        </h1>
+        <p style="font-family:var(--bn-font-ui);font-size:13px;color:rgba(255,255,255,0.55);margin:0;">
+            @(Model.Any() ? $"{Model.Count} result{(Model.Count == 1 ? "" : "s")} found" : "No results found")
+        </p>
+    </div>
+</div>
 
-    <h4 class="mb-4">
-        Search Results for "@ViewBag.Query"
-    </h4>
+<!-- ── Search bar (inline) ────────────────────────────────── -->
+<div style="background:var(--bn-surface-alt);border-bottom:1px solid var(--bn-border);padding:14px 0;">
+    <div class="container">
+        <form method="get" action="/search"
+              style="display:flex;gap:8px;max-width:540px;">
+            <input type="text"
+                   name="q"
+                   value="@query"
+                   placeholder="Search BolNews..."
+                   style="
+                       flex:1;
+                       padding:9px 14px;
+                       font-family:var(--bn-font-ui);
+                       font-size:14px;
+                       border:1px solid var(--bn-border);
+                       border-radius:var(--bn-radius-sm);
+                       background:var(--bn-surface);
+                       color:var(--bn-text-primary);
+                       outline:none;" />
+            <button type="submit"
+                    style="
+                        padding:9px 20px;
+                        background:var(--bn-accent);
+                        color:#fff;
+                        border:none;
+                        border-radius:var(--bn-radius-sm);
+                        font-family:var(--bn-font-ui);
+                        font-size:13px;
+                        font-weight:600;
+                        cursor:pointer;">
+                Search
+            </button>
+        </form>
+    </div>
+</div>
 
-    @if (!Model.Any())
-    {
-        <p>No results found.</p>
-    }
-    else
-    {
-        foreach (var item in Model)
-        {
-            <div class="row border-bottom mb-3 pb-3">
+<!-- ── Results ────────────────────────────────────────────── -->
+<div class="container" style="padding-top:32px;padding-bottom:48px;">
+    <div class="row g-4">
 
-                <div class="col-md-3">
-                    <img src="@item.FeaturedImageThumb"
-                         style="width:100%; height:120px; object-fit:cover;" />
+        <!-- Results list -->
+        <div class="col-lg-8">
+            @if (!Model.Any())
+            {
+                <div style="
+                        padding:60px 24px;
+                        text-align:center;
+                        background:var(--bn-surface);
+                        border-radius:var(--bn-radius-md);
+                        border:1px solid var(--bn-border);">
+                    <div style="font-size:48px;margin-bottom:12px;">🔍</div>
+                    <h3 style="font-family:var(--bn-font-display);color:var(--bn-text-primary);">No results for "@query"</h3>
+                    <p style="font-family:var(--bn-font-ui);color:var(--bn-text-muted);margin-bottom:20px;">
+                        Try different keywords or browse our sections below.
+                    </p>
+                    <a href="/" style="font-family:var(--bn-font-ui);font-size:13px;font-weight:600;color:var(--bn-accent);">← Back to Home</a>
                 </div>
-
-                <div class="col-md-9">
-
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
                     <a href="/news/@item.CategorySlug/@item.Slug"
-                       class="track-click text-dark text-decoration-none"
-                       data-article-id="@item.Id">
-                        <h5>@item.Title</h5>
+                       class="track-click"
+                       data-article-id="@item.Id"
+                       style="text-decoration:none;display:block;">
+                        <div style="
+                                    display:flex;
+                                    gap:16px;
+                                    padding:18px 0;
+                                    border-bottom:1px solid var(--bn-border);
+                                    transition:opacity 0.2s;">
+                            <!-- Thumb -->
+                            <div style="width:110px;height:80px;border-radius:var(--bn-radius-sm);overflow:hidden;flex-shrink:0;">
+                                <img src="@item.FeaturedImageThumb"
+                                     alt="@item.Title"
+                                     loading="lazy"
+                                     style="width:100%;height:100%;object-fit:cover;" />
+                            </div>
+                            <!-- Text -->
+                            <div style="flex:1;min-width:0;">
+                                <div class="bn-card-tag mb-1">@item.CategoryName</div>
+                                <h3 style="
+                                            font-family:var(--bn-font-display);
+                                            font-size:16px;
+                                            font-weight:700;
+                                            line-height:1.35;
+                                            color:var(--bn-text-primary);
+                                            margin-bottom:6px;
+                                            display:-webkit-box;
+                                            -webkit-line-clamp:2;
+                                            -webkit-box-orient:vertical;
+                                            overflow:hidden;">
+                                    @item.Title
+                                </h3>
+                                @if (!string.IsNullOrEmpty(item.Summary))
+                                {
+                                    <p style="
+                                                    font-family:var(--bn-font-body);
+                                                    font-size:13px;
+                                                    color:var(--bn-text-muted);
+                                                    line-height:1.55;
+                                                    margin-bottom:6px;
+                                                    display:-webkit-box;
+                                                    -webkit-line-clamp:2;
+                                                    -webkit-box-orient:vertical;
+                                                    overflow:hidden;">
+                                        @item.Summary
+                                    </p>
+                                }
+                                <div style="font-family:var(--bn-font-ui);font-size:11px;color:var(--bn-text-muted);">
+                                    @item.AuthorName · @item.TimeAgo
+                                </div>
+                            </div>
+                        </div>
                     </a>
+                }
 
-                    <p class="text-muted">@item.Summary</p>
-
-                    <small>@item.TimeAgo</small>
-
+                <!-- Pagination -->
+                <div style="
+                        display:flex;
+                        align-items:center;
+                        justify-content:space-between;
+                        padding-top:24px;
+                        margin-top:8px;">
+                    <div>
+                        @if (ViewBag.CurrentPage > 1)
+                        {
+                            <a href="/search?q=@Uri.EscapeDataString(query)&page=@(ViewBag.CurrentPage - 1)"
+                               style="display:inline-flex;align-items:center;gap:6px;font-family:var(--bn-font-ui);font-size:13px;font-weight:600;color:var(--bn-text-primary);text-decoration:none;padding:8px 16px;border:1px solid var(--bn-border);border-radius:var(--bn-radius-sm);background:var(--bn-surface);">
+                                ← Previous
+                            </a>
+                        }
+                    </div>
+                    <span style="font-family:var(--bn-font-ui);font-size:12px;color:var(--bn-text-muted);">
+                        Page @ViewBag.CurrentPage
+                    </span>
+                    <div>
+                        @if (ViewBag.HasNextPage == true)
+                        {
+                            <a href="/search?q=@Uri.EscapeDataString(query)&page=@(ViewBag.CurrentPage + 1)"
+                               style="display:inline-flex;align-items:center;gap:6px;font-family:var(--bn-font-ui);font-size:13px;font-weight:600;color:#fff;text-decoration:none;padding:8px 16px;border-radius:var(--bn-radius-sm);background:var(--bn-accent);">
+                                Next →
+                            </a>
+                        }
+                    </div>
                 </div>
+            }
+        </div>
 
+        <!-- Sidebar -->
+        <aside class="col-lg-4">
+            <div style="position:sticky;top:70px;">
+                <div class="bn-widget mb-4">
+                    <div class="bn-widget-title">Latest News</div>
+                    @await Component.InvokeAsync("LatestNews", new { count = 6 })
+                </div>
+                <div class="bn-widget">
+                    @await Component.InvokeAsync("TrendingNews",
+                    new { type = Context.Request.Query["type"].ToString() })
+                </div>
             </div>
-        }
-    }
-
-    <!-- 🔁 Pagination -->
-    <div class="d-flex justify-content-between mt-4">
-
-        @if (ViewBag.CurrentPage > 1)
-        {
-            <a href="/search?q=@ViewBag.Query&page=@(ViewBag.CurrentPage - 1)">
-                ← Previous
-            </a>
-        }
-
-        @if (ViewBag.HasNextPage)
-        {
-            <a href="/search?q=@ViewBag.Query&page=@(ViewBag.CurrentPage + 1)">
-                Next →
-            </a>
-        }
+        </aside>
 
     </div>
-
 </div>

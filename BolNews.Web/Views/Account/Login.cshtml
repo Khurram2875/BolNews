@@ -1,72 +1,107 @@
-﻿@{
+﻿@* ── Login.cshtml ─────────────────────────────────────────── *@
+@{
     ViewData["Title"] = "Login";
 }
 
-<div class="registration-container">
-    <div class="registration-card">
-        <div class="mb-4 text-center">
-            <h2>Welcome Back</h2>
-            <p class="text-muted">Please enter your credentials to login.</p>
+<div style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;background:var(--bn-bg);">
+    <div style="
+        width:100%;
+        max-width:420px;
+        background:var(--bn-surface);
+        border-radius:var(--bn-radius-lg);
+        border:1px solid var(--bn-border);
+        box-shadow:var(--bn-shadow-hover);
+        overflow:hidden;">
+
+        <!-- Header strip -->
+        <div style="background:var(--bn-nav-bg);padding:24px;text-align:center;">
+            <a href="/" style="font-family:'Playfair Display',Georgia,serif;font-size:26px;font-weight:800;color:#fff;text-decoration:none;">
+                Bol<span style="color:var(--bn-accent);">News</span>
+            </a>
         </div>
 
-        <hr />
+        <div style="padding:28px 28px 32px;">
+            <h2 style="font-family:var(--bn-font-display);font-size:22px;font-weight:700;color:var(--bn-text-primary);margin-bottom:4px;">Welcome Back</h2>
+            <p style="font-family:var(--bn-font-ui);font-size:13px;color:var(--bn-text-muted);margin-bottom:24px;">Please enter your credentials to continue.</p>
 
-        <form method="post" novalidate>
-            <div class="form-group mb-3">
-                <label class="form-label font-weight-bold">Email Address</label>
-                <input name="email" type="email" class="form-control" placeholder="name@example.com" required />
-            </div>
+            <form method="post" novalidate>
 
-            <div class="form-group mb-3">
-                <label class="form-label font-weight-bold">Password</label>
-                <input name="password" type="password" class="form-control" placeholder="Enter password" required />
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="rememberMe">
-                    <label class="form-check-label small" for="rememberMe">Remember me</label>
+                <div style="margin-bottom:16px;">
+                    <label style="display:block;font-family:var(--bn-font-ui);font-size:12px;font-weight:600;color:var(--bn-text-body);margin-bottom:5px;">Email Address</label>
+                    <input name="email" type="email"
+                           placeholder="name@example.com"
+                           required
+                           style="
+                               width:100%;padding:10px 13px;
+                               font-family:var(--bn-font-ui);font-size:14px;
+                               border:1px solid var(--bn-border);
+                               border-radius:var(--bn-radius-sm);
+                               background:var(--bn-surface);
+                               color:var(--bn-text-primary);
+                               outline:none;
+                               transition:border-color 0.2s;"
+                           onfocus="this.style.borderColor='var(--bn-accent)'"
+                           onblur="this.style.borderColor='var(--bn-border)'" />
                 </div>
-                <a href="#" class="small text-decoration-none">Forgot password?</a>
-            </div>
 
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary btn-lg">Login</button>
-            </div>
-
-            @if (!ViewData.ModelState.IsValid)
-            {
-                <div class="alert alert-danger small mt-3 py-2 text-center" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Invalid login attempt
+                <div style="margin-bottom:14px;">
+                    <label style="display:block;font-family:var(--bn-font-ui);font-size:12px;font-weight:600;color:var(--bn-text-body);margin-bottom:5px;">Password</label>
+                    <input name="password" type="password"
+                           placeholder="Enter password"
+                           required
+                           style="
+                               width:100%;padding:10px 13px;
+                               font-family:var(--bn-font-ui);font-size:14px;
+                               border:1px solid var(--bn-border);
+                               border-radius:var(--bn-radius-sm);
+                               background:var(--bn-surface);
+                               color:var(--bn-text-primary);
+                               outline:none;
+                               transition:border-color 0.2s;"
+                           onfocus="this.style.borderColor='var(--bn-accent)'"
+                           onblur="this.style.borderColor='var(--bn-border)'" />
                 </div>
-            }
-        </form>
 
-        <div class="mt-4 text-center">
-            <p class="small mb-0">Don't have an account? <a asp-action="Register" class="text-primary fw-bold text-decoration-none">Register here</a></p>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;">
+                    <label style="display:flex;align-items:center;gap:6px;font-family:var(--bn-font-ui);font-size:12px;color:var(--bn-text-muted);cursor:pointer;">
+                        <input type="checkbox" id="rememberMe" style="accent-color:var(--bn-accent);" />
+                        Remember me
+                    </label>
+                    <a href="#" style="font-family:var(--bn-font-ui);font-size:12px;color:var(--bn-accent);text-decoration:none;">Forgot password?</a>
+                </div>
+
+                <button type="submit"
+                        style="
+                            width:100%;padding:12px;
+                            background:var(--bn-accent);
+                            color:#fff;border:none;
+                            border-radius:var(--bn-radius-sm);
+                            font-family:var(--bn-font-ui);font-size:14px;font-weight:700;
+                            cursor:pointer;
+                            transition:background 0.2s;"
+                        onmouseover="this.style.background='var(--bn-accent-hover)'"
+                        onmouseout="this.style.background='var(--bn-accent)'">
+                    Login
+                </button>
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div style="
+                            margin-top:14px;padding:11px 14px;
+                            background:#fff5f5;border-radius:var(--bn-radius-sm);
+                            border:1px solid #fecaca;
+                            font-family:var(--bn-font-ui);font-size:13px;
+                            color:#dc2626;text-align:center;">
+                        ⚠️ Invalid email or password. Please try again.
+                    </div>
+                }
+
+            </form>
+
+            <p style="font-family:var(--bn-font-ui);font-size:13px;color:var(--bn-text-muted);text-align:center;margin-top:22px;margin-bottom:0;">
+                Don't have an account?
+                <a asp-action="Register" style="color:var(--bn-accent);font-weight:600;text-decoration:none;">Register here</a>
+            </p>
         </div>
     </div>
 </div>
-<style>
-    /* Additional Login specific tweaks */
-    .text-primary {
-        color: #0d6efd !important;
-    }
-
-    .alert-danger {
-        border-radius: 8px;
-        border: none;
-        background-color: #fff5f5;
-        color: #dc3545;
-    }
-
-    .form-check-input:checked {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-    }
-
-    /* Optional: Center the whole card on the screen vertically */
-    .registration-container {
-        min-height: 80vh; /* Ensures it looks good on large screens */
-    }
-</style>

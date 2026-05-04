@@ -60,7 +60,8 @@ namespace BolNews.Web.Controllers
 
             // ✅ Map
             var articleVM = _mapper.Map<PublicArticleVM>(article);
-            articleVM.AuthorImage = article.Author.ProfileImageUrl;
+            articleVM.AuthorImage = article.Author?.ProfileImageUrl;
+            articleVM.AuthorSlug = article.Author?.Slug;
 
             articleVM.Content = await _cacheService.GetOrCreateAsync(
                     $"article_content_{article.Id}",
@@ -106,6 +107,6 @@ namespace BolNews.Web.Controllers
 
             return View(pageVM);
         }
-       
+
     }
 }
