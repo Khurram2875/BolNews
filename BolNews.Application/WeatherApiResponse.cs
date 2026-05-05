@@ -19,6 +19,7 @@
         public Condition Condition { get; set; }
         public int Humidity { get; set; }
         public double Feelslike_C { get; set; }
+        public double Wind_MPH { get; set; }
     }
 
     public class Condition

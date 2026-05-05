@@ -10,5 +10,6 @@ namespace BolNews.Application.DTOs
     {
         public decimal Price24K { get; set; }
         public decimal Price22K { get; set; }
+        public decimal PricePerGram { get; set; }
     }
 }

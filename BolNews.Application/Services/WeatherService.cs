@@ -36,7 +36,10 @@ namespace BolNews.Application.Services
                     {
                         City = response.Location?.Name ?? city,
                         Temperature = (int)response.Current.Temp_C,
+                        FeelsLike = (int)response.Current.Feelslike_C,
+                        Humidity = (int)response.Current.Humidity,
                         Condition = response.Current.Condition?.Text ?? string.Empty,
+                        WindMph = (double)response.Current.Wind_MPH,
                         Icon = response.Current.Condition?.Icon ?? string.Empty
                     };
                 },

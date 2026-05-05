@@ -10,7 +10,11 @@ namespace BolNews.Application.DTOs
     {
         public string City { get; set; }
         public int Temperature { get; set; }
+        public int FeelsLike { get; set; }
         public string Condition { get; set; }
         public string Icon { get; set; }
+        public double WindMph { get; set; }
+        public int Humidity { get; set; }
+
     }
 }

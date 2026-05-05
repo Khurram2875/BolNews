@@ -2,22 +2,28 @@
 
     <!-- Weather -->
     <div>
-        <img src="@Model.Weather.Icon" style="width:24px;" />
-        @Model.Weather.City:
-        <strong>@Model.Weather.Temperature°C</strong>
-        (@Model.Weather.Condition)
+       @*  <img src="@Model.Weather.Icon" style="width:24px;" /> *@
+         @Model.Weather.City:<strong>@Model.Weather.Temperature°C</strong>
+        (@Model.Weather.Condition) | Feels Like: <strong>@Model.Weather.FeelsLike°C</strong>| 
+        Humidity: <strong>@Model.Weather.Humidity%</strong> |
+        Wind: <strong>@Model.Weather.WindMph mph</strong>
+
     </div>
 
-    @*
+    
     <div>
         💱 USD: <strong>@Model.Forex.USD</strong> |
-        EUR: <strong>@Model.Forex.EUR</strong>
+        EUR: <strong>@Model.Forex.EUR</strong> |
+        GBP: <strong>@Model.Forex.GBP</strong> |
+        AED: <strong>@Model.Forex.AED</strong> |
+        SAR: <strong>@Model.Forex.SAR</strong> |
+        KWD: <strong>@Model.Forex.KWD</strong> 
     </div>
 
-    <div>
+@*     <div>
         🟡 Gold (24K):
         <strong>Rs. @Model.Gold.Price24K</strong>
-    </div>
-    *@
+    </div> *@
+   
 
 </div>

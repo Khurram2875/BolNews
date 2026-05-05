@@ -11,5 +11,9 @@ namespace BolNews.Application.DTOs
         public decimal USD { get; set; }
         public decimal EUR { get; set; }
         public decimal GBP { get; set; }
+        public decimal AED { get; set; }
+        public decimal SAR { get; set; }
+        public decimal KWD { get; set; }
+
     }
 }

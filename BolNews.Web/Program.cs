@@ -37,6 +37,21 @@ builder.Services.AddHttpClient<IWeatherService, WeatherService>(client =>
 
 builder.Services.Configure<WeatherApiOptions>(
     builder.Configuration.GetSection("WeatherApi"));
+
+builder.Services.AddHttpClient<IForexService, ForexService>(client =>
+{
+    client.BaseAddress = new Uri("https://v6.exchangerate-api.com/v6/");
+});
+
+builder.Services.Configure<ForexApiOptions>(
+    builder.Configuration.GetSection("ForexApi"));
+
+builder.Services.AddHttpClient<IGoldRateService, GoldRateService>();
+
+builder.Services.Configure<GoldApiOptions>(
+    builder.Configuration.GetSection("RapidApi"));
+
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();
