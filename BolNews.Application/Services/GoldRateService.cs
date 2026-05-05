@@ -28,7 +28,7 @@ namespace BolNews.Application.Services
         {
 
             var apiKey = _options.Key;
-            _options.Host = "gold-prices-pakistan.p.rapidapi.com"
+            _options.Host = "gold-prices-pakistan.p.rapidapi.com";
             return await _cache.GetOrCreateAsync("gold_rate", async () =>
             {
 
