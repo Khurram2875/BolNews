@@ -28,5 +28,7 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         public List<int> EditorViews { get; set; }
         public List<double> EditorAvgViews { get; set; }
 
+        public DashboardDto AnalyticsData { get; set; }
+
     }
 }

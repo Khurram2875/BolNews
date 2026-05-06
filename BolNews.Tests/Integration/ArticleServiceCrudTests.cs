@@ -65,6 +65,8 @@ namespace BolNews.Tests.Integration
             {
                 Title       = "New Test Article",
                 Slug        = "new-test-article",
+                MetaTitle = "New Article Meta",
+                MetaDescription = "Meta description for new article",
                 Summary     = "Summary",
                 Content     = "Content",
                 CategoryId  = 1,
@@ -84,6 +86,8 @@ namespace BolNews.Tests.Integration
             {
                 Title       = "Published Article",
                 Slug        = "published-article-new",
+                MetaTitle = "Published Article Meta",
+                MetaDescription = "Meta description for published article",
                 Summary     = "Summary",
                 Content     = "Content",
                 CategoryId  = 1,
@@ -105,6 +109,8 @@ namespace BolNews.Tests.Integration
             {
                 Title       = "Draft Article New",
                 Slug        = "draft-article-new",
+                MetaTitle = "Published Article Meta",
+                MetaDescription = "Meta description for published article",
                 Summary     = "Summary",
                 Content     = "Content",
                 CategoryId  = 1,
@@ -123,15 +129,15 @@ namespace BolNews.Tests.Integration
         [Fact]
         public async Task Delete_ExistingArticle_SoftDeletesIt()
         {
-            // Article 2 exists in seed data
+            // Article 2 exists in seed data and is published
             await _service.DeleteAsync(2);
 
-            // After soft-delete, GetByIdAsync should still find it
-            // (it queries without the global filter), but GetAllAsync should not
+            // GetByIdAsync uses FindAsync which respects the global IsDeleted query filter —
+            // soft-deleted articles are invisible to all service queries, as intended.
             var dto = await _service.GetByIdAsync(2);
-            dto.Should().NotBeNull("GetById bypasses soft-delete filter");
+            dto.Should().BeNull("soft-deleted articles must not be retrievable via GetByIdAsync");
 
-            // Confirm it's not returned in public listing
+            // Double-check it's also excluded from published listings
             var allPublished = await _service.GetAllPublishedAsync();
             allPublished.Should().NotContain(a => a.Id == 2,
                 "soft-deleted articles must not appear in published listings");

@@ -1,3 +1,4 @@
+using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
 using BolNews.Domain.Entities;
 using BolNews.Persistence.Context;
@@ -20,61 +21,52 @@ namespace BolNews.Application.Services
         {
             var today = DateTime.UtcNow.Date;
 
-            var updated = await _context.ArticleAnalytics
-                .Where(a => a.ArticleId == articleId && a.Date == today)
-                .ExecuteUpdateAsync(s => s.SetProperty(a => a.Impressions, a => a.Impressions + 1));
+            var record = await _context.ArticleAnalytics
+                .FirstOrDefaultAsync(x => x.ArticleId == articleId && x.Date == today);
 
-            if (updated == 0)
+            if (record == null)
             {
-                // No row yet for today — insert one. Handle the rare concurrent-insert case.
-                try
+                record = new ArticleAnalytics
                 {
-                    _context.ArticleAnalytics.Add(new ArticleAnalytics
-                    {
-                        ArticleId   = articleId,
-                        Date        = today,
-                        Impressions = 1
-                    });
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateException)
-                {
-                    // Another request inserted the row between our check and insert.
-                    // Retry the atomic increment — this path is extremely rare.
-                    await _context.ArticleAnalytics
-                        .Where(a => a.ArticleId == articleId && a.Date == today)
-                        .ExecuteUpdateAsync(s => s.SetProperty(a => a.Impressions, a => a.Impressions + 1));
-                }
+                    ArticleId = articleId,
+                    Date = today,
+                    Impressions = 1,
+                    Clicks = 0
+                };
+                _context.ArticleAnalytics.Add(record);
             }
+            else
+            {
+                record.Impressions++;
+            }
+
+            await _context.SaveChangesAsync();
         }
 
         public async Task TrackClickAsync(int articleId)
         {
             var today = DateTime.UtcNow.Date;
 
-            var updated = await _context.ArticleAnalytics
-                .Where(a => a.ArticleId == articleId && a.Date == today)
-                .ExecuteUpdateAsync(s => s.SetProperty(a => a.Clicks, a => a.Clicks + 1));
+            var record = await _context.ArticleAnalytics
+                .FirstOrDefaultAsync(x => x.ArticleId == articleId && x.Date == today);
 
-            if (updated == 0)
+            if (record == null)
             {
-                try
+                record = new ArticleAnalytics
                 {
-                    _context.ArticleAnalytics.Add(new ArticleAnalytics
-                    {
-                        ArticleId = articleId,
-                        Date      = today,
-                        Clicks    = 1
-                    });
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateException)
-                {
-                    await _context.ArticleAnalytics
-                        .Where(a => a.ArticleId == articleId && a.Date == today)
-                        .ExecuteUpdateAsync(s => s.SetProperty(a => a.Clicks, a => a.Clicks + 1));
-                }
+                    ArticleId = articleId,
+                    Date = today,
+                    Clicks = 1,
+                    Impressions = 0
+                };
+                _context.ArticleAnalytics.Add(record);
             }
+            else
+            {
+                record.Clicks++;
+            }
+
+            await _context.SaveChangesAsync();
         }
 
         public async Task<double> GetCTRAsync(int articleId)
@@ -108,6 +100,35 @@ namespace BolNews.Application.Services
             return await _context.Articles
                 .Where(a => ids.Contains(a.Id))
                 .ToListAsync();
+        }
+
+        public async Task<DashboardDto> GetDashboardAsync()
+        {
+            var data = await _context.ArticleAnalytics
+             .Include(x => x.Article)
+             .Where(x => x.Date >= DateTime.UtcNow.AddDays(-7))
+             .ToListAsync();
+
+            var grouped = data
+                .GroupBy(x => x.ArticleId)
+                .Select(g => new ArticlePerformanceDto
+                {
+                    ArticleId = g.Key,
+                    Title = g.First().Article.Title,
+                    Clicks = g.Sum(x => x.Clicks),
+                    Impressions = g.Sum(x => x.Impressions),
+                    CTR = g.Sum(x => x.Impressions) == 0
+                        ? 0
+                        : (double)g.Sum(x => x.Clicks) / g.Sum(x => x.Impressions)
+                })
+                .OrderByDescending(x => x.CTR)
+                .ToList();
+
+            return new DashboardDto
+            {
+                TopArticles = grouped.Take(10).ToList(),
+                WorstArticles = grouped.OrderBy(x => x.CTR).Take(10).ToList()
+            };
         }
     }
 }

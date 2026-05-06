@@ -1,4 +1,6 @@
-﻿namespace BolNews.Web.Areas.Admin.ViewModels
+﻿using BolNews.Application.DTOs;
+
+namespace BolNews.Web.Areas.Admin.ViewModels
 {
     public class PublicArticleVM
     {
@@ -61,6 +63,7 @@
                 return $"{(int)(timeSpan.TotalDays / 365)} years ago";
             }
         }
+        public DashboardDto dashboard { get; set; }
        
     }
 }

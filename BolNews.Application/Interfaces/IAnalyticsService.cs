@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BolNews.Application.DTOs;
 using BolNews.Domain.Entities;
 
 namespace BolNews.Application.Interfaces
@@ -13,5 +14,6 @@ namespace BolNews.Application.Interfaces
         Task TrackClickAsync(int articleId);
         Task<double> GetCTRAsync(int articleId);
         Task<List<Article>> GetLowCTRArticlesAsync();
+        Task<DashboardDto> GetDashboardAsync();
     }
 }

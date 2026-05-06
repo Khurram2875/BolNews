@@ -78,6 +78,10 @@ namespace BolNews.Web.Areas.Admin.Controllers
             vm.EditorViews = editorStats.Select(e => e.TotalViews).ToList();
             vm.EditorAvgViews = editorStats.Select(e => e.AvgViewsPerArticle).ToList();
 
+            // for CTR
+            var data = await _analyticsService.GetDashboardAsync();
+            vm.AnalyticsData = data;
+
             // 🏆 Top editor
             var topEditor = editorStats.FirstOrDefault();
             ViewBag.TopEditor = topEditor?.AuthorName;

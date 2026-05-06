@@ -1,4 +1,7 @@
-﻿@{
+﻿@using BolNews.Web.Areas.Admin.ViewModels
+@using System.Linq
+@model DashboardVM
+@{
     ViewData["Title"] = "Admin Dashboard";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
@@ -113,14 +116,68 @@
         <canvas id="editorChart" class="mt-4" style="max-height: 250px;"></canvas>
     </div>
 </div>
-<h3>Low CTR Articles</h3>
+@* <h3>Top Performing Articles</h3>
+<table class="table">
+    <tr>
+        <th>Title</th>
+        <th>Clicks</th>
+        <th>Impressions</th>
+        <th>CTR</th>
+    </tr>
+
+    @foreach (var item in Model.AnalyticsData.TopArticles)
+    {
+        <tr>
+            <td>@item.Title</td>
+            <td>@item.Clicks</td>
+            <td>@item.Impressions</td>
+            <td>@(item.CTR * 100)%</td>
+        </tr>
+    }
+</table>
+
+<hr />
+
+<h3>Underperforming Articles</h3>
+
+<table class="table">
+    @foreach (var item in Model.AnalyticsData.WorstArticles)
+    {
+        <tr>
+            <td>@item.Title</td>
+            <td>@item.Clicks</td>
+            <td>@item.Impressions</td>
+            <td>@(item.CTR * 100)%</td>
+        </tr>
+    }
+</table>
 
 @foreach (var article in ViewBag.LowCTRArticles)
 {
     <div>
         <strong>@article.Title</strong>
     </div>
-}
+} *@
+
+<div class="row">
+
+    <div class="col-md-6 card p-3 shadow-sm">
+        <h5>🔥 Top Performing Articles</h5>
+        <canvas id="topChart"></canvas>
+    </div>
+
+    <div class="col-md-6 card p-3 shadow-sm">
+        <h5>⚠️ Underperforming Articles</h5>
+        <canvas id="worstChart"></canvas>
+    </div>
+
+</div>
+
+<div class="card mt-5 p-3 shadow-sm">
+    <h5>📊 Clicks vs Impressions</h5>
+    <canvas id="comparisonChart"></canvas>
+</div>
+
 <style>
     .stat-card {
         transition: transform 0.3s ease;
@@ -302,6 +359,86 @@
             scales: {
                 y: { beginAtZero: true }
             }
+        }
+    });
+
+    const topLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.AnalyticsData.TopArticles.Select(x => x.Title)));
+
+    const topCTR = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.AnalyticsData.TopArticles.Select(x => Math.Round(x.CTR * 100, 2))));
+
+    const worstLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.AnalyticsData.WorstArticles.Select(x => x.Title)));
+
+    const worstCTR = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.AnalyticsData.WorstArticles.Select(x => Math.Round(x.CTR * 100, 2))));
+
+        new Chart(document.getElementById('topChart'), {
+        type: 'bar',
+        data: {
+            labels: topLabels,
+            datasets: [{
+                label: 'CTR (%)',
+                data: topCTR
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+        new Chart(document.getElementById('worstChart'), {
+        type: 'bar',
+        data: {
+            labels: worstLabels,
+            datasets: [{
+                label: 'CTR (%)',
+                data: worstCTR
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    const clicks = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.AnalyticsData.TopArticles.Select(x => x.Clicks)));
+
+    const impressions = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.AnalyticsData.TopArticles.Select(x => x.Impressions)));
+
+                    new Chart(document.getElementById('comparisonChart'), {
+        type: 'bar',
+        data: {
+            labels: topLabels,
+            datasets: [
+                {
+                    label: 'Clicks',
+                    data: clicks
+                },
+                {
+                    label: 'Impressions',
+                    data: impressions
+                }
+            ]
+        },
+        options: {
+            responsive: true
         }
     });
 </script>

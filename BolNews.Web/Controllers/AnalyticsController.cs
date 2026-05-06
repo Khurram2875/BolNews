@@ -19,5 +19,11 @@ namespace BolNews.Web.Controllers
             await _analyticsService.TrackClickAsync(id);
             return Ok();
         }
+        [HttpPost("analytics/impression/{id}")]
+        public async Task<IActionResult> TrackImpression(int id)
+        {
+            await _analyticsService.TrackImpressionAsync(id);
+            return Ok();
+        }
     }
 }
