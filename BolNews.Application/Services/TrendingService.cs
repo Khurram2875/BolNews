@@ -24,27 +24,40 @@ namespace BolNews.Application.Services
         {
             var articles = await _articleService.GetRecentArticlesAsync();
 
+            var stopWords = new[] { "the", "with", "this", "from", "that", "have" };
+
             var internalTrends = articles
                 .SelectMany(a => a.Title.Split(' '))
-                .Where(word => word.Length > 4)
+                .Where(word => word.Length > 4 && !stopWords.Contains(word.ToLower()))
                 .GroupBy(word => word.ToLower())
                 .Select(g => new TrendingTopicResult
                 {
                     Topic = g.Key,
-                    Score = g.Count() * 2
+                    Score = g.Count() * 2,
+                    Source="System Rating"
                 });
 
-            // Fetch external trends — treat an empty list as a graceful fallback.
-            var googleTrendTopics = await _cache.GetOrCreateAsync("google_trends", async entry =>
-            {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
-                return await _googleTrendsService.GetTrendingTopicsAsync("PK");
-            }) ?? new List<string>();
+            var googleTrendTopics = await _googleTrendsService.GetTrendingTopicsAsync();
 
-            var externalTrends = googleTrendTopics.Select(t => new TrendingTopicResult
+            var externalTrends = googleTrendTopics.Select(t =>
             {
-                Topic = t,
-                Score = 50
+                int score = 50;
+
+                if (!string.IsNullOrEmpty(t.Traffic))
+                {
+                    var number = new string(t.Traffic.Where(char.IsDigit).ToArray());
+
+                    if (int.TryParse(number, out int val))
+                        score = val / 100;
+                }
+
+                return new TrendingTopicResult
+                {
+                    Topic = t.Title,
+                    Score = score,
+                    Source = t.Source,
+                    Traffic = t.Traffic
+                };
             });
 
             return internalTrends
@@ -53,7 +66,9 @@ namespace BolNews.Application.Services
                 .Select(g => new TrendingTopicResult
                 {
                     Topic = g.First().Topic,
-                    Score = g.Sum(x => x.Score)
+                    Score = g.Sum(x => x.Score),
+                    Source = g.First().Source,
+                    Traffic = g.First().Traffic
                 })
                 .OrderByDescending(x => x.Score)
                 .Take(10)

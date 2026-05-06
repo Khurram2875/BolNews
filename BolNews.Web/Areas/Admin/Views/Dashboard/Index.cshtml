@@ -37,11 +37,12 @@
         </div>
         <div class="col-md-8">
             <div class="card h-100 border-0 p-3 shadow-sm">
-                <h6 class="text-muted mb-2">🔥 Trending Topics</h6>
+                <h6 class="text-muted mb-2">🔥 Trending Topics | Source</h6>
                 <div class="d-flex flex-wrap gap-2">
                     @foreach (var t in Model.TrendingTopics)
                     {
-                        <span class="badge rounded-pill bg-light text-dark border">@t.Topic (@t.Score)</span>
+                        <span class="badge rounded-pill bg-light text-dark border">@t.Topic (@t.Score) | @t.Source </span>
+                       
                     }
                 </div>
             </div>
