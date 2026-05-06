@@ -1,8 +1,9 @@
 using System.Text.Json;
-using BolNews.Web.Interfaces;
-using BolNews.Web.Models;
+using BolNews.Application.Interfaces;
+using BolNews.Application.Models;
+using Microsoft.Extensions.Configuration;
 
-namespace BolNews.Web.Services
+namespace BolNews.Application.Services
 {
     public class GoogleTrendsService : IGoogleTrendsService
     {

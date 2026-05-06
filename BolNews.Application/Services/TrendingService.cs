@@ -1,9 +1,8 @@
 using BolNews.Application.Interfaces;
-using BolNews.Web.Interfaces;
-using BolNews.Web.Models;
+using BolNews.Application.Models;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace BolNews.Web.Services
+namespace BolNews.Application.Services
 {
     public class TrendingService : ITrendingService
     {

@@ -1,4 +1,4 @@
-﻿namespace BolNews.Web.Interfaces
+﻿namespace BolNews.Application.Interfaces
 {
     public interface IGoogleTrendsService
     {

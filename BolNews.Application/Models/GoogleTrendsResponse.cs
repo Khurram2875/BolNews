@@ -1,11 +1,11 @@
-﻿namespace BolNews.Web.Models
+﻿namespace BolNews.Application.Models
 {
-    public class GoogleTrendsResponse
+    internal sealed class GoogleTrendsResponse
     {
         public List<TrendItem> Trends { get; set; }
     }
 
-    public class TrendItem
+    internal sealed class TrendItem
     {
         public string Title { get; set; }
     }

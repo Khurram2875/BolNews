@@ -1,6 +1,6 @@
-﻿using BolNews.Web.Models;
+﻿using BolNews.Application.Models;
 
-namespace BolNews.Web.Interfaces
+namespace BolNews.Application.Interfaces
 {
     public interface ITrendingService
     {

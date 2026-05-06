@@ -1,11 +1,11 @@
 ﻿using BolNews.Application.Interfaces;
-using BolNews.Web.Interfaces;
+using BolNews.Application.Interfaces;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.RegularExpressions;
 using System.Net;
 
-namespace BolNews.Web.Services
+namespace BolNews.Application.Services
 {
     public class InternalLinkingService : IInternalLinkingService
     {

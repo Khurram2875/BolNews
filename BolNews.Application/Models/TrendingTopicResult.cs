@@ -1,4 +1,4 @@
-﻿namespace BolNews.Web.Models
+﻿namespace BolNews.Application.Models
 {
     public class TrendingTopicResult
     {

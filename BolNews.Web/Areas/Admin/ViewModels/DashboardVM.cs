@@ -1,5 +1,5 @@
 ﻿using BolNews.Application.DTOs;
-using BolNews.Web.Models;
+using BolNews.Application.Models;
 
 namespace BolNews.Web.Areas.Admin.ViewModels
 {
