@@ -8,6 +8,7 @@
 @inject IUrlService UrlService
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<ApplicationUser> UserManager
+@inject IAdService AdService
 
 <!DOCTYPE html>
 <html lang="en" data-theme="default">
@@ -176,12 +177,32 @@
                 </div>
             </div>
         </nav>
+        <div class="my-2 text-center">
+            @Html.Raw(AdService.GetHeaderAd())
+        </div>
     </header>
 
     <!-- ── Page content ── -->
-    <main role="main">
-        @RenderBody()
-    </main>
+    <div class="container-fluid">
+        <div class="row">
+
+            <!-- LEFT SIDEBAR AD -->
+            <aside class="col-lg-2 d-none d-lg-block text-center">
+                @Html.Raw(AdService.GetSidebarAd())
+            </aside>
+
+            <!-- MAIN CONTENT -->
+            <main role="main" class="col-lg-8 col-md-12">
+                @RenderBody()
+            </main>
+
+            <!-- RIGHT SIDEBAR AD -->
+            <aside class="col-lg-2 d-none d-lg-block text-center">
+                @Html.Raw(AdService.GetSidebarAd())
+            </aside>
+
+        </div>
+    </div>
 
     <!-- ── Footer ── -->
     <footer class="bn-footer">

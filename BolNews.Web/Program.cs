@@ -50,7 +50,11 @@ builder.Services.AddHttpClient<IGoldRateService, GoldRateService>();
 
 builder.Services.Configure<GoldApiOptions>(
     builder.Configuration.GetSection("RapidApi"));
+//Add AdService and its configuration
+builder.Services.Configure<AdOptions>(
+    builder.Configuration.GetSection("Ads"));
 
+builder.Services.AddScoped<IAdService, AdService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
