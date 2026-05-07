@@ -1,112 +1,43 @@
-﻿using AutoMapper;
-using BolNews.Application.Interfaces;
-using BolNews.Application.Services;
-using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Interfaces;
-using BolNews.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BolNews.Web.Controllers
 {
     public class ArticleController : Controller
     {
-        private readonly IArticleService _articleService;
-        private readonly IMapper _mapper;
-        private readonly IUrlService _urlService;
-        private readonly ISeoService _seoService;
-        private readonly IInternalLinkingService _internalLinkingService;
-        private readonly ICacheService _cacheService;
-        private readonly IAnalyticsService _analyticsService;
+        private readonly IArticlePageService _articlePageService;
 
-        public ArticleController(IArticleService articleService, IMapper mapper, IUrlService urlService, ISeoService seoService, IInternalLinkingService internalLinkingService, ICacheService cacheService, IAnalyticsService analyticsService)
+        public ArticleController(IArticlePageService articlePageService)
         {
-            _articleService = articleService;
-            _mapper = mapper;
-            _urlService = urlService;
-            _seoService = seoService;
-            _internalLinkingService = internalLinkingService;
-            _cacheService = cacheService;
-            _analyticsService = analyticsService;
+            _articlePageService = articlePageService;
         }
 
         public async Task<IActionResult> Details(string categorySlug, string slug)
         {
-            if (string.IsNullOrEmpty(slug))
+            var pageVM = await _articlePageService.BuildDetailsPageAsync(categorySlug, slug, HttpContext.Session);
+            if (pageVM == null)
                 return NotFound();
 
-            var article = await _articleService.GetBySlugAsync(slug);
-
-            if (article == null || article.IsDeleted)
-                return NotFound();
-
-            // ✅ Correct category URL
-            if (article.Category?.Slug != categorySlug)
+            if (!string.Equals(pageVM.Article.CategorySlug, categorySlug, StringComparison.OrdinalIgnoreCase))
             {
                 return RedirectToRoutePermanent("articleDetails", new
                 {
-                    categorySlug = article.Category?.Slug,
-                    slug = article.Slug
+                    categorySlug = pageVM.Article.CategorySlug,
+                    slug = pageVM.Article.Slug
                 });
             }
-            await _analyticsService.TrackImpressionAsync(article.Id);
-            // 🔥 Increment View Count (session-safe)
-            var viewedKey = $"viewed_article_{article.Id}";
 
-            if (!HttpContext.Session.Keys.Contains(viewedKey))
-            {
-                await _articleService.IncrementViewCountAsync(article.Id);
-                HttpContext.Session.SetString(viewedKey, "true");
-            }
-
-            // ✅ Map
-            var articleVM = _mapper.Map<PublicArticleVM>(article);
-            articleVM.AuthorImage = article.Author?.ProfileImageUrl;
-            articleVM.AuthorSlug = article.Author?.Slug;
-
-            articleVM.Content = await _cacheService.GetOrCreateAsync(
-                    $"article_content_{article.Id}",
-                    async () => await _internalLinkingService.InjectInternalLinksAsync(articleVM.Content),
-                    10
-                );
-
-            var relatedArticles = await _cacheService.GetOrCreateAsync(
-                $"related_{article.Id}",
-                async () => await _articleService.GetRelatedArticlesAsync(
-                    article.CategoryId,
-                    article.Id,
-                    5
-                ),
-                10
-            );
-
-            var relatedVM = _mapper.Map<List<PublicArticleVM>>(relatedArticles);
-            var baseUrl = _urlService.GetBaseUrl();
-            var pageVM = new ArticleDetailsPageVM
-            {
-                Article = articleVM,
-                RelatedArticles = relatedVM,
-                BaseUrl = baseUrl
-            };
-
-            // ✅ SEO
-            ViewBag.OgImage = articleVM.FeaturedImageXl;
-
-            ViewBag.MetaTitle = string.IsNullOrWhiteSpace(article.MetaTitle)
-                ? article.Title
-                : article.MetaTitle;
-
-            ViewBag.MetaDescription = article.MetaDescription ?? article.Summary;
-
-            ViewBag.CanonicalUrl = $"/news/{article.Category?.Slug}/{article.Slug}";
-
-            ViewBag.CategoryName = article.Category?.Name;
-            ViewBag.CategorySlug = article.Category?.Slug;
-
-            pageVM.ArticleSchemaJson = _seoService.BuildArticleSchema(pageVM.Article, pageVM.BaseUrl);
-            pageVM.BreadcrumbSchemaJson = _seoService.BuildBreadcrumb(pageVM.Article, pageVM.BaseUrl);
+            ViewBag.OgImage = pageVM.Article.FeaturedImageXl;
+            ViewBag.MetaTitle = string.IsNullOrWhiteSpace(pageVM.Article.MetaTitle)
+                ? pageVM.Article.Title
+                : pageVM.Article.MetaTitle;
+            ViewBag.MetaDescription = pageVM.Article.MetaDescription ?? pageVM.Article.Summary;
+            ViewBag.CanonicalUrl = $"/news/{pageVM.Article.CategorySlug}/{pageVM.Article.Slug}";
+            ViewBag.CategoryName = pageVM.Article.CategoryName;
+            ViewBag.CategorySlug = pageVM.Article.CategorySlug;
+            ViewBag.OgType = "article";
 
             return View(pageVM);
         }
-
     }
 }

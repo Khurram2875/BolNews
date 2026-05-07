@@ -25,6 +25,8 @@ builder.Services.AddScoped<ISitemapService, SitemapService>();
 builder.Services.AddScoped<IDiscoverService, DiscoverService>();
 builder.Services.AddScoped<IHeadlineService, HeadlineService>();
 builder.Services.AddScoped<ITrendingService, TrendingService>();
+builder.Services.AddScoped<IArticlePageService, ArticlePageService>();
+builder.Services.AddScoped<IUserAdminService, UserAdminService>();
 builder.Services.AddScoped<IInternalLinkingService, InternalLinkingService>();
 builder.Services.AddHttpClient<IGoogleTrendsService, GoogleTrendsService>();
 builder.Services.AddMemoryCache();

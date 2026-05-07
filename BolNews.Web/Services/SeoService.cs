@@ -5,6 +5,13 @@ namespace BolNews.Web.Services
 {
     public class SeoService : ISeoService
     {
+        private static string Slugify(string value)
+        {
+            return string.Join("-", value
+                .Trim()
+                .ToLowerInvariant()
+                .Split(" ", StringSplitOptions.RemoveEmptyEntries));
+        }
         public string BuildArticleSchema(PublicArticleVM article, string baseUrl)
         {
             var schema = new
@@ -111,7 +118,7 @@ namespace BolNews.Web.Services
                     @type = "ListItem",
                     position = 2,
                     name = article.CategoryName,
-                    item = $"{baseUrl}/category/{article.CategorySlug}"
+                    item = $"{baseUrl}/news/{article.CategorySlug}"
                 },
                 new {
                         @type = "ListItem",
@@ -160,7 +167,7 @@ namespace BolNews.Web.Services
                 name = author.Name,
                 description = author.Bio,
                 image = author.ProfileImage,
-                url = $"{author.BaseUrl}/author/{author.Name.Replace(" ", "-").ToLower()}",
+                url = $"{author.BaseUrl}/author/{Slugify(author.Name)}",
                 sameAs = new string[]
                 {
                     // optional social links later
