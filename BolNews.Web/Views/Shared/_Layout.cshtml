@@ -6,8 +6,6 @@
 
 @inject ISeoService SeoService
 @inject IUrlService UrlService
-@using Microsoft.AspNetCore.Identity
-@inject UserManager<ApplicationUser> UserManager
 @inject IAdService AdService
 
 <!DOCTYPE html>
@@ -166,8 +164,10 @@
                     <!-- Auth -->
                     @if (User.Identity.IsAuthenticated)
                     {
-                        var user = await UserManager.GetUserAsync(User);
-                        <span class="d-none d-lg-inline" style="color:rgba(255,255,255,0.65);font-family:var(--bn-font-ui);font-size:13px;">@user.FullName</span>
+                        var displayName = User.FindFirst("FullName")?.Value
+                            ?? User.Identity?.Name
+                            ?? "User";
+                        <span class="d-none d-lg-inline" style="color:rgba(255,255,255,0.65);font-family:var(--bn-font-ui);font-size:13px;">@displayName</span>
                         <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
                             <button type="submit" class="btn btn-sm btn-outline-danger">Logout</button>

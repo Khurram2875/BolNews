@@ -177,6 +177,7 @@ namespace BolNews.Application.Services
         public async Task<Article> GetBySlugAsync(string slug)
         {
             return await _context.Articles
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Include(a => a.Author)
                 .FirstOrDefaultAsync(a => a.Slug == slug && !a.IsDeleted);
@@ -205,6 +206,7 @@ namespace BolNews.Application.Services
                 return cached;
 
             var articles = await _context.Articles
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a => a.CategoryId == categoryId
                             && a.Id != excludeArticleId
