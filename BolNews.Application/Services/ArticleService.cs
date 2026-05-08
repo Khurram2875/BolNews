@@ -105,7 +105,7 @@ namespace BolNews.Application.Services
 
         public async Task<IEnumerable<ArticleDto>> GetAllAsync(string userId, IList<string> roles)
         {
-            var query = BuildBackofficeArticleQuery();
+            var query = BuildBackofficeArticleQuery().AsNoTracking();
 
             if (roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor))
             {
@@ -187,6 +187,7 @@ namespace BolNews.Application.Services
             int pageSize = 10;
 
             return await _context.Articles
+                .AsNoTracking()
                 .Include(a => a.Author)
                 .Include(a => a.Category)
                 .Where(a => a.Category.Slug == categorySlug && !a.IsDeleted)
@@ -221,6 +222,7 @@ namespace BolNews.Application.Services
         public async Task<List<Article>> GetLatestArticlesAsync(int count = 8)
         {
             return await _context.Articles
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a => a.IsPublished && !a.IsDeleted)
                 .OrderByDescending(a => a.PublishedAt)
@@ -231,6 +233,7 @@ namespace BolNews.Application.Services
         public async Task<List<Article>> GetAllPublishedAsync()
         {
             return await _context.Articles
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a => a.IsPublished && !a.IsDeleted)
                 .ToListAsync();
@@ -239,6 +242,7 @@ namespace BolNews.Application.Services
         public async Task<Article?> GetTopStoryAsync()
         {
             return await _context.Articles
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a => a.IsPublished && !a.IsDeleted)
                 .OrderByDescending(a => a.PublishedAt)
@@ -248,6 +252,7 @@ namespace BolNews.Application.Services
         public async Task<List<Article>> GetSecondaryStoriesAsync(int count = 4)
         {
             return await _context.Articles
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a => a.IsPublished && !a.IsDeleted)
                 .OrderByDescending(a => a.PublishedAt)
@@ -259,6 +264,7 @@ namespace BolNews.Application.Services
         public async Task<List<Article>> GetArticlesByCategoryAsync(int categoryId, int count = 5)
         {
             return await _context.Articles
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a => a.CategoryId == categoryId
                             && a.IsPublished
@@ -270,12 +276,18 @@ namespace BolNews.Application.Services
 
         public async Task<Dictionary<int, List<Article>>> GetArticlesForCategoriesAsync(List<int> categoryIds, int count)
         {
+            if (categoryIds == null || categoryIds.Count == 0 || count <= 0)
+                return new Dictionary<int, List<Article>>();
+
+            var maxRows = categoryIds.Count * count;
+
             var articles = await _context.Articles
-                .Include(a => a.Category)
+                .AsNoTracking()
                 .Where(a => categoryIds.Contains(a.CategoryId)
                             && a.IsPublished
                             && !a.IsDeleted)
                 .OrderByDescending(a => a.PublishedAt)
+                .Take(maxRows)
                 .ToListAsync();
 
             return articles
@@ -286,6 +298,7 @@ namespace BolNews.Application.Services
         public async Task<List<Article>> GetBreakingNewsAsync(int count = 5)
         {
             return await _context.Articles
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a => a.IsPublished && !a.IsDeleted)
                 .OrderByDescending(a => a.PublishedAt)
@@ -299,6 +312,7 @@ namespace BolNews.Application.Services
             var term = query.Trim();
 
             return await _context.Articles
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a =>
                     a.IsPublished &&
@@ -336,6 +350,7 @@ namespace BolNews.Application.Services
             // for MariaDB via Pomelo we fall back to a short in-memory sort
             // over the already-filtered and limited candidate set (≤ 500 rows).
             var candidates = await _context.Articles
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a => a.IsPublished &&
                             !a.IsDeleted &&
@@ -362,6 +377,7 @@ namespace BolNews.Application.Services
         public async Task<List<Article>> GetLatestPublishedAsync(DateTime fromDate, int limit)
         {
             return await _context.Articles
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a => a.PublishedAt >= fromDate && a.IsPublished)
                 .OrderByDescending(a => a.PublishedAt)
@@ -374,6 +390,7 @@ namespace BolNews.Application.Services
             var fromDate = DateTime.UtcNow.AddHours(-hours);
 
             return await _context.Articles
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a => a.PublishedAt >= fromDate && a.IsPublished)
                 .OrderByDescending(a => a.ViewCount)
