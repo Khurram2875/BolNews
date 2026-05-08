@@ -167,7 +167,7 @@ namespace BolNews.Web.Services
                 name = author.Name,
                 description = author.Bio,
                 image = author.ProfileImage,
-                url = $"{author.BaseUrl}/author/{Slugify(author.Name)}",
+                url = $"{author.BaseUrl}/author/{(string.IsNullOrWhiteSpace(author.Slug) ? Slugify(author.Name) : author.Slug)}",
                 sameAs = new string[]
                 {
                     // optional social links later

@@ -40,11 +40,20 @@ namespace BolNews.Web.Controllers
                 Name = author.Name,
                 Bio = author.Bio,
                 ProfileImage = author.ProfileImageUrl,
+                Slug = author.Slug,
                 Articles = articles,
                 BaseUrl = baseUrl
             };
 
             vm.SchemaJson = _seoService.BuildAuthorSchema(vm);
+
+            ViewBag.MetaTitle = author.Name;
+            ViewBag.MetaDescription = string.IsNullOrWhiteSpace(author.Bio)
+                ? $"Latest articles by {author.Name}"
+                : author.Bio;
+            ViewBag.CanonicalUrl = $"/author/{author.Slug}";
+            ViewBag.OgType = "profile";
+            ViewBag.OgImage = author.ProfileImageUrl;
 
             return View(vm);
         }
