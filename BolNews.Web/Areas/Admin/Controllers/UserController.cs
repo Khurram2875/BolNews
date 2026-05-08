@@ -32,6 +32,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             return View(data.user);
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignRole(string userId, string role)
         {
             await _userAdminService.AssignSingleRoleAsync(userId, role);

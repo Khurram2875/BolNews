@@ -26,6 +26,7 @@
             <p style="font-family:var(--bn-font-ui);font-size:13px;color:var(--bn-text-muted);margin-bottom:24px;">Fill in the details below to get started.</p>
 
             <form asp-action="Register" method="post" novalidate>
+                @Html.AntiForgeryToken()
 
                 <div style="margin-bottom:16px;">
                     <label asp-for="FullName" style="display:block;font-family:var(--bn-font-ui);font-size:12px;font-weight:600;color:var(--bn-text-body);margin-bottom:5px;"></label>

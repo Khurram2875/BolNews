@@ -168,7 +168,10 @@
                     {
                         var user = await UserManager.GetUserAsync(User);
                         <span class="d-none d-lg-inline" style="color:rgba(255,255,255,0.65);font-family:var(--bn-font-ui);font-size:13px;">@user.FullName</span>
-                        <a class="btn btn-sm btn-outline-danger" asp-controller="Account" asp-action="Logout">Logout</a>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Logout</button>
+                        </form>
                     }
                     else
                     {
