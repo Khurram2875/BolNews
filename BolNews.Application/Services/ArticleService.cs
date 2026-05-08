@@ -105,11 +105,7 @@ namespace BolNews.Application.Services
 
         public async Task<IEnumerable<ArticleDto>> GetAllAsync(string userId, IList<string> roles)
         {
-            var query = _context.Articles
-                .Include(a => a.Author)
-                .Include(a => a.Category)
-                .Where(a => !a.IsDeleted)
-                .AsQueryable();
+            var query = BuildBackofficeArticleQuery();
 
             if (roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor))
             {
@@ -117,8 +113,7 @@ namespace BolNews.Application.Services
             }
             else if (roles.Contains(Roles.Author))
             {
-                var author = await _context.Authors
-                    .FirstOrDefaultAsync(a => a.UserId == userId);
+                var author = await FindAuthorByUserIdAsync(userId);
 
                 if (author == null)
                     return new List<ArticleDto>();
@@ -473,22 +468,41 @@ namespace BolNews.Application.Services
 
         public async Task<bool> CanEditAsync(int articleId, string userId, IList<string> roles)
         {
-            var article = await _context.Articles
-                .Include(a => a.Author)
-                .FirstOrDefaultAsync(a => a.Id == articleId);
-
-            if (article == null) return false;
-
-            if (roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor) || roles.Contains(Roles.SubEditor))
-                return true;
-
-            if (roles.Contains(Roles.Author))
-                return article.Author.UserId == userId;
-
-            return false;
+            return await CanManageArticleAsync(
+                articleId,
+                userId,
+                roles,
+                rolesWithFullAccess: new[] { Roles.Admin, Roles.Editor, Roles.SubEditor });
         }
 
         public async Task<bool> CanDeleteAsync(int articleId, string userId, IList<string> roles)
+        {
+            return await CanManageArticleAsync(
+                articleId,
+                userId,
+                roles,
+                rolesWithFullAccess: new[] { Roles.Admin, Roles.Editor });
+        }
+
+        private IQueryable<Article> BuildBackofficeArticleQuery()
+        {
+            return _context.Articles
+                .Include(a => a.Author)
+                .Include(a => a.Category)
+                .Where(a => !a.IsDeleted)
+                .AsQueryable();
+        }
+
+        private Task<Author?> FindAuthorByUserIdAsync(string userId)
+        {
+            return _context.Authors.FirstOrDefaultAsync(a => a.UserId == userId);
+        }
+
+        private async Task<bool> CanManageArticleAsync(
+            int articleId,
+            string userId,
+            IList<string> roles,
+            string[] rolesWithFullAccess)
         {
             var article = await _context.Articles
                 .Include(a => a.Author)
@@ -496,7 +510,7 @@ namespace BolNews.Application.Services
 
             if (article == null) return false;
 
-            if (roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor))
+            if (roles.Any(rolesWithFullAccess.Contains))
                 return true;
 
             if (roles.Contains(Roles.Author))
