@@ -281,20 +281,21 @@ namespace BolNews.Application.Services
             if (categoryIds == null || categoryIds.Count == 0 || count <= 0)
                 return new Dictionary<int, List<Article>>();
 
-            var maxRows = categoryIds.Count * count;
+            var results = await Task.WhenAll(categoryIds.Select(async categoryId =>
+            {
+                var articles = await _context.Articles
+                    .AsNoTracking()
+                    .Where(a => a.CategoryId == categoryId
+                                && a.IsPublished
+                                && !a.IsDeleted)
+                    .OrderByDescending(a => a.PublishedAt)
+                    .Take(count)
+                    .ToListAsync();
 
-            var articles = await _context.Articles
-                .AsNoTracking()
-                .Where(a => categoryIds.Contains(a.CategoryId)
-                            && a.IsPublished
-                            && !a.IsDeleted)
-                .OrderByDescending(a => a.PublishedAt)
-                .Take(maxRows)
-                .ToListAsync();
+                return (categoryId, articles);
+            }));
 
-            return articles
-                .GroupBy(a => a.CategoryId)
-                .ToDictionary(g => g.Key, g => g.Take(count).ToList());
+            return results.ToDictionary(x => x.categoryId, x => x.articles);
         }
 
         public async Task<List<Article>> GetBreakingNewsAsync(int count = 5)
@@ -353,27 +354,39 @@ namespace BolNews.Application.Services
             // over the already-filtered and limited candidate set (≤ 500 rows).
             var candidates = await _context.Articles
                 .AsNoTracking()
-                .Include(a => a.Category)
                 .Where(a => a.IsPublished &&
                             !a.IsDeleted &&
                             a.PublishedAt >= fromDate)
+                .Select(a => new
+                {
+                    a.Id,
+                    a.PublishedAt,
+                    a.ViewCount
+                })
                 .OrderByDescending(a => a.ViewCount)   // best DB-side pre-sort
                 .Take(500)                              // bound the in-memory work
                 .ToListAsync();
 
             var now = DateTime.UtcNow;
 
-            return candidates
+            var topIds = candidates
                 .Select(a =>
                 {
                     var hours = (now - a.PublishedAt!.Value).TotalHours;
                     var score = a.ViewCount + 200.0 / (1 + hours);
-                    return (article: a, score);
+                    return (articleId: a.Id, score);
                 })
                 .OrderByDescending(x => x.score)
                 .Take(count)
-                .Select(x => x.article)
+                .Select(x => x.articleId)
                 .ToList();
+
+            return await _context.Articles
+                .AsNoTracking()
+                .Include(a => a.Category)
+                .Where(a => topIds.Contains(a.Id))
+                .OrderByDescending(a => a.ViewCount)
+                .ToListAsync();
         }
 
         public async Task<List<Article>> GetLatestPublishedAsync(DateTime fromDate, int limit)
