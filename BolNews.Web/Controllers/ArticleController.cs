@@ -14,7 +14,7 @@ namespace BolNews.Web.Controllers
 
         public async Task<IActionResult> Details(string categorySlug, string slug)
         {
-            var pageVM = await _articlePageService.BuildDetailsPageAsync(categorySlug, slug, HttpContext.Session);
+            var pageVM = await _articlePageService.BuildDetailsPageAsync(slug);
             if (pageVM == null)
                 return NotFound();
 
@@ -26,6 +26,8 @@ namespace BolNews.Web.Controllers
                     slug = pageVM.Article.Slug
                 });
             }
+
+            await _articlePageService.TrackArticleEngagementAsync(pageVM.Article.Id, HttpContext.Session);
 
             ViewBag.OgImage = pageVM.Article.FeaturedImageXl;
             ViewBag.MetaTitle = string.IsNullOrWhiteSpace(pageVM.Article.MetaTitle)

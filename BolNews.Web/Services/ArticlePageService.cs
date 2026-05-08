@@ -33,21 +33,12 @@ namespace BolNews.Web.Services
             _analyticsService = analyticsService;
         }
 
-        public async Task<ArticleDetailsPageVM?> BuildDetailsPageAsync(string categorySlug, string slug, ISession session)
+        public async Task<ArticleDetailsPageVM?> BuildDetailsPageAsync(string slug)
         {
             if (string.IsNullOrWhiteSpace(slug)) return null;
 
             var article = await _articleService.GetBySlugAsync(slug);
             if (article == null || article.IsDeleted) return null;
-
-            await _analyticsService.TrackImpressionAsync(article.Id);
-
-            var viewedKey = $"viewed_article_{article.Id}";
-            if (!session.Keys.Contains(viewedKey))
-            {
-                await _articleService.IncrementViewCountAsync(article.Id);
-                session.SetString(viewedKey, "true");
-            }
 
             var articleVM = _mapper.Map<PublicArticleVM>(article);
             articleVM.AuthorImage = article.Author?.ProfileImageUrl ?? string.Empty;
@@ -74,6 +65,18 @@ namespace BolNews.Web.Services
             pageVM.BreadcrumbSchemaJson = _seoService.BuildBreadcrumb(pageVM.Article, pageVM.BaseUrl);
 
             return pageVM;
+        }
+
+        public async Task TrackArticleEngagementAsync(int articleId, ISession session)
+        {
+            await _analyticsService.TrackImpressionAsync(articleId);
+
+            var viewedKey = $"viewed_article_{articleId}";
+            if (!session.Keys.Contains(viewedKey))
+            {
+                await _articleService.IncrementViewCountAsync(articleId);
+                session.SetString(viewedKey, "true");
+            }
         }
     }
 }
