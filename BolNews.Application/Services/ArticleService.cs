@@ -281,7 +281,9 @@ namespace BolNews.Application.Services
             if (categoryIds == null || categoryIds.Count == 0 || count <= 0)
                 return new Dictionary<int, List<Article>>();
 
-            var results = await Task.WhenAll(categoryIds.Select(async categoryId =>
+            var result = new Dictionary<int, List<Article>>(categoryIds.Count);
+
+            foreach (var categoryId in categoryIds)
             {
                 var articles = await _context.Articles
                     .AsNoTracking()
@@ -292,10 +294,10 @@ namespace BolNews.Application.Services
                     .Take(count)
                     .ToListAsync();
 
-                return (categoryId, articles);
-            }));
+                result[categoryId] = articles;
+            }
 
-            return results.ToDictionary(x => x.categoryId, x => x.articles);
+            return result;
         }
 
         public async Task<List<Article>> GetBreakingNewsAsync(int count = 5)
