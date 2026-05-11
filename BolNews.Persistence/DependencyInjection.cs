@@ -1,5 +1,7 @@
-﻿using BolNews.Domain.Entities;
+﻿using BolNews.Application.Interfaces;
+using BolNews.Domain.Entities;
 using BolNews.Persistence.Context;
+using BolNews.Persistence.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -45,6 +47,10 @@ namespace BolNews.Persistence
                 options.ExpireTimeSpan = TimeSpan.FromHours(8);
                 options.SlidingExpiration = true;
             });
+            services.AddScoped<IArticleRepository, ArticleRepository>();
+            services.AddScoped<IAuthorRepository, AuthorRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 
             return services;
         }

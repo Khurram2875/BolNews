@@ -14,11 +14,12 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.3.9" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="3.1.32" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.25" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BolNews.Domain\BolNews.Domain.csproj" />
-    <ProjectReference Include="..\BolNews.Persistence\BolNews.Persistence.csproj" />
+    <!--<ProjectReference Include="..\BolNews.Persistence\BolNews.Persistence.csproj" />-->
   </ItemGroup>
 
 </Project>
