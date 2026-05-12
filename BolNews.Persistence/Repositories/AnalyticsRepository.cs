@@ -10,41 +10,43 @@ namespace BolNews.Persistence.Repositories
         private readonly AppDbContext _context;
         public AnalyticsRepository(AppDbContext context) => _context = context;
 
-        // SQLite stores DateTime as text. To guarantee the WHERE clause matches,
-        // we compare the Date column using EF.Functions.Like on the date prefix,
-        // which is reliable across both SQLite (text) and MariaDB (native date).
-        // The date string format is always "yyyy-MM-dd".
-        private static string DateKey(DateTime date) => date.ToString("yyyy-MM-dd");
+        // ── Atomic increments ─────────────────────────────────────────────────
+        //
+        // ExecuteUpdateAsync translates to a single SQL UPDATE:
+        //   UPDATE ArticleAnalytics SET Impressions = Impressions + 1
+        //   WHERE ArticleId = @id AND DATE(Date) = DATE(@date)
+        //
+        // Using EF.Functions.DateDiffDay(a.Date, date) == 0 is not cross-provider.
+        // Instead we compare a.Date >= startOfDay AND a.Date < startOfNextDay —
+        // this works on both MariaDB (native DATETIME) and SQLite (ISO-8601 text).
 
         public async Task<int> IncrementImpressionAsync(int articleId, DateTime date)
         {
-            var records = await _context.ArticleAnalytics
-                .Where(a => a.ArticleId == articleId && a.Date.Date == date.Date)
-                .ToListAsync();
+            var start = date.Date;
+            var end   = start.AddDays(1);
 
-            if (records.Count == 0) return 0;
-
-            foreach (var r in records)
-                r.Impressions++;
-
-            await _context.SaveChangesAsync();
-            return records.Count;
+            return await _context.ArticleAnalytics
+                .Where(a => a.ArticleId == articleId
+                         && a.Date >= start
+                         && a.Date < end)
+                .ExecuteUpdateAsync(s =>
+                    s.SetProperty(a => a.Impressions, a => a.Impressions + 1));
         }
 
         public async Task<int> IncrementClickAsync(int articleId, DateTime date)
         {
-            var records = await _context.ArticleAnalytics
-                .Where(a => a.ArticleId == articleId && a.Date.Date == date.Date)
-                .ToListAsync();
+            var start = date.Date;
+            var end   = start.AddDays(1);
 
-            if (records.Count == 0) return 0;
-
-            foreach (var r in records)
-                r.Clicks++;
-
-            await _context.SaveChangesAsync();
-            return records.Count;
+            return await _context.ArticleAnalytics
+                .Where(a => a.ArticleId == articleId
+                         && a.Date >= start
+                         && a.Date < end)
+                .ExecuteUpdateAsync(s =>
+                    s.SetProperty(a => a.Clicks, a => a.Clicks + 1));
         }
+
+        // ── Other methods ─────────────────────────────────────────────────────
 
         public async Task AddAsync(ArticleAnalytics record)
         {
@@ -77,6 +79,7 @@ namespace BolNews.Persistence.Repositories
                 .Where(x => x.Impressions > minImpressions &&
                             (double)x.Clicks / x.Impressions < maxCtrThreshold)
                 .ToListAsync();
+
             return data.Select(x => x.ArticleId).ToList();
         }
 
