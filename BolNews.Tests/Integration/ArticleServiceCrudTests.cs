@@ -1,6 +1,8 @@
 using BolNews.Application.DTOs;
+using BolNews.Application.Interfaces;
 using BolNews.Application.Interfaces.Scoring;
 using BolNews.Application.Services;
+using BolNews.Domain.Common;
 using BolNews.Persistence.Repositories;
 using BolNews.Tests.Helpers;
 using FluentAssertions;
@@ -24,8 +26,18 @@ namespace BolNews.Tests.Integration
 
             // Create a mock or fake IArticleScoringService for testing
             var scoringService = new Mock<IArticleScoringService>().Object;
+            var revisionService = new Mock<IArticleRevisionService>().Object;
+            var authorService = new Mock<IAuthorService>();
+            authorService
+              .Setup(x => x.GetAuthorByUserId(It.IsAny<string>()))
+              .ReturnsAsync(new Application.DTOs.AuthorDto
+              {
+                  Id = 1,
+                  UserId = "test-user-id",
+                  Name = "Test Author"
+              });
 
-            _service = new ArticleService(repo, _cache, scoringService);
+            _service = new ArticleService(repo,_cache,scoringService,revisionService,authorService.Object);
         }
 
         // ── GenerateUniqueSlugAsync ───────────────────────────────────────────
@@ -74,7 +86,10 @@ namespace BolNews.Tests.Integration
                 IsPublished = false
             };
 
-            var id = await _service.CreateAsync(dto);
+            var id = await _service.CreateAsync(
+    dto,
+    "test-user-id",
+    new List<string> { Roles.Author });
             id.Should().BeGreaterThan(0);
         }
 
@@ -91,10 +106,17 @@ namespace BolNews.Tests.Integration
                 Content = "Content",
                 CategoryId = 1,
                 AuthorId = 1,
-                IsPublished = true
+                IsPublished = true,
+                PublishedAt = null, // Service should set this automatically
+                IsEditorsPick = true,
+                IsFactChecked = true,
+                EditorialPriority = 5
             };
 
-            var id = await _service.CreateAsync(dto);
+            var id = await _service.CreateAsync(
+    dto,
+    "test-user-id",
+    new List<string> { Roles.Author });
             var result = await _service.GetByIdAsync(id);
 
             result!.PublishedAt.Should().NotBeNull();
@@ -117,7 +139,10 @@ namespace BolNews.Tests.Integration
                 IsPublished = false
             };
 
-            var id = await _service.CreateAsync(dto);
+            var id = await _service.CreateAsync(
+    dto,
+    "test-user-id",
+    new List<string> { Roles.Author });
             var result = await _service.GetByIdAsync(id);
 
             result!.PublishedAt.Should().BeNull();

@@ -14,43 +14,153 @@ namespace BolNews.Application.Services
         private readonly IMemoryCache _cache;
         private readonly IArticleScoringService _articleScoringService;
         private readonly IArticleRevisionService _articleRevisionService;
+        private readonly IAuthorService _authorService;
 
+        #region Role and other private helpers
+        private bool IsAdmin(IList<string> roles)
+    => roles.Contains(Roles.Admin);
 
-        public ArticleService(IArticleRepository repo, IMemoryCache cache, IArticleScoringService articleScoringService, IArticleRevisionService articleRevisionService)
+        private bool IsEditor(IList<string> roles)
+            => roles.Contains(Roles.Editor);
+
+        private bool IsSubEditor(IList<string> roles)
+            => roles.Contains(Roles.SubEditor);
+
+        private bool IsAuthor(IList<string> roles)
+            => roles.Contains(Roles.Author);
+        private void ValidateArticleEditPermission(Article article, string currentUserId, IList<string> roles)
+        {
+            if (IsAdmin(roles) || IsEditor(roles) || IsSubEditor(roles))
+                return;
+
+            if (IsAuthor(roles))
+            {
+                var ownsArticle = article.Author?.UserId == currentUserId;
+
+                if (!ownsArticle)
+                    throw new UnauthorizedAccessException(
+                        "Authors can only edit their own articles.");
+
+                if (article.IsPublished)
+                    throw new UnauthorizedAccessException(
+                        "Authors cannot edit published articles.");
+
+                return;
+            }
+
+            throw new UnauthorizedAccessException("Access denied.");
+        }
+        private void ApplyEditorialControls(
+    Article article,
+    ArticleDto dto,
+    IList<string> roles)
+        {
+            if (IsAdmin(roles) || IsEditor(roles))
+            {
+                article.IsEditorsPick = dto.IsEditorsPick;
+                article.EditorialPriority = dto.EditorialPriority;
+                article.IsFactChecked = dto.IsFactChecked;
+                article.IsPublished = dto.IsPublished;
+
+                if (dto.IsPublished && !article.PublishedAt.HasValue)
+                    article.PublishedAt = DateTime.UtcNow;
+
+                if (!dto.IsPublished)
+                    article.PublishedAt = null;
+
+                return;
+            }
+
+            if (IsSubEditor(roles))
+            {
+                article.IsFactChecked = dto.IsFactChecked;
+                article.IsPublished = dto.IsPublished;
+
+                article.EditorialPriority =
+                    Math.Min(dto.EditorialPriority, 1);
+
+                article.IsEditorsPick = false;
+
+                if (dto.IsPublished && !article.PublishedAt.HasValue)
+                    article.PublishedAt = DateTime.UtcNow;
+
+                if (!dto.IsPublished)
+                    article.PublishedAt = null;
+
+                return;
+            }
+
+            if (IsAuthor(roles))
+            {
+                article.IsEditorsPick = false;
+                article.EditorialPriority = 0;
+                article.IsFactChecked = false;
+                article.IsPublished = false;
+                article.PublishedAt = null;
+            }
+        }
+        #endregion
+        public ArticleService(IArticleRepository repo, IMemoryCache cache, IArticleScoringService articleScoringService, IArticleRevisionService articleRevisionService, IAuthorService authorService)
         {
             _repo = repo;
             _cache = cache;
             _articleScoringService = articleScoringService;
             _articleRevisionService = articleRevisionService;
+            _authorService = authorService;
         }
 
-        public async Task<int> CreateAsync(ArticleDto dto)
+        public async Task<int> CreateAsync(ArticleDto dto, string currentUserId,IList<string> roles)
         {
+            int authorId = dto.AuthorId;
+            if (IsAuthor(roles))
+            {
+                var author = await _authorService.GetAuthorByUserId(currentUserId);
+
+                if (author == null)
+                    throw new UnauthorizedAccessException(
+                        "Author profile not found.");
+
+                authorId = author.Id;
+            }
             var article = new Article
             {
                 Title = dto.Title,
                 Slug = dto.Slug,
                 Summary = dto.Summary,
                 Content = dto.Content,
-                FeaturedImageXl = dto.FeaturedImageXl,
-                MetaDescription = dto.MetaDescription,
+
                 MetaTitle = dto.MetaTitle,
+                MetaDescription = dto.MetaDescription,
+
+                FeaturedImageThumb = dto.FeaturedImageThumb,
+                FeaturedImageMedium = dto.FeaturedImageMedium,
+                FeaturedImageLarge = dto.FeaturedImageLarge,
+                FeaturedImageXl = dto.FeaturedImageXl,
+
                 CategoryId = dto.CategoryId,
                 AuthorId = dto.AuthorId,
-                IsPublished = dto.IsPublished,
-                PublishedAt = dto.IsPublished ? DateTime.UtcNow : null,
-                CreatedAt = DateTime.UtcNow
+
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = currentUserId
             };
+
+            ApplyEditorialControls(article, dto, roles);
+
             await _articleScoringService.CalculateScoresAsync(article);
+
             return await _repo.AddAsync(article);
         }
 
-        public async Task UpdateAsync(ArticleDto dto, string currentUserId,
-    IList<string> roles,
-    string? changeReason = null)
+        public async Task UpdateAsync(ArticleDto dto, string currentUserId, IList<string> roles, string? changeReason = null)
         {
             var article = await _repo.FindByIdAsync(dto.Id);
-            if (article == null) return;
+            //if (article == null) return;
+            if (article == null)
+                throw new InvalidOperationException(
+                    $"Article with id {dto.Id} was not found.");
+
+            ValidateArticleEditPermission(article, currentUserId, roles);
+
             await _articleRevisionService.CreateSnapshotAsync(
                     article,
                     currentUserId,
@@ -72,6 +182,8 @@ namespace BolNews.Application.Services
             article.CategoryId = dto.CategoryId;
             article.UpdatedAt = DateTime.UtcNow;
             article.UpdatedBy = currentUserId;
+
+            ApplyEditorialControls(article, dto, roles);
 
             await _articleScoringService.CalculateScoresAsync(article);
 
@@ -120,7 +232,10 @@ namespace BolNews.Application.Services
                 CategoryId = a.CategoryId,
                 AuthorId = a.AuthorId,
                 IsPublished = a.IsPublished,
-                PublishedAt = a.PublishedAt
+                PublishedAt = a.PublishedAt,
+                IsEditorsPick = a.IsEditorsPick,
+                EditorialPriority = a.EditorialPriority,
+                IsFactChecked = a.IsFactChecked,
             };
         }
 
@@ -149,6 +264,9 @@ namespace BolNews.Application.Services
                 CategoryId = a.CategoryId,
                 IsPublished = a.IsPublished,
                 PublishedAt = a.PublishedAt,
+                IsEditorsPick = a.IsEditorsPick,
+                EditorialPriority = a.EditorialPriority,
+                IsFactChecked = a.IsFactChecked,
                 AuthorName = a.Author?.User?.FullName,
                 CategoryName = a.Category?.Name
             });
@@ -271,6 +389,9 @@ namespace BolNews.Application.Services
                 CategoryId = a.CategoryId,
                 IsPublished = a.IsPublished,
                 PublishedAt = a.PublishedAt,
+                IsEditorsPick = a.IsEditorsPick,
+                EditorialPriority = a.EditorialPriority,
+                IsFactChecked = a.IsFactChecked,
                 AuthorName = a.Author?.User?.FullName,
                 CategoryName = a.Category?.Name
             });
@@ -294,6 +415,9 @@ namespace BolNews.Application.Services
                 CategoryId = a.CategoryId,
                 IsPublished = a.IsPublished,
                 PublishedAt = a.PublishedAt,
+                IsEditorsPick = a.IsEditorsPick,
+                EditorialPriority = a.EditorialPriority,
+                IsFactChecked = a.IsFactChecked,
                 AuthorName = a.Author?.User?.FullName,
                 CategoryName = a.Category?.Name
             });

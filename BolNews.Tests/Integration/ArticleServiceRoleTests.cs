@@ -1,3 +1,4 @@
+using BolNews.Application.Interfaces;
 using BolNews.Application.Interfaces.Scoring;
 using BolNews.Application.Services;
 using BolNews.Domain.Common;
@@ -23,7 +24,18 @@ namespace BolNews.Tests.Integration
             var repo = new ArticleRepository(context);
             var scoringService = new Mock<IArticleScoringService>().Object;
 
-            _service = new ArticleService(repo, _cache, scoringService);
+            var revisionService = new Mock<IArticleRevisionService>().Object;
+            var authorService = new Mock<IAuthorService>();
+            authorService
+              .Setup(x => x.GetAuthorByUserId(It.IsAny<string>()))
+              .ReturnsAsync(new Application.DTOs.AuthorDto
+              {
+                  Id = 1,
+                  UserId = "test-user-id",
+                  Name = "Test Author"
+              });
+
+            _service = new ArticleService(repo, _cache, scoringService, revisionService, authorService.Object);
         }
 
         // ── CanEditAsync ──────────────────────────────────────────────────────

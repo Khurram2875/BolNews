@@ -120,7 +120,13 @@ namespace BolNews.Web.Areas.Admin.Controllers
             dto.MetaTitle = model.MetaTitle ?? model.Title;
             dto.MetaDescription = model.MetaDescription;
             //await _articleService.CreateAsync(dto);
-            var articleId = await _articleService.CreateAsync(dto);
+            //var articleId = await _articleService.CreateAsync(dto);
+            var roles = await _userManager.GetRolesAsync(await _userManager.GetUserAsync(User));
+            var articleId = await _articleService.CreateAsync(
+                dto,
+                userId,
+                roles);
+
             if (model.ImageFile != null)
             {
                 if (!ImageValidator.IsValid(model.ImageFile, out var error))

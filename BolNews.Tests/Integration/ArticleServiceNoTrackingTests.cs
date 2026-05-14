@@ -1,3 +1,4 @@
+using BolNews.Application.Interfaces;
 using BolNews.Application.Interfaces.Scoring;
 using BolNews.Application.Services;
 using BolNews.Domain.Entities;
@@ -20,9 +21,17 @@ public class ArticleServiceNoTrackingTests
         {
             var repo = new ArticleRepository(context);
             var cache = new MemoryCache(new MemoryCacheOptions());
-            var scoringServiceMock = new Mock<IArticleScoringService>(); // Mock the required dependency
+            var scoringServiceMock = new Mock<IArticleScoringService>();
+            var revisionServiceMock = new Mock<IArticleRevisionService>();
+            var authorServiceMock = new Mock<IAuthorService>();
 
-            var service = new ArticleService(repo, cache, scoringServiceMock.Object); // Pass the mock
+            var service = new ArticleService(
+                repo,
+                cache,
+                scoringServiceMock.Object,
+                revisionServiceMock.Object,
+                authorServiceMock.Object
+            );
 
             // SQLite enforces FK constraints — ApplicationUser must exist
             // before Author can reference it via UserId.

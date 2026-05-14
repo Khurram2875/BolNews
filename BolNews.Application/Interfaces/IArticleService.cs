@@ -10,7 +10,7 @@ namespace BolNews.Application.Interfaces
 {
     public interface IArticleService
     {
-        Task<int> CreateAsync(ArticleDto dto);
+        Task<int> CreateAsync(ArticleDto dto, string currentUserId, IList<string> roles);
         Task UpdateAsync(ArticleDto dto, string currentUserId, IList<string> roles, string? changeReason = null);
         Task DeleteAsync(int id);
 
