@@ -32,5 +32,8 @@ namespace BolNews.Application.Interfaces
         Task<List<CategoryPerformanceDto>> GetCategoryPerformanceAsync(DateTime fromDate);
         Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(DateTime fromDate);
         Task IncrementViewCountAsync(int articleId);
+        Task BulkUpdateAsync(IEnumerable<Article> articles);
+        Task<List<Article>> GetTopRankedPublishedAsync(int count);
+        Task<List<Article>> GetTopRankedByCategoryAsync(int categoryId, int count);
     }
 }

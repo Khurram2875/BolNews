@@ -11,7 +11,7 @@ namespace BolNews.Application.Interfaces
     public interface IArticleService
     {
         Task<int> CreateAsync(ArticleDto dto);
-        Task UpdateAsync(ArticleDto dto);
+        Task UpdateAsync(ArticleDto dto, string currentUserId, IList<string> roles, string? changeReason = null);
         Task DeleteAsync(int id);
 
         Task<ArticleDto?> GetByIdAsync(int id);
@@ -44,7 +44,8 @@ namespace BolNews.Application.Interfaces
         Task<bool> CanEditAsync(int articleId, string userId, IList<string> roles);
         Task<bool> CanDeleteAsync(int articleId, string userId, IList<string> roles);
         Task<List<Article>> GetByAuthorAsync(int authorId, int page = 1, int pageSize = 20);
-
+        Task<IEnumerable<ArticleDto>> GetTopRankedPublishedAsync(int count);
+        Task<IEnumerable<ArticleDto>> GetTopRankedByCategoryAsync(int categoryId, int count);
 
     }
 }

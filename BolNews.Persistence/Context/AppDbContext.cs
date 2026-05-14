@@ -23,6 +23,7 @@ namespace BolNews.Persistence.Context
         public DbSet<Category> Categories { get; set; }
         public DbSet<Author> Authors { get; set; }
         public DbSet<ArticleAnalytics> ArticleAnalytics { get; set; }
+        public DbSet<ArticleRevision> ArticleRevisions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

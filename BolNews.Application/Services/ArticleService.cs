@@ -1,6 +1,7 @@
 ﻿using BolNews.Application.Common.Helpers;
 using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
+using BolNews.Application.Interfaces.Scoring;
 using BolNews.Domain.Common;
 using BolNews.Domain.Entities;
 using Microsoft.Extensions.Caching.Memory;
@@ -11,11 +12,16 @@ namespace BolNews.Application.Services
     {
         private readonly IArticleRepository _repo;
         private readonly IMemoryCache _cache;
+        private readonly IArticleScoringService _articleScoringService;
+        private readonly IArticleRevisionService _articleRevisionService;
 
-        public ArticleService(IArticleRepository repo, IMemoryCache cache)
+
+        public ArticleService(IArticleRepository repo, IMemoryCache cache, IArticleScoringService articleScoringService, IArticleRevisionService articleRevisionService)
         {
             _repo = repo;
             _cache = cache;
+            _articleScoringService = articleScoringService;
+            _articleRevisionService = articleRevisionService;
         }
 
         public async Task<int> CreateAsync(ArticleDto dto)
@@ -26,7 +32,7 @@ namespace BolNews.Application.Services
                 Slug = dto.Slug,
                 Summary = dto.Summary,
                 Content = dto.Content,
-                FeaturedImageLarge = dto.FeaturedImageLarge,
+                FeaturedImageXl = dto.FeaturedImageXl,
                 MetaDescription = dto.MetaDescription,
                 MetaTitle = dto.MetaTitle,
                 CategoryId = dto.CategoryId,
@@ -35,26 +41,55 @@ namespace BolNews.Application.Services
                 PublishedAt = dto.IsPublished ? DateTime.UtcNow : null,
                 CreatedAt = DateTime.UtcNow
             };
+            await _articleScoringService.CalculateScoresAsync(article);
             return await _repo.AddAsync(article);
         }
 
-        public async Task UpdateAsync(ArticleDto dto)
+        public async Task UpdateAsync(ArticleDto dto, string currentUserId,
+    IList<string> roles,
+    string? changeReason = null)
         {
             var article = await _repo.FindByIdAsync(dto.Id);
             if (article == null) return;
+            await _articleRevisionService.CreateSnapshotAsync(
+                    article,
+                    currentUserId,
+                    workflowState: article.IsPublished ? "PublishedUpdate" : "DraftUpdate",
+                    changeReason: changeReason
+                );
             article.Title = dto.Title;
             article.Slug = dto.Slug;
-            article.Summary = dto.Summary;
-            article.Content = dto.Content;
             article.MetaTitle = dto.MetaTitle;
             article.MetaDescription = dto.MetaDescription;
+            article.Summary = dto.Summary;
+            article.Content = dto.Content;
+
+            article.FeaturedImageThumb = dto.FeaturedImageThumb;
+            article.FeaturedImageMedium = dto.FeaturedImageMedium;
+            article.FeaturedImageLarge = dto.FeaturedImageLarge;
             article.FeaturedImageXl = dto.FeaturedImageXl;
+
             article.CategoryId = dto.CategoryId;
-            article.IsPublished = dto.IsPublished;
             article.UpdatedAt = DateTime.UtcNow;
-            if (dto.IsPublished && article.PublishedAt == null)
-                article.PublishedAt = DateTime.UtcNow;
+            article.UpdatedBy = currentUserId;
+
+            await _articleScoringService.CalculateScoresAsync(article);
+
             await _repo.UpdateAsync(article);
+            //article.Title = dto.Title;
+            //article.Slug = dto.Slug;
+            //article.Summary = dto.Summary;
+            //article.Content = dto.Content;
+            //article.MetaTitle = dto.MetaTitle;
+            //article.MetaDescription = dto.MetaDescription;
+            //article.FeaturedImageXl = dto.FeaturedImageXl;
+            //article.CategoryId = dto.CategoryId;
+            //article.IsPublished = dto.IsPublished;
+            //article.UpdatedAt = DateTime.UtcNow;
+            //if (dto.IsPublished && article.PublishedAt == null)
+            //    article.PublishedAt = DateTime.UtcNow;
+            //await _articleScoringService.CalculateScoresAsync(article);
+            //await _repo.UpdateAsync(article);
         }
 
         public async Task DeleteAsync(int id)
@@ -156,7 +191,7 @@ namespace BolNews.Application.Services
         public async Task<List<Article>> GetLatestArticlesAsync(int count = 8) => await _repo.GetPublishedAsync(count);
         public async Task<List<Article>> GetAllPublishedAsync() => await _repo.GetPublishedAsync(int.MaxValue);
         public async Task<Article?> GetTopStoryAsync() => (await _repo.GetPublishedAsync(1)).FirstOrDefault();
-        public async Task<List<Article>> GetSecondaryStoriesAsync(int count = 4) => (await _repo.GetPublishedAsync(count + 1)).Skip(1).Take(count).ToList();
+        public async Task<List<Article>> GetSecondaryStoriesAsync(int count = 6) => (await _repo.GetPublishedAsync(count + 1)).Skip(1).Take(count).ToList();
         public async Task<List<Article>> GetArticlesByCategoryAsync(int catId, int n) => await _repo.GetByCategoryIdAsync(catId, n);
         public async Task<List<Article>> GetBreakingNewsAsync(int count = 5) => await _repo.GetPublishedAsync(count);
         public async Task<List<Article>> SearchAsync(string q, int page, int pageSize) => await _repo.SearchAsync(q.Trim(), page, pageSize);
@@ -216,5 +251,52 @@ namespace BolNews.Application.Services
 
         public async Task<List<Article>> GetByAuthorAsync(int authorId, int page = 1, int pageSize = 20)
             => await _repo.GetByAuthorIdAsync(authorId, page, pageSize);
+
+        public async Task<IEnumerable<ArticleDto>> GetTopRankedPublishedAsync(int count)
+        {
+            var articles = await _repo.GetTopRankedPublishedAsync(count);
+
+            return articles.Select(a => new ArticleDto
+            {
+                Id = a.Id,
+                Title = a.Title,
+                Slug = a.Slug,
+                Summary = a.Summary,
+                Content = a.Content,
+                FeaturedImageThumb = a.FeaturedImageThumb,
+                FeaturedImageMedium = a.FeaturedImageMedium,
+                FeaturedImageLarge = a.FeaturedImageLarge,
+                FeaturedImageXl = a.FeaturedImageXl,
+                AuthorId = a.AuthorId,
+                CategoryId = a.CategoryId,
+                IsPublished = a.IsPublished,
+                PublishedAt = a.PublishedAt,
+                AuthorName = a.Author?.User?.FullName,
+                CategoryName = a.Category?.Name
+            });
+        }
+        public async Task<IEnumerable<ArticleDto>> GetTopRankedByCategoryAsync(int categoryId, int count)
+        {
+            var articles = await _repo.GetTopRankedByCategoryAsync(categoryId, count);
+
+            return articles.Select(a => new ArticleDto
+            {
+                Id = a.Id,
+                Title = a.Title,
+                Slug = a.Slug,
+                Summary = a.Summary,
+                Content = a.Content,
+                FeaturedImageThumb = a.FeaturedImageThumb,
+                FeaturedImageMedium = a.FeaturedImageMedium,
+                FeaturedImageLarge = a.FeaturedImageLarge,
+                FeaturedImageXl = a.FeaturedImageXl,
+                AuthorId = a.AuthorId,
+                CategoryId = a.CategoryId,
+                IsPublished = a.IsPublished,
+                PublishedAt = a.PublishedAt,
+                AuthorName = a.Author?.User?.FullName,
+                CategoryName = a.Category?.Name
+            });
+        }
     }
 }

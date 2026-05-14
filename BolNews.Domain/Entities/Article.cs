@@ -35,5 +35,37 @@ namespace BolNews.Domain.Entities
         public DateTime? PublishedAt { get; set; }
 
         public int ViewCount { get; set; }
-    }
+
+        #region Editorial Intelligence
+
+        public bool IsEditorsPick { get; set; }
+
+        public int EditorialPriority { get; set; }
+
+        public bool IsFactChecked { get; set; }
+
+        #endregion
+
+        #region Intelligent Ranking Scores
+
+        public decimal SeoScore { get; set; }
+
+        public decimal EditorialScore { get; set; }
+
+        public decimal EngagementScore { get; set; }
+
+        public decimal FreshnessScore { get; set; }
+
+        public decimal PopularityScore { get; set; }
+
+        public decimal CredibilityScore { get; set; }
+
+        public decimal OverallScore { get; set; }
+
+        public DateTime? LastScoreCalculatedAt { get; set; }
+
+        #endregion
+
+        //Article Versioning
+        public ICollection<ArticleRevision> Revisions { get; set; } = new List<ArticleRevision>();}
 }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BolNews.Application.Interfaces;
+using BolNews.Application.Interfaces.Scoring;
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -15,13 +16,15 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly ITrendingService _trendingService;
         private readonly IMapper _mapper;
         private readonly IAnalyticsService _analyticsService;
+        private readonly IArticleScoringService _articleScoringService;
 
-        public DashboardController(IArticleService articleService, ITrendingService trendingService,IMapper mapper, IAnalyticsService analyticsService)
+        public DashboardController(IArticleService articleService, ITrendingService trendingService,IMapper mapper, IAnalyticsService analyticsService, IArticleScoringService articleScoringService)
         {
             _articleService = articleService;
             _trendingService = trendingService;
             _mapper = mapper;
             _analyticsService = analyticsService;
+            _articleScoringService = articleScoringService;
         }
 
         public async Task<IActionResult> Index()
@@ -85,8 +88,15 @@ namespace BolNews.Web.Areas.Admin.Controllers
             // 🏆 Top editor
             var topEditor = editorStats.FirstOrDefault();
             ViewBag.TopEditor = topEditor?.AuthorName;
-
+            await RecalculateArticleScores();
             return View(vm);
+        }
+
+        public async Task<IActionResult> RecalculateArticleScores()
+        {
+            await _articleScoringService.RecalculateAllScoresAsync();
+
+            return Ok("Article scores recalculated successfully.");
         }
     }
 }

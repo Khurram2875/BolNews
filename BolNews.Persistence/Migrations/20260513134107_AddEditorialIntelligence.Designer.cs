@@ -4,6 +4,7 @@ using BolNews.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BolNews.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260513134107_AddEditorialIntelligence")]
+    partial class AddEditorialIntelligence
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -275,99 +278,6 @@ namespace BolNews.Persistence.Migrations
                     b.HasIndex("ArticleId");
 
                     b.ToTable("ArticleAnalytics");
-                });
-
-            modelBuilder.Entity("BolNews.Domain.Entities.ArticleRevision", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ArticleId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ChangeReason")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("ChangedByUserId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("varchar(450)");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("FeaturedImageLarge")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("FeaturedImageMedium")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("FeaturedImageThumb")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("FeaturedImageXl")
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsPublishedSnapshot")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("MetaDescription")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
-
-                    b.Property<string>("MetaTitle")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<int>("RevisionNumber")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<string>("Summary")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("WorkflowState")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ArticleId", "RevisionNumber")
-                        .IsUnique();
-
-                    b.ToTable("ArticleRevisions");
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.Author", b =>
@@ -638,17 +548,6 @@ namespace BolNews.Persistence.Migrations
                     b.Navigation("Article");
                 });
 
-            modelBuilder.Entity("BolNews.Domain.Entities.ArticleRevision", b =>
-                {
-                    b.HasOne("BolNews.Domain.Entities.Article", "Article")
-                        .WithMany("Revisions")
-                        .HasForeignKey("ArticleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Article");
-                });
-
             modelBuilder.Entity("BolNews.Domain.Entities.Author", b =>
                 {
                     b.HasOne("BolNews.Domain.Entities.ApplicationUser", "User")
@@ -719,11 +618,6 @@ namespace BolNews.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("BolNews.Domain.Entities.Article", b =>
-                {
-                    b.Navigation("Revisions");
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.Author", b =>

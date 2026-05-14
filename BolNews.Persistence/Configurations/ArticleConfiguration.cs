@@ -51,6 +51,54 @@ namespace BolNews.Persistence.Configurations
             // Performance Indexes
             builder.HasIndex(x => x.PublishedAt);
             builder.HasIndex(x => x.IsPublished);
+
+            // Intelligent Ranking Scores Indexes
+            builder.Property(x => x.SeoScore)
+                .HasPrecision(5, 2)
+                .HasDefaultValue(0);
+
+            builder.Property(x => x.EditorialScore)
+                .HasPrecision(5, 2)
+                .HasDefaultValue(0);
+
+            builder.Property(x => x.EngagementScore)
+                .HasPrecision(5, 2)
+                .HasDefaultValue(0);
+
+            builder.Property(x => x.FreshnessScore)
+                .HasPrecision(5, 2)
+                .HasDefaultValue(0);
+
+            builder.Property(x => x.PopularityScore)
+                .HasPrecision(5, 2)
+                .HasDefaultValue(0);
+
+            builder.Property(x => x.CredibilityScore)
+                .HasPrecision(5, 2)
+                .HasDefaultValue(0);
+
+            builder.Property(x => x.OverallScore)
+                .HasPrecision(5, 2)
+                .HasDefaultValue(0);
+
+            builder.HasIndex(x => x.OverallScore);
+
+            builder.HasIndex(x => x.PublishedAt);
+
+            builder.HasIndex(x => new
+            {
+                x.CategoryId,
+                x.OverallScore
+            });
+            //editorial intelligence indexes
+            builder.Property(x => x.EditorialPriority)
+                .HasDefaultValue(0);
+
+            builder.Property(x => x.IsEditorsPick)
+                .HasDefaultValue(false);
+
+            builder.Property(x => x.IsFactChecked)
+                .HasDefaultValue(false);
         }
     }
 }

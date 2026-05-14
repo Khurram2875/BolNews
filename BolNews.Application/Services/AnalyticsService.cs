@@ -99,5 +99,18 @@ namespace BolNews.Application.Services
                 WorstArticles = grouped.OrderBy(x => x.CTR).Take(10).ToList()
             };
         }
+
+        public async Task<int> GetTotalImpressionsAsync(int articleId)
+        {
+            var data = await _repo.GetByArticleIdAsync(articleId);
+
+            return data.Sum(x => x.Impressions);
+        }
+        public async Task<int> GetTotalClicksAsync(int articleId)
+        {
+            var data = await _repo.GetByArticleIdAsync(articleId);
+
+            return data.Sum(x => x.Clicks);
+        }
     }
 }

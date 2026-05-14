@@ -180,5 +180,40 @@ namespace BolNews.Persistence.Repositories
                 .Where(a => a.Id == articleId)
                 .ExecuteUpdateAsync(s =>
                     s.SetProperty(a => a.ViewCount, a => a.ViewCount + 1));
+
+        public async Task BulkUpdateAsync(IEnumerable<Article> articles)
+        {
+            _context.Articles.UpdateRange(articles);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<Article>> GetTopRankedPublishedAsync(int count)
+        {
+            return await _context.Articles
+                .Include(a => a.Author)
+                    .ThenInclude(a => a.User)
+                .Include(a => a.Category)
+                .Where(a => !a.IsDeleted && a.IsPublished)
+                .OrderByDescending(a => a.OverallScore)
+                .ThenByDescending(a => a.PublishedAt)
+                .Take(count)
+                .ToListAsync();
+        }
+
+        public async Task<List<Article>> GetTopRankedByCategoryAsync(int categoryId, int count)
+        {
+            return await _context.Articles
+                .Include(a => a.Author)
+                    .ThenInclude(a => a.User)
+                .Include(a => a.Category)
+                .Where(a =>
+                    !a.IsDeleted &&
+                    a.IsPublished &&
+                    a.CategoryId == categoryId)
+                .OrderByDescending(a => a.OverallScore)
+                .ThenByDescending(a => a.PublishedAt)
+                .Take(count)
+                .ToListAsync();
+        }
     }
 }

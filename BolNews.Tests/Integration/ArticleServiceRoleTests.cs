@@ -1,3 +1,4 @@
+using BolNews.Application.Interfaces.Scoring;
 using BolNews.Application.Services;
 using BolNews.Domain.Common;
 using BolNews.Persistence.Repositories;
@@ -5,6 +6,7 @@ using BolNews.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using Moq;
 using Xunit;
 
 namespace BolNews.Tests.Integration
@@ -19,7 +21,9 @@ namespace BolNews.Tests.Integration
             var context = TestDbContextFactory.CreateWithSeed();
             _cache = new MemoryCache(Options.Create(new MemoryCacheOptions()));
             var repo = new ArticleRepository(context);
-            _service = new ArticleService(repo, _cache);
+            var scoringService = new Mock<IArticleScoringService>().Object;
+
+            _service = new ArticleService(repo, _cache, scoringService);
         }
 
         // ── CanEditAsync ──────────────────────────────────────────────────────

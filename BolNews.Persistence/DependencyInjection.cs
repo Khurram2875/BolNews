@@ -1,4 +1,7 @@
 ﻿using BolNews.Application.Interfaces;
+using BolNews.Application.Interfaces.Scoring;
+using BolNews.Application.Services.Scoring;
+using BolNews.Application.Services.Scoring.Providers;
 using BolNews.Domain.Entities;
 using BolNews.Persistence.Context;
 using BolNews.Persistence.Repositories;
@@ -6,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+
 
 namespace BolNews.Persistence
 {
@@ -16,7 +20,7 @@ namespace BolNews.Persistence
             IConfiguration configuration)
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
-
+            //var connectionString = "server=192.168.75.128; port=3306; database=BolNewsDB; user=admin_user; password =Bol12345";
             services.AddDbContext<AppDbContext>(options =>
                 options.UseMySql(connectionString,
                     ServerVersion.AutoDetect(connectionString)));
@@ -51,6 +55,15 @@ namespace BolNews.Persistence
             services.AddScoped<IAuthorRepository, AuthorRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
+            services.AddScoped<IArticleScoringService, ArticleScoringService>();
+            services.AddScoped<IArticleRevisionRepository, ArticleRevisionRepository>();
+            //Score providers
+            services.AddScoped<IScoreProvider, SeoScoreProvider>();
+            services.AddScoped<IScoreProvider, FreshnessScoreProvider>();
+            services.AddScoped<IScoreProvider, EngagementScoreProvider>();
+            services.AddScoped<IScoreProvider, PopularityScoreProvider>();
+            services.AddScoped<IScoreProvider, EditorialScoreProvider>();
+            services.AddScoped<IScoreProvider, CredibilityScoreProvider>();
 
             return services;
         }

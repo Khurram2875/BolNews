@@ -231,7 +231,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 dto.Slug = existing.Slug;
             }
 
-            await _articleService.UpdateAsync(dto);
+            await _articleService.UpdateAsync(dto, user.Id, roles);
 
             // 🔹 Image handling (unchanged)
             if (model.ImageFile != null)

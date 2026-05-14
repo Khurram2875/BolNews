@@ -84,7 +84,7 @@
 
         <!-- Secondary cards row (stories 3–6) -->
         @{
-            var secondaryCards = Model.SecondaryStories.Skip(2).Take(4).ToList();
+            var secondaryCards = Model.SecondaryStories.Skip(2).Take(6).ToList();
         }
         @if (secondaryCards.Any())
         {
@@ -290,3 +290,7 @@
         </div>
     </div>
 }
+<!-- ============================================================
+	Smart Trending (ViewComponent) - This is a new section that can be placed in the sidebar or as a full-width section before the footer. It uses the new GetTrendingAsync method with time-based filtering.
+     ============================================================ -->
+@await Component.InvokeAsync("SmartTrending", new { count = 5 })

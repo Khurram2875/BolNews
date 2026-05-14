@@ -1,0 +1,43 @@
+﻿@using BolNews.Application.DTOs
+@model IEnumerable<ArticleDto>
+
+@* <div class="smart-trending-widget">
+    <h3>Smart Trending</h3>
+
+    @foreach (var article in Model)
+    {
+        <div class="smart-item">
+            <a asp-controller="News"
+               asp-action="Details"
+               asp-route-slug="@article.Slug">
+                @article.Title
+            </a>
+        </div>
+    }
+</div> *@
+
+<div class="bn-secondary-grid">
+    @foreach (var item in Model)
+    {
+        <a href="/news/@item.CategorySlug/@item.Slug"
+           class="bn-card track-click"
+           data-article-id="@item.Id">
+            <div class="bn-card-img">
+                <img class="lazy-image"
+                     src="/images/placeholder.png"
+                     data-src="@item.FeaturedImageThumb"
+                     alt="@item.Title"
+                     loading="lazy" />
+            </div>
+            <div class="bn-card-body">
+                <div class="bn-card-tag">@item.CategoryName</div>
+                <h3 class="bn-card-title">@item.Title</h3>
+                <div class="bn-card-meta">
+                    <span>@item.AuthorName</span>
+                    <span class="bn-card-meta-dot"></span>
+                    <span>@item.TimeAgo</span>
+                </div>
+            </div>
+        </a>
+    }
+</div>

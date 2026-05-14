@@ -1,8 +1,10 @@
+using BolNews.Application.Interfaces.Scoring;
 using BolNews.Application.Services;
 using BolNews.Domain.Entities;
 using BolNews.Persistence.Repositories;
 using BolNews.Tests.Helpers;
 using Microsoft.Extensions.Caching.Memory;
+using Moq;
 using Xunit;
 
 namespace BolNews.Tests.Integration;
@@ -15,7 +17,8 @@ public class ArticleServiceCategoryBatchingTests
         await using var context = TestDbContextFactory.Create();
         var repo = new ArticleRepository(context);
         var cache = new MemoryCache(new MemoryCacheOptions());
-        var service = new ArticleService(repo, cache);
+        var scoringServiceMock = new Mock<IArticleScoringService>(); // Mock the required dependency
+        var service = new ArticleService(repo, cache, scoringServiceMock.Object); // Pass the mock
 
         var category1 = new Category { Name = "C1", Slug = "c1" };
         var category2 = new Category { Name = "C2", Slug = "c2" };
