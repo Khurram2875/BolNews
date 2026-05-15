@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BolNews.Application.DTOs;
 using BolNews.Domain.Entities;
 
 namespace BolNews.Application.Interfaces
@@ -15,5 +16,6 @@ namespace BolNews.Application.Interfaces
         Task<Author?> FindBySlugAsync(string slug);
         Task AddAsync(Author author);
         Task UpdateAsync(Author author);
+        Task<AuthorDto?> GetByUserIdAsync(string userId);
     }
 }

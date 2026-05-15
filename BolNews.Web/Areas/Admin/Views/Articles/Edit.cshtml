@@ -1,9 +1,20 @@
-﻿@model BolNews.Web.Areas.Admin.ViewModels.ArticleVM
+﻿@using BolNews.Domain.Common
+@model BolNews.Web.Areas.Admin.ViewModels.ArticleVM
 
 @{
     ViewData["Title"] = "Edit Article";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+
+    var isAdmin = User.IsInRole(Roles.Admin);
+    var isEditor = User.IsInRole(Roles.Editor);
+    var isSubEditor = User.IsInRole(Roles.SubEditor);
+    var isAuthor = User.IsInRole(Roles.Author);
+
+    var canPublish = isAdmin || isEditor || isSubEditor;
+    var canEditorsPick = isAdmin || isEditor;
+    var canFactCheck = isAdmin || isEditor || isSubEditor;
 }
+
 <div class="card mt-3 p-3">
     <h5>
         Discover Score: @Model.DiscoverScore?.Score / 100
@@ -23,15 +34,17 @@
         <p class="text-success">✅ Fully optimized for Discover</p>
     }
 </div>
+
 <div class="card shadow-sm">
     <div class="card-header bg-warning text-dark">
-        <h4 class="mb-0">Edit Article</h4>
+        <h4 class="mb-0">Edit Article <span class="badge bg-success" style="font-size:x-small">by @Model.AuthorName</span></h4>
     </div>
+
     <div class="card-body">
         <form asp-action="Edit" method="post" enctype="multipart/form-data">
+
             <input type="hidden" asp-for="Id" />
 
-            <!-- same fields as Create view -->
             <div class="mb-3">
                 <label asp-for="Title" class="form-label"></label>
                 <input asp-for="Title" class="form-control" />
@@ -45,14 +58,15 @@
             </div>
 
             <div class="mb-3">
-                <label>Meta Title</label>
+                <label asp-for="MetaTitle" class="form-label"></label>
                 <input asp-for="MetaTitle" class="form-control" />
                 <span asp-validation-for="MetaTitle" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
-                <label>Meta Description</label>
+                <label asp-for="MetaDescription" class="form-label"></label>
                 <textarea asp-for="MetaDescription" class="form-control"></textarea>
+                <span asp-validation-for="MetaDescription" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
@@ -67,18 +81,91 @@
                 <span asp-validation-for="Content" class="text-danger"></span>
             </div>
 
+            @if (canPublish || canFactCheck || canEditorsPick || isSubEditor)
+            {
+                <div class="card mt-4">
+                    <div class="card-header">
+                        Editorial Workflow
+                    </div>
+
+                    <div class="card-body">
+
+                        @if (canPublish)
+                        {
+                            <div class="form-check mb-3">
+                                <input asp-for="IsPublished" class="form-check-input" />
+                                <label asp-for="IsPublished" class="form-check-label">
+                                    Published
+                                </label>
+                            </div>
+
+                            @if (Model.PublishedAt.HasValue)
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label">Published At</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           value="@Model.PublishedAt.Value.ToString("g")"
+                                           readonly />
+                                </div>
+                            }
+                        }
+
+                        @if (canFactCheck)
+                        {
+                            <div class="form-check mb-3">
+                                <input asp-for="IsFactChecked" class="form-check-input" />
+                                <label asp-for="IsFactChecked" class="form-check-label">
+                                    Fact Checked
+                                </label>
+                            </div>
+                        }
+
+                        @if (isSubEditor || isEditor || isAdmin)
+                        {
+                            <div class="mb-3">
+                                <label asp-for="EditorialPriority" class="form-label"></label>
+
+                                <select asp-for="EditorialPriority" class="form-select">
+                                    @if (isSubEditor)
+                                    {
+                                        <option value="0">Normal</option>
+                                        <option value="1">Important</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="0">Normal</option>
+                                        <option value="1">Important</option>
+                                        <option value="2">High Priority</option>
+                                        <option value="3">Critical</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+
+                        @if (canEditorsPick)
+                        {
+                            <div class="form-check mb-3">
+                                <input asp-for="IsEditorsPick" class="form-check-input" />
+                                <label asp-for="IsEditorsPick" class="form-check-label">
+                                    Editor's Pick
+                                </label>
+                            </div>
+                        }
+
+                    </div>
+                </div>
+            }
+
             <div class="mb-3">
                 <label class="form-label">Featured Image</label>
-                <input type="file" asp-for="ImageFile" class="form-control" onchange="previewFile(event)" />
+                <input type="file"
+                       asp-for="ImageFile"
+                       class="form-control"
+                       onchange="previewFile(event)" />
                 <span asp-validation-for="ImageFile" class="text-danger"></span>
             </div>
 
-            @* @if (!string.IsNullOrEmpty(Model.FeaturedImageUrl))
-            {
-                <div class="mb-3">
-                    <img id="previewImage" src="@Model.FeaturedImageUrl" alt="Current Image" class="img-fluid rounded" style="max-height:150px;" />
-                </div>
-            } *@
             <div class="form-group mb-3">
                 <label>Current Image</label><br />
 
@@ -86,7 +173,6 @@
                 {
                     <img id="previewImage"
                          src="@Model.FeaturedImageLarge"
-                        
                          style="width:120px; height:120px; object-fit:cover; border-radius:50%;" />
                 }
                 else
@@ -96,35 +182,33 @@
                          style="width:120px; height:120px; border-radius:50%;" />
                 }
             </div>
+
             <div class="mb-3">
-                <label asp-for="CategoryId" class="form-label">Category</label>
-                <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories"></select>
+                <label asp-for="CategoryId" class="form-label"></label>
+                <select asp-for="CategoryId"
+                        class="form-select"
+                        asp-items="ViewBag.Categories"></select>
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
 
-            <div class="mb-3">
-                <label>Author</label>
-                <input value="@Model.AuthorName" readonly class="form-control" />
-                
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="PublishedAt" class="form-label"></label>
-                <input asp-for="PublishedAt" type="datetime-local" class="form-control" />
-                <span asp-validation-for="PublishedAt" class="text-danger"></span>
-            </div>
-
-            <div class="form-check mb-3">
-                <input asp-for="IsPublished" class="form-check-input" />
-                <label asp-for="IsPublished" class="form-check-label"></label>
-            </div>
+            @if (!isAuthor)
+            {
+                <div class="mb-3">
+                    <label>Author</label>
+                    <input value="@Model.AuthorName"
+                           readonly
+                           class="form-control" />
+                </div>
+            }
 
             <button type="submit" class="btn btn-warning">
                 <i class="bi bi-pencil-square"></i> Update
             </button>
+
             <a asp-action="Index" class="btn btn-secondary ms-2">
                 <i class="bi bi-arrow-left-circle"></i> Cancel
             </a>
+
         </form>
     </div>
 </div>

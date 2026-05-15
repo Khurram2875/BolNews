@@ -25,7 +25,13 @@ namespace BolNews.Persistence.Repositories
         }
 
         public async Task<Article?> FindByIdAsync(int id)
-            => await _context.Articles.FindAsync(id);
+        {
+            return await _context.Articles
+                .Include(a => a.Author)
+                    .ThenInclude(a => a.User)
+                .Include(a => a.Category)
+                .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
+        }
 
         public async Task<bool> SlugExistsAsync(string slug)
             => await _context.Articles.AnyAsync(a => a.Slug == slug);

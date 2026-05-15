@@ -41,9 +41,11 @@
 						<td>
 							@if (!string.IsNullOrEmpty(item.ProfileImageUrl))
 							{
-								<img src="@item.ProfileImageUrl?v=@item.UpdatedAt.Ticks ?? @item.CreatedAt.Ticks"
-									 alt="@item.Name"
+								<img src="@item.ProfileImageUrl" alt="@item.Name"
 									 style="width:60px; height:60px; object-fit:cover; border-radius:50%;" />
+								@* <img src="@item.ProfileImageUrl?v=@item.UpdatedAt.Ticks ?? @item.CreatedAt.Ticks"
+									 alt="@item.Name"
+									 style="width:60px; height:60px; object-fit:cover; border-radius:50%;" /> *@
 							}
 							else
 							{

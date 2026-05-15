@@ -35,7 +35,7 @@ namespace BolNews.Application.Services
 
             if (IsAuthor(roles))
             {
-                var ownsArticle = article.Author?.UserId == currentUserId;
+                var ownsArticle = article.CreatedBy == currentUserId;
 
                 if (!ownsArticle)
                     throw new UnauthorizedAccessException(
@@ -136,7 +136,7 @@ namespace BolNews.Application.Services
                 FeaturedImageMedium = dto.FeaturedImageMedium,
                 FeaturedImageLarge = dto.FeaturedImageLarge,
                 FeaturedImageXl = dto.FeaturedImageXl,
-
+                
                 CategoryId = dto.CategoryId,
                 AuthorId = dto.AuthorId,
 
@@ -231,6 +231,7 @@ namespace BolNews.Application.Services
                 FeaturedImageThumb = a.FeaturedImageThumb,
                 CategoryId = a.CategoryId,
                 AuthorId = a.AuthorId,
+                AuthorName= a.Author.Name,
                 IsPublished = a.IsPublished,
                 PublishedAt = a.PublishedAt,
                 IsEditorsPick = a.IsEditorsPick,
@@ -355,8 +356,28 @@ namespace BolNews.Application.Services
 
         public async Task<bool> CanEditAsync(int articleId, string userId, IList<string> roles)
         {
-            if (roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor) || roles.Contains(Roles.SubEditor)) return true;
-            if (roles.Contains(Roles.Author)) return (await _repo.FindByIdAsync(articleId))?.Author?.UserId == userId;
+            var article = await _repo.FindByIdAsync(articleId);
+
+            if (article == null)
+                return false;
+
+            if (roles.Contains(Roles.Admin) ||
+                roles.Contains(Roles.Editor) ||
+                roles.Contains(Roles.SubEditor))
+            {
+                return true;
+            }
+
+            if (roles.Contains(Roles.Author))
+            {
+                var ownerUserId = article.Author?.UserId;
+                var currentUserId = userId;
+                var isPublished = article.IsPublished;
+
+                return ownerUserId == currentUserId
+                       && !isPublished;
+            }
+
             return false;
         }
 

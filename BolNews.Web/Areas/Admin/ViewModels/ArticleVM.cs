@@ -22,6 +22,9 @@ namespace BolNews.Web.Areas.Admin.ViewModels
 
         public bool IsPublished { get; set; }
         public DateTime? PublishedAt { get; set; }
+        public bool IsEditorsPick { get; set; }
+        public int EditorialPriority { get; set; }
+        public bool IsFactChecked { get; set; }
 
         // ✅ REQUIRED FOR ADMIN LIST VIEW
         public string? FeaturedImageXl { get; set; }

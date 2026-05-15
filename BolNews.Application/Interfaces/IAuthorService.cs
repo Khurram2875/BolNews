@@ -19,5 +19,6 @@ namespace BolNews.Application.Interfaces
         Task UpdateImageAsync(int id, string imagePath);
         Task<Author?> GetBySlugAsync(string slug);
         Task<List<AuthorDto>> GetAll();
+       Task<AuthorDto> GetByUserIdAsync(string id);
     }
 }

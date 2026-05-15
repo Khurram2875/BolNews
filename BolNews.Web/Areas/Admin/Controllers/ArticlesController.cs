@@ -164,7 +164,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             var model = _mapper.Map<ArticleVM>(dto);
 
             // 🔥 show author name (read-only in UI)
-            model.AuthorName = user.FullName;
+            model.AuthorName = dto.AuthorName;
 
             model.DiscoverScore = _discoverService.Evaluate(new PublicArticleVM
             {
@@ -217,15 +217,19 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             var dto = _mapper.Map<ArticleDto>(model);
 
+            dto.FeaturedImageThumb = existing.FeaturedImageThumb;
+            dto.FeaturedImageMedium = existing.FeaturedImageMedium;
+            dto.FeaturedImageLarge = existing.FeaturedImageLarge;
+            dto.FeaturedImageXl = existing.FeaturedImageXl;
             // 🔥 CRITICAL: PRESERVE AUTHOR
             dto.AuthorId = existing.AuthorId;
 
             // 🔥 ROLE-BASED PUBLISH CONTROL
-            if (!(roles.Contains("Admin") || roles.Contains("Editor")))
-            {
-                dto.IsPublished = existing.IsPublished;
-                dto.PublishedAt = existing.PublishedAt;
-            }
+            //if (!(roles.Contains("Admin") || roles.Contains("Editor")))
+            //{
+            //    dto.IsPublished = existing.IsPublished;
+            //    dto.PublishedAt = existing.PublishedAt;
+            //}
 
             // 🔹 Slug logic
             if (existing.Title != model.Title)
@@ -237,7 +241,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 dto.Slug = existing.Slug;
             }
 
-            await _articleService.UpdateAsync(dto, user.Id, roles);
+            await _articleService.UpdateAsync(dto, user.Id, roles, changeReason: "Article edited via CMS");
 
             // 🔹 Image handling (unchanged)
             if (model.ImageFile != null)

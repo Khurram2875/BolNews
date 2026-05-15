@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BolNews.Web.Areas.Admin.ViewModels
 {
@@ -13,16 +14,19 @@ namespace BolNews.Web.Areas.Admin.ViewModels
 
         public string? ProfileImageUrl { get; set; }
         public IFormFile? ImageFile { get; set; }
-        [Required]
+
+        // NEW USER MODE
         [EmailAddress]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
-        //[Required]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
-        public string? NewPassword { get; set; }
+        // EXISTING USER MODE
+        public bool LinkExistingUser { get; set; }
 
-        public DateTime UpdatedAt { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public string? SelectedUserId { get; set; }
+
+        // for dropdown
+        public List<SelectListItem> ExistingUsers { get; set; } = new();
     }
 }

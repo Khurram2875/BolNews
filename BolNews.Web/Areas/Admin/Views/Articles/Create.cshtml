@@ -1,8 +1,16 @@
-﻿@model BolNews.Web.Areas.Admin.ViewModels.ArticleVM
+﻿@using BolNews.Domain.Common
+@model BolNews.Web.Areas.Admin.ViewModels.ArticleVM
 
 @{
     ViewData["Title"] = "Create Article";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var isAdmin = User.IsInRole(Roles.Admin);
+    var isEditor = User.IsInRole(Roles.Editor);
+    var isSubEditor = User.IsInRole(Roles.SubEditor);
+
+    var canPublish = isAdmin || isEditor || isSubEditor;
+    var canEditorsPick = isAdmin || isEditor;
+    var canFactCheck = isAdmin || isEditor || isSubEditor;
 }
 <div id="headlineSuggestions"></div>
 <div class="card shadow-sm">
@@ -75,15 +83,82 @@
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
 
-            @* <div class="mb-3">
-                <label asp-for="AuthorId" class="form-label">Author</label>
-                <select asp-for="AuthorId" class="form-select" asp-items="ViewBag.Authors">
-                    <option value="">-- Select Author --</option>
-                </select>
-                <span asp-validation-for="AuthorId" class="text-danger"></span>
-            </div> *@
+            <div class="card mt-4">
+                <div class="card-header">
+                    Editorial Workflow
+                </div>
 
-            <div class="mb-3">
+                <div class="card-body">
+
+                    @if (canPublish)
+                    {
+                        <div class="form-check mb-3">
+                            <input asp-for="IsPublished"
+                                   class="form-check-input" />
+
+                            <label asp-for="IsPublished"
+                                   class="form-check-label">
+                                Publish Immediately
+                            </label>
+                        </div>
+                    }
+
+                    @if (canFactCheck)
+                    {
+                        <div class="form-check mb-3">
+                            <input asp-for="IsFactChecked"
+                                   class="form-check-input" />
+
+                            <label asp-for="IsFactChecked"
+                                   class="form-check-label">
+                                Fact Checked
+                            </label>
+                        </div>
+                    }
+
+                    @if (isSubEditor || isEditor || isAdmin)
+                    {
+                        <div class="mb-3">
+                            <label asp-for="EditorialPriority"
+                                   class="form-label">
+                                Editorial Priority
+                            </label>
+
+                            <select asp-for="EditorialPriority"
+                                    class="form-select">
+                                @if (isSubEditor)
+                                {
+                                    <option value="0">Normal</option>
+                                    <option value="1">Important</option>
+                                }
+                                else
+                                {
+                                    <option value="0">Normal</option>
+                                    <option value="1">Important</option>
+                                    <option value="2">High Priority</option>
+                                    <option value="3">Critical</option>
+                                }
+                            </select>
+                        </div>
+                    }
+
+                    @if (canEditorsPick)
+                    {
+                        <div class="form-check mb-3">
+                            <input asp-for="IsEditorsPick"
+                                   class="form-check-input" />
+
+                            <label asp-for="IsEditorsPick"
+                                   class="form-check-label">
+                                Editor's Pick
+                            </label>
+                        </div>
+                    }
+
+                </div>
+            </div>
+
+           @*  <div class="mb-3">
                 <label asp-for="PublishedAt" class="form-label"></label>
                 <input asp-for="PublishedAt" type="datetime-local" class="form-control" />
                 <span asp-validation-for="PublishedAt" class="text-danger"></span>
@@ -92,7 +167,7 @@
             <div class="form-check mb-3">
                 <input asp-for="IsPublished" class="form-check-input" />
                 <label asp-for="IsPublished" class="form-check-label"></label>
-            </div>
+            </div> *@
 
             <button type="submit" class="btn btn-success">
                 <i class="bi bi-check-circle"></i> Save

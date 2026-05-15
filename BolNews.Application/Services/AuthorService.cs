@@ -96,5 +96,11 @@ namespace BolNews.Application.Services
 
         private static string NormalizeName(string name)
             => name.Replace("-", " ").Trim().ToLower();
+
+        public async Task<AuthorDto?> GetByUserIdAsync(string userId)
+        {
+            var a = await _repo.GetByUserIdAsync(userId);
+            return a ;
+        }
     }
 }

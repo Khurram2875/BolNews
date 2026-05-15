@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 'heading', '|',
                 'bold', 'italic', 'link',
                 'bulletedList', 'numberedList', '|',
-                'insertTable', 'uploadImage', '|',
+                'insertTable', 'uploadImage', 'mediaEmbed', '|',
                 'undo', 'redo'
             ],
             

@@ -2,42 +2,91 @@
 @model AuthorVM
 
 @{
-	ViewData["Title"] = "Create Author";
-	Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Create Author";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 
 <div class="card shadow-sm">
-	<div class="card-header bg-primary text-white">
-		<h4 class="mb-0">Create New Author</h4>
-	</div>
-	<div class="card-body">
-		<form asp-action="Create" method="post" enctype="multipart/form-data">
-			<div class="form-group">
-				<label>Name</label>
-				<input asp-for="Name" class="form-control" />
-			</div>
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Create New Author</h4>
+    </div>
 
-			<div class="form-group">
-				<label>Bio</label>
-				<textarea asp-for="Bio" class="form-control"></textarea>
-			</div>
-			<div>
-				<label>Email</label>
-				<input asp-for="Email" class="form-control" />
-				<span asp-validation-for="Email" class="text-danger"></span>
-			</div>
-			<div>
-				<label>New Password</label>
-				<input asp-for="Password" type="password" class="form-control" />
-				<span asp-validation-for="Password" class="text-danger"></span>
-			</div>
-			<div class="form-group">
-				<label>Upload Image</label>
-			<input type="file" asp-for="ImageFile" class="form-control" />
-				<span asp-validation-for="ImageFile" class="text-danger"></span>
-			</div>
+    <div class="card-body">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
 
-			<button type="submit" class="btn btn-success">Save</button>
-		</form>
-	</div>
+            <div class="form-check mb-3">
+                <input asp-for="LinkExistingUser" class="form-check-input" id="linkExisting" />
+                <label class="form-check-label" for="linkExisting">
+                    Link Existing Identity User
+                </label>
+            </div>
+
+            <div id="existingUserSection" style="display:none;">
+                <label>Select Existing User</label>
+                <select asp-for="SelectedUserId"
+                        asp-items="Model.ExistingUsers"
+                        class="form-control">
+                    <option value="">-- Select User --</option>
+                </select>
+            </div>
+
+            <div id="newUserSection">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input asp-for="Password" type="password" class="form-control" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-group mt-3">
+                <label>Name</label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Bio</label>
+                <textarea asp-for="Bio" class="form-control"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Upload Image</label>
+                <input asp-for="ImageFile" class="form-control" />
+                <span asp-validation-for="ImageFile" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-success mt-3">Save</button>
+
+        </form>
+    </div>
 </div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const checkbox = document.getElementById('linkExisting');
+        const existingSection = document.getElementById('existingUserSection');
+        const newUserSection = document.getElementById('newUserSection');
+
+        function toggleSections() {
+            if (checkbox.checked) {
+                existingSection.style.display = 'block';
+                newUserSection.style.display = 'none';
+            } else {
+                existingSection.style.display = 'none';
+                newUserSection.style.display = 'block';
+            }
+        }
+
+        checkbox.addEventListener('change', toggleSections);
+        toggleSections();
+    </script>
+}

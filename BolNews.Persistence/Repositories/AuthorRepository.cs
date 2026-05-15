@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
 using BolNews.Domain.Entities;
 using BolNews.Persistence.Context;
@@ -27,6 +28,20 @@ namespace BolNews.Persistence.Repositories
 
         public async Task<Author?> FindByUserIdAsync(string userId)
             => await _context.Authors.FirstOrDefaultAsync(a => a.UserId == userId && !a.IsDeleted);
+
+        public async Task<AuthorDto?> GetByUserIdAsync(string userId)
+        {
+            return await _context.Authors
+            .Where(a => a.UserId == userId && !a.IsDeleted)
+            .Select(a => new AuthorDto
+            {
+                Id = a.Id,
+                Name = a.Name,
+                UserId = a.UserId
+            })
+            .FirstOrDefaultAsync();
+        }
+            
 
         public async Task<Author?> FindBySlugAsync(string slug)
             => await _context.Authors
