@@ -16,6 +16,7 @@ namespace BolNews.Application.Services
         private readonly IArticleScoringService _articleScoringService;
         private readonly IArticleRevisionService _articleRevisionService;
         private readonly IAuthorService _authorService;
+        private readonly INotificationService _notificationService;
 
         #region Role and other private helpers
         private bool IsAdmin(IList<string> roles)
@@ -126,13 +127,14 @@ namespace BolNews.Application.Services
             }
         }
         #endregion
-        public ArticleService(IArticleRepository repo, IMemoryCache cache, IArticleScoringService articleScoringService, IArticleRevisionService articleRevisionService, IAuthorService authorService)
+        public ArticleService(IArticleRepository repo, IMemoryCache cache, IArticleScoringService articleScoringService, IArticleRevisionService articleRevisionService, IAuthorService authorService, INotificationService notificationService)
         {
             _repo = repo;
             _cache = cache;
             _articleScoringService = articleScoringService;
             _articleRevisionService = articleRevisionService;
             _authorService = authorService;
+            _notificationService = notificationService;
         }
 
         public async Task<int> CreateAsync(ArticleDto dto, string currentUserId,IList<string> roles)
@@ -216,6 +218,16 @@ namespace BolNews.Application.Services
             {
                 article.WorkflowStatus = ArticleWorkflowStatus.Submitted;
                 article.WorkflowComment = null;
+
+                // notify assigned reviewer if already assigned
+                if (!string.IsNullOrWhiteSpace(article.ReviewerUserId))
+                {
+                    await _notificationService.NotifyAsync(
+                        article.ReviewerUserId,
+                        "Article Submitted",
+                        $"Article '{article.Title}' has been submitted for review.",
+                        $"/Admin/Articles/Edit/{article.Id}");
+                }
             }
             await _articleScoringService.CalculateScoresAsync(article);
 
@@ -550,32 +562,50 @@ namespace BolNews.Application.Services
             );
 
             article.WorkflowStatus = targetStatus;
-            //if (targetStatus == ArticleWorkflowStatus.UnderReview)
-            //{
-            //    article.ReviewerUserId = currentUserId;
-            //}
 
-            //if (targetStatus == ArticleWorkflowStatus.FactCheckPending)
-            //{
-            //    article.FactCheckerUserId = currentUserId;
-            //}
+            article.UpdatedAt = DateTime.UtcNow;
+            article.UpdatedBy = currentUserId;
 
-            if (targetStatus == ArticleWorkflowStatus.Published)
-            {
-                article.IsPublished = true;
-
-                if (!article.PublishedAt.HasValue)
-                    article.PublishedAt = DateTime.UtcNow;
-            }
+            // Clear stale workflow comment by default
+            article.WorkflowComment = null;
 
             if (targetStatus == ArticleWorkflowStatus.Rejected)
             {
                 article.IsPublished = false;
                 article.WorkflowComment = reason;
+
+                if (!string.IsNullOrWhiteSpace(article.Author?.UserId))
+                {
+                    await _notificationService.NotifyAsync(
+                        article.Author.UserId,
+                        "Article Rejected",
+                        $"Your article '{article.Title}' was rejected. Reason: {reason}",
+                        $"/Admin/Articles/Edit/{article.Id}");
+                }
             }
-            else
+
+            if (targetStatus == ArticleWorkflowStatus.Approved)
             {
-                article.WorkflowComment = null;
+                if (!string.IsNullOrWhiteSpace(article.Author?.UserId))
+                {
+                    await _notificationService.NotifyAsync(
+                        article.Author.UserId,
+                        "Article Approved",
+                        $"Your article '{article.Title}' has been approved.",
+                        $"/Admin/Articles/Edit/{article.Id}");
+                }
+            }
+
+            if (targetStatus == ArticleWorkflowStatus.Published)
+            {
+                if (!string.IsNullOrWhiteSpace(article.Author?.UserId))
+                {
+                    await _notificationService.NotifyAsync(
+                        article.Author.UserId,
+                        "Article Published",
+                        $"Your article '{article.Title}' is now live.",
+                        $"/Articles/{article.Slug}");
+                }
             }
 
             article.UpdatedAt = DateTime.UtcNow;
@@ -645,6 +675,15 @@ namespace BolNews.Application.Services
             article.UpdatedBy = currentUserId;
 
             await _repo.UpdateAsync(article);
+
+            if (!string.IsNullOrWhiteSpace(reviewerUserId))
+            {
+                await _notificationService.NotifyAsync(
+                    reviewerUserId,
+                    "Reviewer Assignment",
+                    $"You have been assigned to review '{article.Title}'.",
+                    $"/Admin/Articles/Edit/{article.Id}");
+            }
         }
         public async Task AssignFactCheckerAsync(int articleId,string factCheckerUserId,string currentUserId,IList<string> roles)
         {
@@ -667,6 +706,15 @@ namespace BolNews.Application.Services
             article.UpdatedBy = currentUserId;
 
             await _repo.UpdateAsync(article);
+
+            if (!string.IsNullOrWhiteSpace(factCheckerUserId))
+            {
+                await _notificationService.NotifyAsync(
+                    factCheckerUserId,
+                    "Fact Checker Assignment",
+                    $"You have been assigned to fact check '{article.Title}'.",
+                    $"/Admin/Articles/Edit/{article.Id}");
+            }
         }
     }
 }

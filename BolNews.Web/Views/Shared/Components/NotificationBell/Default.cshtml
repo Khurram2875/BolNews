@@ -1,0 +1,76 @@
+﻿@using BolNews.Web.Areas.Admin.ViewModels
+@model List<NotificationVM>
+
+<li class="nav-item dropdown">
+    <a class="nav-link d-flex align-items-center justify-content-between"
+       href="#"
+       role="button"
+       data-bs-toggle="dropdown"
+       aria-expanded="false">
+
+        <span>
+            <i class="bi bi-bell me-2"></i>
+            Notifications
+        </span>
+
+        @if (Model.Any())
+        {
+            <span class="badge bg-danger rounded-pill">
+                @Model.Count
+            </span>
+        }
+    </a>
+
+    <ul class="dropdown-menu shadow"
+        style="min-width: 320px; max-width: 380px; max-height: 500px; overflow-y: auto;">
+
+        @if (!Model.Any())
+        {
+            <li>
+                <span class="dropdown-item-text text-muted">
+                    No unread notifications
+                </span>
+            </li>
+        }
+        else
+        {
+            @foreach (var item in Model)
+            {
+                <li>
+                    <form asp-area="Admin"
+                          asp-controller="Notifications"
+                          asp-action="Open"
+                          method="post">
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <input type="hidden" name="url" value="@item.Url" />
+
+                        <button type="submit"
+                                class="dropdown-item text-wrap"
+                                style="white-space: normal;">
+
+                            <div class="fw-semibold">
+                                @item.Title
+                            </div>
+
+                            <div class="small text-muted mt-1">
+                                @(item.Message.Length > 120
+                                                        ? item.Message.Substring(0, 120) + "..."
+                                                        : item.Message)
+                    </div>
+
+                            <div class="small text-secondary mt-1">
+                                @item.CreatedAt.ToString("g")
+                            </div>
+                        </button>
+                    </form>
+                </li>
+
+                <li>
+                    <hr class="dropdown-divider" />
+                </li>
+                }
+        }
+    </ul>
+</li>

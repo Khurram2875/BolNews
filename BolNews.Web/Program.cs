@@ -1,20 +1,24 @@
+using BolNews.Application.Interfaces;
 using BolNews.Persistence;
 using BolNews.Persistence.Identity;
 using BolNews.Web;
 using BolNews.Web.Extensions;
+using BolNews.Web.Hubs;
+using BolNews.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplicationServices(builder.Configuration);
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 builder.Services.AddSession();
 
 builder.Services.AddPersistence(builder.Configuration);
 
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
-
+builder.Services.AddScoped<INotificationRealtimeService, NotificationRealtimeService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -30,6 +34,8 @@ app.UseSession();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.MapAppRoutes();
 

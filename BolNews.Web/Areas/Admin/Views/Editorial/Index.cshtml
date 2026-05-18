@@ -104,7 +104,7 @@
         <div class="card-body">
             @if (Model.Submitted.Any())
             {
-                <table class="table-hover table align-middle">
+                <table class="table-hover table-sm table align-middle" style="font-size:smaller">
                     <thead>
                         <tr>
                             <th>Title</th>
@@ -186,7 +186,7 @@
                                            asp-controller="Articles"
                                            asp-action="Edit"
                                            asp-route-id="@item.Id"
-                                           class="btn btn-sm btn-warning">
+                                           class="badge bg-warning">
                                             Review
                                         </a>
 
@@ -195,13 +195,13 @@
                                             <input type="hidden" name="articleId" value="@item.Id" />
                                             <input type="hidden" name="targetStatus" value="UnderReview" />
 
-                                            <button class="btn btn-sm btn-primary">
+                                            <button class="badge bg-primary">
                                                 Take Review
                                             </button>
                                         </form>
 
                                         <button type="button"
-                                                class="btn btn-sm btn-danger"
+                                                class="badge bg-danger"
                                                 onclick="openRejectModal(@item.Id)">
                                             Reject
                                         </button>
@@ -229,7 +229,7 @@
         <div class="card-body">
             @if (Model.UnderReview.Any())
             {
-                <table class="table-hover table align-middle">
+                <table class="table-hover table-sm table align-middle" style="font-size:smaller">
                     <thead>
                         <tr>
                             <th>Title</th>
@@ -311,7 +311,7 @@
                                            asp-controller="Articles"
                                            asp-action="Edit"
                                            asp-route-id="@item.Id"
-                                           class="btn btn-sm btn-warning">
+                                           class="badge bg-warning">
                                             Review
                                         </a>
 
@@ -320,13 +320,13 @@
                                             <input type="hidden" name="articleId" value="@item.Id" />
                                             <input type="hidden" name="targetStatus" value="FactCheckPending" />
 
-                                            <button class="btn btn-sm btn-info">
+                                            <button class="badge bg-info">
                                                 Fact Check
                                             </button>
                                         </form>
 
                                         <button type="button"
-                                                class="btn btn-sm btn-danger"
+                                                class="badge bg-danger"
                                                 onclick="openRejectModal(@item.Id)">
                                             Reject
                                         </button>
@@ -354,7 +354,7 @@
         <div class="card-body">
             @if (Model.FactCheckPending.Any())
             {
-                <table class="table-hover table align-middle">
+                <table class="table-hover table-sm table align-middle" style="font-size:smaller">
                     <thead>
                         <tr>
                             <th>Title</th>
@@ -436,7 +436,7 @@
                                            asp-controller="Articles"
                                            asp-action="Edit"
                                            asp-route-id="@item.Id"
-                                           class="btn btn-sm btn-warning">
+                                           class="badge bg-warning">
                                             Review
                                         </a>
 
@@ -445,13 +445,13 @@
                                             <input type="hidden" name="articleId" value="@item.Id" />
                                             <input type="hidden" name="targetStatus" value="Approved" />
 
-                                            <button class="btn btn-sm btn-success">
+                                            <button class="badge bg-success">
                                                 Approve
                                             </button>
                                         </form>
 
                                         <button type="button"
-                                                class="btn btn-sm btn-danger"
+                                                class="badge bg-danger"
                                                 onclick="openRejectModal(@item.Id)">
                                             Reject
                                         </button>
@@ -479,7 +479,7 @@
         <div class="card-body">
             @if (Model.Approved.Any())
             {
-                <table class="table-hover table align-middle">
+                <table class="table-hover table-sm table align-middle" style="font-size:smaller">
                     <thead>
                         <tr>
                             <th>Title</th>
@@ -514,7 +514,7 @@
                                            asp-controller="Articles"
                                            asp-action="Edit"
                                            asp-route-id="@item.Id"
-                                           class="btn btn-sm btn-warning">
+                                           class="badge bg-warning">
                                             Review
                                         </a>
 
@@ -523,7 +523,7 @@
                                             <input type="hidden" name="articleId" value="@item.Id" />
                                             <input type="hidden" name="targetStatus" value="Published" />
 
-                                            <button class="btn btn-sm btn-dark">
+                                            <button class="badge bg-dark">
                                                 Publish
                                             </button>
                                         </form>

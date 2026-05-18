@@ -1,5 +1,6 @@
 ﻿using BolNews.Application.Interfaces;
 using BolNews.Application.Interfaces.Scoring;
+using BolNews.Application.Services;
 using BolNews.Application.Services.Scoring;
 using BolNews.Application.Services.Scoring.Providers;
 using BolNews.Domain.Entities;
@@ -57,6 +58,7 @@ namespace BolNews.Persistence
             services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
             services.AddScoped<IArticleScoringService, ArticleScoringService>();
             services.AddScoped<IArticleRevisionRepository, ArticleRevisionRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
             //Score providers
             services.AddScoped<IScoreProvider, SeoScoreProvider>();
             services.AddScoped<IScoreProvider, FreshnessScoreProvider>();
@@ -64,6 +66,8 @@ namespace BolNews.Persistence
             services.AddScoped<IScoreProvider, PopularityScoreProvider>();
             services.AddScoped<IScoreProvider, EditorialScoreProvider>();
             services.AddScoped<IScoreProvider, CredibilityScoreProvider>();
+            services.AddScoped<INotificationService, NotificationService>();
+            
 
             return services;
         }

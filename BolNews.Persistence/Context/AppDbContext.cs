@@ -24,7 +24,7 @@ namespace BolNews.Persistence.Context
         public DbSet<Author> Authors { get; set; }
         public DbSet<ArticleAnalytics> ArticleAnalytics { get; set; }
         public DbSet<ArticleRevision> ArticleRevisions { get; set; }
-
+        public DbSet<Notification> Notifications { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
