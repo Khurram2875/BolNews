@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BolNews.Application.DTOs;
 using BolNews.Domain.Entities;
+using BolNews.Domain.Enums;
 
 namespace BolNews.Application.Interfaces
 {
@@ -35,5 +36,7 @@ namespace BolNews.Application.Interfaces
         Task BulkUpdateAsync(IEnumerable<Article> articles);
         Task<List<Article>> GetTopRankedPublishedAsync(int count);
         Task<List<Article>> GetTopRankedByCategoryAsync(int categoryId, int count);
+        Task<List<Article>> GetByWorkflowStatusAsync(ArticleWorkflowStatus status);
+        Task<List<Article>> GetEditorialQueueAsync(params ArticleWorkflowStatus[] statuses);
     }
 }

@@ -1,4 +1,5 @@
 ﻿@using BolNews.Domain.Common
+@using BolNews.Domain.Enums
 @model BolNews.Web.Areas.Admin.ViewModels.ArticleVM
 
 @{
@@ -191,7 +192,7 @@
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
 
-            @if (!isAuthor)
+           @*  @if (!isAuthor)
             {
                 <div class="mb-3">
                     <label>Author</label>
@@ -199,8 +200,53 @@
                            readonly
                            class="form-control" />
                 </div>
-            }
+            } *@
+            @if (isAuthor && Model.WorkflowStatus == ArticleWorkflowStatus.Rejected)
+            {
+                <div class="alert alert-danger mb-3">
+                    <strong>Editorial Review Rejected</strong>
 
+                    @if (!string.IsNullOrWhiteSpace(Model.WorkflowComment))
+                    {
+                        <div class="mt-2">
+                            Reason: @Model.WorkflowComment
+                        </div>
+                    }
+
+                    <div class="mt-2">
+                        Please revise and resubmit.
+                    </div>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input asp-for="SubmitForReview"
+                           class="form-check-input" />
+
+                    <label asp-for="SubmitForReview"
+                           class="form-check-label">
+                        Submit For Editorial Review
+                    </label>
+                </div>
+            }
+            else if (isAuthor && Model.WorkflowStatus == ArticleWorkflowStatus.Draft)
+            {
+                <div class="form-check mb-3">
+                    <input asp-for="SubmitForReview"
+                           class="form-check-input" />
+
+                    <label asp-for="SubmitForReview"
+                           class="form-check-label">
+                        Submit For Editorial Review
+                    </label>
+                </div>
+            }
+            else if (isAuthor && Model.WorkflowStatus == ArticleWorkflowStatus.Submitted)
+            {
+                <div class="alert alert-info">
+                    This article has already been submitted for editorial review.
+                </div>
+            }
+            
             <button type="submit" class="btn btn-warning">
                 <i class="bi bi-pencil-square"></i> Update
             </button>

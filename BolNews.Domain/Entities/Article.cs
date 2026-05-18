@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BolNews.Domain.Entities.Base;
+using BolNews.Domain.Enums;
 
 namespace BolNews.Domain.Entities
 {
@@ -33,7 +34,13 @@ namespace BolNews.Domain.Entities
 
         public bool IsPublished { get; set; }
         public DateTime? PublishedAt { get; set; }
+        public ArticleWorkflowStatus WorkflowStatus { get; set; }
+        public string? WorkflowComment { get; set; }
+        public string? ReviewerUserId { get; set; }
+        public ApplicationUser? ReviewerUser { get; set; }
 
+        public string? FactCheckerUserId { get; set; }
+        public ApplicationUser? FactCheckerUser { get; set; }
         public int ViewCount { get; set; }
 
         #region Editorial Intelligence

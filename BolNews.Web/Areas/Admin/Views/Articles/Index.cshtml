@@ -1,4 +1,6 @@
-﻿@model IEnumerable<BolNews.Web.Areas.Admin.ViewModels.ArticleVM>
+﻿@using BolNews.Domain.Common
+@using BolNews.Domain.Enums
+@model IEnumerable<BolNews.Web.Areas.Admin.ViewModels.ArticleVM>
 
 @{
     ViewData["Title"] = "Articles";
@@ -34,7 +36,7 @@
                     <th>Title</th>
                     <th>Author</th>
                     <th>Category</th>
-                    <th>Published At</th>
+                   @*  <th>Published At</th> *@
                     <th>Status</th>
                     <th class="text-center">Actions</th>
                 </tr>
@@ -64,11 +66,97 @@
                         <td>@article.Title</td>
                         <td>@article.AuthorName</td>
                         <td>@article.CategoryName</td>
-                        <td>@article.PublishedAt?.ToString("yyyy-MM-dd HH:mm")</td>
+                        @* <td>@article.PublishedAt?.ToString("yyyy-MM-dd HH:mm")</td> *@
                         <td>
-                            <span class="badge @(article.IsPublished ? "bg-success" : "bg-secondary")">
-                                @(article.IsPublished ? "Published" : "Draft")
-                            </span>
+                            @switch (article.WorkflowStatus)
+                            {
+                                case ArticleWorkflowStatus.Draft:
+                                    <span class="badge bg-secondary">Draft</span>
+                                    break;
+
+                                case ArticleWorkflowStatus.Submitted:
+                                    <span class="badge bg-info text-dark">Submitted</span>
+                                    break;
+
+                                case ArticleWorkflowStatus.UnderReview:
+                                    <span class="badge bg-primary">Under Review</span>
+                                    break;
+
+                                case ArticleWorkflowStatus.FactCheckPending:
+                                    <span class="badge bg-warning text-dark">Fact Check</span>
+                                    break;
+
+                                case ArticleWorkflowStatus.Approved:
+                                    <span class="badge bg-success">Approved</span>
+                                    break;
+
+                                case ArticleWorkflowStatus.Rejected:
+                                    <span class="badge bg-danger">Rejected</span>
+                                    break;
+
+                                case ArticleWorkflowStatus.Published:
+                                    <span class="badge bg-dark">Published</span>
+                                    break;
+
+                                case ArticleWorkflowStatus.Archived:
+                                    <span class="badge bg-light text-dark">Archived</span>
+                                    break;
+
+                                default:
+                                    <span class="badge bg-secondary">Unknown</span>
+                                    break;
+                            }
+                            
+                            @if (User.IsInRole(Roles.Author))
+                            {
+                                <div class="small mt-1">
+
+                                    @if (article.WorkflowStatus == ArticleWorkflowStatus.Submitted ||
+                                                                article.WorkflowStatus == ArticleWorkflowStatus.UnderReview)
+                                    {
+                                        @if (!string.IsNullOrWhiteSpace(article.ReviewerName))
+                                        {
+                                            <div class="text-muted">
+                                                Reviewer: @article.ReviewerName
+                                            </div>
+                                        }
+                                    }
+
+                                    @if (article.WorkflowStatus == ArticleWorkflowStatus.FactCheckPending)
+                                    {
+                                        @if (!string.IsNullOrWhiteSpace(article.ReviewerName))
+                                        {
+                                            <div class="text-muted">
+                                                Reviewed by: @article.ReviewerName
+                                            </div>
+                                        }
+
+                                        @if (!string.IsNullOrWhiteSpace(article.FactCheckerName))
+                                        {
+                                            <div class="text-muted">
+                                                Fact Checker: @article.FactCheckerName
+                                            </div>
+                                        }
+                                    }
+
+                                    @if (article.WorkflowStatus == ArticleWorkflowStatus.Rejected &&
+                                                                !string.IsNullOrWhiteSpace(article.WorkflowComment))
+                                    {
+                                        <div class="text-danger mt-1">
+                                            Reason: @article.WorkflowComment
+                                        </div>
+                                    }
+
+                                    @if (article.WorkflowStatus == ArticleWorkflowStatus.Published &&
+                                                                article.PublishedAt.HasValue)
+                                    {
+                                        <div class="text-success mt-1">
+                                            
+                                            @article.PublishedAt.Value.ToString("g")
+                                        </div>
+                                    }
+                                </div>
+                            }
                         </td>
                         <td class="text-center">
                             <a asp-action="Edit" asp-route-id="@article.Id" class="badge bg-warning me-1">

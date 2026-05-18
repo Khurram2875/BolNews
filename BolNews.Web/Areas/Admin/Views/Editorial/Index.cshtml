@@ -1,0 +1,624 @@
+﻿@using BolNews.Domain.Enums
+@using BolNews.Web.Areas.Admin.ViewModels
+@using BolNews.Domain.Entities
+
+@model EditorialDashboardVM
+
+@{
+    ViewData["Title"] = "Editorial Dashboard";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var editorialUsers = ViewBag.EditorialUsers as List<ApplicationUser> ?? new();
+    var currentFilter = ViewBag.CurrentFilter?.ToString()?.ToLower() ?? "all";
+}
+
+<div class="container-fluid">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Editorial Dashboard</h2>
+            <p class="text-muted mb-0">
+                Newsroom workflow operations center
+            </p>
+        </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="mb-4">
+        <div class="btn-group">
+
+            <a asp-action="Index"
+               asp-route-filter="all"
+               class="btn @(currentFilter == "all"
+                                  ? "btn-primary"
+                                  : "btn-outline-primary")">
+                All Work
+            </a>
+
+            <a asp-action="Index"
+               asp-route-filter="mine"
+               class="btn @(currentFilter == "mine"
+                                  ? "btn-primary"
+                                  : "btn-outline-primary")">
+                My Assigned Work
+            </a>
+
+            <a asp-action="Index"
+               asp-route-filter="unassigned"
+               class="btn @(currentFilter == "unassigned"
+                                  ? "btn-primary"
+                                  : "btn-outline-primary")">
+                Unassigned
+            </a>
+
+        </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="row mb-4">
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Submitted</h6>
+                    <h2>@Model.Submitted.Count</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Under Review</h6>
+                    <h2>@Model.UnderReview.Count</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Fact Check</h6>
+                    <h2>@Model.FactCheckPending.Count</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Approved</h6>
+                    <h2>@Model.Approved.Count</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SUBMITTED -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            Submitted Queue (@Model.Submitted.Count)
+        </div>
+
+        <div class="card-body">
+            @if (Model.Submitted.Any())
+            {
+                <table class="table-hover table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Reviewer</th>
+                            <th>Fact Checker</th>
+                            <th>Category</th>
+                            <th>Score</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var item in Model.Submitted)
+                        {
+                            <tr>
+                                <td><strong>@item.Title</strong></td>
+                                <td>@item.AuthorName</td>
+
+                                <td>
+                                    <form asp-action="AssignReviewer" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="articleId" value="@item.Id" />
+
+                                        <select name="reviewerUserId"
+                                                class="form-select form-select-sm"
+                                                onchange="this.form.submit()">
+                                            <option value="">Assign Reviewer</option>
+
+                                            @foreach (var user in editorialUsers)
+                                            {
+                                                if (item.ReviewerUserId == user.Id)
+                                                {
+                                                    <option value="@user.Id" selected>@user.FullName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@user.Id">@user.FullName</option>
+                                                }
+                                            }
+                                        </select>
+                                    </form>
+                                </td>
+
+                                <td>
+                                    <form asp-action="AssignFactChecker" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="articleId" value="@item.Id" />
+
+                                        <select name="factCheckerUserId"
+                                                class="form-select form-select-sm"
+                                                onchange="this.form.submit()">
+                                            <option value="">Assign Fact Checker</option>
+
+                                            @foreach (var user in editorialUsers)
+                                            {
+                                                if (item.FactCheckerUserId == user.Id)
+                                                {
+                                                    <option value="@user.Id" selected>@user.FullName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@user.Id">@user.FullName</option>
+                                                }
+                                            }
+                                        </select>
+                                    </form>
+                                </td>
+
+                                <td>@item.CategoryName</td>
+                                <td><strong>@item.OverallScore</strong></td>
+                                <td>@item.CreatedAt.ToString("g")</td>
+
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1">
+
+                                        <a asp-area="Admin"
+                                           asp-controller="Articles"
+                                           asp-action="Edit"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-warning">
+                                            Review
+                                        </a>
+
+                                        <form asp-action="Transition" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="articleId" value="@item.Id" />
+                                            <input type="hidden" name="targetStatus" value="UnderReview" />
+
+                                            <button class="btn btn-sm btn-primary">
+                                                Take Review
+                                            </button>
+                                        </form>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-danger"
+                                                onclick="openRejectModal(@item.Id)">
+                                            Reject
+                                        </button>
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted mb-0">No submitted articles.</p>
+            }
+        </div>
+    </div>
+
+    <!-- UNDER REVIEW -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            Under Review (@Model.UnderReview.Count)
+        </div>
+
+        <div class="card-body">
+            @if (Model.UnderReview.Any())
+            {
+                <table class="table-hover table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Reviewer</th>
+                            <th>Fact Checker</th>
+                            <th>Category</th>
+                            <th>Score</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var item in Model.UnderReview)
+                        {
+                            <tr>
+                                <td><strong>@item.Title</strong></td>
+                                <td>@item.AuthorName</td>
+
+                                <td>
+                                    <form asp-action="AssignReviewer" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="articleId" value="@item.Id" />
+
+                                        <select name="reviewerUserId"
+                                                class="form-select form-select-sm"
+                                                onchange="this.form.submit()">
+                                            <option value="">Assign Reviewer</option>
+
+                                            @foreach (var user in editorialUsers)
+                                            {
+                                                if (item.ReviewerUserId == user.Id)
+                                                {
+                                                    <option value="@user.Id" selected>@user.FullName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@user.Id">@user.FullName</option>
+                                                }
+                                            }
+                                        </select>
+                                    </form>
+                                </td>
+
+                                <td>
+                                    <form asp-action="AssignFactChecker" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="articleId" value="@item.Id" />
+
+                                        <select name="factCheckerUserId"
+                                                class="form-select form-select-sm"
+                                                onchange="this.form.submit()">
+                                            <option value="">Assign Fact Checker</option>
+
+                                            @foreach (var user in editorialUsers)
+                                            {
+                                                if (item.FactCheckerUserId == user.Id)
+                                                {
+                                                    <option value="@user.Id" selected>@user.FullName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@user.Id">@user.FullName</option>
+                                                }
+                                            }
+                                        </select>
+                                    </form>
+                                </td>
+
+                                <td>@item.CategoryName</td>
+                                <td><strong>@item.OverallScore</strong></td>
+                                <td>@item.CreatedAt.ToString("g")</td>
+
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1">
+
+                                        <a asp-area="Admin"
+                                           asp-controller="Articles"
+                                           asp-action="Edit"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-warning">
+                                            Review
+                                        </a>
+
+                                        <form asp-action="Transition" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="articleId" value="@item.Id" />
+                                            <input type="hidden" name="targetStatus" value="FactCheckPending" />
+
+                                            <button class="btn btn-sm btn-info">
+                                                Fact Check
+                                            </button>
+                                        </form>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-danger"
+                                                onclick="openRejectModal(@item.Id)">
+                                            Reject
+                                        </button>
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted mb-0">No articles under review.</p>
+            }
+        </div>
+    </div>
+
+    <!-- FACT CHECK -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-warning text-dark">
+            Fact Check Pending (@Model.FactCheckPending.Count)
+        </div>
+
+        <div class="card-body">
+            @if (Model.FactCheckPending.Any())
+            {
+                <table class="table-hover table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Reviewer</th>
+                            <th>Fact Checker</th>
+                            <th>Category</th>
+                            <th>Score</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var item in Model.FactCheckPending)
+                        {
+                            <tr>
+                                <td><strong>@item.Title</strong></td>
+                                <td>@item.AuthorName</td>
+
+                                <td>
+                                    <form asp-action="AssignReviewer" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="articleId" value="@item.Id" />
+
+                                        <select name="reviewerUserId"
+                                                class="form-select form-select-sm"
+                                                onchange="this.form.submit()">
+                                            <option value="">Assign Reviewer</option>
+
+                                            @foreach (var user in editorialUsers)
+                                            {
+                                                if (item.ReviewerUserId == user.Id)
+                                                {
+                                                    <option value="@user.Id" selected>@user.FullName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@user.Id">@user.FullName</option>
+                                                }
+                                            }
+                                        </select>
+                                    </form>
+                                </td>
+
+                                <td>
+                                    <form asp-action="AssignFactChecker" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="articleId" value="@item.Id" />
+
+                                        <select name="factCheckerUserId"
+                                                class="form-select form-select-sm"
+                                                onchange="this.form.submit()">
+                                            <option value="">Assign Fact Checker</option>
+
+                                            @foreach (var user in editorialUsers)
+                                            {
+                                                if (item.FactCheckerUserId == user.Id)
+                                                {
+                                                    <option value="@user.Id" selected>@user.FullName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@user.Id">@user.FullName</option>
+                                                }
+                                            }
+                                        </select>
+                                    </form>
+                                </td>
+
+                                <td>@item.CategoryName</td>
+                                <td><strong>@item.OverallScore</strong></td>
+                                <td>@item.CreatedAt.ToString("g")</td>
+
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1">
+
+                                        <a asp-area="Admin"
+                                           asp-controller="Articles"
+                                           asp-action="Edit"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-warning">
+                                            Review
+                                        </a>
+
+                                        <form asp-action="Transition" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="articleId" value="@item.Id" />
+                                            <input type="hidden" name="targetStatus" value="Approved" />
+
+                                            <button class="btn btn-sm btn-success">
+                                                Approve
+                                            </button>
+                                        </form>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-danger"
+                                                onclick="openRejectModal(@item.Id)">
+                                            Reject
+                                        </button>
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted mb-0">No articles awaiting fact check.</p>
+            }
+        </div>
+    </div>
+
+    <!-- APPROVED -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-success text-white">
+            Approved For Publishing (@Model.Approved.Count)
+        </div>
+
+        <div class="card-body">
+            @if (Model.Approved.Any())
+            {
+                <table class="table-hover table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Reviewer</th>
+                            <th>Fact Checker</th>
+                            <th>Category</th>
+                            <th>Score</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var item in Model.Approved)
+                        {
+                            <tr>
+                                <td><strong>@item.Title</strong></td>
+                                <td>@item.AuthorName</td>
+
+                                <td>@(item.ReviewerName ?? "Unassigned")</td>
+                                <td>@(item.FactCheckerName ?? "Unassigned")</td>
+
+                                <td>@item.CategoryName</td>
+                                <td><strong>@item.OverallScore</strong></td>
+                                <td>@item.CreatedAt.ToString("g")</td>
+
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1">
+
+                                        <a asp-area="Admin"
+                                           asp-controller="Articles"
+                                           asp-action="Edit"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-warning">
+                                            Review
+                                        </a>
+
+                                        <form asp-action="Transition" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="articleId" value="@item.Id" />
+                                            <input type="hidden" name="targetStatus" value="Published" />
+
+                                            <button class="btn btn-sm btn-dark">
+                                                Publish
+                                            </button>
+                                        </form>
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted mb-0">No approved articles ready to publish.</p>
+            }
+        </div>
+    </div>
+
+</div>
+
+<!-- REJECT MODAL -->
+<div class="modal fade"
+     id="rejectModal"
+     tabindex="-1"
+     aria-hidden="true">
+
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <form asp-action="Transition" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Reject Article</h5>
+
+                    <button type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal">
+                    </button>
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden"
+                           id="rejectArticleId"
+                           name="articleId" />
+
+                    <input type="hidden"
+                           name="targetStatus"
+                           value="Rejected" />
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Rejection Reason
+                        </label>
+
+                        <textarea name="reason"
+                                  class="form-control"
+                                  rows="5"
+                                  required
+                                  placeholder="Enter editorial rejection reason..."></textarea>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-danger">
+                        Confirm Reject
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+        function openRejectModal(articleId) {
+            document.getElementById('rejectArticleId').value = articleId;
+
+            var modal =
+                new bootstrap.Modal(
+                    document.getElementById('rejectModal'));
+
+            modal.show();
+        }
+    </script>
+}

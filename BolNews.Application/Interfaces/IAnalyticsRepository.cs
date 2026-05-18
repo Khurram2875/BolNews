@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BolNews.Domain.Entities;
+using BolNews.Domain.Enums;
 
 namespace BolNews.Application.Interfaces
 {
@@ -16,5 +17,6 @@ namespace BolNews.Application.Interfaces
         Task<List<ArticleAnalytics>> GetRecentWithArticlesAsync(DateTime since);
         Task<List<int>> GetLowCtrArticleIdsAsync(int minImpressions, double maxCtrThreshold);
         Task<List<Article>> GetArticlesByIdsAsync(List<int> ids);
+        
     }
 }

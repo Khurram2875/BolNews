@@ -4,6 +4,7 @@ using BolNews.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BolNews.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260515171150_AddArticleWorkflowStatus")]
+    partial class AddArticleWorkflowStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -140,9 +143,6 @@ namespace BolNews.Persistence.Migrations
                         .HasColumnType("decimal(5,2)")
                         .HasDefaultValue(0m);
 
-                    b.Property<string>("FactCheckerUserId")
-                        .HasColumnType("varchar(95)");
-
                     b.Property<string>("FeaturedImageLarge")
                         .HasColumnType("longtext");
 
@@ -203,9 +203,6 @@ namespace BolNews.Persistence.Migrations
                     b.Property<DateTime?>("PublishedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("ReviewerUserId")
-                        .HasColumnType("varchar(95)");
-
                     b.Property<decimal>("SeoScore")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(5, 2)
@@ -238,9 +235,6 @@ namespace BolNews.Persistence.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
-                    b.Property<string>("WorkflowComment")
-                        .HasColumnType("longtext");
-
                     b.Property<int>("WorkflowStatus")
                         .HasColumnType("int");
 
@@ -248,15 +242,11 @@ namespace BolNews.Persistence.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.HasIndex("FactCheckerUserId");
-
                     b.HasIndex("IsPublished");
 
                     b.HasIndex("OverallScore");
 
                     b.HasIndex("PublishedAt");
-
-                    b.HasIndex("ReviewerUserId");
 
                     b.HasIndex("Slug")
                         .IsUnique();
@@ -639,21 +629,9 @@ namespace BolNews.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("BolNews.Domain.Entities.ApplicationUser", "FactCheckerUser")
-                        .WithMany()
-                        .HasForeignKey("FactCheckerUserId");
-
-                    b.HasOne("BolNews.Domain.Entities.ApplicationUser", "ReviewerUser")
-                        .WithMany()
-                        .HasForeignKey("ReviewerUserId");
-
                     b.Navigation("Author");
 
                     b.Navigation("Category");
-
-                    b.Navigation("FactCheckerUser");
-
-                    b.Navigation("ReviewerUser");
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.ArticleAnalytics", b =>

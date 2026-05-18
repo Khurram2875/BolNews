@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BolNews.Domain.Enums;
 
 namespace BolNews.Application.DTOs
 {
@@ -34,6 +35,11 @@ namespace BolNews.Application.DTOs
 
         public bool IsPublished { get; set; }
         public DateTime? PublishedAt { get; set; }
+        public ArticleWorkflowStatus WorkflowStatus { get; set; }
+        public string? WorkflowComment { get; set; }
+        public string? ReviewerName { get; set; }
+        public string? FactCheckerName { get; set; }
+        public bool SubmitForReview { get; set; }
         public bool IsEditorsPick { get; set; }
         public int EditorialPriority { get; set; }
         public bool IsFactChecked { get; set; }

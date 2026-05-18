@@ -7,6 +7,7 @@
     var isAdmin = User.IsInRole(Roles.Admin);
     var isEditor = User.IsInRole(Roles.Editor);
     var isSubEditor = User.IsInRole(Roles.SubEditor);
+    var isAuthor = User.IsInRole(Roles.Author);
 
     var canPublish = isAdmin || isEditor || isSubEditor;
     var canEditorsPick = isAdmin || isEditor;
@@ -157,7 +158,18 @@
 
                 </div>
             </div>
+            @if (isAuthor)
+            {
+                <div class="form-check mb-3">
+                    <input asp-for="SubmitForReview"
+                           class="form-check-input" />
 
+                    <label asp-for="SubmitForReview"
+                           class="form-check-label">
+                        Submit For Editorial Review
+                    </label>
+                </div>
+            }
            @*  <div class="mb-3">
                 <label asp-for="PublishedAt" class="form-label"></label>
                 <input asp-for="PublishedAt" type="datetime-local" class="form-control" />

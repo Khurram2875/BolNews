@@ -1,6 +1,7 @@
 using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
 using BolNews.Domain.Entities;
+using BolNews.Domain.Enums;
 using BolNews.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,6 +31,8 @@ namespace BolNews.Persistence.Repositories
                 .Include(a => a.Author)
                     .ThenInclude(a => a.User)
                 .Include(a => a.Category)
+                .Include(a => a.ReviewerUser)
+                .Include(a => a.FactCheckerUser)
                 .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
         }
 
@@ -45,8 +48,11 @@ namespace BolNews.Persistence.Repositories
 
         public async Task<List<Article>> GetAllAsync()
             => await _context.Articles
-                .Include(a => a.Author).ThenInclude(a => a.User)
+                .Include(a => a.Author)
+                    .ThenInclude(a => a.User)
                 .Include(a => a.Category)
+                .Include(a => a.ReviewerUser)
+                .Include(a => a.FactCheckerUser)
                 .Where(a => !a.IsDeleted)
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();
@@ -220,6 +226,32 @@ namespace BolNews.Persistence.Repositories
                 .ThenByDescending(a => a.PublishedAt)
                 .Take(count)
                 .ToListAsync();
+        }
+        public async Task<List<Article>> GetByWorkflowStatusAsync(ArticleWorkflowStatus status)
+        {
+            return await _context.Articles
+                .Include(a => a.Author)
+                    .ThenInclude(a => a.User)
+                .Include(a => a.Category)
+                .Where(a =>
+                    !a.IsDeleted &&
+                    a.WorkflowStatus == status)
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+        }
+        public async Task<List<Article>> GetEditorialQueueAsync(params ArticleWorkflowStatus[] statuses)
+        {
+            return await _context.Articles
+             .Include(a => a.Author)
+             .ThenInclude(a => a.User)
+             .Include(a => a.Category)
+             .Include(a => a.ReviewerUser)
+             .Include(a => a.FactCheckerUser)
+             .Where(a =>
+                 !a.IsDeleted &&
+                 statuses.Contains(a.WorkflowStatus))
+             .OrderByDescending(a => a.CreatedAt)
+             .ToListAsync();
         }
     }
 }

@@ -4,6 +4,7 @@ using BolNews.Application.Interfaces;
 using BolNews.Application.Interfaces.Scoring;
 using BolNews.Domain.Common;
 using BolNews.Domain.Entities;
+using BolNews.Domain.Enums;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace BolNews.Application.Services
@@ -28,32 +29,44 @@ namespace BolNews.Application.Services
 
         private bool IsAuthor(IList<string> roles)
             => roles.Contains(Roles.Author);
-        private void ValidateArticleEditPermission(Article article, string currentUserId, IList<string> roles)
+        private void ValidateArticleEditPermission(
+    Article article,
+    string currentUserId,
+    IList<string> roles)
         {
+            // Editorial roles have full edit authority
             if (IsAdmin(roles) || IsEditor(roles) || IsSubEditor(roles))
                 return;
 
+            // Author rules
             if (IsAuthor(roles))
             {
-                var ownsArticle = article.CreatedBy == currentUserId;
+                var ownsArticle = article.Author?.UserId == currentUserId;
 
                 if (!ownsArticle)
+                {
                     throw new UnauthorizedAccessException(
                         "Authors can only edit their own articles.");
+                }
 
-                if (article.IsPublished)
+                var editableStatuses = new[]
+                {
+            ArticleWorkflowStatus.Draft,
+            ArticleWorkflowStatus.Rejected
+        };
+
+                if (!editableStatuses.Contains(article.WorkflowStatus))
+                {
                     throw new UnauthorizedAccessException(
-                        "Authors cannot edit published articles.");
+                        "This article is currently in editorial workflow and cannot be edited.");
+                }
 
                 return;
             }
 
             throw new UnauthorizedAccessException("Access denied.");
         }
-        private void ApplyEditorialControls(
-    Article article,
-    ArticleDto dto,
-    IList<string> roles)
+        private void ApplyEditorialControls(Article article, ArticleDto dto, IList<string> roles)
         {
             if (IsAdmin(roles) || IsEditor(roles))
             {
@@ -62,8 +75,21 @@ namespace BolNews.Application.Services
                 article.IsFactChecked = dto.IsFactChecked;
                 article.IsPublished = dto.IsPublished;
 
-                if (dto.IsPublished && !article.PublishedAt.HasValue)
-                    article.PublishedAt = DateTime.UtcNow;
+                if (dto.IsPublished)
+                {
+                    article.IsPublished = true;
+                    article.WorkflowStatus = ArticleWorkflowStatus.Published;
+
+                    if (!article.PublishedAt.HasValue)
+                        article.PublishedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    article.IsPublished = false;
+
+                    if (article.WorkflowStatus == ArticleWorkflowStatus.Published)
+                        article.WorkflowStatus = ArticleWorkflowStatus.Draft;
+                }
 
                 if (!dto.IsPublished)
                     article.PublishedAt = null;
@@ -141,7 +167,8 @@ namespace BolNews.Application.Services
                 AuthorId = dto.AuthorId,
 
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = currentUserId
+                CreatedBy = currentUserId,
+                WorkflowStatus = DetermineInitialWorkflowStatus(dto, roles),
             };
 
             ApplyEditorialControls(article, dto, roles);
@@ -184,24 +211,16 @@ namespace BolNews.Application.Services
             article.UpdatedBy = currentUserId;
 
             ApplyEditorialControls(article, dto, roles);
-
+            // AUTHOR SUBMISSION WORKFLOW
+            if (IsAuthor(roles) && dto.SubmitForReview)
+            {
+                article.WorkflowStatus = ArticleWorkflowStatus.Submitted;
+                article.WorkflowComment = null;
+            }
             await _articleScoringService.CalculateScoresAsync(article);
 
             await _repo.UpdateAsync(article);
-            //article.Title = dto.Title;
-            //article.Slug = dto.Slug;
-            //article.Summary = dto.Summary;
-            //article.Content = dto.Content;
-            //article.MetaTitle = dto.MetaTitle;
-            //article.MetaDescription = dto.MetaDescription;
-            //article.FeaturedImageXl = dto.FeaturedImageXl;
-            //article.CategoryId = dto.CategoryId;
-            //article.IsPublished = dto.IsPublished;
-            //article.UpdatedAt = DateTime.UtcNow;
-            //if (dto.IsPublished && article.PublishedAt == null)
-            //    article.PublishedAt = DateTime.UtcNow;
-            //await _articleScoringService.CalculateScoresAsync(article);
-            //await _repo.UpdateAsync(article);
+            
         }
 
         public async Task DeleteAsync(int id)
@@ -234,6 +253,8 @@ namespace BolNews.Application.Services
                 AuthorName= a.Author.Name,
                 IsPublished = a.IsPublished,
                 PublishedAt = a.PublishedAt,
+                WorkflowStatus = a.WorkflowStatus,
+                WorkflowComment = a.WorkflowComment,
                 IsEditorsPick = a.IsEditorsPick,
                 EditorialPriority = a.EditorialPriority,
                 IsFactChecked = a.IsFactChecked,
@@ -265,6 +286,10 @@ namespace BolNews.Application.Services
                 CategoryId = a.CategoryId,
                 IsPublished = a.IsPublished,
                 PublishedAt = a.PublishedAt,
+                WorkflowStatus = a.WorkflowStatus,
+                ReviewerName = a.ReviewerUser?.FullName,
+                FactCheckerName = a.FactCheckerUser?.FullName,
+                WorkflowComment = a.WorkflowComment,
                 IsEditorsPick = a.IsEditorsPick,
                 EditorialPriority = a.EditorialPriority,
                 IsFactChecked = a.IsFactChecked,
@@ -368,16 +393,23 @@ namespace BolNews.Application.Services
                 return true;
             }
 
+            //if (roles.Contains(Roles.Author))
+            //{
+            //    var ownerUserId = article.Author?.UserId;
+            //    var currentUserId = userId;
+            //    var isPublished = article.IsPublished;
+
+            //    return ownerUserId == currentUserId
+            //           && !isPublished;
+            //}
             if (roles.Contains(Roles.Author))
             {
-                var ownerUserId = article.Author?.UserId;
-                var currentUserId = userId;
-                var isPublished = article.IsPublished;
-
-                return ownerUserId == currentUserId
-                       && !isPublished;
+                return article.Author?.UserId == userId &&
+                     (
+                       article.WorkflowStatus == ArticleWorkflowStatus.Draft ||
+                       article.WorkflowStatus == ArticleWorkflowStatus.Rejected
+                    );
             }
-
             return false;
         }
 
@@ -442,6 +474,199 @@ namespace BolNews.Application.Services
                 AuthorName = a.Author?.User?.FullName,
                 CategoryName = a.Category?.Name
             });
+        }
+        private ArticleWorkflowStatus DetermineInitialWorkflowStatus(ArticleDto dto, IList<string> roles)
+        {
+            if (IsAuthor(roles))
+            {
+                return dto.SubmitForReview
+                    ? ArticleWorkflowStatus.Submitted
+                    : ArticleWorkflowStatus.Draft;
+            }
+
+            if (IsSubEditor(roles))
+            {
+                return dto.IsPublished
+                    ? ArticleWorkflowStatus.Published
+                    : ArticleWorkflowStatus.UnderReview;
+            }
+
+            if (IsEditor(roles) || IsAdmin(roles))
+            {
+                return dto.IsPublished
+                    ? ArticleWorkflowStatus.Published
+                    : ArticleWorkflowStatus.Approved;
+            }
+
+            return ArticleWorkflowStatus.Draft;
+        }
+        public async Task<List<EditorialQueueDto>> GetEditorialQueueAsync(IList<string> roles)
+        {
+            if (!(IsAdmin(roles) || IsEditor(roles) || IsSubEditor(roles)))
+                return new List<EditorialQueueDto>();
+
+            var articles = await _repo.GetEditorialQueueAsync(
+                ArticleWorkflowStatus.Submitted,
+                ArticleWorkflowStatus.UnderReview,
+                ArticleWorkflowStatus.FactCheckPending,
+                ArticleWorkflowStatus.Approved);
+
+            return articles.Select(a => new EditorialQueueDto
+            {
+                Id = a.Id,
+                Title = a.Title,
+                AuthorName = a.Author?.Name ?? "",
+                CategoryName = a.Category?.Name ?? "",
+                CreatedAt = a.CreatedAt,
+                WorkflowStatus = a.WorkflowStatus,
+                OverallScore = a.OverallScore,
+                IsFactChecked = a.IsFactChecked,
+                IsPublished = a.IsPublished,
+                ReviewerName = a.ReviewerUser?.FullName,
+                FactCheckerName = a.FactCheckerUser?.FullName,
+                ReviewerUserId = a.ReviewerUserId,
+                FactCheckerUserId = a.FactCheckerUserId
+            }).ToList();
+        }
+        public async Task TransitionWorkflowAsync(int articleId,ArticleWorkflowStatus targetStatus,string currentUserId,IList<string> roles,string? reason = null)
+        {
+            var article = await _repo.FindByIdAsync(articleId);
+
+            if (article == null)
+                throw new InvalidOperationException(
+                    $"Article {articleId} not found.");
+
+            if (!(IsAdmin(roles) || IsEditor(roles) || IsSubEditor(roles)))
+                throw new UnauthorizedAccessException(
+                    "You are not authorized for editorial workflow transitions.");
+
+            ValidateWorkflowTransition(article.WorkflowStatus, targetStatus, roles);
+
+            await _articleRevisionService.CreateSnapshotAsync(
+                article,
+                currentUserId,
+                workflowState: $"{article.WorkflowStatus} -> {targetStatus}",
+                changeReason: reason
+            );
+
+            article.WorkflowStatus = targetStatus;
+            //if (targetStatus == ArticleWorkflowStatus.UnderReview)
+            //{
+            //    article.ReviewerUserId = currentUserId;
+            //}
+
+            //if (targetStatus == ArticleWorkflowStatus.FactCheckPending)
+            //{
+            //    article.FactCheckerUserId = currentUserId;
+            //}
+
+            if (targetStatus == ArticleWorkflowStatus.Published)
+            {
+                article.IsPublished = true;
+
+                if (!article.PublishedAt.HasValue)
+                    article.PublishedAt = DateTime.UtcNow;
+            }
+
+            if (targetStatus == ArticleWorkflowStatus.Rejected)
+            {
+                article.IsPublished = false;
+                article.WorkflowComment = reason;
+            }
+            else
+            {
+                article.WorkflowComment = null;
+            }
+
+            article.UpdatedAt = DateTime.UtcNow;
+            article.UpdatedBy = currentUserId;
+
+            await _articleScoringService.CalculateScoresAsync(article);
+
+            await _repo.UpdateAsync(article);
+        }
+        private void ValidateWorkflowTransition(ArticleWorkflowStatus current,ArticleWorkflowStatus target,IList<string> roles)
+        {
+            if (IsAdmin(roles) || IsEditor(roles))
+                return;
+
+            if (IsSubEditor(roles))
+            {
+                var allowed = current switch
+                {
+                    ArticleWorkflowStatus.Submitted =>
+                        target == ArticleWorkflowStatus.UnderReview ||
+                        target == ArticleWorkflowStatus.Rejected,
+
+                    ArticleWorkflowStatus.UnderReview =>
+                        target == ArticleWorkflowStatus.FactCheckPending ||
+                        target == ArticleWorkflowStatus.Rejected,
+
+                    ArticleWorkflowStatus.FactCheckPending =>
+                        target == ArticleWorkflowStatus.Approved ||
+                        target == ArticleWorkflowStatus.Rejected,
+
+                    ArticleWorkflowStatus.Approved =>
+                        target == ArticleWorkflowStatus.Published,
+
+                    _ => false
+                };
+
+                if (!allowed)
+                {
+                    throw new UnauthorizedAccessException(
+                        $"Transition from {current} to {target} is not allowed.");
+                }
+
+                return;
+            }
+
+            throw new UnauthorizedAccessException(
+                "Workflow transition denied.");
+        }
+        public async Task AssignReviewerAsync(int articleId,string reviewerUserId,string currentUserId,IList<string> roles)
+        {
+            if (!(IsAdmin(roles) || IsEditor(roles) || IsSubEditor(roles)))
+            {
+                throw new UnauthorizedAccessException(
+                    "Only editorial staff can assign reviewers.");
+            }
+
+            var article = await _repo.FindByIdAsync(articleId);
+
+            if (article == null)
+            {
+                throw new InvalidOperationException(
+                    $"Article {articleId} not found.");
+            }
+
+            article.ReviewerUserId = reviewerUserId;
+            article.UpdatedAt = DateTime.UtcNow;
+            article.UpdatedBy = currentUserId;
+
+            await _repo.UpdateAsync(article);
+        }
+        public async Task AssignFactCheckerAsync(int articleId,string factCheckerUserId,string currentUserId,IList<string> roles)
+        {
+            if (!(IsAdmin(roles) || IsEditor(roles) || IsSubEditor(roles)))
+            {
+                throw new UnauthorizedAccessException(
+                    "Only editorial staff can assign fact checkers.");
+            }
+
+            var article = await _repo.FindByIdAsync(articleId);
+
+            if (article == null)
+            {
+                throw new InvalidOperationException(
+                    $"Article {articleId} not found.");
+            }
+
+            article.FactCheckerUserId = factCheckerUserId;
+            article.UpdatedAt = DateTime.UtcNow;
+            article.UpdatedBy = currentUserId;
+
+            await _repo.UpdateAsync(article);
         }
     }
 }

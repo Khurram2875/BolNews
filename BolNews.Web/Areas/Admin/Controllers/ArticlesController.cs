@@ -5,6 +5,7 @@ using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
 using BolNews.Domain.Entities;
+using BolNews.Domain.Enums;
 using BolNews.Infrastructure.Services;
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Interfaces;
@@ -163,6 +164,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             var model = _mapper.Map<ArticleVM>(dto);
 
+            model.SubmitForReview = dto.WorkflowStatus == ArticleWorkflowStatus.Submitted;
             // 🔥 show author name (read-only in UI)
             model.AuthorName = dto.AuthorName;
 
