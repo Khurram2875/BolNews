@@ -41,11 +41,7 @@ namespace BolNews.Tests.Integration
               });
 
             _service = new ArticleService(repo,_cache,scoringService,revisionService,authorService.Object, notificationService, workflowTransitionService, editorialAssignmentService);
-<<<<<<< HEAD
-           
-=======
->>>>>>> 5db852a (Modernize SignalR notification UX with live badge, list refresh, and toast)
-        }
+    }
 
         // ── GenerateUniqueSlugAsync ───────────────────────────────────────────
 
