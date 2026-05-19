@@ -45,10 +45,14 @@ namespace BolNews.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Open(int id, string? url)
         {
-            await _notificationService.MarkReadAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Challenge();
 
-            if (!string.IsNullOrWhiteSpace(url))
-                return Redirect(url);
+            await _notificationService.MarkReadAsync(id, user.Id);
+
+            if (!string.IsNullOrWhiteSpace(url) && Url.IsLocalUrl(url))
+                return LocalRedirect(url);
 
             return RedirectToAction(nameof(Index));
         }
