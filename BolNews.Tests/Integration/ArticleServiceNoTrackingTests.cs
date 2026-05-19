@@ -37,6 +37,7 @@ public class ArticleServiceNoTrackingTests
                 notificationServiceMock.Object,
                 workflowTransitionServiceMock.Object,
                 editorialAssignmentServiceMock.Object
+
             );
 
             // SQLite enforces FK constraints — ApplicationUser must exist
