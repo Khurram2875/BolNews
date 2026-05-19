@@ -22,8 +22,10 @@ public class ArticleServiceCategoryBatchingTests
         var revisionServiceMock = new Mock<IArticleRevisionService>();
         var authorServiceMock = new Mock<IAuthorService>();
         var notificationServiceMock = new Mock<INotificationService>();
+
         var workflowTransitionServiceMock = new Mock<IWorkflowTransitionService>();
         var editorialAssignmentServiceMock = new Mock<IEditorialAssignmentService>();
+
 
         var service = new ArticleService(
             repo,
@@ -34,6 +36,7 @@ public class ArticleServiceCategoryBatchingTests
             notificationServiceMock.Object,
             workflowTransitionServiceMock.Object,
             editorialAssignmentServiceMock.Object
+           
         );
 
         var category1 = new Category { Name = "C1", Slug = "c1" };
