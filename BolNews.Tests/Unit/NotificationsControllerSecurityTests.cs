@@ -2,10 +2,8 @@ using BolNews.Application.Interfaces;
 using BolNews.Domain.Entities;
 using BolNews.Web.Areas.Admin.Controllers;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Identity;
 using Moq;
 using Xunit;
@@ -91,5 +89,42 @@ public class NotificationsControllerSecurityTests
 
         notificationService.Verify(x => x.MarkReadAsync(99, "owner-user"), Times.Once);
         notificationService.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Feed_ReturnsUnreadCountAndItems_ForCurrentUser()
+    {
+        var user = new ApplicationUser { Id = "user-1", UserName = "u1" };
+        var notificationService = new Mock<INotificationService>();
+        notificationService.Setup(x => x.GetUnreadAsync("user-1"))
+            .ReturnsAsync(new List<Notification>
+            {
+                new() { Id = 1, Title = "A", Message = "M1", Url = "/Admin/Articles/Edit/1", CreatedAt = DateTime.UtcNow },
+                new() { Id = 2, Title = "B", Message = "M2", Url = "/Admin/Articles/Edit/2", CreatedAt = DateTime.UtcNow.AddMinutes(-1) }
+            });
+
+        var userManager = CreateUserManagerMock();
+        userManager.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync(user);
+
+        var controller = new NotificationsController(notificationService.Object, userManager.Object);
+        var result = await controller.Feed();
+
+        result.Should().BeOfType<JsonResult>();
+        notificationService.Verify(x => x.GetUnreadAsync("user-1"), Times.Once);
+    }
+
+    [Fact]
+    public async Task Feed_WhenUserMissing_ReturnsChallenge()
+    {
+        var notificationService = new Mock<INotificationService>();
+        var userManager = CreateUserManagerMock();
+        userManager.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync((ApplicationUser?)null);
+
+        var controller = new NotificationsController(notificationService.Object, userManager.Object);
+        var result = await controller.Feed();
+
+        result.Should().BeOfType<ChallengeResult>();
     }
 }

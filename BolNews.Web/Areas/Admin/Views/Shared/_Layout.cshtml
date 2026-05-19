@@ -110,7 +110,134 @@
     @RenderSection("Scripts", required: false)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script>
-           document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const notificationCountEl = document.getElementById("bn-notification-count");
+            const notificationListEl = document.getElementById("bn-notification-list");
+
+            function escapeHtml(value) {
+                return (value || "")
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;")
+                    .replaceAll("\"", "&quot;")
+                    .replaceAll("'", "&#039;");
+            }
+
+            function getAntiForgeryToken() {
+                const tokenEl = document.querySelector("input[name='__RequestVerificationToken']");
+                return tokenEl ? tokenEl.value : "";
+            }
+
+            function renderNotifications(feed) {
+                if (!notificationCountEl || !notificationListEl) return;
+
+                const unreadCount = feed?.unreadCount ?? 0;
+                const items = feed?.items ?? [];
+
+                notificationCountEl.textContent = unreadCount.toString();
+                notificationCountEl.classList.toggle("d-none", unreadCount === 0);
+
+                if (items.length === 0) {
+                    notificationListEl.innerHTML = `
+                        <li>
+                            <span class="dropdown-item-text text-muted">
+                                No unread notifications
+                            </span>
+                        </li>`;
+                    return;
+                }
+
+                const token = getAntiForgeryToken();
+                notificationListEl.innerHTML = items.map((item) => {
+                    const trimmedMessage = (item.message || "").length > 120
+                        ? `${item.message.substring(0, 120)}...`
+                        : (item.message || "");
+
+                    return `
+                        <li>
+                            <form action="/Admin/Notifications/Open" method="post">
+                                <input name="__RequestVerificationToken" type="hidden" value="${escapeHtml(token)}" />
+                                <input type="hidden" name="id" value="${item.id}" />
+                                <input type="hidden" name="url" value="${escapeHtml(item.url || "")}" />
+                                <button type="submit" class="dropdown-item text-wrap" style="white-space: normal;">
+                                    <div class="fw-semibold">${escapeHtml(item.title)}</div>
+                                    <div class="small text-muted mt-1">${escapeHtml(trimmedMessage)}</div>
+                                    <div class="small text-secondary mt-1">${escapeHtml(item.createdAt)}</div>
+                                </button>
+                            </form>
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>`;
+                }).join("");
+            }
+
+            function showNotificationToast(item) {
+                if (!item) return;
+
+                let toastHost = document.getElementById("bn-notification-toast-host");
+                if (!toastHost) {
+                    toastHost = document.createElement("div");
+                    toastHost.id = "bn-notification-toast-host";
+                    toastHost.className = "toast-container position-fixed bottom-0 end-0 p-3";
+                    document.body.appendChild(toastHost);
+                }
+
+                const toastId = `bn-toast-${Date.now()}`;
+                const toastMarkup = `
+                    <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header">
+                            <strong class="me-auto">${escapeHtml(item.title || "Notification")}</strong>
+                            <small>just now</small>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            ${escapeHtml(item.message || "")}
+                        </div>
+                    </div>`;
+
+                toastHost.insertAdjacentHTML("beforeend", toastMarkup);
+                const toastEl = document.getElementById(toastId);
+                const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+
+                if (item.url) {
+                    toastEl.style.cursor = "pointer";
+                    toastEl.addEventListener("click", function () {
+                        if (item.url.startsWith("/")) {
+                            window.location.href = item.url;
+                        }
+                    });
+                }
+
+                toastEl.addEventListener("hidden.bs.toast", function () {
+                    toastEl.remove();
+                });
+
+                toast.show();
+            }
+
+            async function refreshNotificationFeed(showToast = false) {
+                try {
+                    const response = await fetch("/Admin/Notifications/Feed", {
+                        method: "GET",
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    });
+
+                    if (!response.ok) return;
+
+                    const feed = await response.json();
+                    const newestItem = Array.isArray(feed?.items) && feed.items.length > 0
+                        ? feed.items[0]
+                        : null;
+
+                    renderNotifications(feed);
+
+                    if (showToast && newestItem) {
+                        showNotificationToast(newestItem);
+                    }
+                } catch (err) {
+                    console.error("Notification feed refresh failed", err);
+                }
+            }
 
             if (typeof signalR === "undefined") {
                 console.error("SignalR failed to load.");
@@ -123,12 +250,14 @@
                     .build();
 
             notificationConnection.on("NotificationReceived", function () {
-                location.reload();
+                refreshNotificationFeed(true);
             });
 
             notificationConnection.start()
                 .then(() => console.log("Notification hub connected"))
                 .catch(err => console.error(err));
+
+            refreshNotificationFeed(false);
         });
     </script>
 </body>

@@ -22,10 +22,15 @@ public class ArticleServiceCategoryBatchingTests
         var revisionServiceMock = new Mock<IArticleRevisionService>();
         var authorServiceMock = new Mock<IAuthorService>();
         var notificationServiceMock = new Mock<INotificationService>();
+<<<<<<< HEAD
 
         var workflowTransitionServiceMock = new Mock<IWorkflowTransitionService>();
         var editorialAssignmentServiceMock = new Mock<IEditorialAssignmentService>();
 
+=======
+        var workflowTransitionServiceMock = new Mock<IWorkflowTransitionService>();
+        var editorialAssignmentServiceMock = new Mock<IEditorialAssignmentService>();
+>>>>>>> 5db852a (Modernize SignalR notification UX with live badge, list refresh, and toast)
 
         var service = new ArticleService(
             repo,
@@ -36,7 +41,10 @@ public class ArticleServiceCategoryBatchingTests
             notificationServiceMock.Object,
             workflowTransitionServiceMock.Object,
             editorialAssignmentServiceMock.Object
+<<<<<<< HEAD
            
+=======
+>>>>>>> 5db852a (Modernize SignalR notification UX with live badge, list refresh, and toast)
         );
 
         var category1 = new Category { Name = "C1", Slug = "c1" };

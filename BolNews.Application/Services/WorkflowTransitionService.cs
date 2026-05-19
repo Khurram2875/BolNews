@@ -68,7 +68,7 @@ namespace BolNews.Application.Services
             {
                 await _notificationService.NotifyAsync(article.Author.UserId, "Article Published",
                     $"Your article '{article.Title}' is now live.",
-                    $"/Articles/{article.Slug}");
+                    $"/news/{article.Category.Slug}/{article.Slug}");
             }
 
             article.UpdatedAt = DateTime.UtcNow;

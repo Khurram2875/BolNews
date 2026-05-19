@@ -37,7 +37,10 @@ public class ArticleServiceNoTrackingTests
                 notificationServiceMock.Object,
                 workflowTransitionServiceMock.Object,
                 editorialAssignmentServiceMock.Object
+<<<<<<< HEAD
                 
+=======
+>>>>>>> 5db852a (Modernize SignalR notification UX with live badge, list refresh, and toast)
             );
 
             // SQLite enforces FK constraints — ApplicationUser must exist
