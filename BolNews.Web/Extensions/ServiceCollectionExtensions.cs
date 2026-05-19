@@ -31,6 +31,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAnalyticsService, AnalyticsService>();
         services.AddScoped<IAdService, AdService>();
         services.AddScoped<IArticleRevisionService, ArticleRevisionService>();
+        services.AddScoped<IWorkflowTransitionService, WorkflowTransitionService>();
+        services.AddScoped<IEditorialAssignmentService, EditorialAssignmentService>();
 
         services.AddMemoryCache();
 

@@ -17,6 +17,8 @@ namespace BolNews.Application.Services
         private readonly IArticleRevisionService _articleRevisionService;
         private readonly IAuthorService _authorService;
         private readonly INotificationService _notificationService;
+        private readonly IWorkflowTransitionService _workflowTransitionService;
+        private readonly IEditorialAssignmentService _editorialAssignmentService;
 
         #region Role and other private helpers
         private bool IsAdmin(IList<string> roles)
@@ -127,7 +129,7 @@ namespace BolNews.Application.Services
             }
         }
         #endregion
-        public ArticleService(IArticleRepository repo, IMemoryCache cache, IArticleScoringService articleScoringService, IArticleRevisionService articleRevisionService, IAuthorService authorService, INotificationService notificationService)
+        public ArticleService(IArticleRepository repo, IMemoryCache cache, IArticleScoringService articleScoringService, IArticleRevisionService articleRevisionService, IAuthorService authorService, INotificationService notificationService, IWorkflowTransitionService workflowTransitionService, IEditorialAssignmentService editorialAssignmentService)
         {
             _repo = repo;
             _cache = cache;
@@ -135,6 +137,8 @@ namespace BolNews.Application.Services
             _articleRevisionService = articleRevisionService;
             _authorService = authorService;
             _notificationService = notificationService;
+            _workflowTransitionService = workflowTransitionService;
+            _editorialAssignmentService = editorialAssignmentService;
         }
 
         public async Task<int> CreateAsync(ArticleDto dto, string currentUserId,IList<string> roles)
@@ -548,120 +552,13 @@ namespace BolNews.Application.Services
                 throw new InvalidOperationException(
                     $"Article {articleId} not found.");
 
-            if (!(IsAdmin(roles) || IsEditor(roles) || IsSubEditor(roles)))
-                throw new UnauthorizedAccessException(
-                    "You are not authorized for editorial workflow transitions.");
-
-            ValidateWorkflowTransition(article.WorkflowStatus, targetStatus, roles);
-
-            await _articleRevisionService.CreateSnapshotAsync(
-                article,
-                currentUserId,
-                workflowState: $"{article.WorkflowStatus} -> {targetStatus}",
-                changeReason: reason
-            );
-
-            article.WorkflowStatus = targetStatus;
-
-            article.UpdatedAt = DateTime.UtcNow;
-            article.UpdatedBy = currentUserId;
-
-            // Clear stale workflow comment by default
-            article.WorkflowComment = null;
-
-            if (targetStatus == ArticleWorkflowStatus.Rejected)
-            {
-                article.IsPublished = false;
-                article.WorkflowComment = reason;
-
-                if (!string.IsNullOrWhiteSpace(article.Author?.UserId))
-                {
-                    await _notificationService.NotifyAsync(
-                        article.Author.UserId,
-                        "Article Rejected",
-                        $"Your article '{article.Title}' was rejected. Reason: {reason}",
-                        $"/Admin/Articles/Edit/{article.Id}");
-                }
-            }
-
-            if (targetStatus == ArticleWorkflowStatus.Approved)
-            {
-                if (!string.IsNullOrWhiteSpace(article.Author?.UserId))
-                {
-                    await _notificationService.NotifyAsync(
-                        article.Author.UserId,
-                        "Article Approved",
-                        $"Your article '{article.Title}' has been approved.",
-                        $"/Admin/Articles/Edit/{article.Id}");
-                }
-            }
-
-            if (targetStatus == ArticleWorkflowStatus.Published)
-            {
-                if (!string.IsNullOrWhiteSpace(article.Author?.UserId))
-                {
-                    await _notificationService.NotifyAsync(
-                        article.Author.UserId,
-                        "Article Published",
-                        $"Your article '{article.Title}' is now live.",
-                        $"/Articles/{article.Slug}");
-                }
-            }
-
-            article.UpdatedAt = DateTime.UtcNow;
-            article.UpdatedBy = currentUserId;
-
-            await _articleScoringService.CalculateScoresAsync(article);
+            await _workflowTransitionService.ExecuteTransitionAsync(
+                article, targetStatus, currentUserId, roles, reason);
 
             await _repo.UpdateAsync(article);
-        }
-        private void ValidateWorkflowTransition(ArticleWorkflowStatus current,ArticleWorkflowStatus target,IList<string> roles)
-        {
-            if (IsAdmin(roles) || IsEditor(roles))
-                return;
-
-            if (IsSubEditor(roles))
-            {
-                var allowed = current switch
-                {
-                    ArticleWorkflowStatus.Submitted =>
-                        target == ArticleWorkflowStatus.UnderReview ||
-                        target == ArticleWorkflowStatus.Rejected,
-
-                    ArticleWorkflowStatus.UnderReview =>
-                        target == ArticleWorkflowStatus.FactCheckPending ||
-                        target == ArticleWorkflowStatus.Rejected,
-
-                    ArticleWorkflowStatus.FactCheckPending =>
-                        target == ArticleWorkflowStatus.Approved ||
-                        target == ArticleWorkflowStatus.Rejected,
-
-                    ArticleWorkflowStatus.Approved =>
-                        target == ArticleWorkflowStatus.Published,
-
-                    _ => false
-                };
-
-                if (!allowed)
-                {
-                    throw new UnauthorizedAccessException(
-                        $"Transition from {current} to {target} is not allowed.");
-                }
-
-                return;
-            }
-
-            throw new UnauthorizedAccessException(
-                "Workflow transition denied.");
         }
         public async Task AssignReviewerAsync(int articleId,string reviewerUserId,string currentUserId,IList<string> roles)
         {
-            if (!(IsAdmin(roles) || IsEditor(roles) || IsSubEditor(roles)))
-            {
-                throw new UnauthorizedAccessException(
-                    "Only editorial staff can assign reviewers.");
-            }
-
             var article = await _repo.FindByIdAsync(articleId);
 
             if (article == null)
@@ -670,29 +567,11 @@ namespace BolNews.Application.Services
                     $"Article {articleId} not found.");
             }
 
-            article.ReviewerUserId = reviewerUserId;
-            article.UpdatedAt = DateTime.UtcNow;
-            article.UpdatedBy = currentUserId;
-
+            await _editorialAssignmentService.AssignReviewerAsync(article, reviewerUserId, currentUserId, roles);
             await _repo.UpdateAsync(article);
-
-            if (!string.IsNullOrWhiteSpace(reviewerUserId))
-            {
-                await _notificationService.NotifyAsync(
-                    reviewerUserId,
-                    "Reviewer Assignment",
-                    $"You have been assigned to review '{article.Title}'.",
-                    $"/Admin/Articles/Edit/{article.Id}");
-            }
         }
         public async Task AssignFactCheckerAsync(int articleId,string factCheckerUserId,string currentUserId,IList<string> roles)
         {
-            if (!(IsAdmin(roles) || IsEditor(roles) || IsSubEditor(roles)))
-            {
-                throw new UnauthorizedAccessException(
-                    "Only editorial staff can assign fact checkers.");
-            }
-
             var article = await _repo.FindByIdAsync(articleId);
 
             if (article == null)
@@ -701,20 +580,8 @@ namespace BolNews.Application.Services
                     $"Article {articleId} not found.");
             }
 
-            article.FactCheckerUserId = factCheckerUserId;
-            article.UpdatedAt = DateTime.UtcNow;
-            article.UpdatedBy = currentUserId;
-
+            await _editorialAssignmentService.AssignFactCheckerAsync(article, factCheckerUserId, currentUserId, roles);
             await _repo.UpdateAsync(article);
-
-            if (!string.IsNullOrWhiteSpace(factCheckerUserId))
-            {
-                await _notificationService.NotifyAsync(
-                    factCheckerUserId,
-                    "Fact Checker Assignment",
-                    $"You have been assigned to fact check '{article.Title}'.",
-                    $"/Admin/Articles/Edit/{article.Id}");
-            }
         }
     }
 }
