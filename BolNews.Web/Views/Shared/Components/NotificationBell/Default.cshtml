@@ -1,8 +1,9 @@
 ﻿@using BolNews.Web.Areas.Admin.ViewModels
 @model List<NotificationVM>
 
-<li class="nav-item dropdown">
+<li class="nav-item dropdown" id="bn-notification-root">
     <a class="nav-link d-flex align-items-center justify-content-between"
+       id="bn-notification-toggle"
        href="#"
        role="button"
        data-bs-toggle="dropdown"
@@ -15,13 +16,18 @@
 
         @if (Model.Any())
         {
-            <span class="badge bg-danger rounded-pill">
+            <span class="badge bg-danger rounded-pill" id="bn-notification-count">
                 @Model.Count
             </span>
+        }
+        else
+        {
+            <span class="badge bg-danger rounded-pill d-none" id="bn-notification-count">0</span>
         }
     </a>
 
     <ul class="dropdown-menu shadow"
+        id="bn-notification-list"
         style="min-width: 320px; max-width: 380px; max-height: 500px; overflow-y: auto;">
 
         @if (!Model.Any())

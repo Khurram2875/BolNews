@@ -13,6 +13,6 @@ namespace BolNews.Application.Interfaces
 
         Task<List<Notification>> GetUnreadAsync(string userId);
 
-        Task MarkReadAsync(int notificationId);
+        Task<bool> MarkReadAsync(int notificationId, string userId);
     }
 }

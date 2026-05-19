@@ -41,14 +41,53 @@ namespace BolNews.Web.Areas.Admin.Controllers
             return View(vm);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Feed()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Challenge();
+
+            var notifications = await _notificationService.GetUnreadAsync(user.Id);
+
+            var vm = notifications
+                .Take(10)
+                .Select(x => new NotificationVM
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    Message = x.Message,
+                    CreatedAt = x.CreatedAt,
+                    Url = x.Url
+                })
+                .ToList();
+
+            return Json(new
+            {
+                unreadCount = notifications.Count,
+                items = vm.Select(x => new
+                {
+                    id = x.Id,
+                    title = x.Title,
+                    message = x.Message,
+                    createdAt = x.CreatedAt.ToString("g"),
+                    url = x.Url
+                })
+            });
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Open(int id, string? url)
         {
-            await _notificationService.MarkReadAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Challenge();
 
-            if (!string.IsNullOrWhiteSpace(url))
-                return Redirect(url);
+            await _notificationService.MarkReadAsync(id, user.Id);
+
+            if (!string.IsNullOrWhiteSpace(url) && Url.IsLocalUrl(url))
+                return LocalRedirect(url);
 
             return RedirectToAction(nameof(Index));
         }

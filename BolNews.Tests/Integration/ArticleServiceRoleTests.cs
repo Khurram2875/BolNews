@@ -25,6 +25,9 @@ namespace BolNews.Tests.Integration
             var scoringService = new Mock<IArticleScoringService>().Object;
 
             var revisionService = new Mock<IArticleRevisionService>().Object;
+            var notificationService = new Mock<INotificationService>().Object;
+            var workflowTransitionService = new Mock<IWorkflowTransitionService>().Object;
+            var editorialAssignmentService = new Mock<IEditorialAssignmentService>().Object;
             var authorService = new Mock<IAuthorService>();
             authorService
               .Setup(x => x.GetAuthorByUserId(It.IsAny<string>()))
@@ -35,7 +38,7 @@ namespace BolNews.Tests.Integration
                   Name = "Test Author"
               });
 
-            _service = new ArticleService(repo, _cache, scoringService, revisionService, authorService.Object);
+            _service = new ArticleService(repo, _cache, scoringService, revisionService, authorService.Object, notificationService, workflowTransitionService, editorialAssignmentService);
         }
 
         // ── CanEditAsync ──────────────────────────────────────────────────────

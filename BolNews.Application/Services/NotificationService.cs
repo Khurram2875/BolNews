@@ -39,7 +39,7 @@ namespace BolNews.Application.Services
         public Task<List<Notification>> GetUnreadAsync(string userId)
             => _repo.GetUnreadAsync(userId);
 
-        public Task MarkReadAsync(int notificationId)
-            => _repo.MarkReadAsync(notificationId);
+        public Task<bool> MarkReadAsync(int notificationId, string userId)
+            => _repo.MarkReadAsync(notificationId, userId);
     }
 }
