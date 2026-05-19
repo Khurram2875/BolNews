@@ -1,132 +1,101 @@
 using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
 using BolNews.Domain.Entities;
-using BolNews.Persistence.Context;
-using Microsoft.EntityFrameworkCore;
 
 namespace BolNews.Application.Services
 {
     public class AnalyticsService : IAnalyticsService
     {
-        private readonly AppDbContext _context;
+        private readonly IAnalyticsRepository _repo;
+        public AnalyticsService(IAnalyticsRepository repo) => _repo = repo;
 
-        public AnalyticsService(AppDbContext context)
-        {
-            _context = context;
-        }
-
-        // Fix: atomic upsert — no read-modify-write race condition.
-        // Try to insert a new row for today; if it already exists increment atomically.
         public async Task TrackImpressionAsync(int articleId)
         {
-            var today = DateTime.UtcNow.Date;
+            var today   = DateTime.UtcNow.Date;
+            var updated = await _repo.IncrementImpressionAsync(articleId, today);
 
-            var record = await _context.ArticleAnalytics
-                .FirstOrDefaultAsync(x => x.ArticleId == articleId && x.Date == today);
-
-            if (record == null)
+            if (updated == 0)
             {
-                record = new ArticleAnalytics
+                // No row for today yet — insert with count 1.
+                // If two requests race here, the second SaveChanges will throw a
+                // unique constraint violation (ArticleId + Date). We catch it and
+                // retry the increment so no impression is lost.
+                try
                 {
-                    ArticleId = articleId,
-                    Date = today,
-                    Impressions = 1,
-                    Clicks = 0
-                };
-                _context.ArticleAnalytics.Add(record);
+                    await _repo.AddAsync(new ArticleAnalytics
+                    {
+                        ArticleId   = articleId,
+                        Date        = today,
+                        Impressions = 1,
+                        Clicks      = 0
+                    });
+                }
+                catch
+                {
+                    await _repo.IncrementImpressionAsync(articleId, today);
+                }
             }
-            else
-            {
-                record.Impressions++;
-            }
-
-            await _context.SaveChangesAsync();
         }
 
         public async Task TrackClickAsync(int articleId)
         {
-            var today = DateTime.UtcNow.Date;
+            var today   = DateTime.UtcNow.Date;
+            var updated = await _repo.IncrementClickAsync(articleId, today);
 
-            var record = await _context.ArticleAnalytics
-                .FirstOrDefaultAsync(x => x.ArticleId == articleId && x.Date == today);
-
-            if (record == null)
+            if (updated == 0)
             {
-                record = new ArticleAnalytics
+                try
                 {
-                    ArticleId = articleId,
-                    Date = today,
-                    Clicks = 1,
-                    Impressions = 0
-                };
-                _context.ArticleAnalytics.Add(record);
+                    await _repo.AddAsync(new ArticleAnalytics
+                    {
+                        ArticleId = articleId,
+                        Date      = today,
+                        Clicks    = 1,
+                        Impressions = 0
+                    });
+                }
+                catch
+                {
+                    await _repo.IncrementClickAsync(articleId, today);
+                }
             }
-            else
-            {
-                record.Clicks++;
-            }
-
-            await _context.SaveChangesAsync();
         }
 
         public async Task<double> GetCTRAsync(int articleId)
         {
-            var data = await _context.ArticleAnalytics
-                .Where(a => a.ArticleId == articleId)
-                .ToListAsync();
-
+            var data        = await _repo.GetByArticleIdAsync(articleId);
             var impressions = data.Sum(a => a.Impressions);
             var clicks      = data.Sum(a => a.Clicks);
-
             return impressions == 0 ? 0 : (double)clicks / impressions * 100;
         }
 
         public async Task<List<Article>> GetLowCTRArticlesAsync()
         {
-            var data = await _context.ArticleAnalytics
-                .GroupBy(a => a.ArticleId)
-                .Select(g => new
-                {
-                    ArticleId   = g.Key,
-                    Impressions = g.Sum(x => x.Impressions),
-                    Clicks      = g.Sum(x => x.Clicks)
-                })
-                .Where(x => x.Impressions > 100 &&
-                            (double)x.Clicks / x.Impressions < 0.02)
-                .ToListAsync();
-
-            var ids = data.Select(x => x.ArticleId).ToList();
-
-            return await _context.Articles
-                .Where(a => ids.Contains(a.Id))
-                .ToListAsync();
+            var ids = await _repo.GetLowCtrArticleIdsAsync(
+                minImpressions: 100, maxCtrThreshold: 0.02);
+            return await _repo.GetArticlesByIdsAsync(ids);
         }
 
         public async Task<DashboardDto> GetDashboardAsync()
         {
-            var data = await _context.ArticleAnalytics
-             .Include(x => x.Article)
-             .Where(x => x.Date >= DateTime.UtcNow.AddDays(-7))
-             .ToListAsync();
-
+            var data    = await _repo.GetRecentWithArticlesAsync(DateTime.UtcNow.AddDays(-7));
             var grouped = data
                 .GroupBy(x => x.ArticleId)
                 .Select(g => new ArticlePerformanceDto
                 {
-                    ArticleId = g.Key,
-                    Title = g.First().Article.Title,
-                    Clicks = g.Sum(x => x.Clicks),
+                    ArticleId   = g.Key,
+                    Title       = g.First().Article?.Title ?? string.Empty,
+                    Clicks      = g.Sum(x => x.Clicks),
                     Impressions = g.Sum(x => x.Impressions),
-                    CTR = g.Sum(x => x.Impressions) == 0
-                        ? 0
-                        : (double)g.Sum(x => x.Clicks) / g.Sum(x => x.Impressions)
+                    CTR         = g.Sum(x => x.Impressions) == 0
+                        ? 0 : (double)g.Sum(x => x.Clicks) / g.Sum(x => x.Impressions)
                 })
                 .OrderByDescending(x => x.CTR)
                 .ToList();
 
             return new DashboardDto
             {
-                TopArticles = grouped.Take(10).ToList(),
+                TopArticles   = grouped.Take(10).ToList(),
                 WorstArticles = grouped.OrderBy(x => x.CTR).Take(10).ToList()
             };
         }

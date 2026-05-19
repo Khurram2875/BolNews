@@ -61,8 +61,9 @@ namespace BolNews.Web.Controllers
                 : category.MetaDescription;
 
             ViewBag.CanonicalUrl = page == 1
-                ? $"{baseUrl}/news/{category.Slug}"
-                : $"{baseUrl}/news/{category.Slug}?page={page}";
+                ? $"/news/{category.Slug}"
+                : $"/news/{category.Slug}?page={page}";
+            ViewBag.OgType = "website";
 
             ViewBag.CategoryName = category.Name;
             ViewBag.CategorySlug = category.Slug;

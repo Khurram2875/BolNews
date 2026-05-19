@@ -8,6 +8,7 @@
 <h2>Assign Role - @Model.Email</h2>
 
 <form method="post">
+    @Html.AntiForgeryToken()
     <input type="hidden" name="userId" value="@Model.Id" />
 
     <select name="role">

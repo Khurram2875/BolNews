@@ -7,6 +7,7 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         public string Name { get; set; }
         public string Bio { get; set; }
         public string ProfileImage { get; set; }
+        public string Slug { get; set; }
 
         public List<Article> Articles { get; set; }
 

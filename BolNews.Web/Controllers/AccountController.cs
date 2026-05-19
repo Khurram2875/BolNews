@@ -24,6 +24,7 @@ namespace BolNews.Web.Controllers
             return View();
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string email, string password)
         {
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
@@ -36,7 +37,7 @@ namespace BolNews.Web.Controllers
                 email,
                 password,
                 isPersistent: false,
-                lockoutOnFailure: false);
+                lockoutOnFailure: true);
 
             if (result.Succeeded)
             {
@@ -50,6 +51,8 @@ namespace BolNews.Web.Controllers
             ModelState.AddModelError("", "Invalid email or password");
             return View();
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
@@ -66,6 +69,7 @@ namespace BolNews.Web.Controllers
         }
        
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterVM model)
         {
             if (!ModelState.IsValid)

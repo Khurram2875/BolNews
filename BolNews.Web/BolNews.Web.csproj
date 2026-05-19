@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BolNews.Application\BolNews.Application.csproj" />
-    <ProjectReference Include="..\BolNews.Domain\BolNews.Domain.csproj" />
     <ProjectReference Include="..\BolNews.Infrastructure\BolNews.Infrastructure.csproj" />
     <ProjectReference Include="..\BolNews.Persistence\BolNews.Persistence.csproj" />
   </ItemGroup>

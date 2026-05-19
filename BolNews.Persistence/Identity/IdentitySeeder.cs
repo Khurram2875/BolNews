@@ -46,7 +46,14 @@ namespace BolNews.Persistence.Identity
                     FullName = "System Admin"
                 };
 
-                await userManager.CreateAsync(admin, "Admin@123");
+                var adminPassword = Environment.GetEnvironmentVariable("BOLNEWS_ADMIN_PASSWORD");
+                if (string.IsNullOrWhiteSpace(adminPassword))
+                {
+                    throw new InvalidOperationException(
+                        "Environment variable 'BOLNEWS_ADMIN_PASSWORD' must be set for initial admin seeding.");
+                }
+
+                await userManager.CreateAsync(admin, adminPassword);
                 await userManager.AddToRoleAsync(admin, Roles.Admin);
             }
         }

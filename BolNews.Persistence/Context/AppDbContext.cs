@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -47,7 +47,14 @@ namespace BolNews.Persistence.Context
                 .WithMany()
                 .HasForeignKey(a => a.ArticleId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .IsRequired(false); // ✅ KEY FIX
+                .IsRequired(false);
+
+            // Unique constraint ensures one row per article per day.
+            // This is required for the upsert race-condition pattern to work:
+            // the catch on duplicate-key triggers a retry of the atomic increment.
+            modelBuilder.Entity<ArticleAnalytics>()
+                .HasIndex(a => new { a.ArticleId, a.Date })
+                .IsUnique();
 
             // Soft delete filter
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
