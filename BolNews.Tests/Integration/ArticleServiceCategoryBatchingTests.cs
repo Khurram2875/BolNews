@@ -21,13 +21,15 @@ public class ArticleServiceCategoryBatchingTests
         var scoringServiceMock = new Mock<IArticleScoringService>(); // Mock the required dependency
         var revisionServiceMock = new Mock<IArticleRevisionService>();
         var authorServiceMock = new Mock<IAuthorService>();
+        var notificationServiceMock = new Mock<INotificationService>();
 
         var service = new ArticleService(
             repo,
             cache,
             scoringServiceMock.Object,
             revisionServiceMock.Object,
-            authorServiceMock.Object
+            authorServiceMock.Object,
+            notificationServiceMock.Object
         );
 
         var category1 = new Category { Name = "C1", Slug = "c1" };
