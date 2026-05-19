@@ -22,12 +22,10 @@ public class ArticleServiceCategoryBatchingTests
         var revisionServiceMock = new Mock<IArticleRevisionService>();
         var authorServiceMock = new Mock<IAuthorService>();
         var notificationServiceMock = new Mock<INotificationService>();
-
         var workflowTransitionServiceMock = new Mock<IWorkflowTransitionService>();
         var editorialAssignmentServiceMock = new Mock<IEditorialAssignmentService>();
 
-
-
+       
         var service = new ArticleService(
             repo,
             cache,
