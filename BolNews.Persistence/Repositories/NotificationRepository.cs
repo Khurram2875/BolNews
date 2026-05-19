@@ -33,17 +33,21 @@ namespace BolNews.Persistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task MarkReadAsync(int notificationId)
+        public async Task<bool> MarkReadAsync(int notificationId, string userId)
         {
             var notification =
-                await _context.Notifications.FindAsync(notificationId);
+                await _context.Notifications
+                    .FirstOrDefaultAsync(x =>
+                        x.Id == notificationId &&
+                        x.UserId == userId);
 
             if (notification == null)
-                return;
+                return false;
 
             notification.IsRead = true;
 
             await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

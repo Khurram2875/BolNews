@@ -24,13 +24,19 @@ public class ArticleServiceNoTrackingTests
             var scoringServiceMock = new Mock<IArticleScoringService>();
             var revisionServiceMock = new Mock<IArticleRevisionService>();
             var authorServiceMock = new Mock<IAuthorService>();
+            var notificationServiceMock = new Mock<INotificationService>();
+            var workflowTransitionServiceMock = new Mock<IWorkflowTransitionService>();
+            var editorialAssignmentServiceMock = new Mock<IEditorialAssignmentService>();
 
             var service = new ArticleService(
                 repo,
                 cache,
                 scoringServiceMock.Object,
                 revisionServiceMock.Object,
-                authorServiceMock.Object
+                authorServiceMock.Object,
+                notificationServiceMock.Object,
+                workflowTransitionServiceMock.Object,
+                editorialAssignmentServiceMock.Object
             );
 
             // SQLite enforces FK constraints — ApplicationUser must exist
