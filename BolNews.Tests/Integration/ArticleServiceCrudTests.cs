@@ -107,7 +107,7 @@ namespace BolNews.Tests.Integration
                 Content = "Content",
                 CategoryId = 1,
                 AuthorId = 1,
-                IsPublished = false,
+                IsPublished = true,
                 PublishedAt = null, // Service should set this automatically
                 IsEditorsPick = true,
                 IsFactChecked = true,
@@ -116,7 +116,7 @@ namespace BolNews.Tests.Integration
 
             var id = await _service.CreateAsync(dto,
                 "test-user-id",
-                new List<string> { Roles.Author });
+                new List<string> { Roles.Editor });
             var result = await _service.GetByIdAsync(id);
 
             result!.PublishedAt.Should().NotBeNull();
