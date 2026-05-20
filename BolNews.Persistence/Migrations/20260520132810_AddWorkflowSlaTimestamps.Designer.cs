@@ -4,16 +4,19 @@ using BolNews.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace BolNews.Persistence.Migrations
+namespace BolNews.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260520132810_AddWorkflowSlaTimestamps")]
+    partial class AddWorkflowSlaTimestamps
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -143,9 +146,6 @@ namespace BolNews.Persistence.Migrations
                         .HasColumnType("decimal(5,2)")
                         .HasDefaultValue(0m);
 
-                    b.Property<DateTime?>("FactCheckEscalatedAt")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<DateTime?>("FactCheckStartedAt")
                         .HasColumnType("datetime(6)");
 
@@ -189,12 +189,6 @@ namespace BolNews.Persistence.Migrations
                     b.Property<DateTime?>("LastScoreCalculatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<DateTime?>("LockedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("LockedByUserId")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("MetaDescription")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -215,13 +209,7 @@ namespace BolNews.Persistence.Migrations
                         .HasColumnType("decimal(5,2)")
                         .HasDefaultValue(0m);
 
-                    b.Property<DateTime?>("PublishEscalatedAt")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<DateTime?>("PublishedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("ReviewEscalatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime?>("ReviewStartedAt")

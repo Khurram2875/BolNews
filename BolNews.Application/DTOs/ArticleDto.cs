@@ -35,6 +35,7 @@ namespace BolNews.Application.DTOs
 
         public bool IsPublished { get; set; }
         public DateTime? PublishedAt { get; set; }
+
         public ArticleWorkflowStatus WorkflowStatus { get; set; }
         public string? WorkflowComment { get; set; }
         public string? ReviewerName { get; set; }

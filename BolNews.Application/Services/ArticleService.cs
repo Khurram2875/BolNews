@@ -19,6 +19,7 @@ namespace BolNews.Application.Services
         private readonly INotificationService _notificationService;
         private readonly IWorkflowTransitionService _workflowTransitionService;
         private readonly IEditorialAssignmentService _editorialAssignmentService;
+        private readonly ISlaService _slaService;
 
         #region Role and other private helpers
         private bool IsAdmin(IList<string> roles)
@@ -129,7 +130,7 @@ namespace BolNews.Application.Services
             }
         }
         #endregion
-        public ArticleService(IArticleRepository repo, IMemoryCache cache, IArticleScoringService articleScoringService, IArticleRevisionService articleRevisionService, IAuthorService authorService, INotificationService notificationService, IWorkflowTransitionService workflowTransitionService, IEditorialAssignmentService editorialAssignmentService)
+        public ArticleService(IArticleRepository repo, IMemoryCache cache, IArticleScoringService articleScoringService, IArticleRevisionService articleRevisionService, IAuthorService authorService, INotificationService notificationService, IWorkflowTransitionService workflowTransitionService, IEditorialAssignmentService editorialAssignmentService, ISlaService slaService)
         {
             _repo = repo;
             _cache = cache;
@@ -139,6 +140,7 @@ namespace BolNews.Application.Services
             _notificationService = notificationService;
             _workflowTransitionService = workflowTransitionService;
             _editorialAssignmentService = editorialAssignmentService;
+            _slaService = slaService;
         }
 
         public async Task<int> CreateAsync(ArticleDto dto, string currentUserId,IList<string> roles)
@@ -154,6 +156,7 @@ namespace BolNews.Application.Services
 
                 authorId = author.Id;
             }
+            var workflowStatus = DetermineInitialWorkflowStatus(dto, roles);
             var article = new Article
             {
                 Title = dto.Title,
@@ -174,9 +177,12 @@ namespace BolNews.Application.Services
 
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = currentUserId,
-                WorkflowStatus = DetermineInitialWorkflowStatus(dto, roles),
+                WorkflowStatus = workflowStatus,
             };
-
+            if (workflowStatus == ArticleWorkflowStatus.Submitted)
+            {
+                article.SubmittedAt = DateTime.UtcNow;
+            }
             ApplyEditorialControls(article, dto, roles);
 
             await _articleScoringService.CalculateScoresAsync(article);
@@ -222,6 +228,12 @@ namespace BolNews.Application.Services
             {
                 article.WorkflowStatus = ArticleWorkflowStatus.Submitted;
                 article.WorkflowComment = null;
+
+                // SLA lifecycle reset (new submission cycle)
+                article.SubmittedAt = DateTime.UtcNow;
+                article.ReviewStartedAt = null;
+                article.FactCheckStartedAt = null;
+                article.ApprovedAt = null;
 
                 // notify assigned reviewer if already assigned
                 if (!string.IsNullOrWhiteSpace(article.ReviewerUserId))
@@ -541,7 +553,8 @@ namespace BolNews.Application.Services
                 ReviewerName = a.ReviewerUser?.FullName,
                 FactCheckerName = a.FactCheckerUser?.FullName,
                 ReviewerUserId = a.ReviewerUserId,
-                FactCheckerUserId = a.FactCheckerUserId
+                FactCheckerUserId = a.FactCheckerUserId,
+                SlaStatus = _slaService.Evaluate(a)
             }).ToList();
         }
         public async Task TransitionWorkflowAsync(int articleId,ArticleWorkflowStatus targetStatus,string currentUserId,IList<string> roles,string? reason = null)
@@ -582,6 +595,10 @@ namespace BolNews.Application.Services
 
             await _editorialAssignmentService.AssignFactCheckerAsync(article, factCheckerUserId, currentUserId, roles);
             await _repo.UpdateAsync(article);
+        }
+        public async Task<Article?> GetEntityByIdAsync(int id)
+        {
+            return await _repo.FindByIdAsync(id);
         }
     }
 }

@@ -13,5 +13,6 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         public List<EditorialQueueDto> Approved { get; set; } = new();
 
         public int PublishedToday { get; set; }
+        public OperationalAnalyticsDto Analytics { get; set; } = new();
     }
 }

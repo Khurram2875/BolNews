@@ -253,5 +253,24 @@ namespace BolNews.Persistence.Repositories
              .OrderByDescending(a => a.CreatedAt)
              .ToListAsync();
         }
+        public async Task<List<Article>> GetActiveWorkflowArticlesAsync()
+        {
+            return await _context.Articles
+                .Include(a => a.Author)
+                    .ThenInclude(a => a.User)
+
+                .Include(a => a.Category)
+
+                .Where(a =>
+                    a.WorkflowStatus == ArticleWorkflowStatus.Submitted ||
+                    a.WorkflowStatus == ArticleWorkflowStatus.UnderReview ||
+                    a.WorkflowStatus == ArticleWorkflowStatus.FactCheckPending ||
+                    a.WorkflowStatus == ArticleWorkflowStatus.Approved)
+                .ToListAsync();
+        }
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
     }
 }

@@ -2,6 +2,7 @@ using BolNews.Application.Interfaces;
 using BolNews.Persistence;
 using BolNews.Persistence.Identity;
 using BolNews.Web;
+using BolNews.Web.BackgroundServices;
 using BolNews.Web.Extensions;
 using BolNews.Web.Hubs;
 using BolNews.Web.Services;
@@ -19,6 +20,7 @@ builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<INotificationRealtimeService, NotificationRealtimeService>();
+builder.Services.AddHostedService<SlaMonitoringWorker>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

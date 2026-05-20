@@ -51,5 +51,6 @@ namespace BolNews.Application.Interfaces
         Task TransitionWorkflowAsync(int articleId,ArticleWorkflowStatus targetStatus,string currentUserId,IList<string> roles,string? reason = null);
         Task AssignReviewerAsync(int articleId,string reviewerUserId,string currentUserId, IList<string> roles);
         Task AssignFactCheckerAsync(int articleId,string factCheckerUserId,string currentUserId, IList<string> roles);
+        Task<Article?> GetEntityByIdAsync(int id);
     }
 }

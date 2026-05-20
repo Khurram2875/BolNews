@@ -67,7 +67,11 @@ namespace BolNews.Persistence
             services.AddScoped<IScoreProvider, EditorialScoreProvider>();
             services.AddScoped<IScoreProvider, CredibilityScoreProvider>();
             services.AddScoped<INotificationService, NotificationService>();
-            
+            services.AddScoped<ISlaService, SlaService>();
+            services.AddScoped<ISlaEscalationService, SlaEscalationService>();
+            services.AddScoped<IOperationalAnalyticsService, OperationalAnalyticsService>();
+            services.AddScoped<IArticleLockService, ArticleLockService>();
+
 
             return services;
         }

@@ -18,13 +18,13 @@ namespace BolNews.Web.Areas.Admin.Controllers
     {
         private readonly IArticleService _articleService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IOperationalAnalyticsService _analyticsService;
 
-        public EditorialController(
-            IArticleService articleService,
-            UserManager<ApplicationUser> userManager)
+        public EditorialController(IArticleService articleService, UserManager<ApplicationUser> userManager, IOperationalAnalyticsService analyticsService)
         {
             _articleService = articleService;
             _userManager = userManager;
+            _analyticsService = analyticsService;
         }
 
         public async Task<IActionResult> Index(string filter = "all")
@@ -72,7 +72,10 @@ namespace BolNews.Web.Areas.Admin.Controllers
                         .Where(x => x.WorkflowStatus == ArticleWorkflowStatus.Approved)
                         .ToList(),
 
-                PublishedToday = 0 // temporary placeholder
+                PublishedToday = 0, // temporary placeholder
+
+                Analytics = await _analyticsService.GetAnalyticsAsync()
+
             };
             var editorialUsers = admins
                 .Concat(editors)

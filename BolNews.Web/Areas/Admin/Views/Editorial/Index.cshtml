@@ -3,7 +3,19 @@
 @using BolNews.Domain.Entities
 
 @model EditorialDashboardVM
+@functions
+{
+    private string FormatElapsed(TimeSpan elapsed)
+    {
+        if (elapsed.TotalMinutes < 60)
+            return $"{(int)elapsed.TotalMinutes}m";
 
+        if (elapsed.TotalHours < 24)
+            return $"{(int)elapsed.TotalHours}h {elapsed.Minutes}m";
+
+        return $"{(int)elapsed.TotalDays}d {elapsed.Hours}h";
+    }
+}
 @{
     ViewData["Title"] = "Editorial Dashboard";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
@@ -53,7 +65,73 @@
 
         </div>
     </div>
+    <div class="row mb-4">
 
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">SLA Compliance</h6>
+                    <h3>@Model.Analytics.SlaCompliancePercent.ToString("0")%</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Overdue</h6>
+                    <h3 class="text-danger">
+                        @Model.Analytics.TotalOverdueItems
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Avg Review</h6>
+                    <h3>
+                        @Model.Analytics.AverageReviewHours.ToString("0.0")h
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Avg Fact Check</h6>
+                    <h3>
+                        @Model.Analytics.AverageFactCheckHours.ToString("0.0")h
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Publish Delay</h6>
+                    <h3>
+                        @Model.Analytics.AverageApprovalToPublishHours.ToString("0.0")h
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Bottleneck</h6>
+                    <h6>
+                        @Model.Analytics.BottleneckQueue
+                    </h6>
+                </div>
+            </div>
+        </div>
+
+    </div>
     <!-- KPI CARDS -->
     <div class="row mb-4">
 
@@ -114,6 +192,7 @@
                             <th>Category</th>
                             <th>Score</th>
                             <th>Created</th>
+                            <th>SLA</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -178,7 +257,28 @@
                                 <td>@item.CategoryName</td>
                                 <td><strong>@item.OverallScore</strong></td>
                                 <td>@item.CreatedAt.ToString("g")</td>
+                                <td>
+                                    @if (item.SlaStatus?.IsTracked == true)
+                                    {
+                                        if (item.SlaStatus.IsOverdue)
+                                        {
+                                            <span class="badge bg-danger">
+                                                OVERDUE | @FormatElapsed(item.SlaStatus.Elapsed)
+                                            </span>
 
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+                                                Healthy | @FormatElapsed(item.SlaStatus.Elapsed)
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
                                 <td>
                                     <div class="d-flex flex-wrap gap-1">
 
@@ -239,6 +339,7 @@
                             <th>Category</th>
                             <th>Score</th>
                             <th>Created</th>
+                            <th>SLA</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -299,11 +400,31 @@
                                         </select>
                                     </form>
                                 </td>
-
+                                
                                 <td>@item.CategoryName</td>
                                 <td><strong>@item.OverallScore</strong></td>
                                 <td>@item.CreatedAt.ToString("g")</td>
-
+                                <td>
+                                    @if (item.SlaStatus?.IsTracked == true)
+                                    {
+                                        if (item.SlaStatus.IsOverdue)
+                                        {
+                                            <span class="badge bg-danger">
+                                                OVERDUE | @FormatElapsed(item.SlaStatus.Elapsed)
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+                                                Healthy | @FormatElapsed(item.SlaStatus.Elapsed)
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
                                 <td>
                                     <div class="d-flex flex-wrap gap-1">
 
@@ -364,6 +485,7 @@
                             <th>Category</th>
                             <th>Score</th>
                             <th>Created</th>
+                            <th>SLA</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -424,11 +546,31 @@
                                         </select>
                                     </form>
                                 </td>
-
+                               
                                 <td>@item.CategoryName</td>
                                 <td><strong>@item.OverallScore</strong></td>
                                 <td>@item.CreatedAt.ToString("g")</td>
-
+                                <td>
+                                    @if (item.SlaStatus?.IsTracked == true)
+                                    {
+                                        if (item.SlaStatus.IsOverdue)
+                                        {
+                                            <span class="badge bg-danger">
+                                                OVERDUE | @FormatElapsed(item.SlaStatus.Elapsed)
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+                                                Healthy | @FormatElapsed(item.SlaStatus.Elapsed)
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
                                 <td>
                                     <div class="d-flex flex-wrap gap-1">
 
@@ -489,6 +631,7 @@
                             <th>Category</th>
                             <th>Score</th>
                             <th>Created</th>
+                            <th>Sla</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -506,7 +649,27 @@
                                 <td>@item.CategoryName</td>
                                 <td><strong>@item.OverallScore</strong></td>
                                 <td>@item.CreatedAt.ToString("g")</td>
-
+                                <td>
+                                    @if (item.SlaStatus?.IsTracked == true)
+                                    {
+                                        if (item.SlaStatus.IsOverdue)
+                                        {
+                                            <span class="badge bg-danger">
+                                                OVERDUE | @FormatElapsed(item.SlaStatus.Elapsed)
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+                                                Healthy |   @FormatElapsed(item.SlaStatus.Elapsed)
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
                                 <td>
                                     <div class="d-flex flex-wrap gap-1">
 

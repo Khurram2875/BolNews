@@ -32,8 +32,21 @@ namespace BolNews.Domain.Entities
         public int AuthorId { get; set; }
         public Author Author { get; set; }
 
+
+        public DateTime? SubmittedAt { get; set; }
+        public DateTime? ReviewStartedAt { get; set; }
+        public DateTime? FactCheckStartedAt { get; set; }
+        public DateTime? ApprovedAt { get; set; }
         public bool IsPublished { get; set; }
         public DateTime? PublishedAt { get; set; }
+        public DateTime? ReviewEscalatedAt { get; set; }
+        public DateTime? FactCheckEscalatedAt { get; set; }
+        public DateTime? PublishEscalatedAt { get; set; }
+
+        //Concurrent Editing Protection / Content Locking
+        public string? LockedByUserId { get; set; }
+        public DateTime? LockedAt { get; set; }
+
         public ArticleWorkflowStatus WorkflowStatus { get; set; }
         public string? WorkflowComment { get; set; }
         public string? ReviewerUserId { get; set; }

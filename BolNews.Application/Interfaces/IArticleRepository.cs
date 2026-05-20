@@ -38,5 +38,7 @@ namespace BolNews.Application.Interfaces
         Task<List<Article>> GetTopRankedByCategoryAsync(int categoryId, int count);
         Task<List<Article>> GetByWorkflowStatusAsync(ArticleWorkflowStatus status);
         Task<List<Article>> GetEditorialQueueAsync(params ArticleWorkflowStatus[] statuses);
+        Task<List<Article>> GetActiveWorkflowArticlesAsync();
+        Task SaveChangesAsync();
     }
 }

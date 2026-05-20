@@ -27,6 +27,7 @@ public class ArticleServiceNoTrackingTests
             var notificationServiceMock = new Mock<INotificationService>();
             var workflowTransitionServiceMock = new Mock<IWorkflowTransitionService>();
             var editorialAssignmentServiceMock = new Mock<IEditorialAssignmentService>();
+            var slaServiceMock = new Mock<ISlaService>();
 
             var service = new ArticleService(
                 repo,
@@ -36,7 +37,8 @@ public class ArticleServiceNoTrackingTests
                 authorServiceMock.Object,
                 notificationServiceMock.Object,
                 workflowTransitionServiceMock.Object,
-                editorialAssignmentServiceMock.Object
+                editorialAssignmentServiceMock.Object,
+                slaServiceMock.Object
 
             );
 

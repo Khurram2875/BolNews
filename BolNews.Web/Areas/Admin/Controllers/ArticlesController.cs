@@ -33,6 +33,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly IDiscoverService _discoverService;
         private readonly IHeadlineService _headlineService;
         private readonly ITrendingService _trendingService;
+        private readonly IArticleLockService _articleLockService;
         private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -41,7 +42,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
              IArticleService articleService,
              ICategoryService categoryService,
              IAuthorService authorService,
-             IWebHostEnvironment env, IMapper mapper, IImageService imageService, IDiscoverService discoverService, IHeadlineService headlineService, ITrendingService trendingService, ICacheService cacheService, UserManager<ApplicationUser> userManager)
+             IWebHostEnvironment env, IMapper mapper, IImageService imageService, IDiscoverService discoverService, IHeadlineService headlineService, ITrendingService trendingService, ICacheService cacheService, UserManager<ApplicationUser> userManager, IArticleLockService articleLockService)
         {
             _articleService = articleService;
             _categoryService = categoryService;
@@ -54,6 +55,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _trendingService = trendingService;
             _cacheService = cacheService;
             _userManager = userManager;
+            _articleLockService = articleLockService;
         }
 
         // GET: Admin/Articles
@@ -150,32 +152,58 @@ namespace BolNews.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Challenge();
+
             var roles = await _userManager.GetRolesAsync(user);
 
-            // 🔥 AUTHORIZATION CHECK
+            // Authorization
             var canEdit = await _articleService.CanEditAsync(id, user.Id, roles);
 
             if (!canEdit)
                 return Forbid();
 
+            // Load actual entity for locking
+            var articleEntity = await _articleService.GetEntityByIdAsync(id);
+
+            if (articleEntity == null)
+                return NotFound();
+
+            // Try acquire lock
+            var acquired = await _articleLockService.TryAcquireLockAsync(
+                articleEntity,
+                user.Id);
+
+            if (!acquired)
+            {
+                TempData["Error"] =
+                    "This article is currently being edited by another newsroom user.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
             var dto = await _articleService.GetByIdAsync(id);
+
             if (dto == null)
                 return NotFound();
 
             var model = _mapper.Map<ArticleVM>(dto);
 
-            model.SubmitForReview = dto.WorkflowStatus == ArticleWorkflowStatus.Submitted;
-            // 🔥 show author name (read-only in UI)
+            model.SubmitForReview =
+                dto.WorkflowStatus == ArticleWorkflowStatus.Submitted;
+
             model.AuthorName = dto.AuthorName;
 
-            model.DiscoverScore = _discoverService.Evaluate(new PublicArticleVM
-            {
-                Title = model.Title,
-                MetaDescription = model.MetaDescription,
-                Content = model.Content,
-                FeaturedImageXl = model.FeaturedImageXl,
-                PublishedAt = model.PublishedAt
-            });
+            model.DiscoverScore = _discoverService.Evaluate(
+                new PublicArticleVM
+                {
+                    Title = model.Title,
+                    MetaDescription = model.MetaDescription,
+                    Content = model.Content,
+                    FeaturedImageXl = model.FeaturedImageXl,
+                    PublishedAt = model.PublishedAt
+                });
 
             await PopulateDropdowns(model.CategoryId);
 
@@ -188,30 +216,60 @@ namespace BolNews.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Edit(ArticleVM model)
         {
             var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Challenge();
+
             var roles = await _userManager.GetRolesAsync(user);
 
-            // 🔥 AUTHORIZATION CHECK
-            var canEdit = await _articleService.CanEditAsync(model.Id, user.Id, roles);
+            // Authorization
+            var canEdit = await _articleService.CanEditAsync(
+                model.Id,
+                user.Id,
+                roles);
 
             if (!canEdit)
                 return Forbid();
 
+            // Load entity for lock validation
+            var articleEntity = await _articleService.GetEntityByIdAsync(model.Id);
+
+            if (articleEntity == null)
+                return NotFound();
+
+            // Block if another user owns active lock
+            if (_articleLockService.IsLockedByAnotherUser(articleEntity, user.Id))
+            {
+                TempData["Error"] =
+                    "This article is currently locked by another newsroom user.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Refresh lock ownership while editing
+            await _articleLockService.TryAcquireLockAsync(
+                articleEntity,
+                user.Id);
+
             if (!ModelState.IsValid)
             {
-                model.DiscoverScore = _discoverService.Evaluate(new PublicArticleVM
-                {
-                    Title = model.Title,
-                    MetaDescription = model.MetaDescription,
-                    Content = model.Content,
-                    FeaturedImageXl = model.FeaturedImageXl,
-                    PublishedAt = model.PublishedAt
-                });
+                model.DiscoverScore = _discoverService.Evaluate(
+                    new PublicArticleVM
+                    {
+                        Title = model.Title,
+                        MetaDescription = model.MetaDescription,
+                        Content = model.Content,
+                        FeaturedImageXl = model.FeaturedImageXl,
+                        PublishedAt = model.PublishedAt
+                    });
 
                 await PopulateDropdowns(model.CategoryId);
+
                 return View(model);
             }
 
             var existing = await _articleService.GetByIdAsync(model.Id);
+
             if (existing == null)
                 return NotFound();
 
@@ -219,53 +277,64 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             var dto = _mapper.Map<ArticleDto>(model);
 
+            // Preserve existing images unless replaced
             dto.FeaturedImageThumb = existing.FeaturedImageThumb;
             dto.FeaturedImageMedium = existing.FeaturedImageMedium;
             dto.FeaturedImageLarge = existing.FeaturedImageLarge;
             dto.FeaturedImageXl = existing.FeaturedImageXl;
-            // 🔥 CRITICAL: PRESERVE AUTHOR
+
+            // Preserve author ownership
             dto.AuthorId = existing.AuthorId;
 
-            // 🔥 ROLE-BASED PUBLISH CONTROL
-            //if (!(roles.Contains("Admin") || roles.Contains("Editor")))
-            //{
-            //    dto.IsPublished = existing.IsPublished;
-            //    dto.PublishedAt = existing.PublishedAt;
-            //}
+            // Slug logic
+            dto.Slug = existing.Title != model.Title
+                ? await _articleService.GenerateUniqueSlugAsync(model.Title)
+                : existing.Slug;
 
-            // 🔹 Slug logic
-            if (existing.Title != model.Title)
-            {
-                dto.Slug = await _articleService.GenerateUniqueSlugAsync(model.Title);
-            }
-            else
-            {
-                dto.Slug = existing.Slug;
-            }
+            await _articleService.UpdateAsync(
+                dto,
+                user.Id,
+                roles,
+                changeReason: "Article edited via CMS");
 
-            await _articleService.UpdateAsync(dto, user.Id, roles, changeReason: "Article edited via CMS");
-
-            // 🔹 Image handling (unchanged)
+            // Image replacement
             if (model.ImageFile != null)
             {
                 if (!ImageValidator.IsValid(model.ImageFile, out var error))
                 {
                     ModelState.AddModelError("ImageFile", error);
+
                     await PopulateDropdowns(model.CategoryId);
+
                     return View(model);
                 }
 
-                _imageService.DeleteArticleImages(model.Id, _env.WebRootPath);
+                _imageService.DeleteArticleImages(
+                    model.Id,
+                    _env.WebRootPath);
 
                 using var stream = model.ImageFile.OpenReadStream();
 
                 var (thumb, medium, large, xl) =
-                    await _imageService.SaveArticleImagesAsync(stream, model.Id, _env.WebRootPath);
+                    await _imageService.SaveArticleImagesAsync(
+                        stream,
+                        model.Id,
+                        _env.WebRootPath);
 
-                await _articleService.UpdateImagesAsync(model.Id, thumb, medium, large, xl);
+                await _articleService.UpdateImagesAsync(
+                    model.Id,
+                    thumb,
+                    medium,
+                    large,
+                    xl);
             }
 
-            // 🔥 Cache invalidation (unchanged)
+            // Release lock after successful save
+            await _articleLockService.ReleaseLockAsync(
+                articleEntity,
+                user.Id);
+
+            // Cache invalidation
             _cacheService.Remove(CacheKeys.Article(oldSlug));
             _cacheService.Remove(CacheKeys.Article(dto.Slug));
 
@@ -280,57 +349,11 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             for (int i = 1; i <= 3; i++)
             {
-                _cacheService.Remove(CacheKeys.Category(dto.CategorySlug, i));
+                _cacheService.Remove(
+                    CacheKeys.Category(dto.CategorySlug, i));
             }
 
             return RedirectToAction(nameof(Index));
-        }
-
-        // POST: Admin/Articles/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            var roles = await _userManager.GetRolesAsync(user);
-
-            var canDelete = await _articleService.CanDeleteAsync(id, user.Id, roles);
-
-            if (!canDelete)
-                return Forbid();
-
-            var article = await _articleService.GetByIdAsync(id);
-
-            if (article == null)
-                return NotFound();
-
-            await _articleService.DeleteAsync(id);
-
-            // 🔥 Cache invalidation
-            _cacheService.Remove(CacheKeys.Article(article.Slug));
-            _cacheService.Remove($"article_content_{article.Id}");
-            _cacheService.Remove($"related_{article.Id}");
-
-            _cacheService.Remove(CacheKeys.Trending);
-            _cacheService.Remove(CacheKeys.Dashboard);
-
-            for (int i = 1; i <= 3; i++)
-            {
-                _cacheService.Remove(CacheKeys.Category(article.CategorySlug, i));
-            }
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        // Optional: Details view
-        public async Task<IActionResult> Details(int id)
-        {
-            var dto = await _articleService.GetByIdAsync(id);
-            if (dto == null)
-                return NotFound();
-
-            var model = _mapper.Map<ArticleVM>(dto);
-            return View(model);
         }
         [HttpPost]
         [IgnoreAntiforgeryToken]
