@@ -22,7 +22,16 @@
     var editorialUsers = ViewBag.EditorialUsers as List<ApplicationUser> ?? new();
     var currentFilter = ViewBag.CurrentFilter?.ToString()?.ToLower() ?? "all";
 }
-
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+    </div>
+}
 <div class="container-fluid">
 
     <!-- HEADER -->

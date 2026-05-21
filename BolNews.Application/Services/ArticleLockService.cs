@@ -5,20 +5,21 @@ using System.Text;
 using System.Threading.Tasks;
 using BolNews.Application.Interfaces;
 using BolNews.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace BolNews.Application.Services
 {
     public class ArticleLockService : IArticleLockService
     {
-        private static readonly TimeSpan LockTimeout =
-            TimeSpan.FromMinutes(30);
+        private static readonly TimeSpan LockTimeout = TimeSpan.FromMinutes(30);
+        private readonly UserManager<ApplicationUser> _userManager;
 
         private readonly IArticleRepository _articleRepository;
 
-        public ArticleLockService(
-            IArticleRepository articleRepository)
+        public ArticleLockService(IArticleRepository articleRepository, UserManager<ApplicationUser> userManager )
         {
             _articleRepository = articleRepository;
+            _userManager = userManager;
         }
 
         public async Task<bool> TryAcquireLockAsync(
@@ -86,6 +87,27 @@ namespace BolNews.Application.Services
 
             article.LockedByUserId = null;
             article.LockedAt = null;
+
+            await _articleRepository.SaveChangesAsync();
+        }
+        public async Task<string?> GetLockOwnerNameAsync(Article article, string currentUserId)
+        {
+            if (!IsLockedByAnotherUser(article, currentUserId))
+                return null;
+
+            if (string.IsNullOrWhiteSpace(article.LockedByUserId))
+                return "another newsroom user";
+
+            var user = await _userManager.FindByIdAsync(article.LockedByUserId);
+
+            return user?.FullName ?? "another newsroom user";
+        }
+        public async Task RefreshLockAsync(Article article, string currentUserId)
+        {
+            if (article.LockedByUserId != currentUserId)
+                return;
+
+            article.LockedAt = DateTime.UtcNow;
 
             await _articleRepository.SaveChangesAsync();
         }

@@ -177,8 +177,10 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             if (!acquired)
             {
+                var lockOwner = await _articleLockService.GetLockOwnerNameAsync(articleEntity, user.Id);
+
                 TempData["Error"] =
-                    "This article is currently being edited by another newsroom user.";
+                    $"This article is currently being edited by {lockOwner}.";
 
                 return RedirectToAction(nameof(Index));
             }
@@ -409,6 +411,44 @@ namespace BolNews.Web.Areas.Admin.Controllers
         {
             var topics = await _trendingService.GetTrendingTopicsAsync();
             return Json(topics);
+        }
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> RefreshLock(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Unauthorized();
+
+            var article =
+                await _articleService.GetEntityByIdAsync(id);
+
+            if (article == null)
+                return NotFound();
+
+            await _articleLockService.RefreshLockAsync(article, user.Id);
+
+            return Ok();
+        }
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> ReleaseLock(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Unauthorized();
+
+            var article =
+                await _articleService.GetEntityByIdAsync(id);
+
+            if (article == null)
+                return NotFound();
+
+            await _articleLockService.ReleaseLockAsync(article, user.Id);
+
+            return Ok();
         }
     }
 }

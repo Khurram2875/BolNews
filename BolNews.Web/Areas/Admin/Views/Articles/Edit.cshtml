@@ -15,7 +15,10 @@
     var canEditorsPick = isAdmin || isEditor;
     var canFactCheck = isAdmin || isEditor || isSubEditor;
 }
-
+<div class="alert alert-info">
+    <strong>Editing Lock Active</strong><br />
+    This article is currently locked for your editing session.
+</div>
 <div class="card mt-3 p-3">
     <h5>
         Discover Score: @Model.DiscoverScore?.Score / 100
@@ -258,3 +261,22 @@
         </form>
     </div>
 </div>
+<script>
+    setInterval(function () {
+        fetch('/Admin/Article/RefreshLock?id=@Model.Id', {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken':
+                    document.querySelector(
+                        'input[name="__RequestVerificationToken"]'
+                    )?.value
+            }
+        });
+    }, 300000);
+
+    window.addEventListener('beforeunload', function () {
+        navigator.sendBeacon(
+            '/Admin/Article/ReleaseLock?id=@Model.Id'
+        );
+    });
+</script>
