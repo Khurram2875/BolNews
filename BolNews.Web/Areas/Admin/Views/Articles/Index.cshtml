@@ -164,10 +164,16 @@
                                             @article.PublishedAt.Value.ToString("g")
                                         </div>
                                     }
+                                    
                                 </div>
                             }
                         </td>
                         <td class="text-center">
+                            <a asp-action="Discussion"
+                               asp-route-id="@article.Id"
+                               class="badge bg-primary">
+                                Discussion
+                            </a> |
                             <a asp-action="Edit" asp-route-id="@article.Id" class="badge bg-warning me-1">
                                 Edit
                             </a>

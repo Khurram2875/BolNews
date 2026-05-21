@@ -87,5 +87,8 @@ namespace BolNews.Domain.Entities
         #endregion
 
         //Article Versioning
-        public ICollection<ArticleRevision> Revisions { get; set; } = new List<ArticleRevision>();}
+        public ICollection<ArticleRevision> Revisions { get; set; } = new List<ArticleRevision>();
+
+        public ICollection<ArticleDiscussionComment> DiscussionComments { get; set; } = new List<ArticleDiscussionComment>();
+    }
 }

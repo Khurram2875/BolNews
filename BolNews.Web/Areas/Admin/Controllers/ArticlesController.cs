@@ -34,6 +34,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly IHeadlineService _headlineService;
         private readonly ITrendingService _trendingService;
         private readonly IArticleLockService _articleLockService;
+        private readonly IArticleDiscussionService _discussionService;
         private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -42,7 +43,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
              IArticleService articleService,
              ICategoryService categoryService,
              IAuthorService authorService,
-             IWebHostEnvironment env, IMapper mapper, IImageService imageService, IDiscoverService discoverService, IHeadlineService headlineService, ITrendingService trendingService, ICacheService cacheService, UserManager<ApplicationUser> userManager, IArticleLockService articleLockService)
+             IWebHostEnvironment env, IMapper mapper, IImageService imageService, IDiscoverService discoverService, IHeadlineService headlineService, ITrendingService trendingService, ICacheService cacheService, UserManager<ApplicationUser> userManager, IArticleLockService articleLockService, IArticleDiscussionService discussionService)
         {
             _articleService = articleService;
             _categoryService = categoryService;
@@ -56,6 +57,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _cacheService = cacheService;
             _userManager = userManager;
             _articleLockService = articleLockService;
+            _discussionService = discussionService;
         }
 
         // GET: Admin/Articles
@@ -192,8 +194,9 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             var model = _mapper.Map<ArticleVM>(dto);
 
-            model.SubmitForReview =
-                dto.WorkflowStatus == ArticleWorkflowStatus.Submitted;
+            model.DiscussionComments = await _discussionService.GetThreadAsync(id, user.Id, roles);
+
+            model.SubmitForReview = dto.WorkflowStatus == ArticleWorkflowStatus.Submitted;
 
             model.AuthorName = dto.AuthorName;
 
@@ -449,6 +452,59 @@ namespace BolNews.Web.Areas.Admin.Controllers
             await _articleLockService.ReleaseLockAsync(article, user.Id);
 
             return Ok();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddDiscussionComment(int articleId, string message)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Challenge();
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            await _discussionService.AddCommentAsync(articleId, message, user.Id, roles);
+
+            //var canEdit = await _articleService.CanEditAsync(articleId, user.Id, roles);
+
+            //if (canEdit)
+            //{
+            //    return RedirectToAction(nameof(Discussion), new { id = articleId });
+            //}
+
+            return RedirectToAction(nameof(Discussion), new { id = articleId });
+        }
+        public async Task<IActionResult> Discussion(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Challenge();
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var article = await _articleService.GetEntityByIdAsync(id);
+
+            if (article == null)
+                return NotFound();
+
+            var comments = await _discussionService.GetThreadAsync(
+                id,
+                user.Id,
+                roles);
+
+            var vm = new ArticleDiscussionVM
+            {
+                ArticleId = article.Id,
+                Title = article.Title,
+                AuthorName = article.Author?.Name ?? "Unknown",
+                Thumbnail = article.FeaturedImageThumb,
+                WorkflowStatus = article.WorkflowStatus,
+                DiscussionComments = comments
+            };
+
+            return View(vm);
         }
     }
 }

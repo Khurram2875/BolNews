@@ -24,5 +24,15 @@ namespace BolNews.Web.Services
                 .Group($"user-{userId}")
                 .SendAsync("NotificationReceived");
         }
+        public async Task SendDiscussionUpdateAsync(IEnumerable<string> userIds, object payload)
+        {
+            foreach (var userId in userIds.Distinct())
+            {
+                await _hubContext.Clients
+                    .User(userId)
+                    .SendAsync("DiscussionUpdated", payload);
+            }
+            Console.WriteLine("=== SIGNALR SEND DISCUSSIONUPDATED ===");
+        }
     }
 }

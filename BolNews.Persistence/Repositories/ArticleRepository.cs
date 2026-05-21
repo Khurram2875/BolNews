@@ -28,12 +28,20 @@ namespace BolNews.Persistence.Repositories
         public async Task<Article?> FindByIdAsync(int id)
         {
             return await _context.Articles
-                .Include(a => a.Author)
-                    .ThenInclude(a => a.User)
-                .Include(a => a.Category)
-                .Include(a => a.ReviewerUser)
-                .Include(a => a.FactCheckerUser)
-                .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
+            .Include(a => a.Author)
+                .ThenInclude(a => a.User)
+
+            .Include(a => a.Category)
+
+            .Include(a => a.ReviewerUser)
+
+            .Include(a => a.FactCheckerUser)
+
+            .Include(a => a.DiscussionComments
+                .Where(c => !c.IsDeleted))
+                    .ThenInclude(c => c.User)
+
+            .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
         }
 
         public async Task<bool> SlugExistsAsync(string slug)

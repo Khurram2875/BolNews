@@ -71,6 +71,7 @@ namespace BolNews.Persistence
             services.AddScoped<ISlaEscalationService, SlaEscalationService>();
             services.AddScoped<IOperationalAnalyticsService, OperationalAnalyticsService>();
             services.AddScoped<IArticleLockService, ArticleLockService>();
+            services.AddScoped<IArticleDiscussionService, ArticleDiscussionService>();
 
 
             return services;

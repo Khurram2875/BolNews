@@ -11,18 +11,18 @@ namespace BolNews.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<DateTime>(
-                name: "LockedAt",
-                table: "Articles",
-                type: "datetime(6)",
-                nullable: true);
+            //migrationBuilder.AddColumn<DateTime>(
+            //    name: "LockedAt",
+            //    table: "Articles",
+            //    type: "datetime(6)",
+            //    nullable: true);
 
-            migrationBuilder.AddColumn<string>(
-                name: "LockedByUserId",
-                table: "Articles",
-                type: "longtext",
-                nullable: true)
-                .Annotation("MySql:CharSet", "utf8mb4");
+            //migrationBuilder.AddColumn<string>(
+            //    name: "LockedByUserId",
+            //    table: "Articles",
+            //    type: "longtext",
+            //    nullable: true)
+            //    .Annotation("MySql:CharSet", "utf8mb4");
         }
 
         /// <inheritdoc />

@@ -1,4 +1,5 @@
-﻿using BolNews.Domain.Enums;
+﻿using BolNews.Application.DTOs;
+using BolNews.Domain.Enums;
 using BolNews.Web.Models;
 
 namespace BolNews.Web.Areas.Admin.ViewModels
@@ -42,5 +43,9 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         public string CategoryName { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DiscoverScoreResult? DiscoverScore { get; set; }
+        //discussion comments for the article
+        public List<ArticleDiscussionCommentDto> DiscussionComments { get; set; } = new();
+
+        public string? NewDiscussionComment { get; set; }
     }
 }

@@ -243,17 +243,18 @@
                 console.error("SignalR failed to load.");
                 return;
             }
+                window.notificationConnection =
+                    new signalR.HubConnectionBuilder()
+                        .withUrl("/notificationHub")
+                        .withAutomaticReconnect()
+                        .build();
+            
 
-            const notificationConnection =
-                new signalR.HubConnectionBuilder()
-                    .withUrl("/notificationHub")
-                    .build();
-
-            notificationConnection.on("NotificationReceived", function () {
+            window.notificationConnection.on("NotificationReceived", function () {
                 refreshNotificationFeed(true);
             });
 
-            notificationConnection.start()
+            window.notificationConnection.start()
                 .then(() => console.log("Notification hub connected"))
                 .catch(err => console.error(err));
 

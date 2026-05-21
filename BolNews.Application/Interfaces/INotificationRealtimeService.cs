@@ -9,5 +9,6 @@ namespace BolNews.Application.Interfaces
     public interface INotificationRealtimeService
     {
         Task PushAsync(string userId);
+        Task SendDiscussionUpdateAsync(IEnumerable<string> userIds, object payload);
     }
 }

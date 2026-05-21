@@ -25,6 +25,7 @@ namespace BolNews.Persistence.Context
         public DbSet<ArticleAnalytics> ArticleAnalytics { get; set; }
         public DbSet<ArticleRevision> ArticleRevisions { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<ArticleDiscussionComment> ArticleDiscussionComments { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -49,6 +50,31 @@ namespace BolNews.Persistence.Context
                 .HasForeignKey(a => a.ArticleId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired(false); // ✅ KEY FIX
+
+            modelBuilder.Entity<ArticleDiscussionComment>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Message)
+                    .IsRequired()
+                    .HasMaxLength(4000);
+
+                entity.Property(x => x.UserId)
+                    .IsRequired();
+
+                entity.Property(x => x.CreatedAt)
+                    .IsRequired();
+
+                entity.HasOne(x => x.Article)
+                    .WithMany(x => x.DiscussionComments)
+                    .HasForeignKey(x => x.ArticleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
             // Soft delete filter
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
