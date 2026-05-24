@@ -6,6 +6,7 @@ using BolNews.Application.Services.Scoring.Providers;
 using BolNews.Domain.Entities;
 using BolNews.Persistence.Context;
 using BolNews.Persistence.Repositories;
+using BolNews.Web.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -72,7 +73,7 @@ namespace BolNews.Persistence
             services.AddScoped<IOperationalAnalyticsService, OperationalAnalyticsService>();
             services.AddScoped<IArticleLockService, ArticleLockService>();
             services.AddScoped<IArticleDiscussionService, ArticleDiscussionService>();
-
+            services.AddSingleton<IPresenceTracker, PresenceTracker>();
 
             return services;
         }

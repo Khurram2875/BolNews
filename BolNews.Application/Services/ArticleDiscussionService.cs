@@ -15,12 +15,14 @@ namespace BolNews.Application.Services
         private readonly IArticleRepository _articleRepository;
         private readonly INotificationService _notificationService;
         private readonly INotificationRealtimeService _realtimeService;
+        private readonly IPresenceTracker _presenceTracker;
 
-        public ArticleDiscussionService(IArticleRepository articleRepository, INotificationService notificationService, INotificationRealtimeService realtimeService)
+        public ArticleDiscussionService(IArticleRepository articleRepository, INotificationService notificationService, INotificationRealtimeService realtimeService, IPresenceTracker presenceTracker)
         {
             _articleRepository = articleRepository;
             _notificationService = notificationService;
             _realtimeService = realtimeService;
+            _presenceTracker = presenceTracker;
         }
 
         public async Task<List<ArticleDiscussionCommentDto>> GetThreadAsync(int articleId, string currentUserId, IList<string> roles)
@@ -135,6 +137,13 @@ namespace BolNews.Application.Services
 
             foreach (var recipient in recipients)
             {
+                if (_presenceTracker.IsUserInDiscussion(
+                    article.Id.ToString(),
+                    recipient))
+                {
+                    continue;
+                }
+
                 await _notificationService.NotifyAsync(
                     recipient,
                     "Editorial Discussion Update",

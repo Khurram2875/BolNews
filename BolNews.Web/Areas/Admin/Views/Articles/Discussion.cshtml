@@ -9,6 +9,7 @@
 <div class="container mt-4">
 
 	<div class="card mb-4 shadow-sm">
+		
 		<div class="card-header">
 			Discussion Workspace
 		</div>
@@ -38,10 +39,19 @@
 
 		</div>
 	</div>
-
+	
+			
+		
 	<div class="card shadow-sm">
-		<div class="card-header">
-			Editorial Discussion
+		<div class="card-header d-flex justify-content-between align-items-center">
+			<span>Editorial Discussion</span>
+
+			<div>
+				<small id="discussionPresence"
+					   class="text-success fw-semibold">
+					🟢 1 online
+				</small>
+			</div>
 		</div>
 
 		<div class="card-body">
@@ -84,6 +94,10 @@
 				}
 
 			</div>
+			<div id="typingIndicator"
+				 class="small text-muted px-2 py-1"
+				 style="min-height: 24px;">
+			</div>
 			<form asp-action="AddDiscussionComment" method="post">
 
 				@Html.AntiForgeryToken()
@@ -92,17 +106,22 @@
 					   name="articleId"
 					   value="@Model.ArticleId" />
 
-				<div class="mb-3">
-					<textarea name="message"
-							  class="form-control"
-							  rows="4"
-							  required></textarea>
-				</div>
+				<div class="d-flex align-items-end mt-3 gap-2">
 
-				<button type="submit"
-						class="btn btn-primary">
-					Post Comment
-				</button>
+					<textarea id="discussionMessage"
+							  name="message"
+							  class="form-control"
+							  rows="2"
+							  placeholder="Type a message..."
+							  required></textarea>
+
+					<button id="sendDiscussionBtn"
+							type="submit"
+							class="btn btn-primary px-4">
+						Send
+					</button>
+
+				</div>
 
 			</form>
 
@@ -112,11 +131,12 @@
 @section Scripts
 {
 	<script>
+		let typingTimeout = null;
+
 		function scrollDiscussionToBottom(smooth = true) {
 			const thread = document.getElementById("discussionThread");
 
-			if (!thread)
-				return;
+			if (!thread) return;
 
 			thread.scrollTo({
 				top: thread.scrollHeight,
@@ -124,28 +144,17 @@
 			});
 		}
 
-		function attachDiscussionListener() {
-
-			if (!window.notificationConnection) {
-				setTimeout(attachDiscussionListener, 500);
-				return;
-			}
-
-			console.log("Discussion SignalR listener attaching");
+		function wireDiscussionEvents(articleId) {
 
 			window.notificationConnection.off("DiscussionUpdated");
+			window.notificationConnection.off("DiscussionPresenceUpdated");
+			window.notificationConnection.off("DiscussionTypingStarted");
+			window.notificationConnection.off("DiscussionTypingStopped");
 
+			// MESSAGE RECEIVE
 			window.notificationConnection.on("DiscussionUpdated", function (data) {
-
-				console.log("DiscussionUpdated EVENT RECEIVED", data);
-
-				const thread =
-					document.getElementById("discussionThread");
-
-				if (!thread) {
-					console.error("discussion thread missing");
-					return;
-				}
+				const thread = document.getElementById("discussionThread");
+				if (!thread) return;
 
 				const html = `
 					<div class="discussion-row theirs">
@@ -162,15 +171,102 @@
 				`;
 
 				thread.insertAdjacentHTML("beforeend", html);
-
 				scrollDiscussionToBottom();
+			});
+
+			// PRESENCE
+			window.notificationConnection.on("DiscussionPresenceUpdated", function (count) {
+				const presence = document.getElementById("discussionPresence");
+				if (presence) {
+					presence.innerText = `🟢 ${count} online`;
+				}
+			});
+
+			// TYPING START
+			window.notificationConnection.on("DiscussionTypingStarted", function (userName) {
+				console.log("Typing started from:", userName);
+
+				const indicator = document.getElementById("typingIndicator");
+				if (indicator) {
+					indicator.innerText = `${userName} is typing...`;
+				}
+			});
+
+			// TYPING STOP
+			window.notificationConnection.on("DiscussionTypingStopped", function () {
+				console.log("Typing stopped");
+
+				const indicator = document.getElementById("typingIndicator");
+				if (indicator) {
+					indicator.innerText = "";
+				}
+			});
+
+			window.notificationConnection.invoke("JoinDiscussion", articleId);
+		}
+
+		function attachDiscussion() {
+
+			if (!window.notificationConnection) {
+				setTimeout(attachDiscussion, 500);
+				return;
+			}
+
+			const articleId = "@Model.ArticleId";
+
+			if (window.notificationConnection.state === "Connected") {
+				wireDiscussionEvents(articleId);
+			} else {
+				window.notificationConnection.start()
+					.then(function () {
+						wireDiscussionEvents(articleId);
+					})
+					.catch(err => console.error(err));
+			}
+
+			const textarea = document.getElementById("discussionMessage");
+			const sendBtn = document.getElementById("sendDiscussionBtn");
+
+			if (textarea) {
+
+				textarea.addEventListener("keydown", function (e) {
+					if (e.key === "Enter" && !e.shiftKey) {
+						e.preventDefault();
+
+						const message = textarea.value.trim();
+						if (!message) return;
+
+						window.notificationConnection.invoke("TypingStopped", articleId);
+
+						sendBtn.click();
+					}
+				});
+
+				textarea.addEventListener("input", function () {
+					const message = textarea.value.trim();
+
+					if (!message) {
+						window.notificationConnection.invoke("TypingStopped", articleId);
+						return;
+					}
+
+					window.notificationConnection.invoke("TypingStarted", articleId);
+
+					clearTimeout(typingTimeout);
+
+					typingTimeout = setTimeout(function () {
+						window.notificationConnection.invoke("TypingStopped", articleId);
+					}, 1200);
+				});
+			}
+
+			window.addEventListener("beforeunload", function () {
+				window.notificationConnection.invoke("LeaveDiscussion", articleId);
 			});
 		}
 
 		document.addEventListener("DOMContentLoaded", function () {
-			attachDiscussionListener();
-
-			// Initial load jump directly to latest message
+			attachDiscussion();
 			scrollDiscussionToBottom(false);
 		});
 	</script>
@@ -224,7 +320,7 @@
 } *@
 <style>
 	.discussion-thread {
-		height: 550px;
+		height: 500px;
 		overflow-y: auto;
 		padding: 14px;
 		background: #f8fafc;
@@ -289,5 +385,10 @@
 		color: #111827;
 		white-space: pre-wrap;
 		word-break: break-word;
+		
+	}
+
+	#discussionMessage {
+		resize: none;
 	}
 </style>
