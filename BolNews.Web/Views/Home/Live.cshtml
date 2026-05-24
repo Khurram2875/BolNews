@@ -1,0 +1,174 @@
+﻿@{
+    ViewData["Title"] = "Bol News Live";
+}
+
+<div class="site grid-container hfeed container" id="page">
+    <div class="site-content" id="content">
+        <div data-elementor-type="wp-page" data-elementor-id="1140660" class="elementor elementor-1140660" data-elementor-post-type="page">
+
+            <!-- Header Container: Logo and Title Aligned on a Single Row -->
+            <div class="border-bottom mb-4 py-3">
+                <div class="d-flex align-items-center gap-3">
+                    <img decoding="async" width="47" height="46" src="~/images/small-logo.png" class="img-fluid" alt="BOL News Logo">
+                    <h1 class="h3 fw-bold text-uppercase text-dark m-0" style="letter-spacing: -0.5px;">
+                        Live BOL NEWS | BOL NEWS LIVE STREAMING
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Video Player Section Container -->
+            <div class="elementor-element elementor-element-c2d280f e-flex e-con-boxed e-con e-parent e-lazyloaded" data-id="c2d280f" data-element_type="container">
+                <div class="e-con-inner">
+                    <div class="elementor-element elementor-element-c985357 elementor-widget elementor-widget-shortcode" data-id="c985357" data-element_type="widget" data-widget_type="shortcode.default">
+                        <div class="elementor-shortcode">
+                            <style>
+                                .gy-live-wrapper {
+                                    width: 100%;
+                                    background: #000;
+                                    border-radius: 10px;
+                                    overflow: hidden;
+                                    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+                                }
+
+                                /* Thumbnail Context */
+                                .gy-live-thumbnail {
+                                    position: relative;
+                                    cursor: pointer;
+                                }
+
+                                    .gy-live-thumbnail img {
+                                        width: 100%;
+                                        display: block;
+                                    }
+
+                                .gy-live-overlay {
+                                    position: absolute;
+                                    bottom: 0;
+                                    left: 0;
+                                    right: 0;
+                                    background: linear-gradient(180deg, transparent 40%, rgba(200,0,0,0.9));
+                                    color: #fff;
+                                    font-size: 24px;
+                                    font-weight: bold;
+                                    padding: 16px;
+                                    text-align: center;
+                                    text-transform: uppercase;
+                                    letter-spacing: 1px;
+                                }
+
+                                .gy-live-play-btn {
+                                    position: absolute;
+                                    top: 50%;
+                                    left: 50%;
+                                    transform: translate(-50%, -50%);
+                                    width: 80px;
+                                    height: 56px;
+                                    background: rgba(204, 0, 0, 0.9);
+                                    border-radius: 14px;
+                                    transition: transform 0.2s ease, background-color 0.2s ease;
+                                }
+
+                                .gy-live-thumbnail:hover .gy-live-play-btn {
+                                    transform: translate(-50%, -50%) scale(1.1);
+                                    background: rgb(255, 0, 0);
+                                }
+
+                                .gy-live-play-btn::before {
+                                    content: '';
+                                    position: absolute;
+                                    left: 33px;
+                                    top: 15px;
+                                    border-left: 20px solid #fff;
+                                    border-top: 13px solid transparent;
+                                    border-bottom: 13px solid transparent;
+                                }
+
+                                /* Player Engine Area */
+                                .gy-live-player {
+                                    display: none;
+                                    position: relative;
+                                    width: 100%;
+                                    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+                                    height: 0;
+                                    background: #000;
+                                }
+
+                                    .gy-live-player iframe {
+                                        position: absolute;
+                                        top: 0;
+                                        left: 0;
+                                        width: 100%;
+                                        height: 100%;
+                                        border: none;
+                                        object-fit: contain;
+                                        background: #000;
+                                    }
+
+                                @@media (max-width: 768px) {
+                                    .gy-live-overlay
+
+                                {
+                                    font-size: 18px;
+                                    padding: 10px;
+                                }
+
+                                .gy-live-play-btn {
+                                    width: 66px;
+                                    height: 46px;
+                                }
+
+                                    .gy-live-play-btn::before {
+                                        left: 28px;
+                                        top: 12px;
+                                        border-left: 15px solid #fff;
+                                        border-top: 11px solid transparent;
+                                        border-bottom: 11px solid transparent;
+                                    }
+
+                                }
+                            </style>
+
+                            <div class="gy-live-wrapper">
+                                <!-- Thumbnail Placeholder Image -->
+                                <div class="gy-live-thumbnail" id="gy-live-thumb">
+                                    <img decoding="async" src="https://img.youtube.com/vi/M8DGZa5xX5A/maxresdefault.jpg" alt="Watch Live Stream">
+                                    <div class="gy-live-play-btn"></div>
+                                    <div class="gy-live-overlay">Watch Live</div>
+                                </div>
+
+                                <!-- Dynamic Player Engine -->
+                                <div class="gy-live-player" id="gy-live-player">
+                                    <!-- Added strict sandbox constraints to isolate third-party telemetry code -->
+                                    <iframe id="gy-live-iframe"
+                                            src=""
+                                            allow="autoplay; encrypted-media"
+                                            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+                                            allowfullscreen>
+                                    </iframe>
+                                </div>
+                            </div>
+
+                            <script>
+                                document.getElementById('gy-live-thumb').addEventListener('click', function () {
+                                    // 1. Hide the splash banner card layout elements completely
+                                    this.style.display = 'none';
+
+                                    // 2. Inject target source string directly inside DOM container block context matching user action instance
+                                    var videoUrl = "https://www.youtube.com/embed/M8DGZa5xX5A?autoplay=1&rel=0&modestbranding=1";
+                                    document.getElementById('gy-live-iframe').setAttribute('src', videoUrl);
+
+                                    // 3. Make video block visible
+                                    document.getElementById('gy-live-player').style.display = 'block';
+                                });
+                            </script>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Removed Ad Shortcodes From Here Permanently to Maximize Speed Performance and Minimize Client Errors -->
+
+        </div>
+    </div>
+</div>

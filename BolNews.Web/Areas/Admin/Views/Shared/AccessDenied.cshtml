@@ -1,0 +1,50 @@
+﻿@{
+    ViewData["Title"] = "Access Denied";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<div class="d-flex align-items-center justify-content-center min-vh-100 container py-5">
+    <div class="row justify-content-center w-100">
+        <div class="col-md-8 col-lg-6 text-center">
+
+            <!-- Icon Wrapper -->
+            <div class="text-danger animate__animated animate__bounceIn mb-4">
+                <i class="bi bi-shield-lock" style="font-size: 6rem; line-height: 1;"></i>
+            </div>
+
+            <!-- Error Code / Heading -->
+            <h1 class="display-4 fw-bold text-dark mb-2">403</h1>
+            <h2 class="h4 text-secondary mb-4">Access Denied</h2>
+
+            <hr class="w-25 text-muted mx-auto my-4">
+
+            <!-- Informative Message -->
+            <div class="card bg-light-subtle rounded-4 mb-4 border-0 p-4 text-start shadow-sm">
+                <p class="text-muted d-flex align-items-start mb-0">
+                    <i class="bi bi-exclamation-triangle-fill text-warning fs-5 me-3 mt-1"></i>
+                    <span>
+                        You do not have permission to view this resource. This could be because your account lacks the necessary roles, or your current session permissions are insufficient.
+                    </span>
+                </p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+                <a asp-area="" asp-page="/Index" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2 px-4 py-2">
+                    <i class="bi bi-house-door"></i> Return Home
+                </a>
+
+                <a href="javascript:history.back()" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-2 px-4 py-2">
+                    <i class="bi bi-arrow-left"></i> Go Back
+                </a>
+
+                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2 px-4 py-2">
+                        <i class="bi bi-box-arrow-right"></i> Switch Account
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
