@@ -679,27 +679,187 @@
                                         <span class="text-muted">—</span>
                                     }
                                 </td>
-                                <td>
-                                    <div class="d-flex flex-wrap gap-1">
+                                <td style="min-width: 340px;">
+                                    <div class="d-flex flex-column gap-2">
 
-                                        <a asp-area="Admin"
-                                           asp-controller="Articles"
-                                           asp-action="Edit"
-                                           asp-route-id="@item.Id"
-                                           class="badge bg-warning">
-                                            Review
-                                        </a>
+                                        <!-- TOP ACTION -->
+                                        <div>
+                                            <a asp-area="Admin"
+                                               asp-controller="Articles"
+                                               asp-action="Edit"
+                                               asp-route-id="@item.Id"
+                                               class="btn btn-warning btn-sm w-100">
+                                                <i class="bi bi-pencil-square me-1"></i> Review Article
+                                            </a>
+                                        </div>
 
-                                        <form asp-action="Transition" method="post">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="articleId" value="@item.Id" />
-                                            <input type="hidden" name="targetStatus" value="Published" />
+                                        @if (item.WorkflowStatus == ArticleWorkflowStatus.Approved &&
+                                                                        !item.ScheduledPublishAt.HasValue &&
+                                                                        !item.EmbargoUntil.HasValue)
+                                        {
+                                            <div class="bg-light rounded border p-3">
 
-                                            <button class="badge bg-dark">
-                                                Publish
-                                            </button>
-                                        </form>
+                                                <div class="fw-semibold text-success mb-2">
+                                                    Publishing Controls
+                                                </div>
 
+                                                <form asp-action="Transition" method="post">
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden" name="articleId" value="@item.Id" />
+                                                    <input type="hidden" name="targetStatus" value="Published" />
+
+                                                    <div class="mb-2">
+                                                        <label class="form-label small fw-semibold">
+                                                            Schedule Publish
+                                                        </label>
+
+                                                        <input type="datetime-local"
+                                                               name="scheduledPublishAt"
+                                                               class="form-control form-control-sm" />
+                                                    </div>
+
+                                                    <div class="text-muted small my-1 text-center">
+                                                        OR
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label class="form-label small fw-semibold">
+                                                            Embargo Until
+                                                        </label>
+
+                                                        <input type="datetime-local"
+                                                               name="embargoUntil"
+                                                               class="form-control form-control-sm" />
+                                                    </div>
+
+                                                    <button type="submit"
+                                                            class="btn btn-success btn-sm w-100">
+                                                        <i class="bi bi-send-check me-1"></i> Publish
+                                                    </button>
+
+                                                    <div class="form-text small mt-2 text-center">
+                                                        Leave both empty for immediate publishing
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        }
+                                        else if (item.ScheduledPublishAt.HasValue)
+                                        {
+                                            <div class="bg-info rounded border bg-opacity-10 p-3">
+
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="fw-semibold text-info">
+                                                        Scheduled Publication
+                                                    </span>
+                                                    <span class="badge bg-info">
+                                                        Scheduled
+                                                    </span>
+                                                </div>
+
+                                                <div class="small mb-3">
+                                                    @item.ScheduledPublishAt.Value.ToLocalTime().ToString("f")
+                                                </div>
+
+                                                <form asp-action="Transition" method="post" class="mb-2">
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden" name="articleId" value="@item.Id" />
+                                                    <input type="hidden" name="targetStatus" value="Published" />
+
+                                                    <input type="datetime-local"
+                                                           name="scheduledPublishAt"
+                                                           class="form-control form-control-sm mb-2" />
+
+                                                    <button type="submit"
+                                                            class="btn btn-primary btn-sm w-100">
+                                                        Reschedule
+                                                    </button>
+                                                </form>
+
+                                                <div class="d-grid gap-2">
+                                                    <form asp-action="CancelSchedule" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="articleId" value="@item.Id" />
+
+                                                        <button type="submit"
+                                                                class="btn btn-outline-danger btn-sm w-100">
+                                                            Cancel Schedule
+                                                        </button>
+                                                    </form>
+
+                                                    <form asp-action="Transition" method="post">
+                                                        @Html.AntiForgeryToken()
+
+                                                        <input type="hidden" name="articleId" value="@item.Id" />
+                                                        <input type="hidden" name="targetStatus" value="Published" />
+
+                                                        <button type="submit"
+                                                                class="btn btn-success btn-sm w-100">
+                                                            Publish Now
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        }
+                                        else if (item.EmbargoUntil.HasValue)
+                                        {
+                                            <div class="bg-warning rounded border bg-opacity-10 p-3">
+
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="fw-semibold text-warning">
+                                                        Embargo Active
+                                                    </span>
+                                                    <span class="badge bg-warning text-dark">
+                                                        Restricted
+                                                    </span>
+                                                </div>
+
+                                                <div class="small mb-3">
+                                                    @item.EmbargoUntil.Value.ToLocalTime().ToString("f")
+                                                </div>
+
+                                                <form asp-action="Transition" method="post" class="mb-2">
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden" name="articleId" value="@item.Id" />
+                                                    <input type="hidden" name="targetStatus" value="Published" />
+
+                                                    <input type="datetime-local"
+                                                           name="embargoUntil"
+                                                           class="form-control form-control-sm mb-2" />
+
+                                                    <button type="submit"
+                                                            class="btn btn-primary btn-sm w-100">
+                                                        Reschedule Embargo
+                                                    </button>
+                                                </form>
+
+                                                <div class="d-grid gap-2">
+                                                    <form asp-action="CancelSchedule" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="articleId" value="@item.Id" />
+
+                                                        <button type="submit"
+                                                                class="btn btn-outline-danger btn-sm w-100">
+                                                            Cancel Embargo
+                                                        </button>
+                                                    </form>
+
+                                                    <form asp-action="Transition" method="post">
+                                                        @Html.AntiForgeryToken()
+
+                                                        <input type="hidden" name="articleId" value="@item.Id" />
+                                                        <input type="hidden" name="targetStatus" value="Published" />
+
+                                                        <button type="submit"
+                                                                class="btn btn-success btn-sm w-100">
+                                                            Publish Now
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        }
                                     </div>
                                 </td>
                             </tr>
@@ -792,5 +952,34 @@
 
             modal.show();
         }
+
+                document.addEventListener("DOMContentLoaded", function () {
+
+            document.querySelectorAll("input[name='scheduledPublishAt']")
+                .forEach(schedule => {
+
+                    schedule.addEventListener("change", function () {
+
+                        const embargo =
+                            this.closest("form")
+                                .querySelector("input[name='embargoUntil']");
+
+                        embargo.disabled = !!this.value;
+                    });
+                });
+
+            document.querySelectorAll("input[name='embargoUntil']")
+                .forEach(embargo => {
+
+                    embargo.addEventListener("change", function () {
+
+                        const schedule =
+                            this.closest("form")
+                                .querySelector("input[name='scheduledPublishAt']");
+
+                        schedule.disabled = !!this.value;
+                    });
+                });
+        });
     </script>
 }

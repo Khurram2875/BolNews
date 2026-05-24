@@ -17,6 +17,7 @@ namespace BolNews.Web
              .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId));
 
             CreateMap<ArticleVM, ArticleDto>();
+            CreateMap<ArticleDto, ArticleVM>();
             CreateMap<Article, ArticleVM>()
      .ForMember(dest => dest.AuthorName,
          opt => opt.MapFrom(src => src.Author.Name))

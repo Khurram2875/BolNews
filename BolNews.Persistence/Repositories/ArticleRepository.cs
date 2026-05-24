@@ -280,5 +280,25 @@ namespace BolNews.Persistence.Repositories
         {
             await _context.SaveChangesAsync();
         }
+        public async Task<List<Article>> GetDueScheduledArticlesAsync( DateTime utcNow)
+         {
+          
+            return await _context.Articles
+                .Include(a => a.Author)
+                    .ThenInclude(a => a.User)
+                .Include(a => a.Category)
+                .Where(a =>
+                    !a.IsDeleted &&
+                    !a.IsPublished &&
+                    a.WorkflowStatus == ArticleWorkflowStatus.Approved &&
+                    (
+                        (a.ScheduledPublishAt.HasValue &&
+                         a.ScheduledPublishAt <= utcNow)
+                        ||
+                        (a.EmbargoUntil.HasValue &&
+                         a.EmbargoUntil <= utcNow)
+                    ))
+                .ToListAsync();
+        }
     }
 }

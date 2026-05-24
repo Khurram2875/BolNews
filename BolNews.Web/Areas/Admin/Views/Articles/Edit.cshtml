@@ -249,7 +249,21 @@
                     This article has already been submitted for editorial review.
                 </div>
             }
-            
+          
+            @if (Model.ScheduledPublishAt.HasValue)
+            {
+                <div class="alert alert-info mt-3">
+                    This article is scheduled for publication at
+                    <strong>@Model.ScheduledPublishAt.Value.ToLocalTime()</strong>
+                </div>
+            }
+            @if (Model.EmbargoUntil.HasValue)
+            {
+                <div class="alert alert-warning mt-2">
+                    Public access blocked until
+                    <strong>@Model.EmbargoUntil.Value.ToLocalTime()</strong>
+                </div>
+            }
             <button type="submit" class="btn btn-warning">
                 <i class="bi bi-pencil-square"></i> Update
             </button>

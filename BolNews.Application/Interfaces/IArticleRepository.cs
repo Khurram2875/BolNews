@@ -40,5 +40,6 @@ namespace BolNews.Application.Interfaces
         Task<List<Article>> GetEditorialQueueAsync(params ArticleWorkflowStatus[] statuses);
         Task<List<Article>> GetActiveWorkflowArticlesAsync();
         Task SaveChangesAsync();
+        Task<List<Article>> GetDueScheduledArticlesAsync(DateTime utcNow);
     }
 }

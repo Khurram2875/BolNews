@@ -56,6 +56,11 @@ namespace BolNews.Domain.Entities
         public ApplicationUser? FactCheckerUser { get; set; }
         public int ViewCount { get; set; }
 
+        //Schedule Publishing / Embargo
+        public DateTime? ScheduledPublishAt { get; set; }
+        public DateTime? EmbargoUntil { get; set; }
+        public bool IsScheduled => ScheduledPublishAt.HasValue;
+
         #region Editorial Intelligence
 
         public bool IsEditorsPick { get; set; }

@@ -22,6 +22,9 @@ namespace BolNews.Application.DTOs
         public decimal OverallScore { get; set; }
         public bool IsFactChecked { get; set; }
         public bool IsPublished { get; set; }
+        public DateTime? ScheduledPublishAt { get; set; }
+
+        public DateTime? EmbargoUntil { get; set; }
         public SlaStatusResult? SlaStatus { get; set; }
     }
 }

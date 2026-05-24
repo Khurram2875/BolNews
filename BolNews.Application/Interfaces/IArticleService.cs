@@ -48,9 +48,11 @@ namespace BolNews.Application.Interfaces
         Task<IEnumerable<ArticleDto>> GetTopRankedPublishedAsync(int count);
         Task<IEnumerable<ArticleDto>> GetTopRankedByCategoryAsync(int categoryId, int count);
         Task<List<EditorialQueueDto>> GetEditorialQueueAsync(IList<string> roles);
-        Task TransitionWorkflowAsync(int articleId,ArticleWorkflowStatus targetStatus,string currentUserId,IList<string> roles,string? reason = null);
+        Task TransitionWorkflowAsync(int articleId,ArticleWorkflowStatus targetStatus,string currentUserId,IList<string> roles,string? reason = null, DateTime? scheduledPublishAt = null,
+    DateTime? embargoUntil = null);
         Task AssignReviewerAsync(int articleId,string reviewerUserId,string currentUserId, IList<string> roles);
         Task AssignFactCheckerAsync(int articleId,string factCheckerUserId,string currentUserId, IList<string> roles);
         Task<Article?> GetEntityByIdAsync(int id);
+        Task CancelScheduleAsync(int articleId, string currentUserId, IList<string> roles);
     }
 }

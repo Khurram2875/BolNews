@@ -89,17 +89,42 @@ namespace BolNews.Web.Areas.Admin.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Transition(int articleId, ArticleWorkflowStatus targetStatus, string? reason = null)
+        public async Task<IActionResult> Transition(int articleId, ArticleWorkflowStatus targetStatus, string? reason = null, DateTime? scheduledPublishAt = null,
+    DateTime? embargoUntil = null)
         {
             var user = await _userManager.GetUserAsync(User);
             var roles = await _userManager.GetRolesAsync(user);
 
+            if (scheduledPublishAt.HasValue)
+            {
+                scheduledPublishAt = DateTime.SpecifyKind(
+                    scheduledPublishAt.Value,
+                    DateTimeKind.Local)
+                    .ToUniversalTime();
+            }
+
+            if (embargoUntil.HasValue)
+            {
+                embargoUntil = DateTime.SpecifyKind(
+                    embargoUntil.Value,
+                    DateTimeKind.Local)
+                    .ToUniversalTime();
+            }
+            if (scheduledPublishAt.HasValue && embargoUntil.HasValue)
+            {
+                TempData["Error"] =
+                    "Choose either Scheduled Publish OR Embargo, not both.";
+
+                return RedirectToAction(nameof(Index));
+            }
             await _articleService.TransitionWorkflowAsync(
                 articleId,
                 targetStatus,
                 user.Id,
                 roles,
-                reason);
+                reason, 
+                scheduledPublishAt,
+                embargoUntil);
 
             return RedirectToAction(nameof(Index));
         }
@@ -128,6 +153,20 @@ namespace BolNews.Web.Areas.Admin.Controllers
             await _articleService.AssignFactCheckerAsync(
                 articleId,
                 factCheckerUserId,
+                user.Id,
+                roles);
+
+            return RedirectToAction(nameof(Index));
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelSchedule(int articleId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            await _articleService.CancelScheduleAsync(
+                articleId,
                 user.Id,
                 roles);
 

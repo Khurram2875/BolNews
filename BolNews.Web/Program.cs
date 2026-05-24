@@ -21,6 +21,7 @@ builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<INotificationRealtimeService, NotificationRealtimeService>();
 builder.Services.AddHostedService<SlaMonitoringWorker>();
+builder.Services.AddHostedService<ScheduledPublishingService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

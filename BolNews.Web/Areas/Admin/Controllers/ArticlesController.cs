@@ -4,6 +4,7 @@ using BolNews.Application.Common.Helpers;
 using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
+using BolNews.Domain.Common;
 using BolNews.Domain.Entities;
 using BolNews.Domain.Enums;
 using BolNews.Infrastructure.Services;
@@ -210,6 +211,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
                     PublishedAt = model.PublishedAt
                 });
 
+           
+
             await PopulateDropdowns(model.CategoryId);
 
             return View(model);
@@ -287,6 +290,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             dto.FeaturedImageMedium = existing.FeaturedImageMedium;
             dto.FeaturedImageLarge = existing.FeaturedImageLarge;
             dto.FeaturedImageXl = existing.FeaturedImageXl;
+
 
             // Preserve author ownership
             dto.AuthorId = existing.AuthorId;

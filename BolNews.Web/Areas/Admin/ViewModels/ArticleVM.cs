@@ -1,10 +1,11 @@
-﻿using BolNews.Application.DTOs;
+﻿using System.ComponentModel.DataAnnotations;
+using BolNews.Application.DTOs;
 using BolNews.Domain.Enums;
 using BolNews.Web.Models;
 
 namespace BolNews.Web.Areas.Admin.ViewModels
 {
-    public class ArticleVM
+    public class ArticleVM : IValidatableObject
     {
         public int Id { get; set; }
 
@@ -47,5 +48,28 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         public List<ArticleDiscussionCommentDto> DiscussionComments { get; set; } = new();
 
         public string? NewDiscussionComment { get; set; }
+
+        // Schedule Publishing /Emabrgo
+        public DateTime? ScheduledPublishAt { get; set; }
+        public DateTime? EmbargoUntil { get; set; }
+        
+        public IEnumerable<ValidationResult> Validate( ValidationContext validationContext)
+        {
+            if (ScheduledPublishAt.HasValue &&
+                ScheduledPublishAt <= DateTime.UtcNow)
+            {
+                yield return new ValidationResult(
+                    "Scheduled publish must be in the future.",
+                    new[] { nameof(ScheduledPublishAt) });
+            }
+
+            if (EmbargoUntil.HasValue &&
+                EmbargoUntil <= DateTime.UtcNow)
+            {
+                yield return new ValidationResult(
+                    "Embargo must be in the future.",
+                    new[] { nameof(EmbargoUntil) });
+            }
+        }
     }
 }

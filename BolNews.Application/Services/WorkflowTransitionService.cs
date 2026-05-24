@@ -48,12 +48,14 @@ namespace BolNews.Application.Services
                 workflowState: $"{article.WorkflowStatus} -> {targetStatus}",
                 changeReason: reason);
 
+            var now = DateTime.UtcNow;
+
             var rejectionReason = string.IsNullOrWhiteSpace(reason)
                 ? "No reason provided."
                 : reason;
 
             article.WorkflowStatus = targetStatus;
-            article.UpdatedAt = DateTime.UtcNow;
+            article.UpdatedAt = now;
             article.UpdatedBy = currentUserId;
 
             // Clear old workflow comments by default
@@ -63,15 +65,15 @@ namespace BolNews.Application.Services
             switch (targetStatus)
             {
                 case ArticleWorkflowStatus.UnderReview:
-                    article.ReviewStartedAt = DateTime.UtcNow;
+                    article.ReviewStartedAt = now;
                     break;
 
                 case ArticleWorkflowStatus.FactCheckPending:
-                    article.FactCheckStartedAt = DateTime.UtcNow;
+                    article.FactCheckStartedAt = now;
                     break;
 
                 case ArticleWorkflowStatus.Approved:
-                    article.ApprovedAt = DateTime.UtcNow;
+                    article.ApprovedAt = now;
                     break;
             }
 
@@ -81,6 +83,10 @@ namespace BolNews.Application.Services
                 article.IsPublished = false;
                 article.WorkflowComment = rejectionReason;
 
+                // clear scheduling if rejected
+                article.ScheduledPublishAt = null;
+                article.EmbargoUntil = null;
+
                 if (!string.IsNullOrWhiteSpace(article.Author?.UserId))
                 {
                     await _notificationService.NotifyAsync(
@@ -89,6 +95,9 @@ namespace BolNews.Application.Services
                         $"Your article '{article.Title}' was rejected. Reason: {rejectionReason}",
                         $"/Admin/Articles/Edit/{article.Id}");
                 }
+
+                await _articleScoringService.CalculateScoresAsync(article);
+                return;
             }
 
             // APPROVED
@@ -102,13 +111,33 @@ namespace BolNews.Application.Services
                     $"/Admin/Articles/Edit/{article.Id}");
             }
 
-            // PUBLISHED
+            // PUBLISH / SCHEDULE / EMBARGO LOGIC
             if (targetStatus == ArticleWorkflowStatus.Published)
             {
+                var effectivePublishTime =
+                    article.ScheduledPublishAt ?? article.EmbargoUntil;
+
+                // FUTURE publish requested
+                if (effectivePublishTime.HasValue &&
+                    effectivePublishTime.Value > now)
+                {
+                    article.IsPublished = false;
+
+                    // keep article approved until scheduler publishes it
+                    article.WorkflowStatus = ArticleWorkflowStatus.Approved;
+
+                    article.UpdatedAt = now;
+                    article.UpdatedBy = currentUserId;
+
+                    await _articleScoringService.CalculateScoresAsync(article);
+                    return;
+                }
+
+                // IMMEDIATE publish
                 article.IsPublished = true;
 
                 if (!article.PublishedAt.HasValue)
-                    article.PublishedAt = DateTime.UtcNow;
+                    article.PublishedAt = now;
 
                 if (!string.IsNullOrWhiteSpace(article.Author?.UserId))
                 {

@@ -46,6 +46,10 @@ namespace BolNews.Application.DTOs
         public bool IsFactChecked { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? CreatedAt { get; set; }
+        // Schedule Publishing /Emabrgo
+        public DateTime? ScheduledPublishAt { get; set; }
+        public DateTime? EmbargoUntil { get; set; }
+
         public string TimeAgo
         {
             get

@@ -217,6 +217,8 @@ namespace BolNews.Application.Services
             article.FeaturedImageMedium = dto.FeaturedImageMedium;
             article.FeaturedImageLarge = dto.FeaturedImageLarge;
             article.FeaturedImageXl = dto.FeaturedImageXl;
+            article.ScheduledPublishAt = dto.ScheduledPublishAt;
+            article.EmbargoUntil = dto.EmbargoUntil;
 
             article.CategoryId = dto.CategoryId;
             article.UpdatedAt = DateTime.UtcNow;
@@ -286,6 +288,8 @@ namespace BolNews.Application.Services
                 IsEditorsPick = a.IsEditorsPick,
                 EditorialPriority = a.EditorialPriority,
                 IsFactChecked = a.IsFactChecked,
+                ScheduledPublishAt = a.ScheduledPublishAt,
+                EmbargoUntil = a.EmbargoUntil
             };
         }
 
@@ -554,10 +558,12 @@ namespace BolNews.Application.Services
                 FactCheckerName = a.FactCheckerUser?.FullName,
                 ReviewerUserId = a.ReviewerUserId,
                 FactCheckerUserId = a.FactCheckerUserId,
-                SlaStatus = _slaService.Evaluate(a)
+                SlaStatus = _slaService.Evaluate(a),
+                ScheduledPublishAt = a.ScheduledPublishAt,
+                EmbargoUntil = a.EmbargoUntil
             }).ToList();
         }
-        public async Task TransitionWorkflowAsync(int articleId,ArticleWorkflowStatus targetStatus,string currentUserId,IList<string> roles,string? reason = null)
+        public async Task TransitionWorkflowAsync(int articleId, ArticleWorkflowStatus targetStatus, string currentUserId, IList<string> roles, string? reason = null, DateTime? scheduledPublishAt = null, DateTime? embargoUntil = null)
         {
             var article = await _repo.FindByIdAsync(articleId);
 
@@ -565,6 +571,8 @@ namespace BolNews.Application.Services
                 throw new InvalidOperationException(
                     $"Article {articleId} not found.");
 
+            article.ScheduledPublishAt = scheduledPublishAt;
+            article.EmbargoUntil = embargoUntil;
             await _workflowTransitionService.ExecuteTransitionAsync(
                 article, targetStatus, currentUserId, roles, reason);
 
@@ -599,6 +607,28 @@ namespace BolNews.Application.Services
         public async Task<Article?> GetEntityByIdAsync(int id)
         {
             return await _repo.FindByIdAsync(id);
+        }
+        public async Task CancelScheduleAsync(int articleId, string currentUserId, IList<string> roles)
+        {
+            var article = await _repo.FindByIdAsync(articleId);
+
+            if (article == null)
+                throw new InvalidOperationException("Article not found.");
+
+            if (!(roles.Contains(Roles.Admin) ||
+                  roles.Contains(Roles.Editor) ||
+                  roles.Contains(Roles.SubEditor)))
+            {
+                throw new UnauthorizedAccessException();
+            }
+
+            article.ScheduledPublishAt = null;
+            article.EmbargoUntil = null;
+
+            article.UpdatedAt = DateTime.UtcNow;
+            article.UpdatedBy = currentUserId;
+
+            await _repo.SaveChangesAsync();
         }
     }
 }
