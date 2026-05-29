@@ -1,4 +1,5 @@
-﻿using BolNews.Domain.Entities;
+﻿using BolNews.Domain.Common;
+using BolNews.Domain.Entities;
 using BolNews.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -32,6 +33,7 @@ namespace BolNews.Web.Controllers
                 ModelState.AddModelError("", "Invalid login attempt");
                 return View();
             }
+            
 
             var result = await _signInManager.PasswordSignInAsync(
                 email,
@@ -41,11 +43,43 @@ namespace BolNews.Web.Controllers
 
             if (result.Succeeded)
             {
+                var user = await _userManager.FindByNameAsync(email);
+
+                var roles = await _userManager.GetRolesAsync(user);
+
+                // Editorial team gets Editorial Dashboard
+                if (roles.Contains(Roles.Editor) ||
+                    roles.Contains(Roles.SubEditor))
+                {
+                    return RedirectToAction(
+                        actionName: "Index",
+                        controllerName: "Editorial",
+                        routeValues: new { area = "Admin" });
+                }
+
+                // Author-only users go to Articles
+                if (roles.Contains(Roles.Author))
+                {
+                    return RedirectToAction(
+                        actionName: "Index",
+                        controllerName: "Articles",
+                        routeValues: new { area = "Admin" });
+                }
+
+                // Admin goes to Admin Dashboard
+                if (roles.Contains(Roles.Admin))
+                {
+                    return RedirectToAction(
+                        actionName: "Index",
+                        controllerName: "Dashboard",
+                        routeValues: new { area = "Admin" });
+                }
+
+                // Normal users / no roles
                 return RedirectToAction(
-                     actionName: "Index",
-                     controllerName: "Dashboard",
-                     routeValues: new { area = "Admin" }
-                 );
+                    actionName: "Index",
+                    controllerName: "Home",
+                    routeValues: new { area = "" });
             }
 
             ModelState.AddModelError("", "Invalid email or password");

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BolNews.Application.Interfaces;
 using BolNews.Application.Interfaces.Scoring;
+using BolNews.Domain.Common;
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +9,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BolNews.Web.Areas.Admin.Controllers
 {
-    [Authorize]
+    [Authorize(Roles =
+    Roles.Admin + "," +
+    Roles.Editor + "," +
+    Roles.SubEditor)]
     [Area("Admin")]
     public class DashboardController : Controller
     {
@@ -88,7 +92,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             // 🏆 Top editor
             var topEditor = editorStats.FirstOrDefault();
             ViewBag.TopEditor = topEditor?.AuthorName;
-            await RecalculateArticleScores();
+            //await RecalculateArticleScores();
             return View(vm);
         }
 

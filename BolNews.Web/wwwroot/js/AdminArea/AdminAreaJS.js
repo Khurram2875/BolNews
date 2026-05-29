@@ -27,7 +27,12 @@ class MyUploadAdapter {
     upload() {
         return this.loader.file.then(file => new Promise((resolve, reject) => {
 
+            const token =
+                document.querySelector(
+                    'meta[name="request-verification-token"]')
+                    ?.content;
             const data = new FormData();
+            Headers.append('RequestVerificationToken', token);
             data.append('upload', file);
 
             fetch('/Admin/Articles/UploadEditorImage', {

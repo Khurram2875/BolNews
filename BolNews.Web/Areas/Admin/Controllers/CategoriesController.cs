@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
+using BolNews.Domain.Common;
 using BolNews.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BolNews.Web.Areas.Admin.Controllers
 {
-    [Authorize]
+    [Authorize(Roles =
+     Roles.Admin + "," +
+     Roles.Editor)]
     [Area("Admin")]
     public class CategoriesController : Controller
     {

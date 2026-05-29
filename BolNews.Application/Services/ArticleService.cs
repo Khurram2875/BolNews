@@ -425,15 +425,7 @@ namespace BolNews.Application.Services
                 return true;
             }
 
-            //if (roles.Contains(Roles.Author))
-            //{
-            //    var ownerUserId = article.Author?.UserId;
-            //    var currentUserId = userId;
-            //    var isPublished = article.IsPublished;
-
-            //    return ownerUserId == currentUserId
-            //           && !isPublished;
-            //}
+            
             if (roles.Contains(Roles.Author))
             {
                 return article.Author?.UserId == userId &&

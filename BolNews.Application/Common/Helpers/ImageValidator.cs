@@ -18,7 +18,14 @@ namespace BolNews.Application.Common.Helpers
         {
             error = string.Empty;
 
-            var allowedMimeTypes = new[] { "image/jpeg", "image/png", "image/webp" };
+            if (file == null || file.Length == 0)
+            {
+                error = "No file uploaded.";
+                return false;
+            }
+
+            var allowedMimeTypes =
+                new[] { "image/jpeg", "image/png", "image/webp" };
 
             if (!allowedMimeTypes.Contains(file.ContentType))
             {
@@ -26,24 +33,18 @@ namespace BolNews.Application.Common.Helpers
                 return false;
             }
 
-            if (file == null || file.Length == 0)
-            {
-                error = "No file uploaded.";
-                return false;
-            }
-
-            // Size check
             if (file.Length > MaxFileSize)
             {
                 error = "File size must be less than 2MB.";
                 return false;
             }
 
-            // Extension check
-            var extension = Path.GetExtension(file.FileName).ToLower();
+            var extension =
+                Path.GetExtension(file.FileName).ToLowerInvariant();
+
             if (!AllowedExtensions.Contains(extension))
             {
-                error = "Only JPG, PNG, WEBP formats are allowed.";
+                error = "Only JPG, PNG and WEBP formats are allowed.";
                 return false;
             }
 

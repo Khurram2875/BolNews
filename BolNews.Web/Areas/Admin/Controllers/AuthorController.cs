@@ -2,6 +2,7 @@
 using BolNews.Application.Common.Helpers;
 using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
+using BolNews.Domain.Common;
 using BolNews.Domain.Entities;
 using BolNews.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -12,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BolNews.Web.Areas.Admin.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [Area("Admin")]
     public class AuthorController : Controller
     {

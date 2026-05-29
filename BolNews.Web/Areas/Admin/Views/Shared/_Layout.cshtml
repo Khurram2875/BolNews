@@ -1,5 +1,7 @@
 ﻿@using BolNews.Domain.Entities
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
 @inject UserManager<ApplicationUser> UserManager
 <!DOCTYPE html>
 <html lang="en">
@@ -7,6 +9,8 @@
 
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="request-verification-token"
+          content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
     <title>@ViewData["Title"] - Admin Panel</title>
 
     <!-- Bootstrap CSS -->

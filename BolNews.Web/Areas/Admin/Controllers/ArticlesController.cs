@@ -22,7 +22,11 @@ using SixLabors.ImageSharp.Processing;
 
 namespace BolNews.Web.Areas.Admin.Controllers
 {
-    [Authorize]
+    [Authorize(Roles =
+    Roles.Admin + "," +
+    Roles.Editor + "," +
+    Roles.SubEditor + "," +
+    Roles.Author)]
     [Area("Admin")]
     public class ArticlesController : Controller
     {
@@ -365,7 +369,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
         [HttpPost]
-        [IgnoreAntiforgeryToken]
+        //[IgnoreAntiforgeryToken]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UploadEditorImage(IFormFile upload)
         {
             try
@@ -407,6 +412,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             }
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult GenerateHeadlines([FromBody] string title)
         {
             var result = _headlineService.Generate(title);
@@ -421,6 +427,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
         }
         [HttpPost]
         [Authorize]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RefreshLock(int id)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -440,6 +447,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
         }
         [HttpPost]
         [Authorize]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReleaseLock(int id)
         {
             var user = await _userManager.GetUserAsync(User);
