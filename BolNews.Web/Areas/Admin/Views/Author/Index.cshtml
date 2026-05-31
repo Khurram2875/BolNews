@@ -17,7 +17,7 @@
 		<h5 class="mb-0">Authors List</h5>
 	</div>
 	<div class="card-body p-0">
-		<table class="table-striped table-hover mb-0 table align-middle">
+		<table class="table-striped table-hover tabel-sm mb-0 table align-middle" style="font-size:smaller">
 			<thead class="table-dark">
 				<tr>
 					<th>
@@ -57,15 +57,15 @@
 						<td>
 							@Html.DisplayFor(modelItem => item.Name)
 						</td>
-						<td>
+						<td style="max-width:700px">
 							@Html.DisplayFor(modelItem => item.Bio)
 						</td>
 						
 
 						<td>
-							<a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning me-1">Edit</a> |
-							<a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info me-1">Details</a> |
-							<a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+							<a asp-action="Edit" asp-route-id="@item.Id" class="badge bg-warning me-1">Edit</a> |
+							<a asp-action="Details" asp-route-id="@item.Id" class="badge bg-info me-1">Details</a> |
+							<a asp-action="Delete" asp-route-id="@item.Id" class="badge bg-danger">Delete</a>
 						</td>
 					</tr>
 				}

@@ -11,17 +11,17 @@ namespace BolNews.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<DateTime>(
-                name: "EmbargoUntil",
-                table: "Articles",
-                type: "datetime(6)",
-                nullable: true);
+            //migrationBuilder.AddColumn<DateTime>(
+            //    name: "EmbargoUntil",
+            //    table: "Articles",
+            //    type: "datetime(6)",
+            //    nullable: true);
 
-            migrationBuilder.AddColumn<DateTime>(
-                name: "ScheduledPublishAt",
-                table: "Articles",
-                type: "datetime(6)",
-                nullable: true);
+            //migrationBuilder.AddColumn<DateTime>(
+            //    name: "ScheduledPublishAt",
+            //    table: "Articles",
+            //    type: "datetime(6)",
+            //    nullable: true);
         }
 
         /// <inheritdoc />

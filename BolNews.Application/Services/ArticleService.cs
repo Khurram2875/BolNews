@@ -5,6 +5,7 @@ using BolNews.Application.Interfaces.Scoring;
 using BolNews.Domain.Common;
 using BolNews.Domain.Entities;
 using BolNews.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace BolNews.Application.Services
@@ -224,6 +225,8 @@ namespace BolNews.Application.Services
             article.UpdatedAt = DateTime.UtcNow;
             article.UpdatedBy = currentUserId;
 
+            
+
             ApplyEditorialControls(article, dto, roles);
             // AUTHOR SUBMISSION WORKFLOW
             if (IsAuthor(roles) && dto.SubmitForReview)
@@ -249,8 +252,17 @@ namespace BolNews.Application.Services
             }
             await _articleScoringService.CalculateScoresAsync(article);
 
-            await _repo.UpdateAsync(article);
             
+            try
+            {
+                await _repo.UpdateAsync(article);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                throw new InvalidOperationException(
+                    "This article was modified by another user. Please reload and try again.");
+            }
+
         }
 
         public async Task DeleteAsync(int id)

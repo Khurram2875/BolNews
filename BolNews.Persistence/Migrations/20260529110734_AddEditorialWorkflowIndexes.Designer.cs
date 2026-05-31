@@ -4,16 +4,19 @@ using BolNews.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace BolNews.Persistence.Migrations
+namespace BolNews.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260529110734_AddEditorialWorkflowIndexes")]
+    partial class AddEditorialWorkflowIndexes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -331,7 +334,7 @@ namespace BolNews.Persistence.Migrations
 
                     b.HasIndex("ArticleId");
 
-                    b.ToTable("ArticleAnalytics", (string)null);
+                    b.ToTable("ArticleAnalytics");
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.ArticleDiscussionComment", b =>
@@ -366,7 +369,7 @@ namespace BolNews.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ArticleDiscussionComments", (string)null);
+                    b.ToTable("ArticleDiscussionComments");
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.ArticleRevision", b =>
@@ -459,7 +462,7 @@ namespace BolNews.Persistence.Migrations
                     b.HasIndex("ArticleId", "RevisionNumber")
                         .IsUnique();
 
-                    b.ToTable("ArticleRevisions", (string)null);
+                    b.ToTable("ArticleRevisions");
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.Author", b =>
@@ -614,7 +617,7 @@ namespace BolNews.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

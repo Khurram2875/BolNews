@@ -36,7 +36,7 @@ namespace BolNews.Persistence.Configurations
 
             builder.Property(x => x.ViewCount)
                 .HasDefaultValue(0);
-
+            
             // Relationships
             builder.HasOne(x => x.Category)
                 .WithMany(c => c.Articles)
@@ -51,7 +51,23 @@ namespace BolNews.Persistence.Configurations
             // Performance Indexes
             builder.HasIndex(x => x.PublishedAt);
             builder.HasIndex(x => x.IsPublished);
+            builder.HasIndex(x => new
+            {
+                x.IsPublished,
+                x.PublishedAt
+            });
+            // Editorial Workflow Indexes
+            builder.HasIndex(x => x.WorkflowStatus);
 
+            builder.HasIndex(x => x.ReviewerUserId);
+
+            builder.HasIndex(x => x.FactCheckerUserId);
+
+            builder.HasIndex(x => x.AuthorId);
+            // Scheduled Publishing / Embargo
+            builder.HasIndex(x => x.ScheduledPublishAt);
+
+            builder.HasIndex(x => x.EmbargoUntil);
             // Intelligent Ranking Scores Indexes
             builder.Property(x => x.SeoScore)
                 .HasPrecision(5, 2)
@@ -83,8 +99,6 @@ namespace BolNews.Persistence.Configurations
 
             builder.HasIndex(x => x.OverallScore);
 
-            builder.HasIndex(x => x.PublishedAt);
-
             builder.HasIndex(x => new
             {
                 x.CategoryId,
@@ -99,6 +113,7 @@ namespace BolNews.Persistence.Configurations
 
             builder.Property(x => x.IsFactChecked)
                 .HasDefaultValue(false);
+           
         }
     }
 }

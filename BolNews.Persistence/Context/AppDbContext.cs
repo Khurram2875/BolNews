@@ -54,6 +54,7 @@ namespace BolNews.Persistence.Context
             modelBuilder.Entity<ArticleDiscussionComment>(entity =>
             {
                 entity.HasKey(x => x.Id);
+                entity.HasIndex(x => x.ArticleId);
 
                 entity.Property(x => x.Message)
                     .IsRequired()

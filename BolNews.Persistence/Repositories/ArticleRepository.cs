@@ -85,7 +85,8 @@ namespace BolNews.Persistence.Repositories
                 .ToListAsync();
 
         public async Task<List<Article>> GetPublishedAsync(int count)
-            => await _context.Articles
+            => await _context.Articles.AsNoTracking()
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a => a.IsPublished && !a.IsDeleted)
                 .OrderByDescending(a => a.PublishedAt)
@@ -94,6 +95,7 @@ namespace BolNews.Persistence.Repositories
 
         public async Task<List<Article>> GetByCategoryIdAsync(int categoryId, int count)
             => await _context.Articles
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a => a.CategoryId == categoryId && a.IsPublished && !a.IsDeleted)
                 .OrderByDescending(a => a.PublishedAt)
@@ -101,7 +103,7 @@ namespace BolNews.Persistence.Repositories
                 .ToListAsync();
 
         public async Task<List<Article>> GetForCategoriesAsync(List<int> categoryIds)
-            => await _context.Articles
+            => await _context.Articles.AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a => categoryIds.Contains(a.CategoryId) && a.IsPublished && !a.IsDeleted)
                 .OrderByDescending(a => a.PublishedAt)
@@ -116,7 +118,7 @@ namespace BolNews.Persistence.Repositories
                 .ToListAsync();
 
         public async Task<List<Article>> SearchAsync(string term, int page, int pageSize)
-            => await _context.Articles
+            => await _context.Articles.AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a => a.IsPublished && !a.IsDeleted &&
                     (EF.Functions.Like(a.Title, $"%{term}%") ||
@@ -127,7 +129,7 @@ namespace BolNews.Persistence.Repositories
                 .ToListAsync();
 
         public async Task<List<Article>> GetTrendingCandidatesAsync(DateTime fromDate, int candidateLimit)
-            => await _context.Articles
+            => await _context.Articles.AsNoTracking()
                 .Include(a => a.Category)
                 .Where(a => a.IsPublished && !a.IsDeleted && a.PublishedAt >= fromDate)
                 .OrderByDescending(a => a.ViewCount)
@@ -135,14 +137,14 @@ namespace BolNews.Persistence.Repositories
                 .ToListAsync();
 
         public async Task<List<Article>> GetTopByViewCountAsync(int count)
-            => await _context.Articles
+            => await _context.Articles.AsNoTracking()
                 .Where(a => !a.IsDeleted && a.IsPublished)
                 .OrderByDescending(a => a.ViewCount)
                 .Take(count)
                 .ToListAsync();
 
         public async Task<List<Article>> GetLowPerformingAsync(DateTime since, int maxViews, int limit)
-            => await _context.Articles
+            => await _context.Articles.AsNoTracking()
                 .Where(a => a.PublishedAt >= since && a.ViewCount < maxViews)
                 .OrderByDescending(a => a.PublishedAt)
                 .Take(limit)
@@ -156,7 +158,7 @@ namespace BolNews.Persistence.Repositories
 
         public async Task<List<(DateTime Date, int Count)>> CountPerDayAsync(DateTime fromDate)
         {
-            var data = await _context.Articles
+            var data = await _context.Articles.AsNoTracking()
                 .Where(a => a.PublishedAt >= fromDate && !a.IsDeleted)
                 .GroupBy(a => a.PublishedAt!.Value.Date)
                 .Select(g => new { Date = g.Key, Count = g.Count() })
@@ -181,7 +183,7 @@ namespace BolNews.Persistence.Repositories
                 .ToListAsync();
 
         public async Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(DateTime fromDate)
-            => await _context.Articles
+            => await _context.Articles.AsNoTracking()
                 .Where(a => a.PublishedAt >= fromDate && !a.IsDeleted && a.IsPublished)
                 .Include(a => a.Author)
                 .GroupBy(a => a.Author.Name)
@@ -209,7 +211,7 @@ namespace BolNews.Persistence.Repositories
 
         public async Task<List<Article>> GetTopRankedPublishedAsync(int count)
         {
-            return await _context.Articles
+            return await _context.Articles.AsNoTracking()
                 .Include(a => a.Author)
                     .ThenInclude(a => a.User)
                 .Include(a => a.Category)
@@ -222,7 +224,7 @@ namespace BolNews.Persistence.Repositories
 
         public async Task<List<Article>> GetTopRankedByCategoryAsync(int categoryId, int count)
         {
-            return await _context.Articles
+            return await _context.Articles.AsNoTracking()
                 .Include(a => a.Author)
                     .ThenInclude(a => a.User)
                 .Include(a => a.Category)
@@ -237,7 +239,7 @@ namespace BolNews.Persistence.Repositories
         }
         public async Task<List<Article>> GetByWorkflowStatusAsync(ArticleWorkflowStatus status)
         {
-            return await _context.Articles
+            return await _context.Articles.AsNoTracking()
                 .Include(a => a.Author)
                     .ThenInclude(a => a.User)
                 .Include(a => a.Category)
@@ -249,7 +251,7 @@ namespace BolNews.Persistence.Repositories
         }
         public async Task<List<Article>> GetEditorialQueueAsync(params ArticleWorkflowStatus[] statuses)
         {
-            return await _context.Articles
+            return await _context.Articles.AsNoTracking()
              .Include(a => a.Author)
              .ThenInclude(a => a.User)
              .Include(a => a.Category)
