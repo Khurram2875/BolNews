@@ -6,6 +6,7 @@ using BolNews.Web.BackgroundServices;
 using BolNews.Web.Extensions;
 using BolNews.Web.Hubs;
 using BolNews.Web.Services;
+using Microsoft.Azure.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<INotificationRealtimeService, NotificationRealtimeService>();
 builder.Services.AddHostedService<SlaMonitoringWorker>();
 builder.Services.AddHostedService<ScheduledPublishingService>();
+builder.Services.AddSignalR().AddAzureSignalR(builder.Configuration["Azure:SignalR:ConnectionString"]!);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
