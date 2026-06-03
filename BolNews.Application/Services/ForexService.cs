@@ -39,7 +39,9 @@ namespace BolNews.Application.Services
                     GBP = Math.Round(1 / res.Rates["GBP"], 2),
                     AED = Math.Round(1 / res.Rates["AED"], 2),
                     SAR = Math.Round(1 / res.Rates["SAR"], 2),
-                    KWD = Math.Round(1 / res.Rates["KWD"], 2)
+                    KWD = Math.Round(1 / res.Rates["KWD"], 2),
+                    CAD = Math.Round(1 / res.Rates["CAD"], 2),
+                    AUD = Math.Round(1 / res.Rates["AUD"], 2),
                 };
 
             }, 30);

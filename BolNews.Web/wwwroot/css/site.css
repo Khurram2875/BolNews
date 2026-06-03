@@ -786,9 +786,10 @@ body.nav-fixed {
 .bn-card-h {
     display: flex;
     gap: 12px;
-    padding: 14px 0;
+    padding: 10px 0 10px 0;
     border-bottom: 1px solid var(--bn-border);
     transition: opacity var(--bn-transition);
+    text-decoration:none;
 }
 
     .bn-card-h:last-child {
@@ -1507,3 +1508,114 @@ body.nav-fixed {
         transform: translateY(-2px);
         transition: transform var(--bn-transition), box-shadow var(--bn-transition);
     }
+/*Flipping Utility bar carousal*/
+.weather-flipper-container {
+    height: 30px;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.weather-flipper {
+    display: flex;
+    flex-direction: column;
+    /* 16 seconds total = 4 seconds per slide frame */
+    animation: flipWeatherNative 16s cubic-bezier(0.645, 0.045, 0.355, 1) infinite;
+}
+
+.weather-item {
+    height: 30px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+@keyframes flipWeatherNative {
+    0%, 20% {
+        transform: translateY(0);
+    }
+
+    25%, 45% {
+        transform: translateY(-30px);
+    }
+
+    50%, 70% {
+        transform: translateY(-60px);
+    }
+
+    75%, 95% {
+        transform: translateY(-90px);
+    }
+
+    100% {
+        transform: translateY(-120px);
+    }
+    /* Slides smoothly to clone, then snaps back to 0 */
+}
+
+.forex-flipper-container {
+    height: 30px;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.forex-flipper {
+    display: flex;
+    flex-direction: column;
+    /* 32 seconds total = 4 seconds per slide frame for 8 elements */
+    animation: flipForexNative 32s cubic-bezier(0.645, 0.045, 0.355, 1) infinite;
+}
+
+.forex-item {
+    height: 30px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+/* 8-SLIDE MATHEMATICAL PERCENTAGE BREAKDOWN */
+@keyframes flipForexNative {
+    0%, 10% {
+        transform: translateY(0);
+    }
+
+    12.5%, 22.5% {
+        transform: translateY(-30px);
+    }
+
+    25%, 35% {
+        transform: translateY(-60px);
+    }
+
+    37.5%, 47.5% {
+        transform: translateY(-90px);
+    }
+
+    50%, 60% {
+        transform: translateY(-120px);
+    }
+
+    62.5%, 72.5% {
+        transform: translateY(-150px);
+    }
+
+    75%, 85% {
+        transform: translateY(-180px);
+    }
+
+    87.5%, 97.5% {
+        transform: translateY(-210px);
+    }
+
+    100% {
+        transform: translateY(-240px);
+    }
+    /* Slides smoothly to clone, then snaps back to 0 */
+}
+
+/*Flipping Utility bar carousal*/

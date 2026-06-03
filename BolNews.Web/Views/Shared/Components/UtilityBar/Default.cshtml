@@ -1,25 +1,44 @@
 ﻿<div class="utility-bar d-flex justify-content-between bg-light px-3 py-2">
 
     <!-- Weather -->
-    <div>
-       @*  <img src="@Model.Weather.Icon" style="width:24px;" /> *@
-         @Model.Weather.City:<strong>@Model.Weather.Temperature°C</strong>
-        (@Model.Weather.Condition) | Feels Like: <strong>@Model.Weather.FeelsLike°C</strong>| 
-        Humidity: <strong>@Model.Weather.Humidity%</strong> |
-        Wind: <strong>@Model.Weather.WindMph mph</strong>
-
+    <div class="weather-flipper-container">
+        <div class="weather-flipper">
+            <div class="weather-item">
+                <img src="@Model.Weather.Icon" style="width:24px; margin-right:5px;" />
+                <span>@Model.Weather.City: <strong>@Model.Weather.Temperature°C (@Model.Weather.Condition) </strong></span>
+            </div>
+            <div class="weather-item">
+                <img src="@Model.Weather.Icon" style="width:24px; margin-right:5px;" />
+                <span>Feels Like: <strong>@Model.Weather.FeelsLike°C</strong></span>
+            </div>
+            <div class="weather-item">
+                <img src="@Model.Weather.Icon" style="width:24px; margin-right:5px;" />
+                <span>Humidity: <strong>@Model.Weather.Humidity%</strong></span>
+            </div>
+            <div class="weather-item">
+                <img src="@Model.Weather.Icon" style="width:24px; margin-right:5px;" />
+                <span>Wind: <strong>@Model.Weather.WindMph mph</strong></span>
+            </div>
+            <div class="weather-item">
+                <img src="@Model.Weather.Icon" style="width:24px; margin-right:5px;" />
+                <span>@Model.Weather.City: <strong>@Model.Weather.Temperature°C (@Model.Weather.Condition) </strong></span>
+            </div>
+        </div>
     </div>
 
-    
-    <div>
-        💱 USD: <strong>@Model.Forex.USD</strong> |
-        EUR: <strong>@Model.Forex.EUR</strong> |
-        GBP: <strong>@Model.Forex.GBP</strong> |
-        AED: <strong>@Model.Forex.AED</strong> |
-        SAR: <strong>@Model.Forex.SAR</strong> |
-        KWD: <strong>@Model.Forex.KWD</strong> 
+    <div class="forex-flipper-container">
+        <div class="forex-flipper">
+            <div class="forex-item"><span>💱 USD: <strong>@Model.Forex.USD</strong></span></div>
+            <div class="forex-item"><span>💶 EUR: <strong>@Model.Forex.EUR</strong></span></div>
+            <div class="forex-item"><span>💷 GBP: <strong>@Model.Forex.GBP</strong></span></div>
+            <div class="forex-item"><span>🇦🇪 AED: <strong>@Model.Forex.AED</strong></span></div>
+            <div class="forex-item"><span>🇸🇦 SAR: <strong>@Model.Forex.SAR</strong></span></div>
+            <div class="forex-item"><span>🇰🇼 KWD: <strong>@Model.Forex.KWD</strong></span></div>
+            <div class="forex-item"><span>🇨🇦 CAD: <strong>@Model.Forex.CAD</strong></span></div>
+            <div class="forex-item"><span>🇦🇺 AUD: <strong>@Model.Forex.AUD</strong></span></div>
+            <div class="forex-item"><span>💱 USD: <strong>@Model.Forex.USD</strong></span></div>
+        </div>
     </div>
-
 @*     <div>
         🟡 Gold (24K):
         <strong>Rs. @Model.Gold.Price24K</strong>

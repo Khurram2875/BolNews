@@ -55,3 +55,5 @@ document.addEventListener("DOMContentLoaded", function () {
 function trackImpression(articleId) {
     fetch('/analytics/impression/' + articleId, { method: 'POST' });
 }
+
+
