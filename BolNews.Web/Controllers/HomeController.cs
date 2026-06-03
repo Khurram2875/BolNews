@@ -15,7 +15,8 @@ namespace BolNews.Web.Controllers
         private readonly ICategoryService _categoryService;
         private readonly IMapper _mapper;
         private readonly IMemoryCache _cache;
-
+        // Add this field to the HomeController class
+        private static CancellationTokenSource ResetToken = new CancellationTokenSource();
         public HomeController(ILogger<HomeController> logger, ICategoryService categoryService, IArticleService articleService, IMapper mapper, IMemoryCache cache)
         {
             _logger = logger;
@@ -27,8 +28,9 @@ namespace BolNews.Web.Controllers
 
         public async Task<IActionResult> Index(string type = "today")
         {
-            //var vm = new HomePageVM();
-            var vm = await _cache.GetOrCreateAsync("homepage", async entry =>
+            //ClearLatestNewsCache(5);
+             //var vm = new HomePageVM();
+             var vm = await _cache.GetOrCreateAsync("homepage", async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
 
@@ -38,7 +40,7 @@ namespace BolNews.Web.Controllers
                 if (topStory != null)
                     model.TopStory = _mapper.Map<PublicArticleVM>(topStory);
 
-                var secondary = await _articleService.GetSecondaryStoriesAsync();
+                var secondary = await _articleService.GetSecondaryStoriesAsync(25);
                 model.SecondaryStories = _mapper.Map<List<PublicArticleVM>>(secondary);
 
                  // Use GetParentCategoriesWithChildrenAsync so we know which
@@ -101,7 +103,22 @@ namespace BolNews.Web.Controllers
         {
             return View();
         }
+        public void ClearAllCache()
+        {
+            // Signal the token to cancel, evicting all bound entries
+            ResetToken.Cancel();
 
+            // Re-initialize the token so future cache entries can use it
+            ResetToken = new CancellationTokenSource();
+        }
+        public void ClearLatestNewsCache(int count = 5)
+        {
+            var home = "homepage";
+            var cacheKey = $"latest_news_{count}";
+            _cache.Remove(home);
+            _cache.Remove(cacheKey);
+            // The next time InvokeAsync is called, it will be forced to fetch fresh data.
+        }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

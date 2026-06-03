@@ -1236,6 +1236,39 @@ body.nav-fixed {
     color: rgba(255,255,255,0.3);
 }
 
+
+/* ============================================================
+   Scroller for Latest News vertical component
+   ============================================================ */
+
+.bn-scroll-container {
+    max-height: 450px; /* Adjust this height to match your layout needs */
+    overflow-y: auto; /* Adds a vertical scrollbar only when items overflow */
+    overflow-x: hidden; /* Prevents any horizontal shift or breaking */
+    padding-right: 5px; /* Gives breathing room between the content and scrollbar */
+}
+
+    /* OPTIONAL: Style the scrollbar to make it look modern and sleek */
+    .bn-scroll-container::-webkit-scrollbar {
+        width: 6px; /* Makes the scrollbar narrow and modern */
+    }
+
+    .bn-scroll-container::-webkit-scrollbar-track {
+        background: #f1f1f1; /* Track background color */
+        border-radius: 4px;
+    }
+
+    .bn-scroll-container::-webkit-scrollbar-thumb {
+        background: #ccc; /* Scrollbar handle color */
+        border-radius: 4px;
+    }
+
+        .bn-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #999; /* Handle color on hover */
+        }
+
+
+
 /* ============================================================
    PAGE LOAD ANIMATIONS
    ============================================================ */
@@ -1373,6 +1406,90 @@ body.nav-fixed {
         grid-template-columns: 1fr;
     }
 }
+.bn-sidebar-scroll {
+    /* Modern standard scrollbar options for Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+    /* Webkit browsers (Chrome, Safari, Edge, Opera) custom styles */
+    .bn-sidebar-scroll::-webkit-scrollbar {
+        width: 6px; /* Makes the scrollbar track thin and elegant */
+    }
+
+    .bn-sidebar-scroll::-webkit-scrollbar-track {
+        background: transparent; /* Seamless blend with the dark container background */
+    }
+
+    .bn-sidebar-scroll::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.25); /* The grey pill thumb */
+        border-radius: 10px; /* Fully rounded edges */
+    }
+
+        .bn-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.4); /* Highlights slightly on interaction */
+        }
+
+
+/* ============================================================
+   RESPONSIVE OPTIMIZATION FOR MULTI-CARD CAROUSEL (MOBILE)
+   ============================================================ */
+@media (max-width: 768px) {
+    /* 1. Prevent vertical stacking: Force internal rows to stay flat */
+    #multiCardCarousel .row {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 12px;
+        /* Hide native scrollbars while preserving functionality */
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+    }
+
+        #multiCardCarousel .row::-webkit-scrollbar {
+            display: none; /* Safari / Chrome */
+        }
+
+        /* 2. Style items to snap cleanly as the user swipes horizontally */
+        #multiCardCarousel .row > [class*="col-"] {
+            flex: 0 0 auto;
+            scroll-snap-align: start;
+        }
+
+    /* 3. UPDATED: Keep arrows on mobile but make them smaller and elegant */
+    #multiCardCarousel .carousel-control-prev,
+    #multiCardCarousel .carousel-control-next {
+        display: flex !important; /* Forces them to show up */
+        width: 40px;
+        height: 40px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    /* Shrink the inner icon wrapper so it doesn't overlap text */
+    #multiCardCarousel .carousel-control-prev-icon,
+    #multiCardCarousel .carousel-control-next-icon {
+        padding: 1rem !important; /* Smaller background circle */
+        background-size: 50%; /* Smaller internal arrow chevron */
+    }
+
+    /* Shift them slightly outward so they sit neatly on the screen edges */
+    #multiCardCarousel .carousel-control-prev {
+        left: -5px;
+    }
+
+    #multiCardCarousel .carousel-control-next {
+        right: -5px;
+    }
+
+    /* 4. Ensure equal structural height for swipeable card elements */
+    #multiCardCarousel .bn-card {
+        height: 100% !important;
+    }
+}
+
+
 
 /* ============================================================
    LEGACY BOOTSTRAP OVERRIDES (keep Bootstrap working alongside)

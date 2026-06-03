@@ -14,6 +14,7 @@
     var canFactCheck = isAdmin || isEditor || isSubEditor;
 }
 <div id="headlineSuggestions"></div>
+
 <div class="card shadow-sm">
     <div class="card-header bg-primary text-white">
         <h4 class="mb-0">Create New Article</h4>
@@ -22,39 +23,63 @@
         <form asp-action="Create" method="post" enctype="multipart/form-data">
             <div class="mb-3">
                 <label asp-for="Title" class="form-label"></label>
-                <div class="row">
-                    <div class="btn-group">
-                        
-                        <input asp-for="Title" class="form-control" />
-                        <span asp-validation-for="Title" class="text-danger"></span>
-                    
-                        <button type="button" class="btn btn-sm btn-info" onclick="generateHeadlines()">
-                            Suggestions
-                        </button>
-                    </div>
+                <div class="input-group">
+                    <input asp-for="Title" id="Title" class="form-control" />
+                    <button type="button" class="btn btn-info" onclick="generateHeadlines()">
+                        Suggestions
+                    </button>
                 </div>
-                
-                
+                <span asp-validation-for="Title" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
                 <label asp-for="Slug" class="form-label"></label>
-                <input asp-for="Slug" class="form-control" />
+                <input asp-for="Slug" id="Slug" class="form-control" readonly style="background-color: #e9ecef;" />
                 <span asp-validation-for="Slug" class="text-danger"></span>
             </div>
             <div class="mb-3">
-                <label>Meta Title</label>
-                <input asp-for="MetaTitle" class="form-control" />
+                <label asp-for="Summary" class="form-label"></label>
+                <textarea asp-for="Summary" id="Summary" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Summary" class="text-danger"></span>
             </div>
 
+            <!-- CATEGORY CONTROL (Moved Here with id="CategoryId") -->
             <div class="mb-3">
-                <label>Meta Description</label>
-                <textarea asp-for="MetaDescription" class="form-control"></textarea>
+                <label asp-for="CategoryId" class="form-label">Category</label>
+                <select asp-for="CategoryId" id="CategoryId" class="form-select" asp-items="ViewBag.Categories">
+                    <option value="">-- Select Category --</option>
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
-            <div class="mb-3">
-                <label asp-for="Summary" class="form-label"></label>
-                <textarea asp-for="Summary" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Summary" class="text-danger"></span>
+
+            <div id="metaContainer" class="position-relative rounded p-2">
+
+                <!-- LOADING SPINNER OVERLAY (Hidden by default) -->
+                <div id="metaSpinner" class="position-absolute w-100 h-100 d-none justify-content-center align-items-center start-0 top-0 rounded"
+                     style="background: rgba(255,255,255,0.7); z-index: 5;">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="text-primary fw-bold mt-1" style="font-size: 0.85rem;">Gemini is writing metadata...</div>
+                    </div>
+                </div>
+
+                <!-- META TITLE -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Meta Title</label>
+                    <input asp-for="MetaTitle" id="MetaTitle" class="form-control" />
+                    <small class="text-muted d-block mt-1">
+                        <i class="bi bi-robot text-info"></i> AI generated. Feel free to tweak it if you want.
+                    </small>
+                </div>
+
+                <!-- META DESCRIPTION -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Meta Description</label>
+                    <textarea asp-for="MetaDescription" id="MetaDescription" class="form-control" rows="2"></textarea>
+                    <small class="text-muted d-block mt-1">
+                        <i class="bi bi-robot text-info"></i> AI generated. Feel free to tweak it if you want.
+                    </small>
+                </div>
             </div>
 
             <div class="mb-3">
@@ -65,7 +90,7 @@
 
             <div class="mb-3">
                 <label class="form-label">Featured Image</label>
-                <input type="file" asp-for="ImageFile" class="form-control" />
+                <input type="file" asp-for="ImageFile"  class="form-control" />
                 <span asp-validation-for="ImageFile" class="text-danger"></span>
             </div>
 
@@ -76,13 +101,7 @@
                 </div>
             }
 
-            <div class="mb-3">
-                <label asp-for="CategoryId" class="form-label">Category</label>
-                <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories">
-                    <option value="">-- Select Category --</option>
-                </select>
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
+            
 
             <div class="card mt-4">
                 <div class="card-header">
@@ -214,4 +233,80 @@
     function useHeadline(text) {
         document.getElementById("Title").value = text;
     }
+
+    //autofill slug
+        document.getElementById("Title").addEventListener("blur", function () {
+    const titleValue = this.value;
+    
+    if (titleValue.trim() !== "") {
+        // Generate Slug
+        const slugValue = titleValue
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9\s-]/g, '') 
+            .replace(/\s+/g, '-')         
+            .replace(/-+/g, '-');         
+
+        document.getElementById("Slug").value = slugValue;
+
+        // Shift focus automatically to Summary
+        document.getElementById("Summary").focus();
+    }
+});
+
+//generating Meta Title and Meta Description through Gemini on Category Change
+       document.getElementById("CategoryId").addEventListener("change", async function () {
+        const title = document.getElementById("Title").value;
+        const summary = document.getElementById("Summary").value;
+        const categoryDropdown = this;
+        const categoryText = categoryDropdown.options[categoryDropdown.selectedIndex].text;
+
+        // Only run if Title, Summary, and a valid Category are selected
+        if (!title || !summary || !categoryDropdown.value) {
+            return;
+        }
+
+        const spinner = document.getElementById("metaSpinner");
+        const metaTitleInput = document.getElementById("MetaTitle");
+        const metaDescInput = document.getElementById("MetaDescription");
+
+        // SHOW SPINNER & LOCK UI BY DISABLING CONTROLS TEMPORARILY
+        spinner.classList.remove("d-none");
+        spinner.classList.add("d-flex");
+        metaTitleInput.disabled = true;
+        metaDescInput.disabled = true;
+
+        try {
+            const response = await fetch('/admin/articles/generatemetadata', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: title,
+                    summary: summary,
+                    category: categoryText
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                // Populate fields
+                metaTitleInput.value = data.metaTitle;
+                metaDescInput.value = data.metaDescription;
+            } else {
+                console.error("Failed to fetch meta data from Gemini.");
+            }
+        } catch (error) {
+            console.error("Error connecting to metadata generator endpoint:", error);
+        } finally {
+            // HIDE SPINNER & UNLOCK UI
+            spinner.classList.remove("d-flex");
+            spinner.classList.add("d-none");
+            metaTitleInput.disabled = false;
+            metaDescInput.disabled = false;
+
+            // AUTOMATICALLY MOVE FOCUS TO THE NEXT CONTROL (Featured Image)
+            document.getElementById("editor").focus();
+        }
+    });
 </script>

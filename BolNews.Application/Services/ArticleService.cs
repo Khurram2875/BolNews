@@ -376,10 +376,10 @@ namespace BolNews.Application.Services
             return result;
         }
 
-        public async Task<List<Article>> GetLatestArticlesAsync(int count = 8) => await _repo.GetPublishedAsync(count);
+        public async Task<List<Article>> GetLatestArticlesAsync(int count = 5) => await _repo.GetPublishedAsync(count);
         public async Task<List<Article>> GetAllPublishedAsync() => await _repo.GetPublishedAsync(int.MaxValue);
         public async Task<Article?> GetTopStoryAsync() => (await _repo.GetPublishedAsync(1)).FirstOrDefault();
-        public async Task<List<Article>> GetSecondaryStoriesAsync(int count = 6) => (await _repo.GetPublishedAsync(count + 1)).Skip(1).Take(count).ToList();
+        public async Task<List<Article>> GetSecondaryStoriesAsync(int count = 20) => (await _repo.GetPublishedAsync(count + 1)).Skip(1).Take(count).ToList();
         public async Task<List<Article>> GetArticlesByCategoryAsync(int catId, int n) => await _repo.GetByCategoryIdAsync(catId, n);
         public async Task<List<Article>> GetBreakingNewsAsync(int count = 5) => await _repo.GetPublishedAsync(count);
         public async Task<List<Article>> SearchAsync(string q, int page, int pageSize) => await _repo.SearchAsync(q.Trim(), page, pageSize);

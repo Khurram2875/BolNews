@@ -41,6 +41,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly IArticleLockService _articleLockService;
         private readonly IArticleDiscussionService _discussionService;
         private readonly ICacheService _cacheService;
+        private readonly IGeminiService _geminiService;
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
 
@@ -48,7 +49,11 @@ namespace BolNews.Web.Areas.Admin.Controllers
              IArticleService articleService,
              ICategoryService categoryService,
              IAuthorService authorService,
-             IWebHostEnvironment env, IMapper mapper, IImageService imageService, IDiscoverService discoverService, IHeadlineService headlineService, ITrendingService trendingService, ICacheService cacheService, UserManager<ApplicationUser> userManager, IArticleLockService articleLockService, IArticleDiscussionService discussionService)
+             IWebHostEnvironment env, IMapper mapper, IImageService imageService, 
+             IDiscoverService discoverService, IHeadlineService headlineService, 
+             ITrendingService trendingService, ICacheService cacheService,
+             UserManager<ApplicationUser> userManager, IArticleLockService articleLockService, 
+             IArticleDiscussionService discussionService, IGeminiService geminiService)
         {
             _articleService = articleService;
             _categoryService = categoryService;
@@ -63,6 +68,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _userManager = userManager;
             _articleLockService = articleLockService;
             _discussionService = discussionService;
+            _geminiService = geminiService;
         }
 
         // GET: Admin/Articles
@@ -517,6 +523,41 @@ namespace BolNews.Web.Areas.Admin.Controllers
             };
 
             return View(vm);
+        }
+        //Generate MetaTitle and Meta Description through Gemini
+        [HttpPost]
+        [Route("admin/articles/generatemetadata")]
+        public async Task<IActionResult> GenerateMetadata([FromBody] MetadataRequestDto request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.Title))
+            {
+                return BadRequest("Invalid data provided.");
+            }
+
+            // Call your Gemini/AI Service here using request.Title, request.Summary, request.Category
+            // Example:
+            // var aiResult = await _geminiService.GenerateMetaTagsAsync(request.Title, request.Summary, request.Category);
+
+            // Await execution from the service wrapper
+            var (metaTitle, metaDescription) = await _geminiService.GenerateMetadataAsync(
+                request.Title,
+                request.Summary,
+                request.Category
+            );
+
+            // Return in the exact JSON signature our Javascript expects: { metaTitle: "...", metaDescription: "..." }
+            return Json(new
+            {
+                metaTitle = metaTitle,
+                metaDescription = metaDescription
+            });
+        }
+
+        public class MetadataRequestDto
+        {
+            public string Title { get; set; }
+            public string Summary { get; set; }
+            public string Category { get; set; }
         }
     }
 }

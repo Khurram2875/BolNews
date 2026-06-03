@@ -226,7 +226,7 @@ namespace BolNews.Persistence.Repositories
         {
             return await _context.Articles.AsNoTracking()
                 .Include(a => a.Author)
-                    .ThenInclude(a => a.User)
+                .ThenInclude(a => a.User)
                 .Include(a => a.Category)
                 .Where(a =>
                     !a.IsDeleted &&

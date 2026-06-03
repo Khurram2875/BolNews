@@ -185,19 +185,18 @@
         <!-- ── Sidebar ──────────────────────────────────────── -->
         <aside class="col-lg-4">
             <div style="position:sticky;top:70px;">
-
-                <!-- Latest news -->
-                <div class="bn-widget mb-4">
-                    <div class="bn-widget-title">Latest News</div>
-                    @await Component.InvokeAsync("LatestNews", new { count = 6 })
-                </div>
-
                 <!-- Trending -->
                 <div class="bn-widget">
                     @await Component.InvokeAsync("TrendingNews",
-                        new { type = Context.Request.Query["type"].ToString() })
+                    new { type = Context.Request.Query["type"].ToString() })
                 </div>
-
+                <!-- Latest news -->
+                <div class="bn-widget mb-4">
+                    <div class="bn-widget-title">Latest News</div>
+                    <div class="bn-scroll-container">
+                        @await Component.InvokeAsync("LatestNews", new { count = 10 })
+                    </div>
+                </div>
             </div>
         </aside>
 

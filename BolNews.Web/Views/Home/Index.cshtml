@@ -2,295 +2,193 @@
 @model HomePageVM
 
 @{
-    ViewData["Title"] = "Home";
+	ViewData["Title"] = "Home";
 }
 
-<!-- ============================================================
-     HERO + SECONDARY GRID
-     ============================================================ -->
 <div class="container">
-    <div class="bn-hero">
+	<div class="bn-hero">
 
-        <!-- Hero 3-panel grid -->
-        @if (Model.TopStory != null)
-        {
-            <div class="bn-hero-grid">
+		@if (Model.TopStory != null)
+		{
+			<div class="d-flex bg-dark justify-content-left container" style="border-radius: 12px;">
+				<h3 style="font-family: var(--bn-font-display); font-size: clamp(26px, 4vw, 30px); font-weight: 800; color: #fff; margin: 0; line-height: 1.2;">
+					Latest Stories
+				</h3>
+			</div>
 
-                <!-- Main hero story -->
-                <a href="/news/@Model.TopStory.CategorySlug/@Model.TopStory.Slug"
-                   class="bn-hero-card bn-hero-main track-click"
-                   data-article-id="@Model.TopStory.Id">
-                    <img src="@Model.TopStory.FeaturedImageLarge"
-                         alt="@Model.TopStory.Title"
-                         loading="eager" />
-                    <div class="bn-hero-overlay"></div>
-                    <div class="bn-hero-content">
-                        <span class="bn-tag">@Model.TopStory.CategoryName</span>
-                        <h1 class="bn-hero-title">@Model.TopStory.Title</h1>
-                        <div class="bn-hero-meta">
-                            <span>@Model.TopStory.AuthorName</span>
-                            <span>·</span>
-                            <span>@Model.TopStory.TimeAgo</span>
-                            @if (Model.TopStory.ReadingTimeMinutes > 0)
-                            {
-                                <span>·</span>
-                                <span>@Model.TopStory.ReadingTimeMinutes min read</span>
-                            }
-                        </div>
-                    </div>
-                </a>
+			<div class="bn-hero-grid bg-dark mt-1">
 
-                <!-- Side stories (first 2 of SecondaryStories) -->
-                @if (Model.SecondaryStories.Count > 0)
-                {
-                    var side1 = Model.SecondaryStories[0];
-                    <a href="/news/@side1.CategorySlug/@side1.Slug"
-                       class="bn-hero-card bn-hero-side-top track-click"
-                       data-article-id="@side1.Id">
-                        <img src="@side1.FeaturedImageMedium"
-                             alt="@side1.Title"
-                             loading="eager" />
-                        <div class="bn-hero-overlay"></div>
-                        <div class="bn-hero-content">
-                            <span class="bn-tag">@side1.CategoryName</span>
-                            <h2 class="bn-hero-title">@side1.Title</h2>
-                            <div class="bn-hero-meta"><span>@side1.TimeAgo</span></div>
-                        </div>
-                    </a>
-                }
+				<a href="/news/@Model.TopStory.CategorySlug/@Model.TopStory.Slug"
+				   class="bn-hero-card bn-hero-main track-click"
+				   data-article-id="@Model.TopStory.Id">
+					<img src="@Model.TopStory.FeaturedImageLarge"
+						 alt="@Model.TopStory.Title"
+						 loading="eager" />
+					<div class="bn-hero-overlay"></div>
+					<div class="bn-hero-content">
+						<span class="bn-tag">@Model.TopStory.CategoryName</span>
+						<h1 class="bn-hero-title">@Model.TopStory.Title</h1>
+						<div class="bn-hero-meta">
+							<span>@Model.TopStory.AuthorName</span>
+							<span>·</span>
+							<span>@Model.TopStory.TimeAgo</span>
+							@if (Model.TopStory.ReadingTimeMinutes > 0)
+							{
+								<span>·</span>
+								<span>@Model.TopStory.ReadingTimeMinutes min read</span>
+							}
+						</div>
+					</div>
+				</a>
 
-                @if (Model.SecondaryStories.Count > 1)
-                {
-                    var side2 = Model.SecondaryStories[1];
-                    <a href="/news/@side2.CategorySlug/@side2.Slug"
-                       class="bn-hero-card bn-hero-side-bottom track-click"
-                       data-article-id="@side2.Id">
-                        <img src="@side2.FeaturedImageMedium"
-                             alt="@side2.Title"
-                             loading="eager" />
-                        <div class="bn-hero-overlay"></div>
-                        <div class="bn-hero-content">
-                            <span class="bn-tag">@side2.CategoryName</span>
-                            <h2 class="bn-hero-title">@side2.Title</h2>
-                            <div class="bn-hero-meta"><span>@side2.TimeAgo</span></div>
-                        </div>
-                    </a>
-                }
+				@if (Model.SecondaryStories != null && Model.SecondaryStories.Count > 2)
+				{
+					<div class="bn-sidebar-panel bg-dark rounded p-3 text-white">
+						<div class="bn-sidebar-scroll bg-dark text-white" style="max-height: 450px; overflow-y: auto; padding-right: 8px;">
 
-            </div>
-        
-            <!-- /bn-hero-grid -->
-        }
+							@* Skips the first story to optimize feed density and pulls adjacent articles *@
+							@foreach (var item in Model.SecondaryStories.Skip(1).Take(8))
+							{
+								<a href="/news/@item.CategorySlug/@item.Slug"
+								   class="bn-list-item d-flex align-items-center text-decoration-none border-bottom border-secondary track-click py-3 text-white"
+								   data-article-id="@item.Id">
 
-        <!-- Secondary cards row (stories 3–6) -->
-        @{
-            var secondaryCards = Model.SecondaryStories.Skip(2).Take(6).ToList();
-        }
-        @if (secondaryCards.Any())
-        {
-            <div class="bn-secondary-grid">
-                @foreach (var item in secondaryCards)
-                {
-                    <a href="/news/@item.CategorySlug/@item.Slug"
-                       class="bn-card track-click"
-                       data-article-id="@item.Id">
-                        <div class="bn-card-img">
-                            <img class="lazy-image"
-                                 src="/images/placeholder.png"
-                                 data-src="@item.FeaturedImageThumb"
-                                 alt="@item.Title"
-                                 loading="lazy" />
-                        </div>
-                        <div class="bn-card-body">
-                            <div class="bn-card-tag">@item.CategoryName</div>
-                            <h3 class="bn-card-title">@item.Title</h3>
-                            <div class="bn-card-meta">
-                                <span>@item.AuthorName</span>
-                                <span class="bn-card-meta-dot"></span>
-                                <span>@item.TimeAgo</span>
-                            </div>
-                        </div>
-                    </a>
-                }
-            </div>
-        }
+									<div class="bn-list-thumb me-3 flex-shrink-0" style="width: 120px; height: 75px; overflow: hidden; border-radius: 4px;">
+										<img src="@item.FeaturedImageThumb"
+											 alt="@item.Title"
+											 class="w-100 h-100 object-fit-cover"
+											 loading="lazy" />
+									</div>
 
-    </div><!-- /bn-hero -->
-</div><!-- /container -->
-<!-- ============================================================
-     MAIN LAYOUT: Latest | Opinion | Sidebar
-     ============================================================ -->
-<div class="container">
-    <div class="bn-main-layout">
+									<div class="bn-list-content flex-grow-1">
+										<h3 class="bn-list-title fw-bold fs-6 lh-sm m-0 mb-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+											@item.Title
+										</h3>
+										<div class="bn-list-meta text-muted small">
+											<span>@item.TimeAgo</span>
+										</div>
+									</div>
 
-        <!-- Column 1: Latest News (ViewComponent) -->
-        <div>
-            <div class="bn-section-header">
-                <span class="bn-section-title">Latest News</span>
-                <a href="/news" class="bn-section-link">All News →</a>
-            </div>
-            @await Component.InvokeAsync("LatestNews", new { count = 6 })
-        </div>
+								</a>
+							}
 
-        <!-- Column 2: Category sections -->
-        <div>
-            @foreach (var cat in Model.CategorySections.Take(2))
-            {
-                <div class="mb-4">
-                    <div class="bn-section-header">
-                        <span class="bn-section-title">@cat.CategoryName</span>
-                        <a href="/news/@cat.CategorySlug" class="bn-section-link">More →</a>
-                    </div>
+						</div>
+					</div>
+				}
 
-                    @{
-                        var featuredArticle = cat.Articles.FirstOrDefault();
-                        var listArticles = cat.Articles.Skip(1).ToList();
-                    }
+			</div>
+		}
 
-                    @if (featuredArticle != null)
-                    {
-                        <a href="/news/@featuredArticle.CategorySlug/@featuredArticle.Slug"
-                           class="bn-card-featured track-click"
-                           data-article-id="@featuredArticle.Id">
-                            <div class="bn-card-featured-img">
-                                <img class="lazy-image"
-                                     src="/images/placeholder.png"
-                                     data-src="@featuredArticle.FeaturedImageMedium"
-                                     alt="@featuredArticle.Title"
-                                     loading="lazy" />
-                            </div>
-                            <div class="bn-card-featured-body">
-                                <div class="bn-card-tag">@featuredArticle.CategoryName</div>
-                                <h3 class="bn-card-featured-title">@featuredArticle.Title</h3>
-                                @if (!string.IsNullOrEmpty(featuredArticle.MetaDescription))
-                                {
-                                    <p class="bn-card-featured-excerpt">@featuredArticle.MetaDescription</p>
-                                }
-                                <div class="bn-card-meta">
-                                    <span>@featuredArticle.AuthorName</span>
-                                    <span class="bn-card-meta-dot"></span>
-                                    <span>@featuredArticle.TimeAgo</span>
-                                </div>
-                            </div>
-                        </a>
-                    }
+		@{
+			var secondaryCards = Model.SecondaryStories.Skip(9).Take(12).ToList();
+		}
 
-                    @foreach (var item in listArticles.Take(3))
-                    {
-                        <a href="/news/@item.CategorySlug/@item.Slug"
-                           class="bn-card-h track-click"
-                           data-article-id="@item.Id">
-                            <div class="bn-card-h-img">
-                                <img class="lazy-image"
-                                     src="/images/placeholder.png"
-                                     data-src="@item.FeaturedImageThumb"
-                                     alt="@item.Title"
-                                     loading="lazy" />
-                            </div>
-                            <div class="bn-card-h-body">
-                                <div class="bn-card-h-tag">@item.CategoryName</div>
-                                <div class="bn-card-h-title">@item.Title</div>
-                                <div class="bn-card-h-meta">@item.TimeAgo</div>
-                            </div>
-                        </a>
-                    }
-                </div>
-            }
-        </div>
+		@if (secondaryCards != null && secondaryCards.Any())
+		{
+			var cardChunks = secondaryCards.Chunk(4).ToList();
 
-        <!-- Sidebar -->
-        <aside class="bn-sidebar">
+			<div id="multiCardCarousel" class="carousel slide mt-4" data-bs-ride="carousel" data-bs-interval="false">
 
-            <!-- Newsletter -->
-            <div class="bn-newsletter">
-                <h5>Stay Informed</h5>
-                <p>Top stories delivered to your inbox every morning.</p>
-                <div class="bn-newsletter-form">
-                    <input type="email" class="bn-newsletter-input" placeholder="Your email" />
-                    <button class="bn-newsletter-btn" type="button">Subscribe</button>
-                </div>
-            </div>
+				<div class="carousel-inner">
+					@for (int i = 0; i < cardChunks.Count; i++)
+					{
+						var chunk = cardChunks[i];
 
-            <!-- Trending (ViewComponent) -->
-            <div class="bn-widget">
-                @await Component.InvokeAsync("TrendingNews",
-                new { type = Context.Request.Query["type"].ToString() })
-            </div>
+						<div class="carousel-item @(i == 0 ? "active" : "")">
+							<div class="row g-3 px-0">
+								@foreach (var item in chunk)
+								{
+									<div class="col-9 col-sm-6 col-md-6 col-lg-3">
+										<a href="/news/@item.CategorySlug/@item.Slug"
+										   class="bn-card track-click d-block h-100 text-decoration-none"
+										   data-article-id="@item.Id">
 
-            <!-- Featured (reuse first 3 secondary stories) -->
-            <div class="bn-widget">
-                <div class="bn-widget-title">Featured</div>
-                @foreach (var item in Model.SecondaryStories.Take(3))
-                {
-                    <a href="/news/@item.CategorySlug/@item.Slug"
-                       class="bn-card-h track-click"
-                       data-article-id="@item.Id">
-                        <div class="bn-card-h-img">
-                            <img class="lazy-image"
-                                 src="/images/placeholder.png"
-                                 data-src="@item.FeaturedImageThumb"
-                                 alt="@item.Title"
-                                 loading="lazy" />
-                        </div>
-                        <div class="bn-card-h-body">
-                            <div class="bn-card-h-tag">@item.CategoryName</div>
-                            <div class="bn-card-h-title">@item.Title</div>
-                            <div class="bn-card-h-meta">@item.TimeAgo</div>
-                        </div>
-                    </a>
-                }
-            </div>
+											<div class="bn-card-img">
+												<img class="lazy-image d-block w-100"
+													 src="/images/placeholder.png"
+													 data-src="@item.FeaturedImageThumb"
+													 alt="@item.Title"
+													 loading="lazy" />
+											</div>
 
-        </aside>
+											<div class="bn-card-body">
+												<div class="bn-card-tag">@item.CategoryName</div>
+												<h3 class="bn-card-title">@item.Title</h3>
+												<div class="bn-card-meta">
+													<span>@item.AuthorName</span>
+													<span class="bn-card-meta-dot"></span>
+													<span>@item.TimeAgo</span>
+												</div>
+											</div>
 
-    </div><!-- /bn-main-layout -->
+										</a>
+									</div>
+								}
+							</div>
+						</div>
+					}
+				</div>
+
+				<button class="carousel-control-prev" type="button" data-bs-target="#multiCardCarousel" data-bs-slide="prev">
+					<span class="carousel-control-prev-icon bg-dark rounded-circle p-3" aria-hidden="true"></span>
+					<span class="visually-hidden">Previous</span>
+				</button>
+				<button class="carousel-control-next" type="button" data-bs-target="#multiCardCarousel" data-bs-slide="next">
+					<span class="carousel-control-next-icon bg-dark rounded-circle p-3" aria-hidden="true"></span>
+					<span class="visually-hidden">Next</span>
+				</button>
+
+			</div>
+		}
+
+	</div>
 </div>
-
-<!-- ============================================================
-     CATEGORY SECTIONS (remaining sections after the first 2)
-     ============================================================ -->
+<div class="mt-4">
+	@await Component.InvokeAsync("SmartTrending", new { count = 5 })
+</div>
 @if (Model.CategorySections.Count > 2)
 {
-    <div class="bn-cat-strip">
-        <div class="container">
-            @foreach (var cat in Model.CategorySections.Skip(2))
-            {
-                <div class="mb-5">
-                    <div class="bn-section-header">
-                        <span class="bn-section-title">@cat.CategoryName</span>
-                        <a href="/news/@cat.CategorySlug" class="bn-section-link">More →</a>
-                    </div>
-                    <div class="bn-cat-grid">
-                        @foreach (var item in cat.Articles.Take(4))
-                        {
-                            <a href="/news/@item.CategorySlug/@item.Slug"
-                               class="bn-card track-click"
-                               data-article-id="@item.Id">
-                                <div class="bn-card-img">
-                                    <img class="lazy-image"
-                                         src="/images/placeholder.png"
-                                         data-src="@item.FeaturedImageThumb"
-                                         alt="@item.Title"
-                                         loading="lazy" />
-                                </div>
-                                <div class="bn-card-body">
-                                    <div class="bn-card-tag">@item.CategoryName</div>
-                                    <h3 class="bn-card-title">@item.Title</h3>
-                                    <div class="bn-card-meta">
-                                        <span>@item.AuthorName</span>
-                                        <span class="bn-card-meta-dot"></span>
-                                        <span>@item.TimeAgo</span>
-                                    </div>
-                                </div>
-                            </a>
-                        }
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
+	<div class="bn-cat-strip mt-4">
+		<div class="container">
+			@foreach (var cat in Model.CategorySections)
+			{
+				<div class="mb-5">
+
+					<div class="bn-section-header">
+						<span class="bn-section-title">@cat.CategoryName</span>
+						<a href="/news/@cat.CategorySlug" class="bn-section-link">More →</a>
+					</div>
+
+					<div class="bn-cat-grid">
+						@foreach (var item in cat.Articles.Take(4))
+						{
+							<a href="/news/@item.CategorySlug/@item.Slug"
+							   class="bn-card track-click"
+							   data-article-id="@item.Id">
+								<div class="bn-card-img">
+									<img class="lazy-image"
+										 src="/images/placeholder.png"
+										 data-src="@item.FeaturedImageThumb"
+										 alt="@item.Title"
+										 loading="lazy" />
+								</div>
+								<div class="bn-card-body">
+									<div class="bn-card-tag">@item.CategoryName</div>
+									<h3 class="bn-card-title">@item.Title</h3>
+									<div class="bn-card-meta">
+										<span>@item.AuthorName</span>
+										<span class="bn-card-meta-dot"></span>
+										<span>@item.TimeAgo</span>
+									</div>
+								</div>
+							</a>
+						}
+					</div>
+
+				</div>
+			}
+		</div>
+
+	</div>
 }
-<!-- ============================================================
-	Smart Trending (ViewComponent) - This is a new section that can be placed in the sidebar or as a full-width section before the footer. It uses the new GetTrendingAsync method with time-based filtering.
-     ============================================================ -->
-@await Component.InvokeAsync("SmartTrending", new { count = 5 })
+
