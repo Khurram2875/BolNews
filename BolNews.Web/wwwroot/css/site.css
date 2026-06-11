@@ -1407,6 +1407,43 @@ body.nav-fixed {
         grid-template-columns: 1fr;
     }
 }
+/* --- DESKTOP VIEW (Screens wider than 768px) --- */
+@media (min-width: 769px) {
+    .bn-popular-scroll-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1rem;
+    }
+}
+
+/* --- MOBILE & TABLET VIEW (Screens 768px and smaller) --- */
+@media (max-width: 768px) {
+    .bn-popular-scroll-grid {
+        display: flex;
+        overflow-x: auto; /* Enables native horizontal swiping */
+        overflow-y: hidden; /* Completely blocks vertical layout shifts */
+        scroll-snap-type: x mandatory; /* Makes sliding lock smoothly onto items */
+        scroll-behavior: smooth;
+        gap: 1rem;
+        padding-bottom: 15px; /* Keeps scrollbar away from the card boundaries */
+        padding-left: 5px; /* Prevents card shadows from clipping on edges */
+        /* Hides default bulky scrollbars on mobile browsers for a clean look */
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+    }
+
+        /* Hides default scrollbars for Chrome, Safari, and Opera */
+        .bn-popular-scroll-grid::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Sets a fixed readable width for cards while swiping on mobile */
+        .bn-popular-scroll-grid .bn-card {
+            flex: 0 0 75%; /* Shows one full card + 25% of next card as a swipe hint */
+            max-width: 280px; /* Keeps it from looking giant on small tablets */
+            scroll-snap-align: start; /* Aligns card to the left screen lip when snapped */
+        }
+}
 .bn-sidebar-scroll {
     /* Modern standard scrollbar options for Firefox */
     scrollbar-width: thin;

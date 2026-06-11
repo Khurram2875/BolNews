@@ -16,7 +16,7 @@
     }
 </div> *@
 <div class="bn-section-header"><span class="bn-section-title">Popular Right Now</span></div>
-<div class="bn-secondary-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem;">
+<div class="bn-popular-scroll-grid">
     @foreach (var item in Model)
     {
         <a href="/news/@item.CategorySlug/@item.Slug"
