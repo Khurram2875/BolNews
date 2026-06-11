@@ -31,13 +31,16 @@ namespace BolNews.Web.SEO
                 author = new
                 {
                     @type = "Person",
-                    name = article.AuthorName
+                    name = article.AuthorName,
+                    url = $"{baseUrl}/author/{article.AuthorSlug}"
                 },
 
                 publisher = new
                 {
                     @type = "Organization",
                     name = "Bol News",
+                    url = baseUrl,
+
                     logo = new
                     {
                         @type = "ImageObject",
@@ -125,6 +128,29 @@ namespace BolNews.Web.SEO
                         position = index + 1,
                         url = $"{baseUrl}/news/{a.CategorySlug}/{a.Slug}"
                     })
+                }
+            };
+        }
+        public static object BuildWebSite(string baseUrl)
+        {
+            return new
+            {
+                @context = "https://schema.org",
+                @type = "WebSite",
+
+                name = "Bol News",
+
+                url = baseUrl,
+
+                potentialAction = new
+                {
+                    @type = "SearchAction",
+
+                    target =
+                        $"{baseUrl}/search?q={{search_term_string}}",
+
+                    query_input =
+                        "required name=search_term_string"
                 }
             };
         }

@@ -39,7 +39,7 @@ namespace BolNews.Web.Services
                 {
                     var ns = XNamespace.Get("http://www.sitemaps.org/schemas/sitemap/0.9");
 
-                    var baseUrl = _urlService.GetBaseUrl();
+                    var baseUrl =  _urlService.GetBaseUrl();
 
                     var xml = new XDocument(
                         new XElement(ns + "sitemapindex",
@@ -52,8 +52,8 @@ namespace BolNews.Web.Services
                             new XElement(ns + "sitemap",
                                 new XElement(ns + "loc", $"{baseUrl}/news-sitemap.xml")
                             ),
-                            new XElement("sitemap",
-                                new XElement("loc", $"{baseUrl}/sitemap-authors.xml")
+                            new XElement(ns + "sitemap",
+                                new XElement(ns + "loc", $"{baseUrl}/sitemap-authors.xml")
                             )
                         )
                     );
@@ -159,7 +159,9 @@ namespace BolNews.Web.Services
 
         public async Task<string> GenerateAuthorSitemapAsync()
         {
-            var authors = await _authorService.GetAll();
+            var authors = (await _authorService.GetAll())
+                .Where(a => a.Articles.Any(ar => ar.IsPublished))
+                .ToList();
             //var filteredAuthors = authors.Where(a => a.Articles.Any(ar => ar.IsPublished)).ToList();
 
             var baseUrl = _urlService.GetBaseUrl();

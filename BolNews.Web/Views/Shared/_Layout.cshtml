@@ -57,6 +57,7 @@
     @{
         var baseUrl = UrlService.GetBaseUrl();
         var orgSchema = SeoService.BuildOrganizationSchema(baseUrl);
+        var webSiteSchema = SeoService.BuildWebSiteSchema(baseUrl);
     }
 
     @if (ViewBag.Page is int page)
@@ -88,6 +89,7 @@
     }
 
     <script type="application/ld+json">@Html.Raw(orgSchema)</script>
+    <script type="application/ld+json">@Html.Raw(webSiteSchema)</script>
 
     <!-- Theme init: apply saved theme before paint to avoid flash -->
     <script>

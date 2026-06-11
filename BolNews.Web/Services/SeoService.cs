@@ -1,6 +1,7 @@
-using System.Text.Json;
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Interfaces;
+using BolNews.Web.SEO;
+using System.Text.Json;
 namespace BolNews.Web.Services
 {
     public class SeoService : ISeoService
@@ -175,6 +176,12 @@ namespace BolNews.Web.Services
             };
 
             return JsonSerializer.Serialize(schema);
+        }
+
+        public string BuildWebSiteSchema(string baseUrl)
+        {
+            return JsonSerializer.Serialize(
+                StructuredDataBuilder.BuildWebSite(baseUrl));
         }
     }
 }
