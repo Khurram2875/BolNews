@@ -1,4 +1,5 @@
-﻿using BolNews.Application.Interfaces;
+﻿using BolNews.Application.Common;
+using BolNews.Application.Interfaces;
 using BolNews.Application.Interfaces.Scoring;
 using BolNews.Domain.Entities;
 using BolNews.Domain.Enums;
@@ -10,13 +11,16 @@ namespace BolNews.Web.Services
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<ScheduledPublishingService> _logger;
+       
 
         public ScheduledPublishingService(
             IServiceScopeFactory scopeFactory,
-            ILogger<ScheduledPublishingService> logger)
+            ILogger<ScheduledPublishingService> logger
+           )
         {
             _scopeFactory = scopeFactory;
             _logger = logger;
+            
         }
 
         protected override async Task ExecuteAsync(
@@ -46,6 +50,9 @@ namespace BolNews.Web.Services
                         scope.ServiceProvider
                             .GetRequiredService<IArticleScoringService>();
 
+                    var cacheService =
+                    scope.ServiceProvider
+                        .GetRequiredService<ICacheService>();
                     var now = DateTime.UtcNow;
                     //_logger.LogInformation("Scheduler heartbeat at {Time}",  now);
 
@@ -93,6 +100,24 @@ namespace BolNews.Web.Services
                     if (dueArticles.Any())
                     {
                         await articleRepository.SaveChangesAsync();
+
+                        cacheService.Remove(CacheKeys.HomePage);
+
+                        cacheService.Remove(CacheKeys.BreakingNews);
+
+                        cacheService.Remove(CacheKeys.Trending("today"));
+
+                        cacheService.Remove(CacheKeys.Trending("week"));
+
+                        cacheService.Remove(CacheKeys.Trending("month"));
+
+                        cacheService.Remove(CacheKeys.NavbarCategories);
+
+                        cacheService.Remove(CacheKeys.LatestNews(5));
+
+                        cacheService.Remove(CacheKeys.LatestNews(10));
+
+                        cacheService.Remove(CacheKeys.Sitemap);
                     }
                 }
                 catch (Exception ex)

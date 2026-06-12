@@ -71,7 +71,8 @@ namespace BolNews.Web.Controllers
 
             const int pageSize = 10;
 
-            ViewBag.HasNextPage = articles.Count == pageSize;
+            ViewBag.PageSize = pageSize;
+            //ViewBag.HasNextPage = articles.Count == pageSize;
             ViewBag.Page = page; // 🔥 you missed this earlier
 
 
@@ -88,8 +89,9 @@ namespace BolNews.Web.Controllers
                     : category.MetaDescription,
                 BaseUrl = baseUrl,
                 Page = page,                       // ✅
-                HasNextPage = articles.Count == 10
+                HasNextPage = articles.Count == pageSize
             };
+            ViewBag.HasNextPage = vm2.HasNextPage;
             vm2.CategorySchemaJson = await _cacheService.GetOrCreateAsync(
                     $"category_schema_{categorySlug}_{page}",
                     async () => _seoService.BuildCategorySchema(

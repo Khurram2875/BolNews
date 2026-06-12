@@ -47,7 +47,7 @@
 						<div class="bn-sidebar-scroll bg-dark text-white" style="max-height: 450px; overflow-y: auto; padding-right: 8px;">
 
 							@* Skips the first story to optimize feed density and pulls adjacent articles *@
-							@foreach (var item in Model.SecondaryStories.Skip(1).Take(8))
+							@foreach (var item in Model.SecondaryStories.Take(8))
 							{
 								<a href="/news/@item.CategorySlug/@item.Slug"
 								   class="bn-list-item d-flex align-items-center text-decoration-none border-bottom border-secondary track-click py-3 text-white"
@@ -80,7 +80,7 @@
 		}
 
 		@{
-			var secondaryCards = Model.SecondaryStories.Skip(9).Take(12).ToList();
+			var secondaryCards = Model.SecondaryStories.Skip(8).Take(12).ToList();
 		}
 
 		@if (secondaryCards != null && secondaryCards.Any())

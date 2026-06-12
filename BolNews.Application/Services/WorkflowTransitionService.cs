@@ -1,3 +1,4 @@
+using BolNews.Application.Common;
 using BolNews.Application.Interfaces;
 using BolNews.Application.Interfaces.Scoring;
 using BolNews.Domain.Common;
@@ -11,15 +12,18 @@ namespace BolNews.Application.Services
         private readonly IArticleRevisionService _articleRevisionService;
         private readonly INotificationService _notificationService;
         private readonly IArticleScoringService _articleScoringService;
+        private readonly ICacheService _cacheService;
+
 
         public WorkflowTransitionService(
             IArticleRevisionService articleRevisionService,
             INotificationService notificationService,
-            IArticleScoringService articleScoringService)
+            IArticleScoringService articleScoringService, ICacheService cacheService)
         {
             _articleRevisionService = articleRevisionService;
             _notificationService = notificationService;
             _articleScoringService = articleScoringService;
+            _cacheService = cacheService;
         }
 
         public async Task ExecuteTransitionAsync(
@@ -138,6 +142,7 @@ namespace BolNews.Application.Services
 
                 if (!article.PublishedAt.HasValue)
                     article.PublishedAt = now;
+                
 
                 if (!string.IsNullOrWhiteSpace(article.Author?.UserId))
                 {
@@ -147,6 +152,7 @@ namespace BolNews.Application.Services
                         $"Your article '{article.Title}' is now live.",
                         $"/news/{article.Category.Slug}/{article.Slug}");
                 }
+                InvalidatePublicCaches();
             }
 
             await _articleScoringService.CalculateScoresAsync(article);
@@ -192,6 +198,26 @@ namespace BolNews.Application.Services
             }
 
             throw new UnauthorizedAccessException("Workflow transition denied.");
+        }
+        private void InvalidatePublicCaches()
+        {
+            _cacheService.Remove(CacheKeys.HomePage);
+
+            _cacheService.Remove(CacheKeys.BreakingNews);
+
+            _cacheService.Remove(CacheKeys.Trending("today"));
+
+            _cacheService.Remove(CacheKeys.Trending("week"));
+
+            _cacheService.Remove(CacheKeys.Trending("month"));
+
+            _cacheService.Remove(CacheKeys.NavbarCategories);
+
+            _cacheService.Remove(CacheKeys.LatestNews(5));
+
+            _cacheService.Remove(CacheKeys.LatestNews(10));
+
+            _cacheService.Remove(CacheKeys.Sitemap);
         }
     }
 }

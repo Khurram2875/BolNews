@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using BolNews.Application.Common;
 using BolNews.Application.Interfaces;
 using BolNews.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,7 @@ namespace BolNews.Web.ViewComponents
             // ✅ FIX 2: set ViewBag OUTSIDE cache
             ViewBag.Type = type;
 
-            var cacheKey = $"trending_{type}";
+            var cacheKey = CacheKeys.Trending(type);
 
             var vm = await _cache.GetOrCreateAsync(cacheKey, async entry =>
             {

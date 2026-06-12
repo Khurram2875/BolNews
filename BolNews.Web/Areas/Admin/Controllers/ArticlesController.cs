@@ -360,13 +360,18 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _cacheService.Remove($"article_content_{dto.Id}");
             _cacheService.Remove($"related_{dto.Id}");
 
-            _cacheService.Remove(CacheKeys.Trending);
+            _cacheService.Remove(CacheKeys.Trending("today"));
+
+            _cacheService.Remove(CacheKeys.Trending("week"));
+
+            _cacheService.Remove(CacheKeys.Trending("month"));
+
             _cacheService.Remove(CacheKeys.Dashboard);
             _cacheService.Remove(CacheKeys.Sitemap + "_index");
             _cacheService.Remove(CacheKeys.Sitemap + "_articles");
             _cacheService.Remove(CacheKeys.Sitemap + "_news");
 
-            for (int i = 1; i <= 3; i++)
+            for (int i = 1; i <= 5; i++)
             {
                 _cacheService.Remove(
                     CacheKeys.Category(dto.CategorySlug, i));

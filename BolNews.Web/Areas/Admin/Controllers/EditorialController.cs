@@ -34,6 +34,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             var admins = await _userManager.GetUsersInRoleAsync(Roles.Admin);
             var editors = await _userManager.GetUsersInRoleAsync(Roles.Editor);
             var subEditors = await _userManager.GetUsersInRoleAsync(Roles.SubEditor);
+            var factChecker = await _userManager.GetUsersInRoleAsync(Roles.FactChecker);
 
             var queue = await _articleService.GetEditorialQueueAsync(roles);
             switch (filter.ToLower())
@@ -80,6 +81,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             var editorialUsers = admins
                 .Concat(editors)
                 .Concat(subEditors)
+                .Concat(factChecker)
                 .GroupBy(x => x.Id)
                 .Select(g => g.First())
                 .ToList();
