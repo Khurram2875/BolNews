@@ -154,7 +154,7 @@ namespace BolNews.Application.Services
                 }
                 InvalidatePublicCaches();
             }
-
+             
             await _articleScoringService.CalculateScoresAsync(article);
         }
 

@@ -482,7 +482,8 @@ namespace BolNews.Application.Services
                 EditorialPriority = a.EditorialPriority,
                 IsFactChecked = a.IsFactChecked,
                 AuthorName = a.Author?.User?.FullName,
-                CategoryName = a.Category?.Name
+                CategoryName = a.Category?.Name,
+                CategorySlug= a.Category?.Slug
             });
         }
         public async Task<IEnumerable<ArticleDto>> GetTopRankedByCategoryAsync(int categoryId, int count)

@@ -143,12 +143,12 @@
 
 	</div>
 </div>
-<div class="mt-4">
+<div class="container mt-4">
 	@await Component.InvokeAsync("SmartTrending", new { count = 5 })
 </div>
 @if (Model.CategorySections.Count > 2)
 {
-	<div class="bn-cat-strip mt-4">
+	<div class="bn-cat-strip container mt-4">
 		<div class="container">
 			@foreach (var cat in Model.CategorySections)
 			{
