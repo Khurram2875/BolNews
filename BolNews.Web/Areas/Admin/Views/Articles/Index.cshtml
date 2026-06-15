@@ -197,29 +197,38 @@
                 }
             </tbody>
         </table>
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="card-footer d-flex align-items-center justify-content-between bg-light border-top py-3">
+                <div class="text-muted small">
+                    Showing page <strong>@ViewBag.CurrentPage</strong> of <strong>@ViewBag.TotalPages</strong>
+                </div>
+
+                <nav aria-label="Article administration navigation loop">
+                    <ul class="pagination pagination-sm mb-0">
+
+                        <li class="page-item @(ViewBag.HasPreviousPage ? "" : "disabled")">
+                            <a class="page-item page-link" href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1 })">
+                                <span aria-hidden="true">&laquo; Previous</span>
+                            </a>
+                        </li>
+
+                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+                            </li>
+                        }
+
+                        <li class="page-item @(ViewBag.HasNextPage ? "" : "disabled")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1 })">
+                                <span>Next &raquo;</span>
+                            </a>
+                        </li>
+
+                    </ul>
+                </nav>
+            </div>
+        }
     </div>
 </div>
-@* <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const images = document.querySelectorAll(".lazy-image");
-
-        const observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-
-                    img.src = img.dataset.src;
-
-                    if (img.dataset.srcset) {
-                        img.srcset = img.dataset.srcset;
-                    }
-
-                    img.classList.add("loaded");
-                    observer.unobserve(img);
-                }
-            });
-        });
-
-        images.forEach(img => observer.observe(img));
-    });
-</script> *@

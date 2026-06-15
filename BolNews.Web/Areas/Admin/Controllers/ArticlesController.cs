@@ -1,4 +1,5 @@
 using AutoMapper;
+using Azure;
 using BolNews.Application.Common;
 using BolNews.Application.Common.Helpers;
 using BolNews.Application.DTOs;
@@ -73,13 +74,44 @@ namespace BolNews.Web.Areas.Admin.Controllers
         }
 
         // GET: Admin/Articles
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var userId = _userManager.GetUserId(User);
-            var roles = await _userManager.GetRolesAsync(await _userManager.GetUserAsync(User));
+            //var userId = _userManager.GetUserId(User);
+            //var roles = await _userManager.GetRolesAsync(await _userManager.GetUserAsync(User));
 
+            //var dtos = await _articleService.GetAllAsync(userId, roles);
+            //var viewModels = _mapper.Map<List<ArticleVM>>(dtos);
+            //return View(viewModels);
+
+            if (page < 1) page = 1;
+
+            var userId = _userManager.GetUserId(User);
+            var user = await _userManager.GetUserAsync(User);
+            var roles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
+
+            // 1. Fetch all matching business objects/DTOs for this user's permission layer
             var dtos = await _articleService.GetAllAsync(userId, roles);
-            var viewModels = _mapper.Map<List<ArticleVM>>(dtos);
+
+            // 2. Setup pagination layout parameters
+            const int pageSize = 10; // Number of records displayed per page
+            int totalRecords = dtos.Count();
+
+            // 3. Slice the data server-side
+            var pagedDtos = dtos
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // 4. Map only the sliced subset to your ViewModels array
+            var viewModels = _mapper.Map<List<ArticleVM>>(pagedDtos);
+
+            // 5. Populate tracking metrics into ViewBag flags
+            ViewBag.CurrentPage = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+            ViewBag.HasPreviousPage = page > 1;
+            ViewBag.HasNextPage = page < ViewBag.TotalPages;
+
             return View(viewModels);
         }
         // GET: Admin/Articles/Create
