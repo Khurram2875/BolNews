@@ -26,7 +26,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
     Roles.Admin + "," +
     Roles.Editor + "," +
     Roles.SubEditor + "," +
-    Roles.Author)]
+    Roles.Author+ "," +
+        Roles.Factchecker)]
     [Area("Admin")]
     public class ArticlesController : Controller
     {

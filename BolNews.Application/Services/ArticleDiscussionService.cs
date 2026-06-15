@@ -109,7 +109,7 @@ namespace BolNews.Application.Services
                 return;
             }
 
-            if (roles.Contains(Roles.FactChecker))
+            if (roles.Contains(Roles.Factchecker))
             {
                 if (article.FactCheckerUserId == currentUserId)
                     return;

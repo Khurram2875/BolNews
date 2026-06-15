@@ -14,5 +14,7 @@ namespace BolNews.Web.Areas.Admin.ViewModels
 
         public int PublishedToday { get; set; }
         public OperationalAnalyticsDto Analytics { get; set; } = new();
+
+        public List<EditorialQueueDto> MyFactChecks { get; set; } = new();
     }
 }

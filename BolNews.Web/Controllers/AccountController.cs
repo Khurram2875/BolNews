@@ -10,13 +10,16 @@ namespace BolNews.Web.Controllers
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<AccountController> _logger;
 
         public AccountController(
             SignInManager<ApplicationUser> signInManager,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            ILogger<AccountController> logger)
         {
             _signInManager = signInManager;
             _userManager = userManager;
+            _logger = logger;
         }
 
         // GET
@@ -43,18 +46,21 @@ namespace BolNews.Web.Controllers
 
             if (result.Succeeded)
             {
+                _logger.LogInformation("User {Email} logged in successfully.", email);
+
                 var user = await _userManager.FindByNameAsync(email);
 
                 var roles = await _userManager.GetRolesAsync(user);
 
                 // Editorial team gets Editorial Dashboard
                 if (roles.Contains(Roles.Editor) ||
-                    roles.Contains(Roles.SubEditor))
+                    roles.Contains(Roles.SubEditor) ||
+                    roles.Contains(Roles.Factchecker))
                 {
                     return RedirectToAction(
-                        actionName: "Index",
-                        controllerName: "Editorial",
-                        routeValues: new { area = "Admin" });
+                        "Index",
+                        "Editorial",
+                        new { area = "Admin" });
                 }
 
                 // Author-only users go to Articles
@@ -83,12 +89,17 @@ namespace BolNews.Web.Controllers
             }
 
             ModelState.AddModelError("", "Invalid email or password");
+
+            _logger.LogWarning("Failed login attempt for {Email}.", email);
+
             return View();
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
+            _logger.LogInformation("User {User} logged out.", User.Identity?.Name);
+
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home", new { area = "" });
         }

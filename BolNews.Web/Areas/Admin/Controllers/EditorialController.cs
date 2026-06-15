@@ -13,7 +13,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
     [Authorize(Roles =
     Roles.Admin + "," +
     Roles.Editor + "," +
-    Roles.SubEditor)]
+    Roles.SubEditor + "," +
+    Roles.Factchecker)]
     public class EditorialController : Controller
     {
         private readonly IArticleService _articleService;
@@ -30,11 +31,12 @@ namespace BolNews.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Index(string filter = "all")
         {
             var user = await _userManager.GetUserAsync(User);
+            var currentUserId = _userManager.GetUserId(User);
             var roles = await _userManager.GetRolesAsync(user);
             var admins = await _userManager.GetUsersInRoleAsync(Roles.Admin);
             var editors = await _userManager.GetUsersInRoleAsync(Roles.Editor);
             var subEditors = await _userManager.GetUsersInRoleAsync(Roles.SubEditor);
-            var factChecker = await _userManager.GetUsersInRoleAsync(Roles.FactChecker);
+            var factChecker = await _userManager.GetUsersInRoleAsync(Roles.Factchecker);
 
             var queue = await _articleService.GetEditorialQueueAsync(roles);
             switch (filter.ToLower())
@@ -69,6 +71,11 @@ namespace BolNews.Web.Areas.Admin.Controllers
                         .Where(x => x.WorkflowStatus == ArticleWorkflowStatus.FactCheckPending)
                         .ToList(),
 
+                MyFactChecks = queue
+                        .Where(x => x.WorkflowStatus == ArticleWorkflowStatus.FactCheckPending
+                        && x.FactCheckerUserId == user.Id)
+                        .ToList(),
+
                 Approved = queue
                         .Where(x => x.WorkflowStatus == ArticleWorkflowStatus.Approved)
                         .ToList(),
@@ -78,6 +85,11 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 Analytics = await _analyticsService.GetAnalyticsAsync()
 
             };
+
+            vm.MyFactChecks = vm.FactCheckPending
+              .Where(x => x.FactCheckerUserId == currentUserId)
+              .ToList();
+
             var editorialUsers = admins
                 .Concat(editors)
                 .Concat(subEditors)

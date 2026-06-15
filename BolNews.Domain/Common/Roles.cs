@@ -13,6 +13,6 @@ namespace BolNews.Domain.Common
         public const string SubEditor = "SubEditor";
         public const string Author = "Author";
         public const string User = "User";
-        public const string FactChecker = "FactChecker";
+        public const string Factchecker = "Factchecker";
     }
 }

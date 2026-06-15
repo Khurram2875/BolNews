@@ -1,10 +1,11 @@
-﻿using System;
+﻿using BolNews.Application.Interfaces;
+using BolNews.Domain.Entities;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BolNews.Application.Interfaces;
-using BolNews.Domain.Entities;
 
 namespace BolNews.Application.Services
 {
@@ -12,11 +13,13 @@ namespace BolNews.Application.Services
     {
         private readonly INotificationRepository _repo;
         private readonly INotificationRealtimeService _realtimeService;
+        private readonly ILogger<NotificationService> _logger;
 
-        public NotificationService(INotificationRepository repo, INotificationRealtimeService realtimeService)
+        public NotificationService(INotificationRepository repo, INotificationRealtimeService realtimeService, ILogger<NotificationService> logger)
         {
             _repo = repo;
             _realtimeService = realtimeService;
+            _logger = logger;
         }
 
         public async Task NotifyAsync(string userId,string title,string message,string? url = null)
@@ -30,6 +33,8 @@ namespace BolNews.Application.Services
                 IsRead = false,
                 CreatedAt = DateTime.UtcNow
             };
+
+            _logger.LogDebug("Notification sent to {UserId}: {Title}",userId,title);
 
             await _repo.AddAsync(notification);
 

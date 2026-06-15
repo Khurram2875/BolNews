@@ -74,6 +74,66 @@
 
         </div>
     </div>
+
+    @if (User.IsInRole("Factchecker"))
+    {
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0">
+                    My Assigned Fact Checks
+                </h5>
+            </div>
+
+            <div class="card-body">
+
+                @if (Model.MyFactChecks.Any())
+                {
+                    <table class="table-hover table">
+
+                        <thead>
+                            <tr>
+                                <th>Article</th>
+                                <th>Author</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var item in Model.MyFactChecks)
+                            {
+                                <tr>
+                                    <td>@item.Title</td>
+
+                                    <td>@item.AuthorName</td>
+
+                                    <td>
+
+                                        <a asp-area="Admin"
+                                           asp-controller="Articles"
+                                           asp-action="Edit"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-primary">
+                                            Review
+                                        </a>
+
+                                    </td>
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+                }
+                else
+                {
+                    <p>No articles assigned for fact checking.</p>
+                }
+
+            </div>
+        </div>
+    }
+
     <div class="row mb-4">
 
         <div class="col-md-2">
@@ -161,7 +221,7 @@
                 </div>
             </div>
         </div>
-
+       
         <div class="col-md-3">
             <div class="card border-0 shadow-sm">
                 <div class="card-body">

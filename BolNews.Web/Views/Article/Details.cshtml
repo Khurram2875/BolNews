@@ -99,6 +99,12 @@
                                 📅 @Model.Article.PublishedAt.Value.ToString("dd MMM yyyy")
                             </span>
                         }
+                        else
+                        {
+                            <span  content="Not published">
+                                Not published
+                            </span>
+                        }
                         @if (Model.Article.UpdatedAt.HasValue)
                         {
                             <span itemprop="dateModified" content="@Model.Article.UpdatedAt.Value.ToString("yyyy-MM-dd")">

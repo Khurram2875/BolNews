@@ -4,6 +4,7 @@ using BolNews.Application.Interfaces.Scoring;
 using BolNews.Domain.Common;
 using BolNews.Domain.Entities;
 using BolNews.Domain.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace BolNews.Application.Services
 {
@@ -13,17 +14,19 @@ namespace BolNews.Application.Services
         private readonly INotificationService _notificationService;
         private readonly IArticleScoringService _articleScoringService;
         private readonly ICacheService _cacheService;
+        private readonly ILogger<WorkflowTransitionService> _logger;
 
 
         public WorkflowTransitionService(
             IArticleRevisionService articleRevisionService,
             INotificationService notificationService,
-            IArticleScoringService articleScoringService, ICacheService cacheService)
+            IArticleScoringService articleScoringService, ICacheService cacheService, ILogger<WorkflowTransitionService> logger)
         {
             _articleRevisionService = articleRevisionService;
             _notificationService = notificationService;
             _articleScoringService = articleScoringService;
             _cacheService = cacheService;
+            _logger = logger;
         }
 
         public async Task ExecuteTransitionAsync(
@@ -35,12 +38,20 @@ namespace BolNews.Application.Services
         {
             if (!(roles.Contains(Roles.Admin) ||
                   roles.Contains(Roles.Editor) ||
-                  roles.Contains(Roles.SubEditor)))
+                  roles.Contains(Roles.SubEditor) ||
+                  roles.Contains(Roles.Factchecker)))
             {
                 throw new UnauthorizedAccessException(
                     "You are not authorized for editorial workflow transitions.");
             }
-
+            if (roles.Contains(Roles.Factchecker))
+            {
+                if (article.FactCheckerUserId != currentUserId)
+                {
+                    throw new UnauthorizedAccessException(
+                        "This article is not assigned to you.");
+                }
+            }
             ValidateWorkflowTransition(
                 article.WorkflowStatus,
                 targetStatus,
@@ -59,6 +70,11 @@ namespace BolNews.Application.Services
                 : reason;
 
             article.WorkflowStatus = targetStatus;
+
+            var oldStatus = article.WorkflowStatus;
+
+            _logger.LogInformation("Article {ArticleId} transitioned from {OldStatus} to {NewStatus} by {UserId}",  article.Id, oldStatus, targetStatus, currentUserId);
+
             article.UpdatedAt = now;
             article.UpdatedBy = currentUserId;
 
@@ -196,7 +212,23 @@ namespace BolNews.Application.Services
 
                 return;
             }
+            if (roles.Contains(Roles.Factchecker))
+            {
+                var allowed =
+                    current == ArticleWorkflowStatus.FactCheckPending &&
+                    (
+                        target == ArticleWorkflowStatus.Approved ||
+                        target == ArticleWorkflowStatus.Rejected
+                    );
 
+                if (!allowed)
+                {
+                    throw new UnauthorizedAccessException(
+                        $"Transition from {current} to {target} is not allowed.");
+                }
+
+                return;
+            }
             throw new UnauthorizedAccessException("Workflow transition denied.");
         }
         private void InvalidatePublicCaches()

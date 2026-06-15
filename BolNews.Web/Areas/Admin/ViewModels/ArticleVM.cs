@@ -42,6 +42,7 @@ namespace BolNews.Web.Areas.Admin.ViewModels
 
         public string AuthorName { get; set; } = string.Empty;
         public string CategoryName { get; set; } = string.Empty;
+        public string CategorySlug { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DiscoverScoreResult? DiscoverScore { get; set; }
         //discussion comments for the article

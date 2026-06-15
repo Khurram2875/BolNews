@@ -338,7 +338,8 @@ namespace BolNews.Application.Services
                 EditorialPriority = a.EditorialPriority,
                 IsFactChecked = a.IsFactChecked,
                 AuthorName = a.Author?.User?.FullName,
-                CategoryName = a.Category?.Name
+                CategoryName = a.Category?.Name,
+                CategorySlug=a.Category?.Slug
             });
         }
 
@@ -537,10 +538,19 @@ namespace BolNews.Application.Services
 
             return ArticleWorkflowStatus.Draft;
         }
+        private bool IsFactChecker(IList<string> roles)
+        {
+            return roles.Contains(Roles.Factchecker);
+        }
         public async Task<List<EditorialQueueDto>> GetEditorialQueueAsync(IList<string> roles)
         {
-            if (!(IsAdmin(roles) || IsEditor(roles) || IsSubEditor(roles)))
+            if (!(IsAdmin(roles) ||
+                  IsEditor(roles) ||
+                  IsSubEditor(roles) ||
+                  IsFactChecker(roles)))
+            {
                 return new List<EditorialQueueDto>();
+            }
 
             var articles = await _repo.GetEditorialQueueAsync(
                 ArticleWorkflowStatus.Submitted,

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using BolNews.Application.Interfaces;
 using BolNews.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace BolNews.Application.Services
 {
@@ -13,19 +14,21 @@ namespace BolNews.Application.Services
     {
         private static readonly TimeSpan LockTimeout = TimeSpan.FromMinutes(30);
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<ArticleLockService> _logger;
 
         private readonly IArticleRepository _articleRepository;
 
-        public ArticleLockService(IArticleRepository articleRepository, UserManager<ApplicationUser> userManager )
+        public ArticleLockService(IArticleRepository articleRepository, UserManager<ApplicationUser> userManager, ILogger<ArticleLockService> logger )
         {
             _articleRepository = articleRepository;
             _userManager = userManager;
+            _logger = logger;
         }
 
-        public async Task<bool> TryAcquireLockAsync(
-            Article article,
-            string currentUserId)
+        public async Task<bool> TryAcquireLockAsync(Article article,string currentUserId)
         {
+            _logger.LogInformation("Article {ArticleId} locked by {UserId}",article.Id,currentUserId);
+
             if (!article.LockedAt.HasValue ||
                 string.IsNullOrWhiteSpace(article.LockedByUserId))
             {
@@ -62,9 +65,7 @@ namespace BolNews.Application.Services
             return false;
         }
 
-        public bool IsLockedByAnotherUser(
-            Article article,
-            string currentUserId)
+        public bool IsLockedByAnotherUser(Article article,string currentUserId)
         {
             if (!article.LockedAt.HasValue)
                 return false;
@@ -75,13 +76,15 @@ namespace BolNews.Application.Services
             var expired =
                 DateTime.UtcNow - article.LockedAt.Value > LockTimeout;
 
+            _logger.LogInformation("Expired lock on article {ArticleId} reassigned to {UserId}",article.Id,currentUserId);
+
             return !expired;
         }
 
-        public async Task ReleaseLockAsync(
-            Article article,
-            string currentUserId)
+        public async Task ReleaseLockAsync(Article article,string currentUserId)
         {
+            _logger.LogInformation("Article {ArticleId} lock released by {UserId}",article.Id,currentUserId);
+
             if (article.LockedByUserId != currentUserId)
                 return;
 

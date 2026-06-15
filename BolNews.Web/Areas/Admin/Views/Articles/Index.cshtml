@@ -177,9 +177,12 @@
                             <a asp-action="Edit" asp-route-id="@article.Id" class="badge bg-warning me-1">
                                 Edit
                             </a>
-                            <a asp-action="Details" asp-route-id="@article.Id" class="badge bg-info me-1">
+                            <a href="/news/@article.CategorySlug/@article.Slug" target="_blank" class="badge bg-info text-decoration-none me-1">
                                 Details
                             </a>
+                           @*  <a asp-action="Details" asp-route-id="@article.Id" class="badge bg-info me-1">
+                                Details
+                            </a> *@
                             @if (User.IsInRole("Admin") || User.IsInRole("Editor") || User.IsInRole("Author"))
                             {
                                 <form asp-action="Delete" asp-route-id="@article.Id" method="post" style="display:inline">
