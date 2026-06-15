@@ -207,22 +207,18 @@
 
 		function attachDiscussion() {
 
-			if (!window.notificationConnection) {
-				setTimeout(attachDiscussion, 500);
-				return;
-			}
+				if (!window.notificationConnection || !window.notificationConnectionReady) {
+			setTimeout(attachDiscussion, 200);
+			return;
+		}
 
-			const articleId = "@Model.ArticleId";
+		const articleId = "@Model.ArticleId";
 
-			if (window.notificationConnection.state === "Connected") {
+		window.notificationConnectionReady
+			.then(function () {
 				wireDiscussionEvents(articleId);
-			} else {
-				window.notificationConnection.start()
-					.then(function () {
-						wireDiscussionEvents(articleId);
-					})
-					.catch(err => console.error(err));
-			}
+			})
+			.catch(err => console.error("Discussion connection failed:", err));
 
 			const textarea = document.getElementById("discussionMessage");
 			const sendBtn = document.getElementById("sendDiscussionBtn");
@@ -271,53 +267,7 @@
 		});
 	</script>
 }
-@* @section Scripts
-{
-	<script>
-		function attachDiscussionListener() {
 
-			if (!window.notificationConnection) {
-				setTimeout(attachDiscussionListener, 500);
-				return;
-			}
-
-			console.log("Discussion SignalR listener attaching");
-
-			window.notificationConnection.off("DiscussionUpdated");
-
-			window.notificationConnection.on("DiscussionUpdated", function (data) {
-
-				console.log("DiscussionUpdated EVENT RECEIVED", data);
-
-				const thread =
-					document.querySelector(".discussion-thread");
-
-				if (!thread) {
-					console.error("discussion-thread missing");
-					return;
-				}
-
-				const html = `
-					<div class="discussion-row theirs">
-						<div class="discussion-bubble their-bubble">
-							<div class="discussion-header">
-								<span class="discussion-user">${data.userName}</span>
-								<span class="discussion-time">${data.createdAt}</span>
-							</div>
-							<div class="discussion-message">
-								${data.message}
-							</div>
-						</div>
-					</div>
-				`;
-
-				thread.insertAdjacentHTML("beforeend", html);
-			});
-		}
-
-		attachDiscussionListener();
-	</script>
-} *@
 <style>
 	.discussion-thread {
 		height: 500px;

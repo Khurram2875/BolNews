@@ -267,9 +267,12 @@
                 refreshNotificationFeed(true);
             });
 
-            window.notificationConnection.start()
-                .then(() => console.log("Notification hub connected"))
-                .catch(err => console.error(err));
+                window.notificationConnectionReady = window.notificationConnection.start()
+        .then(() => console.log("Notification hub connected"))
+        .catch(err => {
+            console.error(err);
+            throw err;
+        });
 
             refreshNotificationFeed(false);
         });
