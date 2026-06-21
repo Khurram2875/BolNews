@@ -1,201 +1,255 @@
 ﻿@using BolNews.Domain.Common
 @using BolNews.Domain.Enums
 @model BolNews.Web.Areas.Admin.ViewModels.ArticleVM
-
+<link href="~/css/site.css" rel="stylesheet" />
 @{
-    ViewData["Title"] = "Edit Article";
-    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+	ViewData["Title"] = "Edit Article";
+	Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 
-    var isAdmin = User.IsInRole(Roles.Admin);
-    var isEditor = User.IsInRole(Roles.Editor);
-    var isSubEditor = User.IsInRole(Roles.SubEditor);
-    var isAuthor = User.IsInRole(Roles.Author);
+	var isAdmin = User.IsInRole(Roles.Admin);
+	var isEditor = User.IsInRole(Roles.Editor);
+	var isSubEditor = User.IsInRole(Roles.SubEditor);
+	var isAuthor = User.IsInRole(Roles.Author);
 
-    var canPublish = isAdmin || isEditor || isSubEditor;
-    var canEditorsPick = isAdmin || isEditor;
-    var canFactCheck = isAdmin || isEditor || isSubEditor;
+	var canPublish = isAdmin || isEditor || isSubEditor;
+	var canEditorsPick = isAdmin || isEditor;
+	var canFactCheck = isAdmin || isEditor || isSubEditor;
 }
 <div class="alert alert-info">
-    <strong>Editing Lock Active</strong><br />
-    This article is currently locked for your editing session.
+	<strong>Editing Lock Active</strong><br />
+	This article is currently locked for your editing session.
 </div>
 <div class="card mt-3 p-3">
-    <h5>
-        Discover Score: @Model.DiscoverScore?.Score / 100
-    </h5>
+	<h5>
+		Discover Score: @Model.DiscoverScore?.Score / 100
+	</h5>
 
-    @if (Model.DiscoverScore != null && Model.DiscoverScore.Suggestions.Any())
-    {
-        <ul class="text-danger">
-            @foreach (var suggestion in Model.DiscoverScore.Suggestions)
-            {
-                <li>@suggestion</li>
-            }
-        </ul>
-    }
-    else
-    {
-        <p class="text-success">✅ Fully optimized for Discover</p>
-    }
+	@if (Model.DiscoverScore != null && Model.DiscoverScore.Suggestions.Any())
+	{
+		<ul class="text-danger">
+			@foreach (var suggestion in Model.DiscoverScore.Suggestions)
+			{
+				<li>@suggestion</li>
+			}
+		</ul>
+	}
+	else
+	{
+		<p class="text-success">✅ Fully optimized for Discover</p>
+	}
 </div>
 
 <div class="card shadow-sm">
-    <div class="card-header bg-warning text-dark">
-        <h4 class="mb-0">Edit Article <span class="badge bg-success" style="font-size:x-small">by @Model.AuthorName</span></h4>
-    </div>
+	<div class="card-header bg-warning text-dark">
+		<h4 class="mb-0">Edit Article <span class="badge bg-success" style="font-size:x-small">by @Model.AuthorName</span></h4>
+	</div>
 
-    <div class="card-body">
-        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+	<div class="card-body">
+		<form asp-action="Edit" method="post" enctype="multipart/form-data">
 
-            <input type="hidden" asp-for="Id" />
+			<input type="hidden" asp-for="Id" />
 
-            <div class="mb-3">
-                <label asp-for="Title" class="form-label"></label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
+			<div class="mb-3">
+				<label asp-for="Title" class="form-label"></label>
+				<input asp-for="Title" class="form-control" />
+				<span asp-validation-for="Title" class="text-danger"></span>
+			</div>
 
-            <div class="mb-3">
-                <label asp-for="Slug" class="form-label"></label>
-                <input asp-for="Slug" class="form-control" />
-                <span asp-validation-for="Slug" class="text-danger"></span>
-            </div>
+			<div class="mb-3">
+				<label asp-for="Slug" class="form-label"></label>
+				<input asp-for="Slug" class="form-control" />
+				<span asp-validation-for="Slug" class="text-danger"></span>
+			</div>
 
-            <div class="mb-3">
-                <label asp-for="MetaTitle" class="form-label"></label>
-                <input asp-for="MetaTitle" class="form-control" />
-                <span asp-validation-for="MetaTitle" class="text-danger"></span>
-            </div>
+			<div class="mb-3">
+				<label asp-for="MetaTitle" class="form-label"></label>
+				<input asp-for="MetaTitle" class="form-control" />
+				<span asp-validation-for="MetaTitle" class="text-danger"></span>
+			</div>
 
-            <div class="mb-3">
-                <label asp-for="MetaDescription" class="form-label"></label>
-                <textarea asp-for="MetaDescription" class="form-control"></textarea>
-                <span asp-validation-for="MetaDescription" class="text-danger"></span>
-            </div>
+			<div class="mb-3">
+				<label asp-for="MetaDescription" class="form-label"></label>
+				<textarea asp-for="MetaDescription" class="form-control"></textarea>
+				<span asp-validation-for="MetaDescription" class="text-danger"></span>
+			</div>
 
-            <div class="mb-3">
-                <label asp-for="Summary" class="form-label"></label>
-                <textarea asp-for="Summary" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Summary" class="text-danger"></span>
-            </div>
+			<div class="mb-3">
+				<label asp-for="Summary" class="form-label"></label>
+				<textarea asp-for="Summary" class="form-control" rows="3"></textarea>
+				<span asp-validation-for="Summary" class="text-danger"></span>
+			</div>
 
-            <div class="mb-3">
+			@* <div class="mb-3">
                 <label asp-for="Content" class="form-label"></label>
                 <textarea asp-for="Content" id="editor" class="form-control" rows="6"></textarea>
                 <span asp-validation-for="Content" class="text-danger"></span>
-            </div>
+            </div> *@
 
-            @if (canPublish || canFactCheck || canEditorsPick || isSubEditor)
-            {
-                <div class="card mt-4">
-                    <div class="card-header">
-                        Editorial Workflow
-                    </div>
+			<div class="mb-3">
+				<label asp-for="Content" class="form-label"></label>
+				<div class="mb-2">
 
-                    <div class="card-body">
+					<button type="button"
+							id="imgLeft"
+							class="badge bg-dark">
+						Image Left
+					</button>
 
-                        @if (canPublish)
-                        {
-                            <div class="form-check mb-3">
-                                <input asp-for="IsPublished" class="form-check-input" />
-                                <label asp-for="IsPublished" class="form-check-label">
-                                    Published
-                                </label>
-                            </div>
+					<button type="button"
+							id="imgCenter"
+							class="badge bg-dark">
+						Image Center
+					</button>
 
-                            @if (Model.PublishedAt.HasValue)
-                            {
-                                <div class="mb-3">
-                                    <label class="form-label">Published At</label>
-                                    <input type="text"
-                                           class="form-control"
-                                           value="@Model.PublishedAt.Value.ToString("g")"
-                                           readonly />
-                                </div>
-                            }
-                        }
+					<button type="button"
+							id="imgRight"
+							class="badge bg-dark">
+						Image Right
+					</button> |
+					<button type="button"
+							id="imgSmall"
+							class="badge bg-dark">
+						Small
+					</button>
 
-                        @if (canFactCheck)
-                        {
-                            <div class="form-check mb-3">
-                                <input asp-for="IsFactChecked" class="form-check-input" />
-                                <label asp-for="IsFactChecked" class="form-check-label">
-                                    Fact Checked
-                                </label>
-                            </div>
-                        }
+					<button type="button"
+							id="imgMedium"
+							class="badge bg-dark">
+						Medium
+					</button>
 
-                        @if (isSubEditor || isEditor || isAdmin)
-                        {
-                            <div class="mb-3">
-                                <label asp-for="EditorialPriority" class="form-label"></label>
+					<button type="button"
+							id="imgLarge"
+							class="badge bg-dark">
+						Large
+					</button>
 
-                                <select asp-for="EditorialPriority" class="form-select">
-                                    @if (isSubEditor)
-                                    {
-                                        <option value="0">Normal</option>
-                                        <option value="1">Important</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="0">Normal</option>
-                                        <option value="1">Important</option>
-                                        <option value="2">High Priority</option>
-                                        <option value="3">Critical</option>
-                                    }
-                                </select>
-                            </div>
-                        }
+					<button type="button"
+							id="imgFull"
+							class="badge bg-dark">
+						Full Width
+					</button>
+					<button type="button" id="btnSocialEmbed" class="badge bg-primary">
+						⚡ Embed Social Code
+					</button>
+				</div>
+				<input type="hidden" asp-for="Content" id="Content" />
 
-                        @if (canEditorsPick)
-                        {
-                            <div class="form-check mb-3">
-                                <input asp-for="IsEditorsPick" class="form-check-input" />
-                                <label asp-for="IsEditorsPick" class="form-check-label">
-                                    Editor's Pick
-                                </label>
-                            </div>
-                        }
+				<div id="editor"></div>
 
-                    </div>
-                </div>
-            }
+				<span asp-validation-for="Content" class="text-danger"></span>
+			</div>
+			@if (canPublish || canFactCheck || canEditorsPick || isSubEditor)
+			{
+				<div class="card mt-4">
+					<div class="card-header">
+						Editorial Workflow
+					</div>
 
-            <div class="mb-3">
-                <label class="form-label">Featured Image</label>
-                <input type="file"
-                       asp-for="ImageFile"
-                       class="form-control"
-                       onchange="previewFile(event)" />
-                <span asp-validation-for="ImageFile" class="text-danger"></span>
-            </div>
+					<div class="card-body">
 
-            <div class="form-group mb-3">
-                <label>Current Image</label><br />
+						@if (canPublish)
+						{
+							<div class="form-check mb-3">
+								<input asp-for="IsPublished" class="form-check-input" />
+								<label asp-for="IsPublished" class="form-check-label">
+									Published
+								</label>
+							</div>
 
-                @if (!string.IsNullOrEmpty(Model.FeaturedImageLarge))
-                {
-                    <img id="previewImage"
-                         src="@Model.FeaturedImageLarge"
-                         style="width:120px; height:120px; object-fit:cover; border-radius:50%;" />
-                }
-                else
-                {
-                    <img id="previewImage"
-                         src="/images/default-user.png"
-                         style="width:120px; height:120px; border-radius:50%;" />
-                }
-            </div>
+							@if (Model.PublishedAt.HasValue)
+							{
+								<div class="mb-3">
+									<label class="form-label">Published At</label>
+									<input type="text"
+										   class="form-control"
+										   value="@Model.PublishedAt.Value.ToString("g")"
+										   readonly />
+								</div>
+							}
+						}
 
-            <div class="mb-3">
-                <label asp-for="CategoryId" class="form-label"></label>
-                <select asp-for="CategoryId"
-                        class="form-select"
-                        asp-items="ViewBag.Categories"></select>
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
+						@if (canFactCheck)
+						{
+							<div class="form-check mb-3">
+								<input asp-for="IsFactChecked" class="form-check-input" />
+								<label asp-for="IsFactChecked" class="form-check-label">
+									Fact Checked
+								</label>
+							</div>
+						}
 
-           @*  @if (!isAuthor)
+						@if (isSubEditor || isEditor || isAdmin)
+						{
+							<div class="mb-3">
+								<label asp-for="EditorialPriority" class="form-label"></label>
+
+								<select asp-for="EditorialPriority" class="form-select">
+									@if (isSubEditor)
+									{
+										<option value="0">Normal</option>
+										<option value="1">Important</option>
+									}
+									else
+									{
+										<option value="0">Normal</option>
+										<option value="1">Important</option>
+										<option value="2">High Priority</option>
+										<option value="3">Critical</option>
+									}
+								</select>
+							</div>
+						}
+
+						@if (canEditorsPick)
+						{
+							<div class="form-check mb-3">
+								<input asp-for="IsEditorsPick" class="form-check-input" />
+								<label asp-for="IsEditorsPick" class="form-check-label">
+									Editor's Pick
+								</label>
+							</div>
+						}
+
+					</div>
+				</div>
+			}
+
+			<div class="mb-3">
+				<label class="form-label">Featured Image</label>
+				<input type="file"
+					   asp-for="ImageFile"
+					   class="form-control"
+					   onchange="previewFile(event)" />
+				<span asp-validation-for="ImageFile" class="text-danger"></span>
+			</div>
+
+			<div class="form-group mb-3">
+				<label>Current Image</label><br />
+
+				@if (!string.IsNullOrEmpty(Model.FeaturedImageLarge))
+				{
+					<img id="previewImage"
+						 src="@Model.FeaturedImageLarge"
+						 style="width:120px; height:120px; object-fit:cover; border-radius:50%;" />
+				}
+				else
+				{
+					<img id="previewImage"
+						 src="/images/default-user.png"
+						 style="width:120px; height:120px; border-radius:50%;" />
+				}
+			</div>
+
+			<div class="mb-3">
+				<label asp-for="CategoryId" class="form-label"></label>
+				<select asp-for="CategoryId"
+						class="form-select"
+						asp-items="ViewBag.Categories"></select>
+				<span asp-validation-for="CategoryId" class="text-danger"></span>
+			</div>
+
+			@*  @if (!isAuthor)
             {
                 <div class="mb-3">
                     <label>Author</label>
@@ -204,94 +258,338 @@
                            class="form-control" />
                 </div>
             } *@
-            @if (isAuthor && Model.WorkflowStatus == ArticleWorkflowStatus.Rejected)
-            {
-                <div class="alert alert-danger mb-3">
-                    <strong>Editorial Review Rejected</strong>
+			@if (isAuthor && Model.WorkflowStatus == ArticleWorkflowStatus.Rejected)
+			{
+				<div class="alert alert-danger mb-3">
+					<strong>Editorial Review Rejected</strong>
 
-                    @if (!string.IsNullOrWhiteSpace(Model.WorkflowComment))
-                    {
-                        <div class="mt-2">
-                            Reason: @Model.WorkflowComment
-                        </div>
-                    }
+					@if (!string.IsNullOrWhiteSpace(Model.WorkflowComment))
+					{
+						<div class="mt-2">
+							Reason: @Model.WorkflowComment
+						</div>
+					}
 
-                    <div class="mt-2">
-                        Please revise and resubmit.
-                    </div>
-                </div>
+					<div class="mt-2">
+						Please revise and resubmit.
+					</div>
+				</div>
 
-                <div class="form-check mb-3">
-                    <input asp-for="SubmitForReview"
-                           class="form-check-input" />
+				<div class="form-check mb-3">
+					<input asp-for="SubmitForReview"
+						   class="form-check-input" />
 
-                    <label asp-for="SubmitForReview"
-                           class="form-check-label">
-                        Submit For Editorial Review
-                    </label>
-                </div>
-            }
-            else if (isAuthor && Model.WorkflowStatus == ArticleWorkflowStatus.Draft)
-            {
-                <div class="form-check mb-3">
-                    <input asp-for="SubmitForReview"
-                           class="form-check-input" />
+					<label asp-for="SubmitForReview"
+						   class="form-check-label">
+						Submit For Editorial Review
+					</label>
+				</div>
+			}
+			else if (isAuthor && Model.WorkflowStatus == ArticleWorkflowStatus.Draft)
+			{
+				<div class="form-check mb-3">
+					<input asp-for="SubmitForReview"
+						   class="form-check-input" />
 
-                    <label asp-for="SubmitForReview"
-                           class="form-check-label">
-                        Submit For Editorial Review
-                    </label>
-                </div>
-            }
-            else if (isAuthor && Model.WorkflowStatus == ArticleWorkflowStatus.Submitted)
-            {
-                <div class="alert alert-info">
-                    This article has already been submitted for editorial review.
-                </div>
-            }
-          
-            @if (Model.ScheduledPublishAt.HasValue)
-            {
-                <div class="alert alert-info mt-3">
-                    This article is scheduled for publication at
-                    <strong>@Model.ScheduledPublishAt.Value.ToLocalTime()</strong>
-                </div>
-            }
-            @if (Model.EmbargoUntil.HasValue)
-            {
-                <div class="alert alert-warning mt-2">
-                    Public access blocked until
-                    <strong>@Model.EmbargoUntil.Value.ToLocalTime()</strong>
-                </div>
-            }
-            <button type="submit" class="btn btn-warning">
-                <i class="bi bi-pencil-square"></i> Update
-            </button>
+					<label asp-for="SubmitForReview"
+						   class="form-check-label">
+						Submit For Editorial Review
+					</label>
+				</div>
+			}
+			else if (isAuthor && Model.WorkflowStatus == ArticleWorkflowStatus.Submitted)
+			{
+				<div class="alert alert-info">
+					This article has already been submitted for editorial review.
+				</div>
+			}
 
-            <a asp-action="Index" class="btn btn-secondary ms-2">
-                <i class="bi bi-arrow-left-circle"></i> Cancel
-            </a>
+			@if (Model.ScheduledPublishAt.HasValue)
+			{
+				<div class="alert alert-info mt-3">
+					This article is scheduled for publication at
+					<strong>@Model.ScheduledPublishAt.Value.ToLocalTime()</strong>
+				</div>
+			}
+			@if (Model.EmbargoUntil.HasValue)
+			{
+				<div class="alert alert-warning mt-2">
+					Public access blocked until
+					<strong>@Model.EmbargoUntil.Value.ToLocalTime()</strong>
+				</div>
+			}
+			<button type="submit" class="btn btn-warning">
+				<i class="bi bi-pencil-square"></i> Update
+			</button>
 
-        </form>
-    </div>
+			<a asp-action="Index" class="btn btn-secondary ms-2">
+				<i class="bi bi-arrow-left-circle"></i> Cancel
+			</a>
+
+		</form>
+	</div>
 </div>
 
-<script>
-    setInterval(function () {
-        fetch('/Admin/Article/RefreshLock?id=@Model.Id', {
-            method: 'POST',
-            headers: {
-                'RequestVerificationToken':
-                    document.querySelector(
-                        'input[name="__RequestVerificationToken"]'
-                    )?.value
-            }
-        });
-    }, 300000);
+@section Scripts
+{
+	<script>
+		// System Lock Management Call Interval
+		setInterval(function () {
+			fetch('/Admin/Article/RefreshLock?id=@Model.Id', {
+				method: 'POST',
+				headers: {
+					'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+				}
+			});
+		}, 300000);
 
-    window.addEventListener('beforeunload', function () {
-        navigator.sendBeacon(
-            '/Admin/Article/ReleaseLock?id=@Model.Id'
-        );
-    });
-</script>
+		window.addEventListener('beforeunload', function () {
+			navigator.sendBeacon('/Admin/Article/ReleaseLock?id=@Model.Id');
+		});
+		//Quill Integration
+		document.addEventListener('DOMContentLoaded', function () {
+			const Parchment = Quill.import('parchment');
+			const BlockEmbed = Quill.import('blots/block/embed');
+			const ImageBlot = Quill.import('formats/image');
+
+			// CRITICAL FIX 1: Register data-size to target the IMG element node format directly, preventing <span> wrappers
+			const ImageSizeAttributor = new Parchment.Attributor('data-size', 'data-size', {
+				scope: Parchment.Scope.INLINE,
+				whitelist: ['small', 'medium', 'large', 'full']
+			});
+			   Quill.register(ImageSizeAttributor, true);
+
+			// Dynamic Social Embed Block Configuration
+			class SocialEmbedBlot extends BlockEmbed {
+				static create(value) {
+					const node = super.create();
+					node.setAttribute('class', 'quill-social-embed');
+					node.setAttribute('contenteditable', 'false');
+					node.setAttribute('data-raw-html', btoa(unescape(encodeURIComponent(value))));
+
+					let platformName = "Social Media";
+					const domainMatch = value.match(/(?:www\.)?([a-zA-Z0-9-]+)\.(?:com|net|org|be)/i);
+					if (domainMatch && domainMatch[1]) {
+						platformName = domainMatch[1].charAt(0).toUpperCase() + domainMatch[1].slice(1);
+						if (platformName.toLowerCase() === 'youtu') platformName = 'YouTube';
+						if (platformName.toLowerCase() === 'fb') platformName = 'Facebook';
+					}
+
+					node.innerHTML = `
+						<div class="embed-placeholder-box">
+							<span class="embed-icon">🌐</span>
+							<p class="embed-title">${platformName} Integration Widget</p>
+							<small class="embed-subtitle">The complete interactive embed will render live on your main website</small>
+						</div>
+					`;
+					return node;
+				}
+
+				static value(node) {
+					const encodedData = node.getAttribute('data-raw-html');
+					if (encodedData) {
+						return decodeURIComponent(escape(atob(encodedData)));
+					}
+					return node.innerHTML;
+				}
+			}
+			SocialEmbedBlot.blotName = 'socialEmbed';
+			SocialEmbedBlot.tagName = 'div';
+
+			// Register custom configurations into active Quill instance definitions
+			Quill.register(ImageBlot, true);
+			Quill.register(SocialEmbedBlot, true);
+
+			const contentField = document.getElementById('Content');
+			let selectedImage = null;
+
+			let quill = new Quill('#editor', {
+				theme: 'snow',
+				modules: {
+					toolbar: [
+						[{ header: [1, 2, 3, 4, false] }],
+						['bold', 'italic', 'underline', 'strike'],
+						[{ color: [] }, { background: [] }],
+						[{ align: [] }],
+						[{ list: 'ordered' }, { list: 'bullet' }],
+						['blockquote'],
+						['link', 'image'],
+						['clean']
+					]
+				}
+			});
+
+			// Double-click to remove an embed widget safely
+			quill.root.addEventListener('dblclick', function (e) {
+				const embedWrapper = e.target.closest('.quill-social-embed');
+				if (embedWrapper) {
+					const confirmDelete = confirm("Do you want to remove this social media embed?");
+					if (confirmDelete) {
+						const blot = Quill.find(embedWrapper);
+						if (blot) {
+							blot.remove();
+							quill.update();
+						}
+					}
+				}
+			});
+
+			// Image upload handler integration
+			const toolbar = quill.getModule('toolbar');
+			toolbar.addHandler('image', imageHandler);
+
+			async function imageHandler() {
+				const input = document.createElement('input');
+				input.type = 'file';
+				input.accept = 'image/*';
+				input.click();
+
+				input.onchange = async () => {
+					const file = input.files[0];
+					if (!file) return;
+
+					const formData = new FormData();
+					formData.append('upload', file);
+					try {
+						const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+						const response = await fetch('/Admin/Articles/UploadEditorImage', {
+							method: 'POST',
+							headers: { 'RequestVerificationToken': token },
+							body: formData
+						});
+						if (!response.ok) throw new Error('Upload failed');
+						const result = await response.json();
+
+						const range = quill.getSelection(true);
+						quill.insertEmbed(range.index, 'image', result.url);
+						quill.setSelection(range.index + 1);
+					}
+					catch (error) {
+						console.error(error);
+						alert('Image upload failed.');
+					}
+				};
+			}
+
+			// Initialize editor content safely
+			if (contentField.value) {
+				quill.clipboard.dangerouslyPasteHTML(contentField.value);
+			}
+
+			// Track selected images cleanly
+			quill.root.addEventListener('click', function (e) {
+				document.querySelectorAll('.ql-editor img').forEach(img => img.classList.remove('selected-image'));
+
+				if (e.target.tagName === 'IMG') {
+					selectedImage = e.target;
+					selectedImage.classList.add('selected-image');
+				} else {
+					selectedImage = null;
+				}
+			});
+
+			// Layout Alignment Click Handlers
+			const imgLeft = document.getElementById('imgLeft');
+			const imgCenter = document.getElementById('imgCenter');
+			const imgRight = document.getElementById('imgRight');
+
+			if (imgLeft) {
+				imgLeft.addEventListener('click', function () {
+					if (!selectedImage) return;
+					const parent = selectedImage.parentElement;
+					parent.classList.remove('ql-align-left', 'ql-align-center', 'ql-align-right');
+					parent.classList.add('ql-align-left');
+				});
+			}
+
+			if (imgCenter) {
+				imgCenter.addEventListener('click', function () {
+					if (!selectedImage) return;
+					const parent = selectedImage.parentElement;
+					parent.classList.remove('ql-align-left', 'ql-align-center', 'ql-align-right');
+					parent.classList.add('ql-align-center');
+				});
+			}
+
+			if (imgRight) {
+				imgRight.addEventListener('click', function () {
+					if (!selectedImage) return;
+					const parent = selectedImage.parentElement;
+					parent.classList.remove('ql-align-left', 'ql-align-center', 'ql-align-right');
+					parent.classList.add('ql-align-right');
+				});
+			}
+
+			// CRITICAL FIX 2: Fixed sizing assignment pipeline
+			const imgSmall = document.getElementById('imgSmall');
+			const imgMedium = document.getElementById('imgMedium');
+			const imgLarge = document.getElementById('imgLarge');
+			const imgFull = document.getElementById('imgFull');
+
+			function applyImageSize(size) {
+				if (!selectedImage) return;
+
+				// Update DOM element directly for immediate visualization feedback
+				selectedImage.setAttribute('data-size', size);
+
+				// Set layout format on the Image Blot itself, avoiding the extra span tags
+				const blot = Quill.find(selectedImage);
+				if (blot) {
+					blot.format('data-size', size);
+					quill.update();
+					// Push mutations cleanly into synchronization buffer
+					contentField.value = cleanHtml(quill.root.innerHTML);
+				}
+			}
+
+			if (imgSmall) imgSmall.addEventListener('click', () => applyImageSize('small'));
+			if (imgMedium) imgMedium.addEventListener('click', () => applyImageSize('medium'));
+			if (imgLarge) imgLarge.addEventListener('click', () => applyImageSize('large'));
+			if (imgFull) imgFull.addEventListener('click', () => applyImageSize('full'));
+
+			// Social Media Insertion Prompt Action
+			const btnSocialEmbed = document.getElementById('btnSocialEmbed');
+			if (btnSocialEmbed) {
+				btnSocialEmbed.addEventListener('click', function () {
+					const embedCode = prompt("Paste your full Social Media Embed Code:");
+					if (embedCode && embedCode.trim() !== '') {
+						const range = quill.getSelection(true);
+						quill.insertEmbed(range.index, 'socialEmbed', embedCode.trim());
+						quill.setSelection(range.index + 1);
+					}
+				});
+			}
+
+			// Form Synchronization Listeners
+			quill.on('text-change', function () {
+				contentField.value = cleanHtml(quill.root.innerHTML);
+			});
+
+			const form = document.querySelector('form');
+			if (form) {
+				form.addEventListener('submit', function (e) {
+					contentField.value = cleanHtml(quill.root.innerHTML);
+				});
+			}
+
+			function cleanHtml(html) {
+				const div = document.createElement('div');
+				div.innerHTML = html;
+
+				// Strip out selected-image markers before packaging payload data
+				div.querySelectorAll('img').forEach(img => {
+					img.classList.remove('selected-image');
+				});
+
+				div.querySelectorAll('span').forEach(span => {
+					const style = span.getAttribute('style');
+					if (style && style.includes('color: rgb(0, 0, 0)') && style.includes('background-color: rgb(255, 255, 255)')) {
+						span.replaceWith(...span.childNodes);
+					}
+				});
+				return div.innerHTML;
+			}
+		});
+	</script>
+}
+

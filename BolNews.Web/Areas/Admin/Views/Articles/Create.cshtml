@@ -1,312 +1,617 @@
 ﻿@using BolNews.Domain.Common
 @model BolNews.Web.Areas.Admin.ViewModels.ArticleVM
-
+<link href="~/css/site.css" rel="stylesheet" />
 @{
-    ViewData["Title"] = "Create Article";
-    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
-    var isAdmin = User.IsInRole(Roles.Admin);
-    var isEditor = User.IsInRole(Roles.Editor);
-    var isSubEditor = User.IsInRole(Roles.SubEditor);
-    var isAuthor = User.IsInRole(Roles.Author);
+	ViewData["Title"] = "Create Article";
+	Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+	var isAdmin = User.IsInRole(Roles.Admin);
+	var isEditor = User.IsInRole(Roles.Editor);
+	var isSubEditor = User.IsInRole(Roles.SubEditor);
+	var isAuthor = User.IsInRole(Roles.Author);
 
-    var canPublish = isAdmin || isEditor || isSubEditor;
-    var canEditorsPick = isAdmin || isEditor;
-    var canFactCheck = isAdmin || isEditor || isSubEditor;
+	var canPublish = isAdmin || isEditor || isSubEditor;
+	var canEditorsPick = isAdmin || isEditor;
+	var canFactCheck = isAdmin || isEditor || isSubEditor;
 }
 <div id="headlineSuggestions"></div>
 
 <div class="card shadow-sm">
-    <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">Create New Article</h4>
-    </div>
-    <div class="card-body">
-        <form asp-action="Create" method="post" enctype="multipart/form-data">
-            <div class="mb-3">
-                <label asp-for="Title" class="form-label"></label>
-                <div class="input-group">
-                    <input asp-for="Title" id="Title" class="form-control" />
-                    <button type="button" class="btn btn-info" onclick="generateHeadlines()">
-                        Suggestions
-                    </button>
-                </div>
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
+	<div class="card-header bg-primary text-white">
+		<h4 class="mb-0">Create New Article</h4>
+	</div>
+	<div class="card-body">
+		<form asp-action="Create" method="post" enctype="multipart/form-data">
+			@Html.AntiForgeryToken()
+			<div class="mb-3">
+				<label asp-for="Title" class="form-label"></label>
+				<div class="input-group">
+					<input asp-for="Title" id="Title" class="form-control" />
+					<button type="button" class="btn btn-info" onclick="generateHeadlines()">
+						Suggestions
+					</button>
+				</div>
+				<span asp-validation-for="Title" class="text-danger"></span>
+			</div>
 
-            <div class="mb-3">
-                <label asp-for="Slug" class="form-label"></label>
-                <input asp-for="Slug" id="Slug" class="form-control" readonly style="background-color: #e9ecef;" />
-                <span asp-validation-for="Slug" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="Summary" class="form-label"></label>
-                <textarea asp-for="Summary" id="Summary" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Summary" class="text-danger"></span>
-            </div>
+			<div class="mb-3">
+				<label asp-for="Slug" class="form-label"></label>
+				<input asp-for="Slug" id="Slug" class="form-control" readonly style="background-color: #e9ecef;" />
+				<span asp-validation-for="Slug" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Summary" class="form-label"></label>
+				<textarea asp-for="Summary" id="Summary" class="form-control" rows="3"></textarea>
+				<span asp-validation-for="Summary" class="text-danger"></span>
+			</div>
 
-            <!-- CATEGORY CONTROL (Moved Here with id="CategoryId") -->
-            <div class="mb-3">
-                <label asp-for="CategoryId" class="form-label">Category</label>
-                <select asp-for="CategoryId" id="CategoryId" class="form-select" asp-items="ViewBag.Categories">
-                    <option value="">-- Select Category --</option>
-                </select>
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
+			<!-- CATEGORY CONTROL (Moved Here with id="CategoryId") -->
+			<div class="mb-3">
+				<label asp-for="CategoryId" class="form-label">Category</label>
+				<select asp-for="CategoryId" id="CategoryId" class="form-select" asp-items="ViewBag.Categories">
+					<option value="">-- Select Category --</option>
+				</select>
+				<span asp-validation-for="CategoryId" class="text-danger"></span>
+			</div>
 
-            <div id="metaContainer" class="position-relative rounded p-2">
+			<div id="metaContainer" class="position-relative rounded p-2">
 
-                <!-- LOADING SPINNER OVERLAY (Hidden by default) -->
-                <div id="metaSpinner" class="position-absolute w-100 h-100 d-none justify-content-center align-items-center start-0 top-0 rounded"
-                     style="background: rgba(255,255,255,0.7); z-index: 5;">
-                    <div class="text-center">
-                        <div class="spinner-border text-primary" role="status"></div>
-                        <div class="text-primary fw-bold mt-1" style="font-size: 0.85rem;">Gemini is writing metadata...</div>
-                    </div>
-                </div>
+				<!-- LOADING SPINNER OVERLAY (Hidden by default) -->
+				<div id="metaSpinner" class="position-absolute w-100 h-100 d-none justify-content-center align-items-center start-0 top-0 rounded"
+					 style="background: rgba(255,255,255,0.7); z-index: 5;">
+					<div class="text-center">
+						<div class="spinner-border text-primary" role="status"></div>
+						<div class="text-primary fw-bold mt-1" style="font-size: 0.85rem;">Gemini is writing metadata...</div>
+					</div>
+				</div>
 
-                <!-- META TITLE -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Meta Title</label>
-                    <input asp-for="MetaTitle" id="MetaTitle" class="form-control" />
-                    <small class="text-muted d-block mt-1">
-                        <i class="bi bi-robot text-info"></i> AI generated. Feel free to tweak it if you want.
-                    </small>
-                </div>
+				<!-- META TITLE -->
+				<div class="mb-3">
+					<label class="form-label fw-bold">Meta Title</label>
+					<input asp-for="MetaTitle" id="MetaTitle" class="form-control" />
+					<small class="text-muted d-block mt-1">
+						<i class="bi bi-robot text-info"></i> AI generated. Feel free to tweak it if you want.
+					</small>
+				</div>
 
-                <!-- META DESCRIPTION -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Meta Description</label>
-                    <textarea asp-for="MetaDescription" id="MetaDescription" class="form-control" rows="2"></textarea>
-                    <small class="text-muted d-block mt-1">
-                        <i class="bi bi-robot text-info"></i> AI generated. Feel free to tweak it if you want.
-                    </small>
-                </div>
-            </div>
+				<!-- META DESCRIPTION -->
+				<div class="mb-3">
+					<label class="form-label fw-bold">Meta Description</label>
+					<textarea asp-for="MetaDescription" id="MetaDescription" class="form-control" rows="2"></textarea>
+					<small class="text-muted d-block mt-1">
+						<i class="bi bi-robot text-info"></i> AI generated. Feel free to tweak it if you want.
+					</small>
+				</div>
+			</div>
 
-            <div class="mb-3">
+			@* <div class="mb-3">
                 <label asp-for="Content" class="form-label"></label>
                 <textarea asp-for="Content" id="editor" class="form-control" rows="6"></textarea>
                 <span asp-validation-for="Content" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Featured Image</label>
-                <input type="file" asp-for="ImageFile"  class="form-control" />
-                <span asp-validation-for="ImageFile" class="text-danger"></span>
-            </div>
-
-            @if (!string.IsNullOrEmpty(Model.FeaturedImageLarge))
-            {
-                <div class="mb-3">
-                    <img src="@Model.FeaturedImageLarge" alt="Current Image" class="img-fluid rounded" style="max-height:150px;" />
-                </div>
-            }
-
-            
-
-            <div class="card mt-4">
-                <div class="card-header">
-                    Editorial Workflow
-                </div>
-
-                <div class="card-body">
-
-                    @if (canPublish)
-                    {
-                        <div class="form-check mb-3">
-                            <input asp-for="IsPublished"
-                                   class="form-check-input" />
-
-                            <label asp-for="IsPublished"
-                                   class="form-check-label">
-                                Publish Immediately
-                            </label>
-                        </div>
-                    }
-
-                    @if (canFactCheck)
-                    {
-                        <div class="form-check mb-3">
-                            <input asp-for="IsFactChecked"
-                                   class="form-check-input" />
-
-                            <label asp-for="IsFactChecked"
-                                   class="form-check-label">
-                                Fact Checked
-                            </label>
-                        </div>
-                    }
-
-                    @if (isSubEditor || isEditor || isAdmin)
-                    {
-                        <div class="mb-3">
-                            <label asp-for="EditorialPriority"
-                                   class="form-label">
-                                Editorial Priority
-                            </label>
-
-                            <select asp-for="EditorialPriority"
-                                    class="form-select">
-                                @if (isSubEditor)
-                                {
-                                    <option value="0">Normal</option>
-                                    <option value="1">Important</option>
-                                }
-                                else
-                                {
-                                    <option value="0">Normal</option>
-                                    <option value="1">Important</option>
-                                    <option value="2">High Priority</option>
-                                    <option value="3">Critical</option>
-                                }
-                            </select>
-                        </div>
-                    }
-
-                    @if (canEditorsPick)
-                    {
-                        <div class="form-check mb-3">
-                            <input asp-for="IsEditorsPick"
-                                   class="form-check-input" />
-
-                            <label asp-for="IsEditorsPick"
-                                   class="form-check-label">
-                                Editor's Pick
-                            </label>
-                        </div>
-                    }
-
-                </div>
-            </div>
-            @if (isAuthor)
-            {
-                <div class="form-check mb-3">
-                    <input asp-for="SubmitForReview"
-                           class="form-check-input" />
-
-                    <label asp-for="SubmitForReview"
-                           class="form-check-label">
-                        Submit For Editorial Review
-                    </label>
-                </div>
-            }
-           @*  <div class="mb-3">
-                <label asp-for="PublishedAt" class="form-label"></label>
-                <input asp-for="PublishedAt" type="datetime-local" class="form-control" />
-                <span asp-validation-for="PublishedAt" class="text-danger"></span>
-            </div>
-
-            <div class="form-check mb-3">
-                <input asp-for="IsPublished" class="form-check-input" />
-                <label asp-for="IsPublished" class="form-check-label"></label>
             </div> *@
 
-            <button type="submit" class="btn btn-success">
-                <i class="bi bi-check-circle"></i> Save
-            </button>
-            <a asp-action="Index" class="btn btn-secondary ms-2">
-                <i class="bi bi-arrow-left-circle"></i> Cancel
-            </a>
-        </form>
-    </div>
+			<div class="mb-3">
+				<label asp-for="Content" class="form-label"></label>
+				<div class="mb-2">
+
+					<button type="button"
+							id="imgLeft"
+							class="badge bg-dark">
+						Image Left
+					</button>
+
+					<button type="button"
+							id="imgCenter"
+							class="badge bg-dark">
+						Image Center
+					</button>
+
+					<button type="button"
+							id="imgRight"
+							class="badge bg-dark">
+						Image Right
+					</button> |
+					<button type="button"
+							id="imgSmall"
+							class="badge bg-dark">
+						Small
+					</button>
+
+					<button type="button"
+							id="imgMedium"
+							class="badge bg-dark">
+						Medium
+					</button>
+
+					<button type="button"
+							id="imgLarge"
+							class="badge bg-dark">
+						Large
+					</button>
+
+					<button type="button"
+							id="imgFull"
+							class="badge bg-dark">
+						Full Width
+					</button>
+					<button type="button" id="btnSocialEmbed" class="badge bg-primary">
+						⚡ Embed Social Code
+					</button>
+				</div>
+				<input type="hidden" asp-for="Content" id="Content" />
+
+				<div id="editor"></div>
+
+				<span asp-validation-for="Content" class="text-danger"></span>
+			</div>
+
+			<div class="mb-3">
+				<label class="form-label">Featured Image</label>
+				<input type="file" asp-for="ImageFile" class="form-control" />
+				<span asp-validation-for="ImageFile" class="text-danger"></span>
+			</div>
+
+			@if (!string.IsNullOrEmpty(Model.FeaturedImageLarge))
+			{
+				<div class="mb-3">
+					<img src="@Model.FeaturedImageLarge" alt="Current Image" class="img-fluid rounded" style="max-height:150px;" />
+				</div>
+			}
+
+
+
+			<div class="card mt-4">
+				<div class="card-header">
+					Editorial Workflow
+				</div>
+
+				<div class="card-body">
+
+					@if (canPublish)
+					{
+						<div class="form-check mb-3">
+							<input asp-for="IsPublished"
+								   class="form-check-input" />
+
+							<label asp-for="IsPublished"
+								   class="form-check-label">
+								Publish Immediately
+							</label>
+						</div>
+					}
+
+					@if (canFactCheck)
+					{
+						<div class="form-check mb-3">
+							<input asp-for="IsFactChecked"
+								   class="form-check-input" />
+
+							<label asp-for="IsFactChecked"
+								   class="form-check-label">
+								Fact Checked
+							</label>
+						</div>
+					}
+
+					@if (isSubEditor || isEditor || isAdmin)
+					{
+						<div class="mb-3">
+							<label asp-for="EditorialPriority"
+								   class="form-label">
+								Editorial Priority
+							</label>
+
+							<select asp-for="EditorialPriority"
+									class="form-select">
+								@if (isSubEditor)
+								{
+									<option value="0">Normal</option>
+									<option value="1">Important</option>
+								}
+								else
+								{
+									<option value="0">Normal</option>
+									<option value="1">Important</option>
+									<option value="2">High Priority</option>
+									<option value="3">Critical</option>
+								}
+							</select>
+						</div>
+					}
+
+					@if (canEditorsPick)
+					{
+						<div class="form-check mb-3">
+							<input asp-for="IsEditorsPick"
+								   class="form-check-input" />
+
+							<label asp-for="IsEditorsPick"
+								   class="form-check-label">
+								Editor's Pick
+							</label>
+						</div>
+					}
+
+				</div>
+			</div>
+			@if (isAuthor)
+			{
+				<div class="form-check mb-3">
+					<input asp-for="SubmitForReview"
+						   class="form-check-input" />
+
+					<label asp-for="SubmitForReview"
+						   class="form-check-label">
+						Submit For Editorial Review
+					</label>
+				</div>
+			}
+
+
+			<button type="submit" class="btn btn-success">
+				<i class="bi bi-check-circle"></i> Save
+			</button>
+			<a asp-action="Index" class="btn btn-secondary ms-2">
+				<i class="bi bi-arrow-left-circle"></i> Cancel
+			</a>
+		</form>
+	</div>
 </div>
-<script>
-        async function generateHeadlines() {
-        const title = document.getElementById("Title").value;
+@section Scripts
+{
+	<script>
 
-        const res = await fetch('/admin/articles/generateheadlines', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(title)
-        });
+		async function generateHeadlines() {
+			const title = document.getElementById("Title").value;
 
-        const data = await res.json();
+			const res = await fetch('/admin/articles/generateheadlines', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(title)
+			});
 
-        let html = "<ul>";
-        data.suggestions.forEach(s => {
-            html += `<li onclick="useHeadline('${s}')">${s}</li>`;
-        });
-        html += "</ul>";
+			const data = await res.json();
 
-        document.getElementById("headlineSuggestions").innerHTML = html;
-    }
+			let html = "<ul>";
+			data.suggestions.forEach(s => {
+				html += `<li onclick="useHeadline('${s}')">${s}</li>`;
+			});
 
-    function useHeadline(text) {
-        document.getElementById("Title").value = text;
-    }
+			html += "</ul>";
 
-    //autofill slug
-        document.getElementById("Title").addEventListener("blur", function () {
-    const titleValue = this.value;
-    
-    if (titleValue.trim() !== "") {
-        // Generate Slug
-        const slugValue = titleValue
-            .toLowerCase()
-            .trim()
-            .replace(/[^a-z0-9\s-]/g, '') 
-            .replace(/\s+/g, '-')         
-            .replace(/-+/g, '-');         
+			document.getElementById("headlineSuggestions").innerHTML = html;
+		}
 
-        document.getElementById("Slug").value = slugValue;
+		function useHeadline(text) {
+			document.getElementById("Title").value = text;
+		}
 
-        // Shift focus automatically to Summary
-        document.getElementById("Summary").focus();
-    }
-});
+			//autofill slug
+		document.getElementById("Title").addEventListener("blur", function () {
+			const titleValue = this.value;
 
-//generating Meta Title and Meta Description through Gemini on Category Change
-       document.getElementById("CategoryId").addEventListener("change", async function () {
-        const title = document.getElementById("Title").value;
-        const summary = document.getElementById("Summary").value;
-        const categoryDropdown = this;
-        const categoryText = categoryDropdown.options[categoryDropdown.selectedIndex].text;
+			if (titleValue.trim() !== "") {
+				// Generate Slug
+				const slugValue = titleValue
+					.toLowerCase()
+					.trim()
+					.replace(/[^a-z0-9\s-]/g, '')
+					.replace(/\s+/g, '-')
+					.replace(/-+/g, '-');
 
-        // Only run if Title, Summary, and a valid Category are selected
-        if (!title || !summary || !categoryDropdown.value) {
-            return;
-        }
+				document.getElementById("Slug").value = slugValue;
 
-        const spinner = document.getElementById("metaSpinner");
-        const metaTitleInput = document.getElementById("MetaTitle");
-        const metaDescInput = document.getElementById("MetaDescription");
+				// Shift focus automatically to Summary
+				document.getElementById("Summary").focus();
+			}
+		});
 
-        // SHOW SPINNER & LOCK UI BY DISABLING CONTROLS TEMPORARILY
-        spinner.classList.remove("d-none");
-        spinner.classList.add("d-flex");
-        metaTitleInput.disabled = true;
-        metaDescInput.disabled = true;
+		//generating Meta Title and Meta Description through Gemini on Category Change
+		document.getElementById("CategoryId").addEventListener("change", async function () {
+			const title = document.getElementById("Title").value;
+			const summary = document.getElementById("Summary").value;
+			const categoryDropdown = this;
+			const categoryText = categoryDropdown.options[categoryDropdown.selectedIndex].text;
 
-        try {
-            const response = await fetch('/admin/articles/generatemetadata', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: title,
-                    summary: summary,
-                    category: categoryText
-                })
-            });
+			// Only run if Title, Summary, and a valid Category are selected
+			if (!title || !summary || !categoryDropdown.value) {
+				return;
+			}
 
-            if (response.ok) {
-                const data = await response.json();
+			const spinner = document.getElementById("metaSpinner");
+			const metaTitleInput = document.getElementById("MetaTitle");
+			const metaDescInput = document.getElementById("MetaDescription");
 
-                // Populate fields
-                metaTitleInput.value = data.metaTitle;
-                metaDescInput.value = data.metaDescription;
-            } else {
-                console.error("Failed to fetch meta data from Gemini.");
-            }
-        } catch (error) {
-            console.error("Error connecting to metadata generator endpoint:", error);
-        } finally {
-            // HIDE SPINNER & UNLOCK UI
-            spinner.classList.remove("d-flex");
-            spinner.classList.add("d-none");
-            metaTitleInput.disabled = false;
-            metaDescInput.disabled = false;
+			// SHOW SPINNER & LOCK UI BY DISABLING CONTROLS TEMPORARILY
+			spinner.classList.remove("d-none");
+			spinner.classList.add("d-flex");
+			metaTitleInput.disabled = true;
+			metaDescInput.disabled = true;
 
-            // AUTOMATICALLY MOVE FOCUS TO THE NEXT CONTROL (Featured Image)
-            document.getElementById("editor").focus();
-        }
-    });
-</script>
+			try {
+				const response = await fetch('/admin/articles/generatemetadata', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						title: title,
+						summary: summary,
+						category: categoryText
+					})
+				});
+
+				if (response.ok) {
+					const data = await response.json();
+					// Populate fields
+					metaTitleInput.value = data.metaTitle;
+					metaDescInput.value = data.metaDescription;
+				}
+				else
+				{
+						console.error("Failed to fetch meta data from Gemini.");
+				}
+			}
+			catch (error)
+			{
+				console.error("Error connecting to metadata generator endpoint:", error);
+			}
+			finally
+			{
+				// HIDE SPINNER & UNLOCK UI
+				spinner.classList.remove("d-flex");
+				spinner.classList.add("d-none");
+				metaTitleInput.disabled = false;
+				metaDescInput.disabled = false;
+
+				// AUTOMATICALLY MOVE FOCUS TO THE NEXT CONTROL (Featured Image)
+				document.getElementById("editor").focus();
+			}
+		});
+
+		//Quill
+
+			 document.addEventListener('DOMContentLoaded', function () {
+			const Parchment = Quill.import('parchment');
+			const BlockEmbed = Quill.import('blots/block/embed');
+			const ImageBlot = Quill.import('formats/image');
+
+			// CRITICAL FIX 1: Register data-size to target the IMG element node format directly, preventing <span> wrappers
+			const ImageSizeAttributor = new Parchment.Attributor('data-size', 'data-size', {
+				scope: Parchment.Scope.INLINE,
+				whitelist: ['small', 'medium', 'large', 'full']
+			});
+			   Quill.register(ImageSizeAttributor, true);
+
+			// Dynamic Social Embed Block Configuration
+			class SocialEmbedBlot extends BlockEmbed {
+				static create(value) {
+					const node = super.create();
+					node.setAttribute('class', 'quill-social-embed');
+					node.setAttribute('contenteditable', 'false');
+					node.setAttribute('data-raw-html', btoa(unescape(encodeURIComponent(value))));
+
+					let platformName = "Social Media";
+					const domainMatch = value.match(/(?:www\.)?([a-zA-Z0-9-]+)\.(?:com|net|org|be)/i);
+					if (domainMatch && domainMatch[1]) {
+						platformName = domainMatch[1].charAt(0).toUpperCase() + domainMatch[1].slice(1);
+						if (platformName.toLowerCase() === 'youtu') platformName = 'YouTube';
+						if (platformName.toLowerCase() === 'fb') platformName = 'Facebook';
+					}
+
+					node.innerHTML = `
+						<div class="embed-placeholder-box">
+							<span class="embed-icon">🌐</span>
+							<p class="embed-title">${platformName} Integration Widget</p>
+							<small class="embed-subtitle">The complete interactive embed will render live on your main website</small>
+						</div>
+					`;
+					return node;
+				}
+
+				static value(node) {
+					const encodedData = node.getAttribute('data-raw-html');
+					if (encodedData) {
+						return decodeURIComponent(escape(atob(encodedData)));
+					}
+					return node.innerHTML;
+				}
+			}
+			SocialEmbedBlot.blotName = 'socialEmbed';
+			SocialEmbedBlot.tagName = 'div';
+
+			// Register custom configurations into active Quill instance definitions
+			Quill.register(ImageBlot, true);
+			Quill.register(SocialEmbedBlot, true);
+
+			const contentField = document.getElementById('Content');
+			let selectedImage = null;
+
+			let quill = new Quill('#editor', {
+				theme: 'snow',
+				modules: {
+					toolbar: [
+						[{ header: [1, 2, 3, 4, false] }],
+						['bold', 'italic', 'underline', 'strike'],
+						[{ color: [] }, { background: [] }],
+						[{ align: [] }],
+						[{ list: 'ordered' }, { list: 'bullet' }],
+						['blockquote'],
+						['link', 'image'],
+						['clean']
+					]
+				}
+			});
+
+			// Double-click to remove an embed widget safely
+			quill.root.addEventListener('dblclick', function (e) {
+				const embedWrapper = e.target.closest('.quill-social-embed');
+				if (embedWrapper) {
+					const confirmDelete = confirm("Do you want to remove this social media embed?");
+					if (confirmDelete) {
+						const blot = Quill.find(embedWrapper);
+						if (blot) {
+							blot.remove();
+							quill.update();
+						}
+					}
+				}
+			});
+
+			// Image upload handler integration
+			const toolbar = quill.getModule('toolbar');
+			toolbar.addHandler('image', imageHandler);
+
+			async function imageHandler() {
+				const input = document.createElement('input');
+				input.type = 'file';
+				input.accept = 'image/*';
+				input.click();
+
+				input.onchange = async () => {
+					const file = input.files[0];
+					if (!file) return;
+
+					const formData = new FormData();
+					formData.append('upload', file);
+					try {
+						const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+						const response = await fetch('/Admin/Articles/UploadEditorImage', {
+							method: 'POST',
+							headers: { 'RequestVerificationToken': token },
+							body: formData
+						});
+						if (!response.ok) throw new Error('Upload failed');
+						const result = await response.json();
+
+						const range = quill.getSelection(true);
+						quill.insertEmbed(range.index, 'image', result.url);
+						quill.setSelection(range.index + 1);
+					}
+					catch (error) {
+						console.error(error);
+						alert('Image upload failed.');
+					}
+				};
+			}
+
+			// Initialize editor content safely
+			if (contentField.value) {
+				quill.clipboard.dangerouslyPasteHTML(contentField.value);
+			}
+
+			// Track selected images cleanly
+			quill.root.addEventListener('click', function (e) {
+				document.querySelectorAll('.ql-editor img').forEach(img => img.classList.remove('selected-image'));
+
+				if (e.target.tagName === 'IMG') {
+					selectedImage = e.target;
+					selectedImage.classList.add('selected-image');
+				} else {
+					selectedImage = null;
+				}
+			});
+
+			// Layout Alignment Click Handlers
+			const imgLeft = document.getElementById('imgLeft');
+			const imgCenter = document.getElementById('imgCenter');
+			const imgRight = document.getElementById('imgRight');
+
+			if (imgLeft) {
+				imgLeft.addEventListener('click', function () {
+					if (!selectedImage) return;
+					const parent = selectedImage.parentElement;
+					parent.classList.remove('ql-align-left', 'ql-align-center', 'ql-align-right');
+					parent.classList.add('ql-align-left');
+				});
+			}
+
+			if (imgCenter) {
+				imgCenter.addEventListener('click', function () {
+					if (!selectedImage) return;
+					const parent = selectedImage.parentElement;
+					parent.classList.remove('ql-align-left', 'ql-align-center', 'ql-align-right');
+					parent.classList.add('ql-align-center');
+				});
+			}
+
+			if (imgRight) {
+				imgRight.addEventListener('click', function () {
+					if (!selectedImage) return;
+					const parent = selectedImage.parentElement;
+					parent.classList.remove('ql-align-left', 'ql-align-center', 'ql-align-right');
+					parent.classList.add('ql-align-right');
+				});
+			}
+
+			// CRITICAL FIX 2: Fixed sizing assignment pipeline
+			const imgSmall = document.getElementById('imgSmall');
+			const imgMedium = document.getElementById('imgMedium');
+			const imgLarge = document.getElementById('imgLarge');
+			const imgFull = document.getElementById('imgFull');
+
+			function applyImageSize(size) {
+				if (!selectedImage) return;
+
+				// Update DOM element directly for immediate visualization feedback
+				selectedImage.setAttribute('data-size', size);
+
+				// Set layout format on the Image Blot itself, avoiding the extra span tags
+				const blot = Quill.find(selectedImage);
+				if (blot) {
+					blot.format('data-size', size);
+					quill.update();
+					// Push mutations cleanly into synchronization buffer
+					contentField.value = cleanHtml(quill.root.innerHTML);
+				}
+			}
+
+			if (imgSmall) imgSmall.addEventListener('click', () => applyImageSize('small'));
+			if (imgMedium) imgMedium.addEventListener('click', () => applyImageSize('medium'));
+			if (imgLarge) imgLarge.addEventListener('click', () => applyImageSize('large'));
+			if (imgFull) imgFull.addEventListener('click', () => applyImageSize('full'));
+
+			// Social Media Insertion Prompt Action
+			const btnSocialEmbed = document.getElementById('btnSocialEmbed');
+			if (btnSocialEmbed) {
+				btnSocialEmbed.addEventListener('click', function () {
+					const embedCode = prompt("Paste your full Social Media Embed Code:");
+					if (embedCode && embedCode.trim() !== '') {
+						const range = quill.getSelection(true);
+						quill.insertEmbed(range.index, 'socialEmbed', embedCode.trim());
+						quill.setSelection(range.index + 1);
+					}
+				});
+			}
+
+			// Form Synchronization Listeners
+			quill.on('text-change', function () {
+				contentField.value = cleanHtml(quill.root.innerHTML);
+			});
+
+			const form = document.querySelector('form');
+			if (form) {
+				form.addEventListener('submit', function (e) {
+					contentField.value = cleanHtml(quill.root.innerHTML);
+				});
+			}
+
+			function cleanHtml(html) {
+				const div = document.createElement('div');
+				div.innerHTML = html;
+
+				// Strip out selected-image markers before packaging payload data
+				div.querySelectorAll('img').forEach(img => {
+					img.classList.remove('selected-image');
+				});
+
+				div.querySelectorAll('span').forEach(span => {
+					const style = span.getAttribute('style');
+					if (style && style.includes('color: rgb(0, 0, 0)') && style.includes('background-color: rgb(255, 255, 255)')) {
+						span.replaceWith(...span.childNodes);
+					}
+				});
+				return div.innerHTML;
+			}
+		});
+
+
+	</script>
+}

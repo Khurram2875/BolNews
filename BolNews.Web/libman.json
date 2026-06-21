@@ -1,0 +1,34 @@
+{
+  "version": "3.0",
+  "defaultProvider": "jsdelivr",
+  "libraries": [
+    {
+      "library": "quill-image-resize-module@3.0.0",
+      "destination": "wwwroot/lib/quill-image-resize-module/"
+    },
+    {
+      "library": "quill-image-resize-module-v2@3.0.0",
+      "destination": "wwwroot/lib/quill/modules/quill-image-resize-module-v2/",
+      "files": [
+        "image-resize.min.js"
+      ]
+    },
+    {
+      "library": "quill@2.0.3",
+      "destination": "wwwroot/lib/quill/",
+      "files": [
+        "dist/quill.js",
+        "dist/quill.snow.css"
+      ]
+    },
+    {
+      "provider": "unpkg",
+      "library": "quill@2.0.3",
+      "destination": "wwwroot/lib/quill/",
+      "files": [
+        "dist/quill.js",
+        "dist/quill.snow.css"
+      ]
+    }
+  ]
+}

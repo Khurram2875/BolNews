@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\lib\quill\" />
     <Folder Include="wwwroot\uploads\articles\content\" />
     <Folder Include="wwwroot\uploads\authors\" />
   </ItemGroup>

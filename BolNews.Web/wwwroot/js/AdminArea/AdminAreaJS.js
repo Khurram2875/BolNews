@@ -53,58 +53,58 @@ class MyUploadAdapter {
 
 document.addEventListener("DOMContentLoaded", function () {
 
-    ClassicEditor
-        .create(document.querySelector('#editor'), {
-            extraPlugins: [MyCustomUploadAdapterPlugin],
+    //ClassicEditor
+    //    .create(document.querySelector('#editor'), {
+    //        extraPlugins: [MyCustomUploadAdapterPlugin],
 
-            toolbar: [
-                'heading', '|',
-                'bold', 'italic', 'link',
-                'bulletedList', 'numberedList', '|',
-                'insertTable', 'uploadImage', 'mediaEmbed', '|',
-                'undo', 'redo'
-            ],
+    //        toolbar: [
+    //            'heading', '|',
+    //            'bold', 'italic', 'link',
+    //            'bulletedList', 'numberedList', '|',
+    //            'insertTable', 'uploadImage', 'mediaEmbed', '|',
+    //            'undo', 'redo'
+    //        ],
             
-            image: {
-                toolbar: [
-                    'imageStyle:inline',
-                    'imageStyle:block',
-                    'imageStyle:side',
-                    '|',
-                    'resizeImage',
-                    '|',
-                    'imageResize:25',
-                    'imageResize:50',
-                    'imageResize:75',
-                    'imageResize:original'
-                ],
-                resizeOptions: [
-                    {
-                        name: 'resizeImage:original',
-                        label: 'Original',
-                        value: null
-                    },
-                    {
-                        name: 'resizeImage:25',
-                        label: '25%',
-                        value: '25'
-                    },
-                    {
-                        name: 'resizeImage:50',
-                        label: '50%',
-                        value: '50'
-                    },
-                    {
-                        name: 'resizeImage:75',
-                        label: '75%',
-                        value: '75'
-                    }
-                ],
-                resizeUnit: '%'
-            }
-        })
-        .catch(error => {
-            console.error(error);
-        });
+    //        image: {
+    //            toolbar: [
+    //                'imageStyle:inline',
+    //                'imageStyle:block',
+    //                'imageStyle:side',
+    //                '|',
+    //                'resizeImage',
+    //                '|',
+    //                'imageResize:25',
+    //                'imageResize:50',
+    //                'imageResize:75',
+    //                'imageResize:original'
+    //            ],
+    //            resizeOptions: [
+    //                {
+    //                    name: 'resizeImage:original',
+    //                    label: 'Original',
+    //                    value: null
+    //                },
+    //                {
+    //                    name: 'resizeImage:25',
+    //                    label: '25%',
+    //                    value: '25'
+    //                },
+    //                {
+    //                    name: 'resizeImage:50',
+    //                    label: '50%',
+    //                    value: '50'
+    //                },
+    //                {
+    //                    name: 'resizeImage:75',
+    //                    label: '75%',
+    //                    value: '75'
+    //                }
+    //            ],
+    //            resizeUnit: '%'
+    //        }
+    //    })
+    //    .catch(error => {
+    //        console.error(error);
+    //    });
 });
 

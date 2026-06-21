@@ -1267,8 +1267,183 @@ body.nav-fixed {
         .bn-scroll-container::-webkit-scrollbar-thumb:hover {
             background: #999; /* Handle color on hover */
         }
+/* ============================================================
+   Quill Editor Styles (for article content)
+   ============================================================ */
+.ql-container {
+    min-height: 500px;
+}
+.ql-editor {
+    height: 450px;
+    font-size: 18px;
+    line-height: 1.8;
+    overflow-y: auto;
+}
 
+    /*.ql-editor p {
+        margin-bottom: 1rem;
+    }*/
 
+    .ql-editor .ql-align-center img {
+        display: block;
+        margin: 20px auto;
+        max-width: 100%;
+    }
+
+    .ql-editor .ql-align-right img {
+        float: right;
+        max-width: 350px;
+        margin: 0 0 20px 20px;
+    }
+
+    .ql-editor .ql-align-left img {
+        float: left;
+        max-width: 350px;
+        margin: 0 20px 20px 0;
+    }
+
+.selected-image {
+    outline: 3px solid #0d6efd;
+}
+/* Override Quill's default image resizing handles */
+.ql-editor img[data-size="small"] {
+    max-width: 250px;
+}
+
+.ql-editor img[data-size="medium"] {
+    max-width: 450px;
+}
+
+.ql-editor img[data-size="large"] {
+    max-width: 700px;
+}
+
+.ql-editor img[data-size="full"] {
+    width: 100%;
+    max-width: 100%;
+}
+/*for public display*/
+.bn-article-body .ql-align-center img {
+    display: block;
+    margin: 20px auto;
+    max-width: 100%;
+}
+
+.bn-article-body .ql-align-right img {
+    float: right;
+    max-width: 350px;
+    margin: 0 0 20px 20px;
+}
+
+.bn-article-body .ql-align-left img {
+    float: left;
+    max-width: 350px;
+    margin: 0 20px 20px 0;
+}
+.bn-article-body img[data-size="small"] {
+    max-width: 250px;
+}
+
+.bn-article-body img[data-size="medium"] {
+    max-width: 450px;
+}
+
+.bn-article-body img[data-size="large"] {
+    max-width: 700px;
+}
+
+.bn-article-body img[data-size="full"] {
+    width: 100%;
+    max-width: 100%;
+}
+.img-small img {
+    max-width: 250px;
+}
+
+.img-medium img {
+    max-width: 450px;
+}
+
+.img-large img {
+    max-width: 700px;
+}
+
+.img-full img {
+    width: 100%;
+}
+/*Social Media platform embedding*/
+.quill-social-embed, .bn-article-body .quill-social-embed {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 25px auto;
+    width: 100%;
+    max-width: 550px; /* Standard constraint optimized for reels/posts/tweets */
+    overflow: hidden;
+    background: #fdfdfd;
+    border-radius: 8px;
+}
+
+    /* Ensure embedded iframes scale fluidly */
+    .quill-social-embed iframe {
+        max-width: 100% !important;
+        margin: 0 auto;
+    }
+
+/* Visual cue for the user in the editor */
+.ql-editor .quill-social-embed {
+    border: 2px dashed #9ca3af;
+    padding: 10px;
+    position: relative;
+}
+
+    .ql-editor .quill-social-embed::before {
+        content: "Social Media Widget";
+        position: absolute;
+        top: 2px;
+        left: 5px;
+        font-size: 11px;
+        color: #9ca3af;
+        background: #fff;
+        padding: 0 4px;
+    }
+
+/* Optimized CSS for a beautiful, aligned editor placeholder box */
+.embed-placeholder-box {
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    width: 100%;
+    max-width: 550px;
+    margin: 15px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Perfectly spaces the icon, title, and subtitle */
+    pointer-events: none; /* Prevents cursor interference */
+}
+
+    .embed-placeholder-box .embed-icon {
+        font-size: 28px;
+        line-height: 1;
+        margin: 0;
+    }
+
+    .embed-placeholder-box .embed-title {
+        font-weight: 600;
+        font-size: 16px;
+        color: #334155;
+        margin: 0 !important; /* Removes default paragraph spacing */
+    }
+
+    .embed-placeholder-box .embed-subtitle {
+        color: #64748b;
+        font-size: 13px;
+        margin: 0 !important;
+    }
 
 /* ============================================================
    PAGE LOAD ANIMATIONS

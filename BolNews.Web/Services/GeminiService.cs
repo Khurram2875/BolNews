@@ -22,14 +22,28 @@ namespace BolNews.Web.Services
         {
             // Crafting a system/user prompt instructing JSON output constraints
             string prompt = $@"
-                You are an SEO expert for a news agency called BolNews. 
-                Based on the provided Article Title, Summary, and Category, generate an optimized SEO Meta Title and SEO Meta Description.
-                
+               You are an SEO expert and engineer for the enterprise news agency BolNews. 
+                Based on the provided Article Title, Summary, and Category, generate an original, highly optimized SEO Meta Title and SEO Meta Description.
+    
+                CRITICAL QUALITY CONTROL (DO NOT MIRROR INPUT):
+                - Do NOT simply copy and paste the provided Article Title as the Meta Title. You must rewrite, condense, or reformat it for search performance.
+                - Do NOT reuse the provided Summary verbatim as the Meta Description. You must synthesize and compress it into a punchy snippet.
+    
                 CRITICAL REQUIREMENTS:
-                1. Meta Title must be under 60 characters and include brand relevance if appropriate.
-                2. Meta Description must be a compelling summary under 160 characters.
-                3. You MUST respond ONLY with a valid raw JSON object. Do not wrap it in markdown code blocks like ```json.
-                
+                1. Meta Title:
+                   - Must be between 50 and 60 characters max (do not exceed 60).
+                   - Front-load primary keywords, key entities (people, places, brands), or critical data points near the beginning for search indexing.
+                   - Append brand relevance (e.g., '| BolNews') if character space permits naturally.
+                2. Meta Description:
+                   - Must be a compelling summary between 130 and 155 characters max (never exceed 160).
+                   - Use active, punchy verbs to summarize the core 'hook' or event.
+                   - Include relevant localized context or secondary entities to improve discoverability.
+                3. Output Format:
+                   - You MUST respond ONLY with a valid raw JSON object. 
+                   - Do not wrap it in markdown code blocks like ```json ... 
+            ```. 
+                   - Do not include any conversational filler, introductory text, or trailing notes.
+    
                 Expected JSON format:
                 {{
                     ""metaTitle"": ""Your generated title"",
