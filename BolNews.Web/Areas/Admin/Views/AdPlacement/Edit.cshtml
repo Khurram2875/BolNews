@@ -1,0 +1,108 @@
+﻿@using BolNews.Domain.Entities
+@model AdPlacement
+
+@{
+    ViewData["Title"] = "Edit Ad Placement";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+}
+
+<h2>Edit Ad Placement</h2>
+
+<form asp-action="Edit" method="post">
+
+    <input type="hidden" asp-for="Id" />
+
+    <div class="row">
+
+        <!-- LEFT SIDE: FORM -->
+        <div class="col-md-6">
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="PlacementKey" class="form-label"></label>
+                <input asp-for="PlacementKey" class="form-control" />
+                <span asp-validation-for="PlacementKey" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Ad Code (RAW HTML / JS)</label>
+
+                <textarea asp-for="AdCode"
+                          id="adCode"
+                          class="form-control"
+                          rows="12"
+                          style="font-family: monospace;"
+                          placeholder="Paste Advergic / AdSense script here..."></textarea>
+
+                <small class="text-muted">
+                    ⚠ Scripts will NOT run in preview (safe mode)
+                </small>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="IsEnabled" class="form-check-input" />
+                <label asp-for="IsEnabled" class="form-check-label">Active</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                Save Changes
+            </button>
+
+            <a asp-action="Index" class="btn btn-secondary">
+                Cancel
+            </a>
+
+        </div>
+
+        <!-- RIGHT SIDE: SAFE PREVIEW -->
+        <div class="col-md-6">
+
+            <label class="form-label">Live Preview (Safe Render)</label>
+
+            <div id="adPreview"
+                 class="bg-light border p-3"
+                 style="min-height:300px;">
+                Preview will appear here...
+            </div>
+
+        </div>
+
+    </div>
+
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function updateAdPreview() {
+
+            let code = document.getElementById("adCode").value;
+
+            if (!code) {
+                document.getElementById("adPreview").innerHTML =
+                    "<em>No ad code provided</em>";
+                return;
+            }
+
+            // SAFE MODE: strip scripts + event handlers
+            let safeCode = code
+                .replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, "")
+                .replace(/onerror|onclick|onload|onmouseover/gi, "");
+
+            document.getElementById("adPreview").innerHTML = safeCode;
+        }
+
+        document.getElementById("adCode")
+            .addEventListener("input", updateAdPreview);
+
+        // initial render
+        updateAdPreview();
+    </script>
+}

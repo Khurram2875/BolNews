@@ -60,6 +60,7 @@ namespace BolNews.Persistence
             services.AddScoped<IArticleScoringService, ArticleScoringService>();
             services.AddScoped<IArticleRevisionRepository, ArticleRevisionRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<IAdPlacementRepository, AdPlacementRepository>();
             //Score providers
             services.AddScoped<IScoreProvider, SeoScoreProvider>();
             services.AddScoped<IScoreProvider, FreshnessScoreProvider>();
@@ -74,6 +75,7 @@ namespace BolNews.Persistence
             services.AddScoped<IArticleLockService, ArticleLockService>();
             services.AddScoped<IArticleDiscussionService, ArticleDiscussionService>();
             services.AddSingleton<IPresenceTracker, PresenceTracker>();
+            services.AddScoped<IAdService, AdService>();
 
             return services;
         }

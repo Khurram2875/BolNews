@@ -1,0 +1,53 @@
+﻿@using BolNews.Domain.Entities
+@model AdPlacement
+
+@{
+    ViewData["Title"] = "Create Ad Placement";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+
+}
+
+<h2>Create Ad Placement</h2>
+
+<form asp-action="Create" method="post">
+
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PlacementKey" class="form-label"></label>
+        <input asp-for="PlacementKey" class="form-control" placeholder="e.g. HOME_TOP" />
+        <span asp-validation-for="PlacementKey" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="AdCode" class="form-label"></label>
+        <textarea asp-for="AdCode"
+                  class="form-control"
+                  rows="10"
+                  style="font-family: monospace;"
+                  placeholder="Paste Advergic / AdSense script here..."></textarea>
+        <span asp-validation-for="AdCode" class="text-danger"></span>
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="IsEnabled" class="form-check-input" />
+        <label asp-for="IsEnabled" class="form-check-label">Active</label>
+    </div>
+
+    <button type="submit" class="btn btn-success">
+        Create
+    </button>
+
+    <a asp-action="Index" class="btn btn-secondary">
+        Cancel
+    </a>
+
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

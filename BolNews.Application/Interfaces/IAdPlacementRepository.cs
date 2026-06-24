@@ -1,5 +1,4 @@
 ﻿using BolNews.Domain.Entities;
-using BolNews.Domains.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,18 +7,20 @@ using System.Threading.Tasks;
 
 namespace BolNews.Application.Interfaces
 {
-    public interface IAdService
+    public interface IAdPlacementRepository
     {
-        Task<AdPlacementViewModel?> GetPlacementAsync(string placementKey);
-        string GetHeaderAd();
-        string GetSidebarAd();
-        string GetInArticleAd();
         Task<AdPlacement?> GetByIdAsync(int id);
+
         Task<AdPlacement?> GetByPlacementKeyAsync(string placementKey);
+
         Task<List<AdPlacement>> GetAllAsync();
+
         Task AddAsync(AdPlacement entity);
+
         Task UpdateAsync(AdPlacement entity);
+
         Task DeleteAsync(AdPlacement entity);
+
         Task SaveAsync();
         Task ToggleStatusAsync(int id, bool isEnabled);
     }

@@ -192,7 +192,7 @@
             </div>
         </nav>
         <div class="my-2 text-center">
-            @Html.Raw(AdService.GetHeaderAd())
+            <vc:ad placement-key="HOME_TOP"></vc:ad>
         </div>
     </header>
 
@@ -201,9 +201,9 @@
         <div class="row">
 
             <!-- LEFT SIDEBAR AD -->
-            <aside class="col-lg-2 d-none d-lg-block text-center">
-                @Html.Raw(AdService.GetSidebarAd())
-            </aside>
+             <aside class="col-lg-2 d-none d-lg-block text-center">
+                <vc:ad placement-key="ARTICLE_SIDEBAR_LEFT"></vc:ad>
+             </aside>
 
             <!-- MAIN CONTENT -->
             <main role="main" class="col-lg-8 col-md-12">
@@ -212,7 +212,7 @@
 
             <!-- RIGHT SIDEBAR AD -->
             <aside class="col-lg-2 d-none d-lg-block text-center">
-                @Html.Raw(AdService.GetSidebarAd())
+                <vc:ad placement-key="ARTICLE_SIDEBAR_RIGHT"></vc:ad>
             </aside>
 
         </div>

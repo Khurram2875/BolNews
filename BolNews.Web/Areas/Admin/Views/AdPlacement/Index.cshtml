@@ -1,0 +1,78 @@
+﻿@using BolNews.Domain.Entities
+@model IEnumerable<AdPlacement>
+@{
+    ViewData["Title"] = "Ad Placement List";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<h2>Ad Placements</h2>
+
+<a class="btn btn-primary" href="/Admin/AdPlacement/Create">
+    Create New Ad
+</a>
+
+<table class="table-bordered mt-3 table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Key</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var ad in Model)
+        {
+            <tr>
+                <td>@ad.Name</td>
+                <td>@ad.PlacementKey</td>
+                <td>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input ad-toggle"
+                               type="checkbox"
+                               data-id="@ad.Id"
+                               @(ad.IsEnabled ? "checked" : "") />
+
+                        <label class="form-check-label">
+                            @(ad.IsEnabled ? "Active" : "Disabled")
+                        </label>
+                    </div>
+                </td>
+                <td>
+                    <a href="/Admin/AdPlacement/Edit/@ad.Id">Edit</a> |
+                    <a href="/Admin/AdPlacement/Delete/@ad.Id"
+                       onclick="return confirm('Are you sure?')">
+                        Delete
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).on("change", ".ad-toggle", function () {
+
+        var id = $(this).data("id");
+        var isEnabled = $(this).is(":checked");
+
+        $.ajax({
+            url: '/Admin/AdPlacement/ToggleStatus',
+            type: 'POST',
+            data: {
+                id: id,
+                isEnabled: isEnabled
+            },
+            success: function (res) {
+                if (res.success) {
+                    console.log(res.message);
+                }
+            },
+            error: function () {
+                alert("Error updating ad status");
+            }
+        });
+
+    });
+</script>

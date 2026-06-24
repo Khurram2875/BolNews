@@ -1,0 +1,16 @@
+﻿@using BolNews.Domains.ViewModels
+@model AdPlacementViewModel
+
+@if (ViewBag.IsDevelopment)
+{
+    <div class="alert alert-warning text-center">
+        <strong>Mock Advertisement</strong>
+        <br />
+        Placement:
+        @(Model?.PlacementKey ?? "NOT CONFIGURED")
+    </div>
+}
+else if (Model != null && !string.IsNullOrWhiteSpace(Model.AdCode))
+{
+    @Html.Raw(Model.AdCode)
+}

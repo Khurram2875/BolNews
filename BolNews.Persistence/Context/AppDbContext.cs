@@ -26,6 +26,7 @@ namespace BolNews.Persistence.Context
         public DbSet<ArticleRevision> ArticleRevisions { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<ArticleDiscussionComment> ArticleDiscussionComments { get; set; }
+        public DbSet<AdPlacement> AdPlacements { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
