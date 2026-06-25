@@ -31,8 +31,8 @@ builder.Services.AddScoped<INotificationRealtimeService, NotificationRealtimeSer
 builder.Services.AddHostedService<SlaMonitoringWorker>();
 builder.Services.AddHostedService<ScheduledPublishingService>();
 builder.Services.AddScoped<IGeminiService, GeminiService>();
-//builder.Services.AddSignalR();
-builder.Services.AddSignalR().AddAzureSignalR(builder.Configuration["Azure:SignalR:ConnectionString"]!);
+builder.Services.AddSignalR();
+//builder.Services.AddSignalR().AddAzureSignalR(builder.Configuration["Azure:SignalR:ConnectionString"]!);
 
 builder.Services.AddResponseCompression(options =>
 {

@@ -7,6 +7,6 @@ namespace BolNews.Web.Interfaces
     {
         Task<List<UserWithRolesVM>> GetUsersWithRolesAsync();
         Task<(ApplicationUser? user, List<string> roles, IList<string> userRoles)> GetAssignRoleDataAsync(string id);
-        Task AssignSingleRoleAsync(string userId, string role);
+        Task UpdateUserRolesAsync(string userId,List<string> selectedRoles);
     }
 }

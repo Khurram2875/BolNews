@@ -1,22 +1,45 @@
 ﻿@using BolNews.Domain.Entities
-@model ApplicationUser
+@using BolNews.Web.Areas.Admin.ViewModels
+@model AssignRolesVM
 @{
     ViewData["Title"] = "UserRoles";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Assign Role - @Model.Email</h2>
+<h2>Manage  Role - @Model.Email</h2>
 
 <form method="post">
+
     @Html.AntiForgeryToken()
-    <input type="hidden" name="userId" value="@Model.Id" />
 
-    <select name="role">
-        @foreach (var role in ViewBag.Roles)
-        {
-            <option value="@role">@role</option>
-        }
-    </select>
+    <input asp-for="UserId" type="hidden" />
 
-    <button type="submit">Assign</button>
+    <div class="card">
+        <div class="card-body">
+
+            @for (int i = 0; i < Model.Roles.Count; i++)
+            {
+                <div class="form-check mb-2">
+
+                    <input type="hidden"
+                           asp-for="Roles[i].RoleName" />
+
+                    <input class="form-check-input"
+                           asp-for="Roles[i].IsSelected" />
+
+                    <label class="form-check-label">
+                        @Model.Roles[i].RoleName
+                    </label>
+
+                </div>
+            }
+
+        </div>
+    </div>
+
+    <button type="submit"
+            class="btn btn-primary mt-3">
+        Save Roles
+    </button>
+
 </form>

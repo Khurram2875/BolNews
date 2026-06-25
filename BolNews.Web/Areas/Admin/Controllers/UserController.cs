@@ -1,4 +1,5 @@
 ﻿using BolNews.Domain.Entities;
+using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,20 +24,37 @@ namespace BolNews.Web.Areas.Admin.Controllers
         public async Task<IActionResult> AssignRole(string id)
         {
             var data = await _userAdminService.GetAssignRoleDataAsync(id);
+
             if (data.user == null)
                 return NotFound();
 
-            ViewBag.Roles = data.roles;
-            ViewBag.UserRoles = data.userRoles;
+            var model = new AssignRolesVM
+            {
+                UserId = data.user.Id,
+                Email = data.user.Email ?? "",
+                Roles = data.roles.Select(r => new RoleSelectionVM
+                {
+                    RoleName = r,
+                    IsSelected = data.userRoles.Contains(r)
+                }).ToList()
+            };
 
-            return View(data.user);
+            return View(model);
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AssignRole(string userId, string role)
+        public async Task<IActionResult> AssignRole(string userId, AssignRolesVM model)
         {
-            await _userAdminService.AssignSingleRoleAsync(userId, role);
-            return RedirectToAction("Index");
+            var selectedRoles = model.Roles
+            .Where(r => r.IsSelected)
+            .Select(r => r.RoleName)
+            .ToList();
+
+            await _userAdminService.UpdateUserRolesAsync(
+                model.UserId,
+                selectedRoles);
+
+            return RedirectToAction(nameof(Index));
         }
     }
 

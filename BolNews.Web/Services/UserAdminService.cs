@@ -84,5 +84,28 @@ namespace BolNews.Web.Services
             await _userManager.RemoveFromRolesAsync(user, currentRoles);
             await _userManager.AddToRoleAsync(user, role);
         }
+        public async Task UpdateUserRolesAsync(string userId, List<string> selectedRoles)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+                return;
+
+            var currentRoles = await _userManager.GetRolesAsync(user);
+
+            var rolesToAdd = selectedRoles
+                .Except(currentRoles)
+                .ToList();
+
+            var rolesToRemove = currentRoles
+                .Except(selectedRoles)
+                .ToList();
+
+            if (rolesToRemove.Any())
+                await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
+
+            if (rolesToAdd.Any())
+                await _userManager.AddToRolesAsync(user, rolesToAdd);
+        }
     }
 }
