@@ -88,7 +88,7 @@ namespace BolNews.Persistence.Repositories
             => await _context.Articles.AsNoTracking()
                 .AsNoTracking()
                 .Include(a => a.Category)
-                .Where(a => a.IsPublished && !a.IsDeleted)
+                .Where(a => a.IsPublished && !a.IsDeleted) 
                 .OrderByDescending(a => a.PublishedAt)
                 .Take(count)
                 .ToListAsync();

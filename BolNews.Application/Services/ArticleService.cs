@@ -33,7 +33,8 @@ namespace BolNews.Application.Services
             => roles.Contains(Roles.SubEditor);
 
         private bool IsAuthor(IList<string> roles)
-            => roles.Contains(Roles.Author);
+    => roles.Contains(Roles.Author);
+
         private void ValidateArticleEditPermission(
     Article article,
     string currentUserId,
@@ -46,26 +47,6 @@ namespace BolNews.Application.Services
             // Author rules
             if (IsAuthor(roles))
             {
-                var ownsArticle = article.Author?.UserId == currentUserId;
-
-                if (!ownsArticle)
-                {
-                    throw new UnauthorizedAccessException(
-                        "Authors can only edit their own articles.");
-                }
-
-                var editableStatuses = new[]
-                {
-            ArticleWorkflowStatus.Draft,
-            ArticleWorkflowStatus.Rejected
-        };
-
-                if (!editableStatuses.Contains(article.WorkflowStatus))
-                {
-                    throw new UnauthorizedAccessException(
-                        "This article is currently in editorial workflow and cannot be edited.");
-                }
-
                 return;
             }
 
@@ -73,16 +54,64 @@ namespace BolNews.Application.Services
         }
         private void ApplyEditorialControls(Article article, ArticleDto dto, IList<string> roles)
         {
+            var wasPublished = article.WorkflowStatus == ArticleWorkflowStatus.Published || article.IsPublished;
+            var shouldPublish = dto.IsPublished || wasPublished;
+
             if (IsAdmin(roles) || IsEditor(roles))
             {
                 article.IsEditorsPick = dto.IsEditorsPick;
                 article.EditorialPriority = dto.EditorialPriority;
                 article.IsFactChecked = dto.IsFactChecked;
-                article.IsPublished = dto.IsPublished;
+                article.IsPublished = shouldPublish;
 
-                if (dto.IsPublished)
+                if (shouldPublish)
                 {
                     article.IsPublished = true;
+                    article.WorkflowStatus = ArticleWorkflowStatus.Published;
+
+                    if (!article.PublishedAt.HasValue)
+                        article.PublishedAt = DateTime.UtcNow;
+                }
+                else if (!wasPublished)
+                {
+                    article.IsPublished = false;
+
+                    if (article.WorkflowStatus == ArticleWorkflowStatus.Published)
+                        article.WorkflowStatus = ArticleWorkflowStatus.Draft;
+
+                    article.PublishedAt = null;
+                }
+
+                return;
+            }
+
+            if (IsSubEditor(roles))
+            {
+                article.IsFactChecked = dto.IsFactChecked;
+                article.IsPublished = shouldPublish;
+
+                if (shouldPublish)
+                {
+                    article.WorkflowStatus = ArticleWorkflowStatus.Published;
+
+                    if (!article.PublishedAt.HasValue)
+                        article.PublishedAt = DateTime.UtcNow;
+                }
+                else if (!wasPublished)
+                {
+                    article.IsPublished = false;
+                    article.PublishedAt = null;
+                }
+
+                return;
+            }
+
+            if (IsAuthor(roles))
+            {
+                article.IsPublished = shouldPublish;
+
+                if (shouldPublish)
+                {
                     article.WorkflowStatus = ArticleWorkflowStatus.Published;
 
                     if (!article.PublishedAt.HasValue)
@@ -91,43 +120,10 @@ namespace BolNews.Application.Services
                 else
                 {
                     article.IsPublished = false;
-
-                    if (article.WorkflowStatus == ArticleWorkflowStatus.Published)
-                        article.WorkflowStatus = ArticleWorkflowStatus.Draft;
+                    article.PublishedAt = null;
                 }
 
-                if (!dto.IsPublished)
-                    article.PublishedAt = null;
-
                 return;
-            }
-
-            if (IsSubEditor(roles))
-            {
-                article.IsFactChecked = dto.IsFactChecked;
-                article.IsPublished = dto.IsPublished;
-
-                article.EditorialPriority =
-                    Math.Min(dto.EditorialPriority, 1);
-
-                article.IsEditorsPick = false;
-
-                if (dto.IsPublished && !article.PublishedAt.HasValue)
-                    article.PublishedAt = DateTime.UtcNow;
-
-                if (!dto.IsPublished)
-                    article.PublishedAt = null;
-
-                return;
-            }
-
-            if (IsAuthor(roles))
-            {
-                article.IsEditorsPick = false;
-                article.EditorialPriority = 0;
-                article.IsFactChecked = false;
-                article.IsPublished = false;
-                article.PublishedAt = null;
             }
         }
         #endregion
@@ -154,8 +150,15 @@ namespace BolNews.Application.Services
                 if (author == null)
                     throw new UnauthorizedAccessException(
                         "Author profile not found.");
-
-                authorId = author.Id;
+                else if(author.Id==dto.AuthorId)
+                {
+                    authorId = author.Id;
+                }
+                else
+                {
+                    authorId = dto.AuthorId;
+                }
+                
             }
             var workflowStatus = DetermineInitialWorkflowStatus(dto, roles);
             var article = new Article
@@ -174,7 +177,7 @@ namespace BolNews.Application.Services
                 FeaturedImageXl = dto.FeaturedImageXl,
                 
                 CategoryId = dto.CategoryId,
-                AuthorId = dto.AuthorId,
+                AuthorId = authorId,
 
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = currentUserId,
@@ -225,11 +228,11 @@ namespace BolNews.Application.Services
             article.UpdatedAt = DateTime.UtcNow;
             article.UpdatedBy = currentUserId;
 
-            
+            var wasPublished = article.WorkflowStatus == ArticleWorkflowStatus.Published || article.IsPublished;
 
             ApplyEditorialControls(article, dto, roles);
             // AUTHOR SUBMISSION WORKFLOW
-            if (IsAuthor(roles) && dto.SubmitForReview)
+            if (IsAuthor(roles) && dto.SubmitForReview && !article.IsPublished)
             {
                 article.WorkflowStatus = ArticleWorkflowStatus.Submitted;
                 article.WorkflowComment = null;
@@ -249,6 +252,14 @@ namespace BolNews.Application.Services
                         $"Article '{article.Title}' has been submitted for review.",
                         $"/Admin/Articles/Edit/{article.Id}");
                 }
+            }
+            if (wasPublished && article.IsPublished && !string.IsNullOrWhiteSpace(article.Author?.UserId) && article.Author.UserId != currentUserId)
+            {
+                await _notificationService.NotifyAsync(
+                    article.Author.UserId,
+                    "Article Updated",
+                    $"Your published article '{article.Title}' was updated.",
+                    $"/news/{article.Category.Slug}/{article.Slug}");
             }
             await _articleScoringService.CalculateScoresAsync(article);
 
@@ -309,10 +320,11 @@ namespace BolNews.Application.Services
         {
             var all = await _repo.GetAllAsync();
             IEnumerable<Article> filtered;
-            if (roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor) || roles.Contains(Roles.SubEditor))
+            if (roles.Contains(Roles.Admin) ||
+                roles.Contains(Roles.Editor) ||
+                roles.Contains(Roles.SubEditor) ||
+                roles.Contains(Roles.Author))
                 filtered = all;
-            else if (roles.Contains(Roles.Author))
-                filtered = all.Where(a => a.Author?.UserId == userId);
             else
                 return Enumerable.Empty<ArticleDto>();
 
@@ -441,11 +453,7 @@ namespace BolNews.Application.Services
             
             if (roles.Contains(Roles.Author))
             {
-                return article.Author?.UserId == userId &&
-                     (
-                       article.WorkflowStatus == ArticleWorkflowStatus.Draft ||
-                       article.WorkflowStatus == ArticleWorkflowStatus.Rejected
-                    );
+                return true;
             }
             return false;
         }
@@ -517,6 +525,9 @@ namespace BolNews.Application.Services
         {
             if (IsAuthor(roles))
             {
+                if (dto.IsPublished)
+                    return ArticleWorkflowStatus.Published;
+
                 return dto.SubmitForReview
                     ? ArticleWorkflowStatus.Submitted
                     : ArticleWorkflowStatus.Draft;

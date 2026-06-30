@@ -73,10 +73,10 @@ namespace BolNews.Tests.Integration
         }
 
         [Fact]
-        public async Task CanEdit_AuthorRole_CannotEditOtherAuthorsArticle()
+        public async Task CanEdit_AuthorRole_CanEditOtherAuthorsArticle()
         {
             var result = await _service.CanEditAsync(1, "user-author-2", new[] { Roles.Author });
-            result.Should().BeFalse("Authors cannot edit other authors' articles");
+            result.Should().BeTrue("Authors can now edit articles created by other authors");
         }
 
         [Fact]
@@ -136,18 +136,17 @@ namespace BolNews.Tests.Integration
         }
 
         [Fact]
-        public async Task GetAll_AuthorRole_ReturnsOnlyOwnArticles()
+        public async Task GetAll_AuthorRole_ReturnsAllNonDeletedArticles()
         {
             var result = await _service.GetAllAsync("user-author-1", new[] { Roles.Author });
-            result.Should().HaveCount(2, "Author only sees their own articles");
-            result.Should().OnlyContain(a => a.AuthorId == 1);
+            result.Should().HaveCount(3, "Authors can now edit articles across authorship boundaries");
         }
 
         [Fact]
-        public async Task GetAll_AuthorRoleNoAuthorRecord_ReturnsEmpty()
+        public async Task GetAll_AuthorRoleNoAuthorRecord_ReturnsAllNonDeletedArticles()
         {
             var result = await _service.GetAllAsync("user-with-no-author-record", new[] { Roles.Author });
-            result.Should().BeEmpty("No author record means no articles");
+            result.Should().HaveCount(3, "Author article visibility is no longer scoped to an author profile");
         }
 
         public void Dispose() => _cache.Dispose();

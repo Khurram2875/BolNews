@@ -11,7 +11,7 @@
 	var isSubEditor = User.IsInRole(Roles.SubEditor);
 	var isAuthor = User.IsInRole(Roles.Author);
 
-	var canPublish = isAdmin || isEditor || isSubEditor;
+	var canPublish = isAdmin || isEditor || isSubEditor || isAuthor;
 	var canEditorsPick = isAdmin || isEditor;
 	var canFactCheck = isAdmin || isEditor || isSubEditor;
 }
@@ -179,24 +179,17 @@
 							</div>
 						}
 
-						@if (isSubEditor || isEditor || isAdmin)
+						@if (isEditor || isAdmin)
 						{
 							<div class="mb-3">
 								<label asp-for="EditorialPriority" class="form-label"></label>
 
 								<select asp-for="EditorialPriority" class="form-select">
-									@if (isSubEditor)
-									{
-										<option value="0">Normal</option>
-										<option value="1">Important</option>
-									}
-									else
-									{
-										<option value="0">Normal</option>
-										<option value="1">Important</option>
-										<option value="2">High Priority</option>
-										<option value="3">Critical</option>
-									}
+									<option value="0">Normal</option>
+									<option value="1">Important</option>
+									<option value="2">High Priority</option>
+									<option value="3">Critical</option>
+									
 								</select>
 							</div>
 						}
@@ -592,4 +585,3 @@
 		});
 	</script>
 }
-

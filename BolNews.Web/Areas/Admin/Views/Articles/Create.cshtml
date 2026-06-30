@@ -9,7 +9,7 @@
 	var isSubEditor = User.IsInRole(Roles.SubEditor);
 	var isAuthor = User.IsInRole(Roles.Author);
 
-	var canPublish = isAdmin || isEditor || isSubEditor;
+	var canPublish = isAdmin || isEditor || isSubEditor || isAuthor;
 	var canEditorsPick = isAdmin || isEditor;
 	var canFactCheck = isAdmin || isEditor || isSubEditor;
 }
@@ -52,6 +52,17 @@
 				</select>
 				<span asp-validation-for="CategoryId" class="text-danger"></span>
 			</div>
+
+			@if (isSubEditor || isEditor || isAdmin)
+			{
+				<div class="mb-3">
+					<label asp-for="AuthorId" class="form-label">Author</label>
+					<select asp-for="AuthorId" class="form-select" asp-items="ViewBag.Authors">
+						<option value="">-- Select Author --</option>
+					</select>
+					<span asp-validation-for="AuthorId" class="text-danger"></span>
+				</div>
+			}
 
 			<div id="metaContainer" class="position-relative rounded p-2">
 
@@ -192,7 +203,7 @@
 						</div>
 					}
 
-					@if (isSubEditor || isEditor || isAdmin)
+					@if (isEditor || isAdmin)
 					{
 						<div class="mb-3">
 							<label asp-for="EditorialPriority"
@@ -202,18 +213,11 @@
 
 							<select asp-for="EditorialPriority"
 									class="form-select">
-								@if (isSubEditor)
-								{
-									<option value="0">Normal</option>
-									<option value="1">Important</option>
-								}
-								else
-								{
-									<option value="0">Normal</option>
-									<option value="1">Important</option>
-									<option value="2">High Priority</option>
-									<option value="3">Critical</option>
-								}
+								<option value="0">Normal</option>
+								<option value="1">Important</option>
+								<option value="2">High Priority</option>
+								<option value="3">Critical</option>
+								
 							</select>
 						</div>
 					}

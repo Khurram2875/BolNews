@@ -39,6 +39,7 @@ namespace BolNews.Application.Services
             if (!(roles.Contains(Roles.Admin) ||
                   roles.Contains(Roles.Editor) ||
                   roles.Contains(Roles.SubEditor) ||
+                  roles.Contains(Roles.Author) ||
                   roles.Contains(Roles.Factchecker)))
             {
                 throw new UnauthorizedAccessException(
@@ -69,9 +70,9 @@ namespace BolNews.Application.Services
                 ? "No reason provided."
                 : reason;
 
-            article.WorkflowStatus = targetStatus;
-
             var oldStatus = article.WorkflowStatus;
+
+            article.WorkflowStatus = targetStatus;
 
             _logger.LogInformation("Article {ArticleId} transitioned from {OldStatus} to {NewStatus} by {UserId}",  article.Id, oldStatus, targetStatus, currentUserId);
 
@@ -182,19 +183,46 @@ namespace BolNews.Application.Services
             if (roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor))
                 return;
 
+            if (roles.Contains(Roles.Author))
+            {
+                var allowed = target == ArticleWorkflowStatus.Published &&
+                    (
+                        current == ArticleWorkflowStatus.Draft ||
+                        current == ArticleWorkflowStatus.Submitted ||
+                        current == ArticleWorkflowStatus.UnderReview ||
+                        current == ArticleWorkflowStatus.FactCheckPending ||
+                        current == ArticleWorkflowStatus.Approved
+                    );
+
+                if (!allowed)
+                {
+                    throw new UnauthorizedAccessException(
+                        $"Transition from {current} to {target} is not allowed.");
+                }
+
+                return;
+            }
+
             if (roles.Contains(Roles.SubEditor))
             {
                 var allowed = current switch
                 {
+                    ArticleWorkflowStatus.Draft =>
+                        target == ArticleWorkflowStatus.Published,
+
                     ArticleWorkflowStatus.Submitted =>
                         target == ArticleWorkflowStatus.UnderReview ||
+                        target == ArticleWorkflowStatus.Published ||
                         target == ArticleWorkflowStatus.Rejected,
 
                     ArticleWorkflowStatus.UnderReview =>
                         target == ArticleWorkflowStatus.FactCheckPending ||
+                        target == ArticleWorkflowStatus.Approved ||
+                        target == ArticleWorkflowStatus.Published ||
                         target == ArticleWorkflowStatus.Rejected,
 
                     ArticleWorkflowStatus.FactCheckPending =>
+                        target == ArticleWorkflowStatus.Published ||
                         target == ArticleWorkflowStatus.Approved ||
                         target == ArticleWorkflowStatus.Rejected,
 

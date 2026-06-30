@@ -1,6 +1,7 @@
 ﻿@using BolNews.Domain.Enums
 @using BolNews.Web.Areas.Admin.ViewModels
 @using BolNews.Domain.Entities
+@using BolNews.Domain.Common
 
 @model EditorialDashboardVM
 @functions
@@ -21,6 +22,8 @@
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
     var editorialUsers = ViewBag.EditorialUsers as List<ApplicationUser> ?? new();
     var currentFilter = ViewBag.CurrentFilter?.ToString()?.ToLower() ?? "all";
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var canManageWorkflow = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Editor) || User.IsInRole(Roles.SubEditor);
 }
 @if (TempData["Error"] != null)
 {
@@ -111,10 +114,10 @@
 
                                         <a asp-area="Admin"
                                            asp-controller="Articles"
-                                           asp-action="Edit"
+                                           asp-action="Discussion"
                                            asp-route-id="@item.Id"
                                            class="btn btn-sm btn-primary">
-                                            Review
+                                            Discussion
                                         </a>
 
                                     </td>
@@ -274,53 +277,67 @@
                                 <td>@item.AuthorName</td>
 
                                 <td>
-                                    <form asp-action="AssignReviewer" method="post">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="articleId" value="@item.Id" />
+                                    @if (canManageWorkflow)
+                                    {
+                                        <form asp-action="AssignReviewer" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="articleId" value="@item.Id" />
 
-                                        <select name="reviewerUserId"
-                                                class="form-select form-select-sm"
-                                                onchange="this.form.submit()">
-                                            <option value="">Assign Reviewer</option>
+                                            <select name="reviewerUserId"
+                                                    class="form-select form-select-sm"
+                                                    onchange="this.form.submit()">
+                                                <option value="">Assign Reviewer</option>
 
-                                            @foreach (var user in editorialUsers)
-                                            {
-                                                if (item.ReviewerUserId == user.Id)
+                                                @foreach (var user in editorialUsers)
                                                 {
-                                                    <option value="@user.Id" selected>@user.FullName</option>
+                                                    if (item.ReviewerUserId == user.Id)
+                                                    {
+                                                        <option value="@user.Id" selected>@user.FullName</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@user.Id">@user.FullName</option>
+                                                    }
                                                 }
-                                                else
-                                                {
-                                                    <option value="@user.Id">@user.FullName</option>
-                                                }
-                                            }
-                                        </select>
-                                    </form>
+                                            </select>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span>@(item.ReviewerName ?? "Unassigned")</span>
+                                    }
                                 </td>
 
                                 <td>
-                                    <form asp-action="AssignFactChecker" method="post">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="articleId" value="@item.Id" />
+                                    @if (canManageWorkflow)
+                                    {
+                                        <form asp-action="AssignFactChecker" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="articleId" value="@item.Id" />
 
-                                        <select name="factCheckerUserId"
-                                                class="form-select form-select-sm"
-                                                onchange="this.form.submit()">
-                                            <option value="">Assign Fact Checker</option>
+                                            <select name="factCheckerUserId"
+                                                    class="form-select form-select-sm"
+                                                    onchange="this.form.submit()">
+                                                <option value="">Assign Fact Checker</option>
 
-                                            @foreach (var user in editorialUsers)
-                                            {
-                                                if (item.FactCheckerUserId == user.Id)
+                                                @foreach (var user in editorialUsers)
                                                 {
-                                                    <option value="@user.Id" selected>@user.FullName</option>
+                                                    if (item.FactCheckerUserId == user.Id)
+                                                    {
+                                                        <option value="@user.Id" selected>@user.FullName</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@user.Id">@user.FullName</option>
+                                                    }
                                                 }
-                                                else
-                                                {
-                                                    <option value="@user.Id">@user.FullName</option>
-                                                }
-                                            }
-                                        </select>
-                                    </form>
+                                            </select>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span>@(item.FactCheckerName ?? "Unassigned")</span>
+                                    }
                                 </td>
 
                                 <td>@item.CategoryName</td>
@@ -351,29 +368,45 @@
                                 <td>
                                     <div class="d-flex flex-wrap gap-1">
 
-                                        <a asp-area="Admin"
-                                           asp-controller="Articles"
-                                           asp-action="Edit"
-                                           asp-route-id="@item.Id"
-                                           class="badge bg-warning">
-                                            Review
-                                        </a>
+                                        @if (canManageWorkflow)
+                                        {
+                                            <a asp-area="Admin"
+                                               asp-controller="Articles"
+                                               asp-action="Edit"
+                                               asp-route-id="@item.Id"
+                                               class="badge bg-warning">
+                                                Review
+                                            </a>
+                                        }
 
-                                        <form asp-action="Transition" method="post">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="articleId" value="@item.Id" />
-                                            <input type="hidden" name="targetStatus" value="UnderReview" />
+                                        @if (canManageWorkflow)
+                                        {
+                                            <form asp-action="Transition" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="articleId" value="@item.Id" />
+                                                <input type="hidden" name="targetStatus" value="Published" />
 
-                                            <button class="badge bg-primary">
-                                                Take Review
+                                                <button class="badge bg-success">
+                                                    Publish
+                                                </button>
+                                            </form>
+
+                                            <form asp-action="Transition" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="articleId" value="@item.Id" />
+                                                <input type="hidden" name="targetStatus" value="UnderReview" />
+
+                                                <button class="badge bg-primary">
+                                                    Take Review
+                                                </button>
+                                            </form>
+
+                                            <button type="button"
+                                                    class="badge bg-danger"
+                                                    onclick="openRejectModal(@item.Id)">
+                                                Reject
                                             </button>
-                                        </form>
-
-                                        <button type="button"
-                                                class="badge bg-danger"
-                                                onclick="openRejectModal(@item.Id)">
-                                            Reject
-                                        </button>
+                                        }
 
                                     </div>
                                 </td>
@@ -421,53 +454,67 @@
                                 <td>@item.AuthorName</td>
 
                                 <td>
-                                    <form asp-action="AssignReviewer" method="post">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="articleId" value="@item.Id" />
+                                    @if (canManageWorkflow)
+                                    {
+                                        <form asp-action="AssignReviewer" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="articleId" value="@item.Id" />
 
-                                        <select name="reviewerUserId"
-                                                class="form-select form-select-sm"
-                                                onchange="this.form.submit()">
-                                            <option value="">Assign Reviewer</option>
+                                            <select name="reviewerUserId"
+                                                    class="form-select form-select-sm"
+                                                    onchange="this.form.submit()">
+                                                <option value="">Assign Reviewer</option>
 
-                                            @foreach (var user in editorialUsers)
-                                            {
-                                                if (item.ReviewerUserId == user.Id)
+                                                @foreach (var user in editorialUsers)
                                                 {
-                                                    <option value="@user.Id" selected>@user.FullName</option>
+                                                    if (item.ReviewerUserId == user.Id)
+                                                    {
+                                                        <option value="@user.Id" selected>@user.FullName</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@user.Id">@user.FullName</option>
+                                                    }
                                                 }
-                                                else
-                                                {
-                                                    <option value="@user.Id">@user.FullName</option>
-                                                }
-                                            }
-                                        </select>
-                                    </form>
+                                            </select>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span>@(item.ReviewerName ?? "Unassigned")</span>
+                                    }
                                 </td>
 
                                 <td>
-                                    <form asp-action="AssignFactChecker" method="post">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="articleId" value="@item.Id" />
+                                    @if (canManageWorkflow)
+                                    {
+                                        <form asp-action="AssignFactChecker" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="articleId" value="@item.Id" />
 
-                                        <select name="factCheckerUserId"
-                                                class="form-select form-select-sm"
-                                                onchange="this.form.submit()">
-                                            <option value="">Assign Fact Checker</option>
+                                            <select name="factCheckerUserId"
+                                                    class="form-select form-select-sm"
+                                                    onchange="this.form.submit()">
+                                                <option value="">Assign Fact Checker</option>
 
-                                            @foreach (var user in editorialUsers)
-                                            {
-                                                if (item.FactCheckerUserId == user.Id)
+                                                @foreach (var user in editorialUsers)
                                                 {
-                                                    <option value="@user.Id" selected>@user.FullName</option>
+                                                    if (item.FactCheckerUserId == user.Id)
+                                                    {
+                                                        <option value="@user.Id" selected>@user.FullName</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@user.Id">@user.FullName</option>
+                                                    }
                                                 }
-                                                else
-                                                {
-                                                    <option value="@user.Id">@user.FullName</option>
-                                                }
-                                            }
-                                        </select>
-                                    </form>
+                                            </select>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span>@(item.FactCheckerName ?? "Unassigned")</span>
+                                    }
                                 </td>
                                 
                                 <td>@item.CategoryName</td>
@@ -497,29 +544,55 @@
                                 <td>
                                     <div class="d-flex flex-wrap gap-1">
 
-                                        <a asp-area="Admin"
-                                           asp-controller="Articles"
-                                           asp-action="Edit"
-                                           asp-route-id="@item.Id"
-                                           class="badge bg-warning">
-                                            Review
-                                        </a>
+                                        @if (canManageWorkflow)
+                                        {
+                                            <a asp-area="Admin"
+                                               asp-controller="Articles"
+                                               asp-action="Edit"
+                                               asp-route-id="@item.Id"
+                                               class="badge bg-warning">
+                                                Review
+                                            </a>
+                                        }
 
-                                        <form asp-action="Transition" method="post">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="articleId" value="@item.Id" />
-                                            <input type="hidden" name="targetStatus" value="FactCheckPending" />
+                                        @if (canManageWorkflow)
+                                        {
+                                            <form asp-action="Transition" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="articleId" value="@item.Id" />
+                                                <input type="hidden" name="targetStatus" value="Published" />
 
-                                            <button class="badge bg-info">
-                                                Fact Check
+                                                <button class="badge bg-success">
+                                                    Publish
+                                                </button>
+                                            </form>
+
+                                            <form asp-action="Transition" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="articleId" value="@item.Id" />
+                                                <input type="hidden" name="targetStatus" value="Approved" />
+
+                                                <button class="badge bg-success">
+                                                    Approve
+                                                </button>
+                                            </form>
+
+                                            <form asp-action="Transition" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="articleId" value="@item.Id" />
+                                                <input type="hidden" name="targetStatus" value="FactCheckPending" />
+
+                                                <button class="badge bg-info">
+                                                    Fact Check
+                                                </button>
+                                            </form>
+
+                                            <button type="button"
+                                                    class="badge bg-danger"
+                                                    onclick="openRejectModal(@item.Id)">
+                                                Reject
                                             </button>
-                                        </form>
-
-                                        <button type="button"
-                                                class="badge bg-danger"
-                                                onclick="openRejectModal(@item.Id)">
-                                            Reject
-                                        </button>
+                                        }
 
                                     </div>
                                 </td>
@@ -567,53 +640,67 @@
                                 <td>@item.AuthorName</td>
 
                                 <td>
-                                    <form asp-action="AssignReviewer" method="post">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="articleId" value="@item.Id" />
+                                    @if (canManageWorkflow)
+                                    {
+                                        <form asp-action="AssignReviewer" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="articleId" value="@item.Id" />
 
-                                        <select name="reviewerUserId"
-                                                class="form-select form-select-sm"
-                                                onchange="this.form.submit()">
-                                            <option value="">Assign Reviewer</option>
+                                            <select name="reviewerUserId"
+                                                    class="form-select form-select-sm"
+                                                    onchange="this.form.submit()">
+                                                <option value="">Assign Reviewer</option>
 
-                                            @foreach (var user in editorialUsers)
-                                            {
-                                                if (item.ReviewerUserId == user.Id)
+                                                @foreach (var user in editorialUsers)
                                                 {
-                                                    <option value="@user.Id" selected>@user.FullName</option>
+                                                    if (item.ReviewerUserId == user.Id)
+                                                    {
+                                                        <option value="@user.Id" selected>@user.FullName</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@user.Id">@user.FullName</option>
+                                                    }
                                                 }
-                                                else
-                                                {
-                                                    <option value="@user.Id">@user.FullName</option>
-                                                }
-                                            }
-                                        </select>
-                                    </form>
+                                            </select>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span>@(item.ReviewerName ?? "Unassigned")</span>
+                                    }
                                 </td>
 
                                 <td>
-                                    <form asp-action="AssignFactChecker" method="post">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="articleId" value="@item.Id" />
+                                    @if (canManageWorkflow)
+                                    {
+                                        <form asp-action="AssignFactChecker" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="articleId" value="@item.Id" />
 
-                                        <select name="factCheckerUserId"
-                                                class="form-select form-select-sm"
-                                                onchange="this.form.submit()">
-                                            <option value="">Assign Fact Checker</option>
+                                            <select name="factCheckerUserId"
+                                                    class="form-select form-select-sm"
+                                                    onchange="this.form.submit()">
+                                                <option value="">Assign Fact Checker</option>
 
-                                            @foreach (var user in editorialUsers)
-                                            {
-                                                if (item.FactCheckerUserId == user.Id)
+                                                @foreach (var user in editorialUsers)
                                                 {
-                                                    <option value="@user.Id" selected>@user.FullName</option>
+                                                    if (item.FactCheckerUserId == user.Id)
+                                                    {
+                                                        <option value="@user.Id" selected>@user.FullName</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@user.Id">@user.FullName</option>
+                                                    }
                                                 }
-                                                else
-                                                {
-                                                    <option value="@user.Id">@user.FullName</option>
-                                                }
-                                            }
-                                        </select>
-                                    </form>
+                                            </select>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span>@(item.FactCheckerName ?? "Unassigned")</span>
+                                    }
                                 </td>
                                
                                 <td>@item.CategoryName</td>
@@ -643,29 +730,35 @@
                                 <td>
                                     <div class="d-flex flex-wrap gap-1">
 
-                                        <a asp-area="Admin"
-                                           asp-controller="Articles"
-                                           asp-action="Edit"
-                                           asp-route-id="@item.Id"
-                                           class="badge bg-warning">
-                                            Review
-                                        </a>
+                                        @if (canManageWorkflow)
+                                        {
+                                            <a asp-area="Admin"
+                                               asp-controller="Articles"
+                                               asp-action="Edit"
+                                               asp-route-id="@item.Id"
+                                               class="badge bg-warning">
+                                                Review
+                                            </a>
+                                        }
 
-                                        <form asp-action="Transition" method="post">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="articleId" value="@item.Id" />
-                                            <input type="hidden" name="targetStatus" value="Approved" />
+                                        @if (canManageWorkflow || item.FactCheckerUserId == currentUserId)
+                                        {
+                                            <form asp-action="Transition" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="articleId" value="@item.Id" />
+                                                <input type="hidden" name="targetStatus" value="Approved" />
 
-                                            <button class="badge bg-success">
-                                                Approve
+                                                <button class="badge bg-success">
+                                                    Approve
+                                                </button>
+                                            </form>
+
+                                            <button type="button"
+                                                    class="badge bg-danger"
+                                                    onclick="openRejectModal(@item.Id)">
+                                                Reject
                                             </button>
-                                        </form>
-
-                                        <button type="button"
-                                                class="badge bg-danger"
-                                                onclick="openRejectModal(@item.Id)">
-                                            Reject
-                                        </button>
+                                        }
 
                                     </div>
                                 </td>
@@ -743,17 +836,21 @@
                                     <div class="d-flex flex-column gap-2">
 
                                         <!-- TOP ACTION -->
-                                        <div>
-                                            <a asp-area="Admin"
-                                               asp-controller="Articles"
-                                               asp-action="Edit"
-                                               asp-route-id="@item.Id"
-                                               class="btn btn-warning btn-sm w-100">
-                                                <i class="bi bi-pencil-square me-1"></i> Review Article
-                                            </a>
-                                        </div>
+                                        @if (canManageWorkflow)
+                                        {
+                                            <div>
+                                                <a asp-area="Admin"
+                                                   asp-controller="Articles"
+                                                   asp-action="Edit"
+                                                   asp-route-id="@item.Id"
+                                                   class="btn btn-warning btn-sm w-100">
+                                                    <i class="bi bi-pencil-square me-1"></i> Review Article
+                                                </a>
+                                            </div>
+                                        }
 
-                                        @if (item.WorkflowStatus == ArticleWorkflowStatus.Approved &&
+                                        @if (canManageWorkflow &&
+                                                                        item.WorkflowStatus == ArticleWorkflowStatus.Approved &&
                                                                         !item.ScheduledPublishAt.HasValue &&
                                                                         !item.EmbargoUntil.HasValue)
                                         {
@@ -804,7 +901,7 @@
                                                 </form>
                                             </div>
                                         }
-                                        else if (item.ScheduledPublishAt.HasValue)
+                                        else if (canManageWorkflow && item.ScheduledPublishAt.HasValue)
                                         {
                                             <div class="bg-info rounded border bg-opacity-10 p-3">
 
@@ -862,7 +959,7 @@
                                                 </div>
                                             </div>
                                         }
-                                        else if (item.EmbargoUntil.HasValue)
+                                        else if (canManageWorkflow && item.EmbargoUntil.HasValue)
                                         {
                                             <div class="bg-warning rounded border bg-opacity-10 p-3">
 

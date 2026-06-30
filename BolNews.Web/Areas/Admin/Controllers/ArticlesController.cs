@@ -123,10 +123,10 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private async Task PopulateDropdowns(int? categoryId = null, int? authorId = null)
         {
             var categories = await _categoryService.GetAllAsync();
-            //var authors = await _authorService.GetAllAsync();
+            var authors = await _authorService.GetAllAsync();
 
             ViewBag.Categories = new SelectList(categories, "Id", "Name", categoryId);
-            //ViewBag.Authors = new SelectList(authors, "Id", "Name", authorId);
+            ViewBag.Authors = new SelectList(authors, "Id", "Name", authorId);
         }
         // POST: Admin/Articles/Create
         [HttpPost]
@@ -151,26 +151,46 @@ namespace BolNews.Web.Areas.Admin.Controllers
             }
             var userId = _userManager.GetUserId(User);
 
-            var author = await _authorService.GetAuthorByUserId(userId);
-            //.FirstOrDefaultAsync(a => a.UserId == userId);
-
-            if (author == null)
-            {
-                ModelState.AddModelError("", "Author profile not found.");
-                return View(model);
-            }
-
             var slug = await _articleService.GenerateUniqueSlugAsync(model.Title);
 
             var dto = _mapper.Map<ArticleDto>(model);
-            dto.AuthorId = author.Id;
-
             dto.Slug = slug;
             dto.MetaTitle = model.MetaTitle ?? model.Title;
             dto.MetaDescription = model.MetaDescription;
             //await _articleService.CreateAsync(dto);
             //var articleId = await _articleService.CreateAsync(dto);
             var roles = await _userManager.GetRolesAsync(await _userManager.GetUserAsync(User));
+            if (roles.Contains(Roles.Author))
+            {
+                var modelAuthor = model.AuthorId;
+                var author = await _authorService.GetAuthorByUserId(userId);
+
+                if (author == null)
+                {
+                    ModelState.AddModelError("", "Author profile not found.");
+                    await PopulateDropdowns(model.CategoryId, model.AuthorId);
+                    return View(model);
+                }
+                else if(model.AuthorId==author.Id)
+                {
+                    dto.AuthorId = author.Id;
+                }
+                else
+                {
+                    dto.AuthorId = model.AuthorId;
+                }
+               
+            }
+            else if ((roles.Contains(Roles.Admin) ||
+                      roles.Contains(Roles.Editor) ||
+                      roles.Contains(Roles.SubEditor)) &&
+                     dto.AuthorId <= 0)
+            {
+                ModelState.AddModelError(nameof(model.AuthorId), "Author is required.");
+                await PopulateDropdowns(model.CategoryId, model.AuthorId);
+                return View(model);
+            }
+
             var articleId = await _articleService.CreateAsync(
                 dto,
                 userId,
@@ -334,9 +354,16 @@ namespace BolNews.Web.Areas.Admin.Controllers
             dto.FeaturedImageLarge = existing.FeaturedImageLarge;
             dto.FeaturedImageXl = existing.FeaturedImageXl;
 
-
             // Preserve author ownership
             dto.AuthorId = existing.AuthorId;
+            dto.IsPublished = existing.IsPublished || model.IsPublished;
+            dto.PublishedAt = existing.PublishedAt;
+
+            if (!(roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor)))
+            {
+                dto.EditorialPriority = existing.EditorialPriority;
+                dto.IsEditorsPick = existing.IsEditorsPick;
+            }
 
             // Slug logic
             dto.Slug = existing.Title != model.Title
