@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BolNews.Domain.Entities
 {
-    public class ArticleDiscussionComment
+    public class ArticleDiscussionComment 
     {
         public int Id { get; set; }
 

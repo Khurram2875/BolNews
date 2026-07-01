@@ -33,6 +33,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IArticleRevisionService, ArticleRevisionService>();
         services.AddScoped<IWorkflowTransitionService, WorkflowTransitionService>();
         services.AddScoped<IEditorialAssignmentService, EditorialAssignmentService>();
+        services.AddScoped<IEditorialPlacementService, EditorialPlacementService>();
 
         services.AddMemoryCache();
 

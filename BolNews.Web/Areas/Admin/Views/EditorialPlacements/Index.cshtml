@@ -1,0 +1,127 @@
+@model BolNews.Web.Areas.Admin.ViewModels.EditorialPlacementIndexVM
+
+@{
+    ViewData["Title"] = "Homepage Placement";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 class="mb-0">Homepage Placement</h2>
+    <a asp-area="Admin" asp-controller="Articles" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-journal-text"></i> Articles
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">Pinned Top Story</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.TopStory == null)
+        {
+            <span class="text-muted">No top story is pinned. The homepage will use the latest published article.</span>
+        }
+        else
+        {
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div>
+                    <div class="fw-semibold">@Model.TopStory.Title</div>
+                    <div class="small text-muted">
+                        @Model.TopStory.CategoryName
+                        @if (Model.TopStory.PublishedAt.HasValue)
+                        {
+                            <span> | @Model.TopStory.PublishedAt.Value.ToString("g")</span>
+                        }
+                    </div>
+                </div>
+                <form asp-action="UnpinTopStory" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-pin-angle"></i> Remove Top Story
+                    </button>
+                </form>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Pinned Secondary Stories</h5>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.SecondaryStories.Any())
+        {
+            <div class="p-3 text-muted">
+                No secondary stories are pinned. The homepage will fill secondary slots with latest published articles.
+            </div>
+        }
+        else
+        {
+            <table class="table table-striped table-hover mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width: 90px;">Order</th>
+                        <th>Story</th>
+                        <th>Category</th>
+                        <th>Published</th>
+                        <th class="text-center" style="width: 260px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (var i = 0; i < Model.SecondaryStories.Count; i++)
+                    {
+                        var placement = Model.SecondaryStories[i];
+                        <tr>
+                            <td>@(i + 1)</td>
+                            <td>@placement.Title</td>
+                            <td>@placement.CategoryName</td>
+                            <td>@placement.PublishedAt?.ToString("g")</td>
+                            <td class="text-center">
+                                <form asp-action="MoveSecondaryStory" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="placementId" value="@placement.PlacementId" />
+                                    <input type="hidden" name="direction" value="-1" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary" @(i == 0 ? "disabled" : "") title="Move up">
+                                        <i class="bi bi-arrow-up"></i>
+                                    </button>
+                                </form>
+                                <form asp-action="MoveSecondaryStory" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="placementId" value="@placement.PlacementId" />
+                                    <input type="hidden" name="direction" value="1" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary" @(i == Model.SecondaryStories.Count - 1 ? "disabled" : "") title="Move down">
+                                        <i class="bi bi-arrow-down"></i>
+                                    </button>
+                                </form>
+                                <form asp-action="UnpinSecondaryStory" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="placementId" value="@placement.PlacementId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-x-circle"></i> Remove
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

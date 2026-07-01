@@ -44,6 +44,12 @@ namespace BolNews.Persistence.Repositories
             .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
         }
 
+        public async Task<Article?> FindPublishedByIdAsync(int id)
+            => await _context.Articles
+                .AsNoTracking()
+                .Include(a => a.Category)
+                .FirstOrDefaultAsync(a => a.Id == id && a.IsPublished && !a.IsDeleted);
+
         public async Task<bool> SlugExistsAsync(string slug)
             => await _context.Articles.AnyAsync(a => a.Slug == slug);
 
@@ -90,6 +96,15 @@ namespace BolNews.Persistence.Repositories
                 .Include(a => a.Category)
                 .Where(a => a.IsPublished && !a.IsDeleted)
                 .OrderByDescending(a => a.PublishedAt)
+                .Take(count)
+                .ToListAsync();
+
+        public async Task<Article?> GetLatestPublishedAsync(IReadOnlyCollection<int>? excludedArticleIds = null)
+            => await LatestPublishedQuery(excludedArticleIds)
+                .FirstOrDefaultAsync();
+
+        public async Task<List<Article>> GetLatestPublishedAsync(int count, IReadOnlyCollection<int>? excludedArticleIds = null)
+            => await LatestPublishedQuery(excludedArticleIds)
                 .Take(count)
                 .ToListAsync();
 
@@ -301,6 +316,21 @@ namespace BolNews.Persistence.Repositories
                          a.EmbargoUntil <= utcNow)
                     ))
                 .ToListAsync();
+        }
+
+        private IQueryable<Article> LatestPublishedQuery(IReadOnlyCollection<int>? excludedArticleIds)
+        {
+            var query = _context.Articles
+                .AsNoTracking()
+                .Include(a => a.Category)
+                .Where(a => a.IsPublished && !a.IsDeleted);
+
+            if (excludedArticleIds is { Count: > 0 })
+            {
+                query = query.Where(a => !excludedArticleIds.Contains(a.Id));
+            }
+
+            return query.OrderByDescending(a => a.PublishedAt);
         }
     }
 }

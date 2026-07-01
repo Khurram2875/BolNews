@@ -5,6 +5,11 @@
 @{
     ViewData["Title"] = "Articles";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var canManageHomepagePlacement = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Editor);
+    int? pinnedTopStoryArticleId = ViewBag.PinnedTopStoryArticleId as int?;
+    var secondaryPlacementByArticleId =
+        ViewBag.SecondaryPlacementByArticleId as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
 }
 <style>
     .lazy-image {
@@ -27,10 +32,26 @@
         </button>
     </div>
 }
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+    </div>
+}
 <div class="mb-3">
     <a asp-action="Create" class="btn btn-primary">
         <i class="bi bi-plus-circle"></i> Create New Article
     </a>
+    @if (canManageHomepagePlacement)
+    {
+        <a asp-area="Admin" asp-controller="EditorialPlacements" asp-action="Index" class="btn btn-outline-dark ms-2">
+            <i class="bi bi-pin-angle"></i> Homepage Placement
+        </a>
+    }
 </div>
 
 <div class="card shadow-sm">
@@ -167,6 +188,19 @@
                                     
                                 </div>
                             }
+                            @if (canManageHomepagePlacement)
+                            {
+                                <div class="small mt-1">
+                                    @if (pinnedTopStoryArticleId == article.Id)
+                                    {
+                                        <span class="badge bg-danger">Top Story</span>
+                                    }
+                                    @if (secondaryPlacementByArticleId.ContainsKey(article.Id))
+                                    {
+                                        <span class="badge bg-primary">Secondary Story</span>
+                                    }
+                                </div>
+                            }
                         </td>
                         <td class="text-center">
                             <a asp-action="Discussion"
@@ -180,6 +214,53 @@
                             <a href="/news/@article.CategorySlug/@article.Slug" target="_blank" class="badge bg-info text-decoration-none me-1">
                                 Preview
                             </a>
+                            @if (canManageHomepagePlacement && article.IsPublished)
+                            {
+                                if (pinnedTopStoryArticleId == article.Id)
+                                {
+                                    <form asp-area="Admin" asp-controller="EditorialPlacements" asp-action="UnpinTopStory" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                        <button type="submit" class="badge bg-light border border-danger text-danger">
+                                            Unpin Top
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-area="Admin" asp-controller="EditorialPlacements" asp-action="PinTopStory" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="articleId" value="@article.Id" />
+                                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                        <button type="submit" class="badge bg-dark">
+                                            Pin Top
+                                        </button>
+                                    </form>
+                                }
+
+                                if (secondaryPlacementByArticleId.TryGetValue(article.Id, out var placementId))
+                                {
+                                    <form asp-area="Admin" asp-controller="EditorialPlacements" asp-action="UnpinSecondaryStory" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="placementId" value="@placementId" />
+                                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                        <button type="submit" class="badge bg-light border border-primary text-primary">
+                                            Unpin Secondary
+                                        </button>
+                                    </form>
+                                }
+                                else if (pinnedTopStoryArticleId != article.Id)
+                                {
+                                    <form asp-area="Admin" asp-controller="EditorialPlacements" asp-action="PinSecondaryStory" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="articleId" value="@article.Id" />
+                                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                        <button type="submit" class="badge bg-primary">
+                                            Pin Secondary
+                                        </button>
+                                    </form>
+                                }
+                            }
                            @*  <a asp-action="Details" asp-route-id="@article.Id" class="badge bg-info me-1">
                                 Details
                             </a> *@
