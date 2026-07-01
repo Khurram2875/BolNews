@@ -21,6 +21,7 @@ namespace BolNews.Application.Services
         private readonly IWorkflowTransitionService _workflowTransitionService;
         private readonly IEditorialAssignmentService _editorialAssignmentService;
         private readonly ISlaService _slaService;
+        private readonly IEditorialPlacementRepository? _editorialPlacementRepository;
 
         #region Role and other private helpers
         private bool IsAdmin(IList<string> roles)
@@ -127,7 +128,7 @@ namespace BolNews.Application.Services
             }
         }
         #endregion
-        public ArticleService(IArticleRepository repo, IMemoryCache cache, IArticleScoringService articleScoringService, IArticleRevisionService articleRevisionService, IAuthorService authorService, INotificationService notificationService, IWorkflowTransitionService workflowTransitionService, IEditorialAssignmentService editorialAssignmentService, ISlaService slaService)
+        public ArticleService(IArticleRepository repo, IMemoryCache cache, IArticleScoringService articleScoringService, IArticleRevisionService articleRevisionService, IAuthorService authorService, INotificationService notificationService, IWorkflowTransitionService workflowTransitionService, IEditorialAssignmentService editorialAssignmentService, ISlaService slaService, IEditorialPlacementRepository? editorialPlacementRepository = null)
         {
             _repo = repo;
             _cache = cache;
@@ -138,6 +139,7 @@ namespace BolNews.Application.Services
             _workflowTransitionService = workflowTransitionService;
             _editorialAssignmentService = editorialAssignmentService;
             _slaService = slaService;
+            _editorialPlacementRepository = editorialPlacementRepository;
         }
 
         public async Task<int> CreateAsync(ArticleDto dto, string currentUserId,IList<string> roles)
@@ -391,8 +393,68 @@ namespace BolNews.Application.Services
 
         public async Task<List<Article>> GetLatestArticlesAsync(int count = 5) => await _repo.GetPublishedAsync(count);
         public async Task<List<Article>> GetAllPublishedAsync() => await _repo.GetPublishedAsync(int.MaxValue);
-        public async Task<Article?> GetTopStoryAsync() => (await _repo.GetPublishedAsync(1)).FirstOrDefault();
-        public async Task<List<Article>> GetSecondaryStoriesAsync(int count = 20) => (await _repo.GetPublishedAsync(count + 1)).Skip(1).Take(count).ToList();
+        public async Task<Article?> GetTopStoryAsync()
+        {
+            if (_editorialPlacementRepository == null)
+            {
+                return await _repo.GetLatestPublishedAsync();
+            }
+
+            var pinnedTopStory = await _editorialPlacementRepository.GetActivePlacementAsync(EditorialPlacementKeys.HomepageTopStory);
+
+            if (pinnedTopStory?.Article is { IsPublished: true, IsDeleted: false } article)
+            {
+                return article;
+            }
+
+            return await _repo.GetLatestPublishedAsync();
+        }
+
+        public async Task<List<Article>> GetSecondaryStoriesAsync(int count = 20)
+        {
+            var selectedArticles = new List<Article>();
+            var excludedArticleIds = new HashSet<int>();
+
+            var topStory = await GetTopStoryAsync();
+            if (topStory != null)
+            {
+                excludedArticleIds.Add(topStory.Id);
+            }
+
+            if (_editorialPlacementRepository != null)
+            {
+                var pinnedSecondaryStories = await _editorialPlacementRepository
+                    .GetActivePlacementsWithArticlesAsync(EditorialPlacementKeys.HomepageSecondaryStory);
+
+                foreach (var placement in pinnedSecondaryStories)
+                {
+                    if (selectedArticles.Count >= count)
+                    {
+                        break;
+                    }
+
+                    if (placement.Article is not { IsPublished: true, IsDeleted: false } article ||
+                        excludedArticleIds.Contains(article.Id))
+                    {
+                        continue;
+                    }
+
+                    selectedArticles.Add(article);
+                    excludedArticleIds.Add(article.Id);
+                }
+            }
+
+            var remainingCount = count - selectedArticles.Count;
+            if (remainingCount <= 0)
+            {
+                return selectedArticles;
+            }
+
+            var fallbackArticles = await _repo.GetLatestPublishedAsync(remainingCount, excludedArticleIds);
+            selectedArticles.AddRange(fallbackArticles);
+
+            return selectedArticles;
+        }
         public async Task<List<Article>> GetArticlesByCategoryAsync(int catId, int n) => await _repo.GetByCategoryIdAsync(catId, n);
         public async Task<List<Article>> GetBreakingNewsAsync(int count = 5) => await _repo.GetPublishedAsync(count);
         public async Task<List<Article>> SearchAsync(string q, int page, int pageSize) => await _repo.SearchAsync(q.Trim(), page, pageSize);

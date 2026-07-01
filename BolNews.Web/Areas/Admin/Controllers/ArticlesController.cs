@@ -43,6 +43,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly IArticleLockService _articleLockService;
         private readonly IArticleDiscussionService _discussionService;
         private readonly ICacheService _cacheService;
+        private readonly IEditorialPlacementService _editorialPlacementService;
         private readonly IGeminiService _geminiService;
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -55,7 +56,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
              IDiscoverService discoverService, IHeadlineService headlineService, 
              ITrendingService trendingService, ICacheService cacheService,
              UserManager<ApplicationUser> userManager, IArticleLockService articleLockService, 
-             IArticleDiscussionService discussionService, IGeminiService geminiService)
+             IArticleDiscussionService discussionService, IGeminiService geminiService,
+             IEditorialPlacementService editorialPlacementService)
         {
             _articleService = articleService;
             _categoryService = categoryService;
@@ -71,6 +73,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _articleLockService = articleLockService;
             _discussionService = discussionService;
             _geminiService = geminiService;
+            _editorialPlacementService = editorialPlacementService;
         }
 
         // GET: Admin/Articles
@@ -111,6 +114,16 @@ namespace BolNews.Web.Areas.Admin.Controllers
             ViewBag.TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
             ViewBag.HasPreviousPage = page > 1;
             ViewBag.HasNextPage = page < ViewBag.TotalPages;
+
+            if (roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor))
+            {
+                var topStory = await _editorialPlacementService.GetPinnedTopStoryAsync();
+                var secondaryStories = await _editorialPlacementService.GetPinnedSecondaryStoriesAsync();
+
+                ViewBag.PinnedTopStoryArticleId = topStory?.ArticleId;
+                ViewBag.SecondaryPlacementByArticleId = secondaryStories
+                    .ToDictionary(x => x.ArticleId, x => x.Id);
+            }
 
             return View(viewModels);
         }
@@ -425,6 +438,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _cacheService.Remove(CacheKeys.Trending("week"));
 
             _cacheService.Remove(CacheKeys.Trending("month"));
+            _cacheService.Remove(CacheKeys.HomePage);
 
             _cacheService.Remove(CacheKeys.Dashboard);
             _cacheService.Remove(CacheKeys.Sitemap + "_index");

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using AutoMapper;
+using BolNews.Application.Common;
 using BolNews.Application.Interfaces;
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Models;
@@ -30,7 +31,7 @@ namespace BolNews.Web.Controllers
         {
             //ClearLatestNewsCache(5);
              //var vm = new HomePageVM();
-             var vm = await _cache.GetOrCreateAsync("homepage", async entry =>
+             var vm = await _cache.GetOrCreateAsync(CacheKeys.HomePage, async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
 
@@ -113,7 +114,7 @@ namespace BolNews.Web.Controllers
         }
         public void ClearLatestNewsCache(int count = 5)
         {
-            var home = "homepage";
+            var home = CacheKeys.HomePage;
             var cacheKey = $"latest_news_{count}";
             _cache.Remove(home);
             _cache.Remove(cacheKey);

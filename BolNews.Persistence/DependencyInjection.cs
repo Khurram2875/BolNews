@@ -54,6 +54,7 @@ namespace BolNews.Persistence
                 options.SlidingExpiration = true;
             });
             services.AddScoped<IArticleRepository, ArticleRepository>();
+            services.AddScoped<IEditorialPlacementRepository, EditorialPlacementRepository>();
             services.AddScoped<IAuthorRepository, AuthorRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();

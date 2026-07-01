@@ -26,6 +26,8 @@ namespace BolNews.Persistence.Context
         public DbSet<ArticleRevision> ArticleRevisions { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<ArticleDiscussionComment> ArticleDiscussionComments { get; set; }
+        //public DbSet<AdPlacement> AdPlacements { get; set; }
+        public DbSet<EditorialPlacement> EditorialPlacements { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -65,6 +67,8 @@ namespace BolNews.Persistence.Context
 
                 entity.Property(x => x.CreatedAt)
                     .IsRequired();
+
+                entity.HasQueryFilter(c => !c.Article.IsDeleted);
 
                 entity.HasOne(x => x.Article)
                     .WithMany(x => x.DiscussionComments)
