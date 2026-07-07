@@ -6,6 +6,7 @@ namespace BolNews.Web.Interfaces
         public interface ISeoService
         {
             string BuildArticleSchema(PublicArticleVM article, string baseUrl);
+            string BuildKeywords(PublicArticleVM article);
 
             string BuildCategorySchema(
                 string categoryName,

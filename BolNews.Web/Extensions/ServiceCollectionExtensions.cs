@@ -34,6 +34,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWorkflowTransitionService, WorkflowTransitionService>();
         services.AddScoped<IEditorialAssignmentService, EditorialAssignmentService>();
         services.AddScoped<IEditorialPlacementService, EditorialPlacementService>();
+        services.AddScoped<ITagService, TagService>();
 
         services.AddMemoryCache();
 

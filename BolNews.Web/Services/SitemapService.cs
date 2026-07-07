@@ -14,6 +14,7 @@ namespace BolNews.Web.Services
         private readonly ICategoryService _categoryService;
         private readonly IUrlService _urlService;
         private readonly ICacheService _cache;
+        private readonly ITagService _tagService;
 
 
         public SitemapService(
@@ -21,13 +22,15 @@ namespace BolNews.Web.Services
             ICategoryService categoryService,
             IUrlService urlService,
             ICacheService cache,
-            IAuthorService authorService)
+            IAuthorService authorService,
+            ITagService tagService)
         {
             _articleService = articleService;
             _categoryService = categoryService;
             _urlService = urlService;
             _cache = cache;
             _authorService = authorService;
+            _tagService = tagService;
         }
 
         // ✅ SITEMAP INDEX
@@ -54,6 +57,9 @@ namespace BolNews.Web.Services
                             ),
                             new XElement(ns + "sitemap",
                                 new XElement(ns + "loc", $"{baseUrl}/sitemap-authors.xml")
+                            ),
+                            new XElement(ns + "sitemap",
+                                new XElement(ns + "loc", $"{baseUrl}/sitemap-tags.xml")
                             )
                         )
                     );
@@ -182,6 +188,43 @@ namespace BolNews.Web.Services
             );
 
             return xml.ToString();
+        }
+
+        public async Task<string> GenerateTagSitemapAsync()
+        {
+            return await _cache.GetOrCreateAsync(
+                CacheKeys.Sitemap + "_tags",
+                async () =>
+                {
+                    var tags = await _tagService.GetAllAsync();
+                    var baseUrl = _urlService.GetBaseUrl();
+                    XNamespace ns = "http://www.sitemaps.org/schemas/sitemap/0.9";
+
+                    var tagUrls = new List<XElement>();
+                    foreach (var tag in tags)
+                    {
+                        var articles = await _articleService.GetByTagSlugAsync(tag.Slug, 1, 1);
+                        if (!articles.Any())
+                        {
+                            continue;
+                        }
+
+                        var lastModified = articles
+                            .Select(a => a.UpdatedAt ?? a.PublishedAt ?? a.CreatedAt)
+                            .DefaultIfEmpty(DateTime.UtcNow)
+                            .Max();
+
+                        tagUrls.Add(new XElement(ns + "url",
+                            new XElement(ns + "loc", $"{baseUrl}/tag/{tag.Slug}"),
+                            new XElement(ns + "lastmod", lastModified.ToString("yyyy-MM-ddTHH:mm:ssZ")),
+                            new XElement(ns + "changefreq", "daily"),
+                            new XElement(ns + "priority", "0.6")
+                        ));
+                    }
+
+                    return new XDocument(new XElement(ns + "urlset", tagUrls)).ToString();
+                },
+                60);
         }
     }
 }

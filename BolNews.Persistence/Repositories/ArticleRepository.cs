@@ -36,6 +36,11 @@ namespace BolNews.Persistence.Repositories
             .Include(a => a.ReviewerUser)
 
             .Include(a => a.FactCheckerUser)
+            .Include(a => a.ArticleTags)
+                .ThenInclude(a => a.Tag)
+            .Include(a => a.FeaturedImageMetadata)
+                .ThenInclude(a => a.FeaturedImageTags)
+                    .ThenInclude(a => a.Tag)
 
             .Include(a => a.DiscussionComments
                 .Where(c => !c.IsDeleted))
@@ -58,6 +63,11 @@ namespace BolNews.Persistence.Repositories
                 .AsNoTrackingWithIdentityResolution()
                 .Include(a => a.Category)
                 .Include(a => a.Author)
+                .Include(a => a.ArticleTags)
+                    .ThenInclude(a => a.Tag)
+                .Include(a => a.FeaturedImageMetadata)
+                    .ThenInclude(a => a.FeaturedImageTags)
+                        .ThenInclude(a => a.Tag)
                 .FirstOrDefaultAsync(a => a.Slug == slug && !a.IsDeleted);
 
         public async Task<List<Article>> GetAllAsync()
@@ -90,6 +100,21 @@ namespace BolNews.Persistence.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
+        public async Task<List<Article>> GetByTagSlugAsync(string tagSlug, int page, int pageSize)
+            => await _context.Articles
+                .AsNoTracking()
+                .Where(a => a.IsPublished &&
+                            !a.IsDeleted &&
+                            a.ArticleTags.Any(at => at.Tag.Slug == tagSlug))
+                .Include(a => a.Author)
+                .Include(a => a.Category)
+                .Include(a => a.ArticleTags)
+                    .ThenInclude(at => at.Tag)
+                .OrderByDescending(a => a.PublishedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
         public async Task<List<Article>> GetPublishedAsync(int count)
             => await _context.Articles.AsNoTracking()
                 .AsNoTracking()
@@ -117,6 +142,38 @@ namespace BolNews.Persistence.Repositories
                 .Take(count)
                 .ToListAsync();
 
+        public async Task<List<Article>> GetRelatedArticlesAsync(int articleId, int categoryId, IReadOnlyCollection<int> tagIds, int count)
+        {
+            var query = _context.Articles
+                .AsNoTracking()
+                .Include(a => a.Category)
+                .Include(a => a.Author)
+                .Include(a => a.ArticleTags)
+                    .ThenInclude(at => at.Tag)
+                .Where(a =>
+                    a.Id != articleId &&
+                    a.IsPublished &&
+                    !a.IsDeleted);
+
+            return await query
+                .Select(a => new
+                {
+                    Article = a,
+                    SharedTagCount = tagIds.Count == 0
+                        ? 0
+                        : a.ArticleTags.Count(at => tagIds.Contains(at.TagId)),
+                    SameCategory = a.CategoryId == categoryId ? 1 : 0
+                })
+                .Where(x => x.SharedTagCount > 0 || x.SameCategory == 1)
+                .OrderByDescending(x => x.SharedTagCount)
+                .ThenByDescending(x => x.SameCategory)
+                .ThenByDescending(x => x.Article.OverallScore)
+                .ThenByDescending(x => x.Article.PublishedAt)
+                .Take(count)
+                .Select(x => x.Article)
+                .ToListAsync();
+        }
+
         public async Task<List<Article>> GetForCategoriesAsync(List<int> categoryIds)
             => await _context.Articles.AsNoTracking()
                 .Include(a => a.Category)
@@ -135,9 +192,13 @@ namespace BolNews.Persistence.Repositories
         public async Task<List<Article>> SearchAsync(string term, int page, int pageSize)
             => await _context.Articles.AsNoTracking()
                 .Include(a => a.Category)
+                .Include(a => a.Author)
+                .Include(a => a.ArticleTags)
+                    .ThenInclude(at => at.Tag)
                 .Where(a => a.IsPublished && !a.IsDeleted &&
                     (EF.Functions.Like(a.Title, $"%{term}%") ||
-                     EF.Functions.Like(a.Content, $"%{term}%")))
+                     EF.Functions.Like(a.Content, $"%{term}%") ||
+                     a.ArticleTags.Any(at => EF.Functions.Like(at.Tag.Name, $"%{term}%"))))
                 .OrderByDescending(a => a.PublishedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)

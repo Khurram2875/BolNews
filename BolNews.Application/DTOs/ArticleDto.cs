@@ -24,6 +24,9 @@ namespace BolNews.Application.DTOs
         public string? FeaturedImageThumb { get; set; }
         public string? FeaturedImageMedium { get; set; }
         public string? FeaturedImageLarge { get; set; }
+        public string? FeaturedImageAltText { get; set; }
+        public string? FeaturedImageCaption { get; set; }
+        public string? FeaturedImageCredit { get; set; }
 
 
         public int CategoryId { get; set; }
@@ -49,6 +52,11 @@ namespace BolNews.Application.DTOs
         // Schedule Publishing /Emabrgo
         public DateTime? ScheduledPublishAt { get; set; }
         public DateTime? EmbargoUntil { get; set; }
+
+        public string? ArticleTagsInput { get; set; }
+        public string? FeaturedImageTagsInput { get; set; }
+        public List<TagDto> ArticleTags { get; set; } = new();
+        public List<TagDto> FeaturedImageTags { get; set; } = new();
 
         public string TimeAgo
         {

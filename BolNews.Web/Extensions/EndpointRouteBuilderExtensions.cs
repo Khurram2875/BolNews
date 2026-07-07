@@ -23,6 +23,12 @@ public static class EndpointRouteBuilderExtensions
         );
 
         endpoints.MapControllerRoute(
+            name: "tagDetails",
+            pattern: "tag/{slug}",
+            defaults: new { controller = "Tag", action = "Details" }
+        );
+
+        endpoints.MapControllerRoute(
             name: "areas",
             pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
         );

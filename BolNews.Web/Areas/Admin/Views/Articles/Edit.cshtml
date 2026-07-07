@@ -1,5 +1,6 @@
 ﻿@using BolNews.Domain.Common
 @using BolNews.Domain.Enums
+@using System.Text.Json
 @model BolNews.Web.Areas.Admin.ViewModels.ArticleVM
 <link href="~/css/site.css" rel="stylesheet" />
 @{
@@ -86,58 +87,163 @@
             </div> *@
 
 			<div class="mb-3">
-				<label asp-for="Content" class="form-label"></label>
-				<div class="mb-2">
+
+				<div class="d-flex justify-content-between align-items-center mb-2">
+
+					<label asp-for="Content"
+						   class="form-label mb-0">
+					</label>
 
 					<button type="button"
-							id="imgLeft"
-							class="badge bg-dark">
-						Image Left
+							id="btnCheckGrammar"
+							class="btn btn-outline-primary">
+						Check Grammar
 					</button>
 
-					<button type="button"
-							id="imgCenter"
-							class="badge bg-dark">
-						Image Center
-					</button>
-
-					<button type="button"
-							id="imgRight"
-							class="badge bg-dark">
-						Image Right
-					</button> |
-					<button type="button"
-							id="imgSmall"
-							class="badge bg-dark">
-						Small
-					</button>
-
-					<button type="button"
-							id="imgMedium"
-							class="badge bg-dark">
-						Medium
-					</button>
-
-					<button type="button"
-							id="imgLarge"
-							class="badge bg-dark">
-						Large
-					</button>
-
-					<button type="button"
-							id="imgFull"
-							class="badge bg-dark">
-						Full Width
-					</button>
-					<button type="button" id="btnSocialEmbed" class="badge bg-primary">
-						⚡ Embed Social Code
-					</button>
 				</div>
-				<input type="hidden" asp-for="Content" id="Content" />
 
-				<div id="editor"></div>
+				<input type="hidden"
+					   asp-for="Content"
+					   id="Content" />
 
-				<span asp-validation-for="Content" class="text-danger"></span>
+				<div class="row g-3">
+
+					<!-- LEFT: Quill editor -->
+					<div id="editorColumn"
+						 class="col-12">
+
+						<div class="mb-2">
+
+							<button type="button"
+									id="imgLeft"
+									class="badge bg-dark">
+								Image Left
+							</button>
+
+							<button type="button"
+									id="imgCenter"
+									class="badge bg-dark">
+								Image Center
+							</button>
+
+							<button type="button"
+									id="imgRight"
+									class="badge bg-dark">
+								Image Right
+							</button>
+
+							|
+
+							<button type="button"
+									id="imgSmall"
+									class="badge bg-dark">
+								Small
+							</button>
+
+							<button type="button"
+									id="imgMedium"
+									class="badge bg-dark">
+								Medium
+							</button>
+
+							<button type="button"
+									id="imgLarge"
+									class="badge bg-dark">
+								Large
+							</button>
+
+							<button type="button"
+									id="imgFull"
+									class="badge bg-dark">
+								Full Width
+							</button>
+
+							<button type="button"
+									id="btnSocialEmbed"
+									class="badge bg-primary">
+								⚡ Embed Social Code
+							</button>
+
+						</div>
+
+						<div id="editor"></div>
+
+						<span asp-validation-for="Content"
+							  class="text-danger">
+						</span>
+
+					</div>
+
+
+					<!-- RIGHT: Grammar review -->
+					<div id="grammarPanelColumn"
+						 class="col-lg-4 d-none">
+
+						<div class="grammar-review-panel">
+
+							<div class="d-flex justify-content-between align-items-center mb-3">
+
+								<div>
+									<h5 class="mb-1">
+										Grammar Suggestions
+									</h5>
+
+									<small id="grammarIssueCount"
+										   class="text-muted">
+										No review performed
+									</small>
+								</div>
+
+								<button type="button"
+										id="btnCloseGrammar"
+										class="btn-close"
+										aria-label="Close">
+								</button>
+
+							</div>
+
+
+							<div id="grammarLoading"
+								 class="d-none py-4 text-center">
+
+								<div class="spinner-border spinner-border-sm"
+									 role="status">
+								</div>
+
+								<span class="ms-2">
+									Checking content...
+								</span>
+
+							</div>
+
+
+							<div id="grammarSuggestions">
+
+								<div class="text-muted py-4 text-center">
+									Click <strong>Check Grammar</strong>
+									to review the article content.
+								</div>
+
+							</div>
+
+
+							<div id="grammarActions"
+								 class="d-none border-top mt-3 pt-3">
+
+								<button type="button"
+										id="btnApplyAllGrammar"
+										class="btn btn-primary w-100">
+									Apply All Suggestions
+								</button>
+
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+
 			</div>
 			@if (canPublish || canFactCheck || canEditorsPick || isSubEditor)
 			{
@@ -241,6 +347,39 @@
 				}
 			</div>
 
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<label asp-for="FeaturedImageAltText" class="form-label">Featured Image Alt Text</label>
+					<input asp-for="FeaturedImageAltText" class="form-control" />
+				</div>
+				<div class="col-md-6 mb-3">
+					<label asp-for="FeaturedImageCredit" class="form-label">Featured Image Credit</label>
+					<input asp-for="FeaturedImageCredit" class="form-control" />
+				</div>
+			</div>
+			<div class="mb-3">
+				<label asp-for="FeaturedImageCaption" class="form-label">Featured Image Caption</label>
+				<input asp-for="FeaturedImageCaption" class="form-control" />
+			</div>
+
+			@await Html.PartialAsync("_TagEditor", null, new ViewDataDictionary(ViewData)
+			{
+				["InputName"] = nameof(Model.ArticleTagsInput),
+				["InputId"] = nameof(Model.ArticleTagsInput),
+				["Label"] = "Article Tags",
+				["HelpText"] = "Tags support topic pages, search matching, related articles, and SEO keywords.",
+				["ExistingValue"] = string.IsNullOrWhiteSpace(Model.ArticleTagsInput) ? JsonSerializer.Serialize(Model.ArticleTags.Select(x => x.Name)) : Model.ArticleTagsInput
+			})
+
+			@await Html.PartialAsync("_TagEditor", null, new ViewDataDictionary(ViewData)
+			{
+				["InputName"] = nameof(Model.FeaturedImageTagsInput),
+				["InputId"] = nameof(Model.FeaturedImageTagsInput),
+				["Label"] = "Featured Image Tags",
+				["HelpText"] = "Image tags describe the visual content and enrich structured image metadata.",
+				["ExistingValue"] = string.IsNullOrWhiteSpace(Model.FeaturedImageTagsInput) ? JsonSerializer.Serialize(Model.FeaturedImageTags.Select(x => x.Name)) : Model.FeaturedImageTagsInput
+			})
+
 			<div class="mb-3">
 				<label asp-for="CategoryId" class="form-label"></label>
 				<select asp-for="CategoryId"
@@ -332,6 +471,7 @@
 
 @section Scripts
 {
+	<script src="~/js/tag-editor.js" asp-append-version="true"></script>
 	<script>
 		// System Lock Management Call Interval
 		setInterval(function () {
@@ -347,249 +487,1544 @@
 			navigator.sendBeacon('/Admin/Article/ReleaseLock?id=@Model.Id');
 		});
 		//Quill Integration
-		document.addEventListener('DOMContentLoaded', function () {
-			const Parchment = Quill.import('parchment');
-			const BlockEmbed = Quill.import('blots/block/embed');
-			const ImageBlot = Quill.import('formats/image');
+                document.addEventListener('DOMContentLoaded', function () {
 
-			// CRITICAL FIX 1: Register data-size to target the IMG element node format directly, preventing <span> wrappers
-			const ImageSizeAttributor = new Parchment.Attributor('data-size', 'data-size', {
-				scope: Parchment.Scope.INLINE,
-				whitelist: ['small', 'medium', 'large', 'full']
-			});
-			   Quill.register(ImageSizeAttributor, true);
+            // ============================================================
+            // QUILL IMPORTS
+            // ============================================================
 
-			// Dynamic Social Embed Block Configuration
-			class SocialEmbedBlot extends BlockEmbed {
-				static create(value) {
-					const node = super.create();
-					node.setAttribute('class', 'quill-social-embed');
-					node.setAttribute('contenteditable', 'false');
-					node.setAttribute('data-raw-html', btoa(unescape(encodeURIComponent(value))));
+            const Parchment = Quill.import('parchment');
+            const BlockEmbed = Quill.import('blots/block/embed');
+            const ImageBlot = Quill.import('formats/image');
 
-					let platformName = "Social Media";
-					const domainMatch = value.match(/(?:www\.)?([a-zA-Z0-9-]+)\.(?:com|net|org|be)/i);
-					if (domainMatch && domainMatch[1]) {
-						platformName = domainMatch[1].charAt(0).toUpperCase() + domainMatch[1].slice(1);
-						if (platformName.toLowerCase() === 'youtu') platformName = 'YouTube';
-						if (platformName.toLowerCase() === 'fb') platformName = 'Facebook';
-					}
 
-					node.innerHTML = `
-						<div class="embed-placeholder-box">
-							<span class="embed-icon">🌐</span>
-							<p class="embed-title">${platformName} Integration Widget</p>
-							<small class="embed-subtitle">The complete interactive embed will render live on your main website</small>
-						</div>
-					`;
-					return node;
-				}
+            // ============================================================
+            // GRAMMAR HIGHLIGHT FORMAT
+            // ============================================================
 
-				static value(node) {
-					const encodedData = node.getAttribute('data-raw-html');
-					if (encodedData) {
-						return decodeURIComponent(escape(atob(encodedData)));
-					}
-					return node.innerHTML;
-				}
-			}
-			SocialEmbedBlot.blotName = 'socialEmbed';
-			SocialEmbedBlot.tagName = 'div';
+            const GrammarHighlightAttributor =
+                new Parchment.ClassAttributor(
+                    'grammarHighlight',
+                    'grammar-highlight',
+                    {
+                        scope: Parchment.Scope.INLINE
+                    }
+                );
 
-			// Register custom configurations into active Quill instance definitions
-			Quill.register(ImageBlot, true);
-			Quill.register(SocialEmbedBlot, true);
+            Quill.register(
+                GrammarHighlightAttributor,
+                true
+            );
 
-			const contentField = document.getElementById('Content');
-			let selectedImage = null;
 
-			let quill = new Quill('#editor', {
-				theme: 'snow',
-				modules: {
-					toolbar: [
-						[{ header: [1, 2, 3, 4, false] }],
-						['bold', 'italic', 'underline', 'strike'],
-						[{ color: [] }, { background: [] }],
-						[{ align: [] }],
-						[{ list: 'ordered' }, { list: 'bullet' }],
-						['blockquote'],
-						['link', 'image'],
-						['clean']
-					]
-				}
-			});
+            // ============================================================
+            // IMAGE SIZE ATTRIBUTOR
+            // ============================================================
 
-			// Double-click to remove an embed widget safely
-			quill.root.addEventListener('dblclick', function (e) {
-				const embedWrapper = e.target.closest('.quill-social-embed');
-				if (embedWrapper) {
-					const confirmDelete = confirm("Do you want to remove this social media embed?");
-					if (confirmDelete) {
-						const blot = Quill.find(embedWrapper);
-						if (blot) {
-							blot.remove();
-							quill.update();
-						}
-					}
-				}
-			});
+            const ImageSizeAttributor =
+                new Parchment.Attributor(
+                    'data-size',
+                    'data-size',
+                    {
+                        scope: Parchment.Scope.INLINE,
+                        whitelist: [
+                            'small',
+                            'medium',
+                            'large',
+                            'full'
+                        ]
+                    }
+                );
 
-			// Image upload handler integration
-			const toolbar = quill.getModule('toolbar');
-			toolbar.addHandler('image', imageHandler);
+            Quill.register(
+                ImageSizeAttributor,
+                true
+            );
 
-			async function imageHandler() {
-				const input = document.createElement('input');
-				input.type = 'file';
-				input.accept = 'image/*';
-				input.click();
 
-				input.onchange = async () => {
-					const file = input.files[0];
-					if (!file) return;
+            // ============================================================
+            // SOCIAL EMBED BLOT
+            // ============================================================
 
-					const formData = new FormData();
-					formData.append('upload', file);
-					try {
-						const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-						const response = await fetch('/Admin/Articles/UploadEditorImage', {
-							method: 'POST',
-							headers: { 'RequestVerificationToken': token },
-							body: formData
-						});
-						if (!response.ok) throw new Error('Upload failed');
-						const result = await response.json();
+            class SocialEmbedBlot extends BlockEmbed {
 
-						const range = quill.getSelection(true);
-						quill.insertEmbed(range.index, 'image', result.url);
-						quill.setSelection(range.index + 1);
-					}
-					catch (error) {
-						console.error(error);
-						alert('Image upload failed.');
-					}
-				};
-			}
+                static create(value) {
 
-			// Initialize editor content safely
-			if (contentField.value) {
-				quill.clipboard.dangerouslyPasteHTML(contentField.value);
-			}
+                    const node = super.create();
 
-			// Track selected images cleanly
-			quill.root.addEventListener('click', function (e) {
-				document.querySelectorAll('.ql-editor img').forEach(img => img.classList.remove('selected-image'));
+                    node.setAttribute(
+                        'class',
+                        'quill-social-embed'
+                    );
 
-				if (e.target.tagName === 'IMG') {
-					selectedImage = e.target;
-					selectedImage.classList.add('selected-image');
-				} else {
-					selectedImage = null;
-				}
-			});
+                    node.setAttribute(
+                        'contenteditable',
+                        'false'
+                    );
 
-			// Layout Alignment Click Handlers
-			const imgLeft = document.getElementById('imgLeft');
-			const imgCenter = document.getElementById('imgCenter');
-			const imgRight = document.getElementById('imgRight');
+                    node.setAttribute(
+                        'data-raw-html',
+                        btoa(
+                            unescape(
+                                encodeURIComponent(value)
+                            )
+                        )
+                    );
 
-			if (imgLeft) {
-				imgLeft.addEventListener('click', function () {
-					if (!selectedImage) return;
-					const parent = selectedImage.parentElement;
-					parent.classList.remove('ql-align-left', 'ql-align-center', 'ql-align-right');
-					parent.classList.add('ql-align-left');
-				});
-			}
+                    let platformName = 'Social Media';
 
-			if (imgCenter) {
-				imgCenter.addEventListener('click', function () {
-					if (!selectedImage) return;
-					const parent = selectedImage.parentElement;
-					parent.classList.remove('ql-align-left', 'ql-align-center', 'ql-align-right');
-					parent.classList.add('ql-align-center');
-				});
-			}
+                    const domainMatch = value.match(
+                        /(?:www\.)?([a-zA-Z0-9-]+)\.(?:com|net|org|be)/i
+                    );
 
-			if (imgRight) {
-				imgRight.addEventListener('click', function () {
-					if (!selectedImage) return;
-					const parent = selectedImage.parentElement;
-					parent.classList.remove('ql-align-left', 'ql-align-center', 'ql-align-right');
-					parent.classList.add('ql-align-right');
-				});
-			}
+                    if (domainMatch && domainMatch[1]) {
 
-			// CRITICAL FIX 2: Fixed sizing assignment pipeline
-			const imgSmall = document.getElementById('imgSmall');
-			const imgMedium = document.getElementById('imgMedium');
-			const imgLarge = document.getElementById('imgLarge');
-			const imgFull = document.getElementById('imgFull');
+                        platformName =
+                            domainMatch[1]
+                                .charAt(0)
+                                .toUpperCase()
+                            +
+                            domainMatch[1].slice(1);
 
-			function applyImageSize(size) {
-				if (!selectedImage) return;
+                        if (
+                            platformName.toLowerCase()
+                            === 'youtu'
+                        ) {
+                            platformName = 'YouTube';
+                        }
 
-				// Update DOM element directly for immediate visualization feedback
-				selectedImage.setAttribute('data-size', size);
+                        if (
+                            platformName.toLowerCase()
+                            === 'fb'
+                        ) {
+                            platformName = 'Facebook';
+                        }
+                    }
 
-				// Set layout format on the Image Blot itself, avoiding the extra span tags
-				const blot = Quill.find(selectedImage);
-				if (blot) {
-					blot.format('data-size', size);
-					quill.update();
-					// Push mutations cleanly into synchronization buffer
-					contentField.value = cleanHtml(quill.root.innerHTML);
-				}
-			}
+                    node.innerHTML = `
+                        <div class="embed-placeholder-box">
 
-			if (imgSmall) imgSmall.addEventListener('click', () => applyImageSize('small'));
-			if (imgMedium) imgMedium.addEventListener('click', () => applyImageSize('medium'));
-			if (imgLarge) imgLarge.addEventListener('click', () => applyImageSize('large'));
-			if (imgFull) imgFull.addEventListener('click', () => applyImageSize('full'));
+                            <span class="embed-icon">
+                                🌐
+                            </span>
 
-			// Social Media Insertion Prompt Action
-			const btnSocialEmbed = document.getElementById('btnSocialEmbed');
-			if (btnSocialEmbed) {
-				btnSocialEmbed.addEventListener('click', function () {
-					const embedCode = prompt("Paste your full Social Media Embed Code:");
-					if (embedCode && embedCode.trim() !== '') {
-						const range = quill.getSelection(true);
-						quill.insertEmbed(range.index, 'socialEmbed', embedCode.trim());
-						quill.setSelection(range.index + 1);
-					}
-				});
-			}
+                            <p class="embed-title">
+                                ${platformName} Integration Widget
+                            </p>
 
-			// Form Synchronization Listeners
-			quill.on('text-change', function () {
-				contentField.value = cleanHtml(quill.root.innerHTML);
-			});
+                            <small class="embed-subtitle">
+                                The complete interactive embed will
+                                render live on your main website
+                            </small>
 
-			const form = document.querySelector('form');
-			if (form) {
-				form.addEventListener('submit', function (e) {
-					contentField.value = cleanHtml(quill.root.innerHTML);
-				});
-			}
+                        </div>
+                    `;
 
-			function cleanHtml(html) {
-				const div = document.createElement('div');
-				div.innerHTML = html;
+                    return node;
+                }
 
-				// Strip out selected-image markers before packaging payload data
-				div.querySelectorAll('img').forEach(img => {
-					img.classList.remove('selected-image');
-				});
 
-				div.querySelectorAll('span').forEach(span => {
-					const style = span.getAttribute('style');
-					if (style && style.includes('color: rgb(0, 0, 0)') && style.includes('background-color: rgb(255, 255, 255)')) {
-						span.replaceWith(...span.childNodes);
-					}
-				});
-				return div.innerHTML;
-			}
-		});
+                static value(node) {
+
+                    const encodedData =
+                        node.getAttribute(
+                            'data-raw-html'
+                        );
+
+                    if (encodedData) {
+
+                        return decodeURIComponent(
+                            escape(
+                                atob(encodedData)
+                            )
+                        );
+                    }
+
+                    return node.innerHTML;
+                }
+            }
+
+
+            SocialEmbedBlot.blotName =
+                'socialEmbed';
+
+            SocialEmbedBlot.tagName =
+                'div';
+
+
+            Quill.register(
+                ImageBlot,
+                true
+            );
+
+            Quill.register(
+                SocialEmbedBlot,
+                true
+            );
+
+
+            // ============================================================
+            // QUILL INITIALIZATION
+            // ============================================================
+
+            const contentField =
+                document.getElementById('Content');
+
+            let selectedImage = null;
+
+            let activeGrammarIssues = [];
+
+
+            const quill = new Quill(
+                '#editor',
+                {
+                    theme: 'snow',
+
+                    modules: {
+
+                        toolbar: [
+
+                            [
+                                {
+                                    header: [
+                                        1,
+                                        2,
+                                        3,
+                                        4,
+                                        false
+                                    ]
+                                }
+                            ],
+
+                            [
+                                'bold',
+                                'italic',
+                                'underline',
+                                'strike'
+                            ],
+
+                            [
+                                { color: [] },
+                                { background: [] }
+                            ],
+
+                            [
+                                { align: [] }
+                            ],
+
+                            [
+                                { list: 'ordered' },
+                                { list: 'bullet' }
+                            ],
+
+                            [
+                                'blockquote'
+                            ],
+
+                            [
+                                'link',
+                                'image'
+                            ],
+
+                            [
+                                'clean'
+                            ]
+                        ]
+                    }
+                }
+            );
+
+
+            // Optional: makes Quill available in DevTools.
+            window.quill = quill;
+
+
+            // ============================================================
+            // LOAD EXISTING ARTICLE CONTENT
+            // ============================================================
+
+            if (
+                contentField &&
+                contentField.value
+            ) {
+
+                quill.clipboard.dangerouslyPasteHTML(
+                    contentField.value
+                );
+            }
+
+
+            // ============================================================
+            // IMAGE UPLOAD
+            // ============================================================
+
+            const toolbar =
+                quill.getModule('toolbar');
+
+            toolbar.addHandler(
+                'image',
+                imageHandler
+            );
+
+
+            async function imageHandler() {
+
+                const input =
+                    document.createElement('input');
+
+                input.type = 'file';
+                input.accept = 'image/*';
+
+                input.click();
+
+
+                input.onchange = async () => {
+
+                    const file =
+                        input.files[0];
+
+                    if (!file) {
+                        return;
+                    }
+
+                    const formData =
+                        new FormData();
+
+                    formData.append(
+                        'upload',
+                        file
+                    );
+
+                    try {
+
+                        const token =
+                            document.querySelector(
+                                'input[name="__RequestVerificationToken"]'
+                            )?.value;
+
+                        const response = await fetch(
+                            '/Admin/Articles/UploadEditorImage',
+                            {
+                                method: 'POST',
+
+                                headers: {
+                                    'RequestVerificationToken':
+                                        token
+                                },
+
+                                body: formData
+                            }
+                        );
+
+                        if (!response.ok) {
+                            throw new Error(
+                                'Upload failed'
+                            );
+                        }
+
+                        const result =
+                            await response.json();
+
+                        const range =
+                            quill.getSelection(true);
+
+                        quill.insertEmbed(
+                            range.index,
+                            'image',
+                            result.url
+                        );
+
+                        quill.setSelection(
+                            range.index + 1
+                        );
+                    }
+                    catch (error) {
+
+                        console.error(error);
+
+                        alert(
+                            'Image upload failed.'
+                        );
+                    }
+                };
+            }
+
+
+            // ============================================================
+            // IMAGE SELECTION
+            // ============================================================
+
+            quill.root.addEventListener(
+                'click',
+                function (e) {
+
+                    document
+                        .querySelectorAll(
+                            '.ql-editor img'
+                        )
+                        .forEach(function (img) {
+
+                            img.classList.remove(
+                                'selected-image'
+                            );
+                        });
+
+                    if (
+                        e.target.tagName === 'IMG'
+                    ) {
+
+                        selectedImage =
+                            e.target;
+
+                        selectedImage
+                            .classList
+                            .add(
+                                'selected-image'
+                            );
+                    }
+                    else {
+
+                        selectedImage = null;
+                    }
+                }
+            );
+
+
+            // ============================================================
+            // IMAGE ALIGNMENT
+            // ============================================================
+
+            const imgLeft =
+                document.getElementById('imgLeft');
+
+            const imgCenter =
+                document.getElementById('imgCenter');
+
+            const imgRight =
+                document.getElementById('imgRight');
+
+
+            function applyImageAlignment(
+                alignmentClass
+            ) {
+
+                if (!selectedImage) {
+                    return;
+                }
+
+                const parent =
+                    selectedImage.parentElement;
+
+                parent.classList.remove(
+                    'ql-align-left',
+                    'ql-align-center',
+                    'ql-align-right'
+                );
+
+                parent.classList.add(
+                    alignmentClass
+                );
+            }
+
+
+            if (imgLeft) {
+
+                imgLeft.addEventListener(
+                    'click',
+                    function () {
+
+                        applyImageAlignment(
+                            'ql-align-left'
+                        );
+                    }
+                );
+            }
+
+
+            if (imgCenter) {
+
+                imgCenter.addEventListener(
+                    'click',
+                    function () {
+
+                        applyImageAlignment(
+                            'ql-align-center'
+                        );
+                    }
+                );
+            }
+
+
+            if (imgRight) {
+
+                imgRight.addEventListener(
+                    'click',
+                    function () {
+
+                        applyImageAlignment(
+                            'ql-align-right'
+                        );
+                    }
+                );
+            }
+
+
+            // ============================================================
+            // IMAGE SIZE
+            // ============================================================
+
+            const imgSmall =
+                document.getElementById('imgSmall');
+
+            const imgMedium =
+                document.getElementById('imgMedium');
+
+            const imgLarge =
+                document.getElementById('imgLarge');
+
+            const imgFull =
+                document.getElementById('imgFull');
+
+
+            function applyImageSize(size) {
+
+                if (!selectedImage) {
+                    return;
+                }
+
+                selectedImage.setAttribute(
+                    'data-size',
+                    size
+                );
+
+                const blot =
+                    Quill.find(selectedImage);
+
+                if (blot) {
+
+                    blot.format(
+                        'data-size',
+                        size
+                    );
+
+                    quill.update();
+
+                    if (contentField) {
+
+                        contentField.value =
+                            cleanHtml(
+                                quill.root.innerHTML
+                            );
+                    }
+                }
+            }
+
+
+            if (imgSmall) {
+
+                imgSmall.addEventListener(
+                    'click',
+                    () => applyImageSize('small')
+                );
+            }
+
+
+            if (imgMedium) {
+
+                imgMedium.addEventListener(
+                    'click',
+                    () => applyImageSize('medium')
+                );
+            }
+
+
+            if (imgLarge) {
+
+                imgLarge.addEventListener(
+                    'click',
+                    () => applyImageSize('large')
+                );
+            }
+
+
+            if (imgFull) {
+
+                imgFull.addEventListener(
+                    'click',
+                    () => applyImageSize('full')
+                );
+            }
+
+
+            // ============================================================
+            // SOCIAL EMBED
+            // ============================================================
+
+            const btnSocialEmbed =
+                document.getElementById(
+                    'btnSocialEmbed'
+                );
+
+
+            if (btnSocialEmbed) {
+
+                btnSocialEmbed.addEventListener(
+                    'click',
+                    function () {
+
+                        const embedCode = prompt(
+                            'Paste your full Social Media Embed Code:'
+                        );
+
+                        if (
+                            embedCode &&
+                            embedCode.trim() !== ''
+                        ) {
+
+                            const range =
+                                quill.getSelection(true);
+
+                            quill.insertEmbed(
+                                range.index,
+                                'socialEmbed',
+                                embedCode.trim()
+                            );
+
+                            quill.setSelection(
+                                range.index + 1
+                            );
+                        }
+                    }
+                );
+            }
+
+
+            // ============================================================
+            // REMOVE SOCIAL EMBED
+            // ============================================================
+
+            quill.root.addEventListener(
+                'dblclick',
+                function (e) {
+
+                    const embedWrapper =
+                        e.target.closest(
+                            '.quill-social-embed'
+                        );
+
+                    if (!embedWrapper) {
+                        return;
+                    }
+
+                    const confirmDelete =
+                        confirm(
+                            'Do you want to remove this social media embed?'
+                        );
+
+                    if (!confirmDelete) {
+                        return;
+                    }
+
+                    const blot =
+                        Quill.find(embedWrapper);
+
+                    if (blot) {
+
+                        blot.remove();
+
+                        quill.update();
+                    }
+                }
+            );
+
+
+            // ============================================================
+            // GRAMMAR REVIEW ELEMENTS
+            // ============================================================
+
+            const btnCheckGrammar =
+                document.getElementById(
+                    'btnCheckGrammar'
+                );
+
+            const btnCloseGrammar =
+                document.getElementById(
+                    'btnCloseGrammar'
+                );
+
+            const btnApplyAllGrammar =
+                document.getElementById(
+                    'btnApplyAllGrammar'
+                );
+
+            const editorColumn =
+                document.getElementById(
+                    'editorColumn'
+                );
+
+            const grammarPanelColumn =
+                document.getElementById(
+                    'grammarPanelColumn'
+                );
+
+            const grammarLoading =
+                document.getElementById(
+                    'grammarLoading'
+                );
+
+            const grammarSuggestions =
+                document.getElementById(
+                    'grammarSuggestions'
+                );
+
+            const grammarIssueCount =
+                document.getElementById(
+                    'grammarIssueCount'
+                );
+
+            const grammarActions =
+                document.getElementById(
+                    'grammarActions'
+                );
+
+
+            // ============================================================
+            // CHECK GRAMMAR - REAL API
+            // ============================================================
+
+            if (btnCheckGrammar) {
+
+                btnCheckGrammar.addEventListener(
+                    'click',
+                    async function () {
+
+                        openGrammarPanel();
+
+                        clearGrammarHighlights();
+
+                        activeGrammarIssues = [];
+
+                        grammarLoading
+                            ?.classList
+                            .remove('d-none');
+
+                        if (grammarSuggestions) {
+                            grammarSuggestions.innerHTML = '';
+                        }
+
+                        grammarActions
+                            ?.classList
+                            .add('d-none');
+
+                        if (grammarIssueCount) {
+
+                            grammarIssueCount.textContent =
+                                'Checking content...';
+                        }
+
+                        btnCheckGrammar.disabled = true;
+
+
+                        try {
+
+                            const editorText =
+                                quill.getText();
+
+                            if (!editorText.trim()) {
+
+                                renderGrammarSuggestions([]);
+
+                                if (grammarIssueCount) {
+
+                                    grammarIssueCount.textContent =
+                                        'No content to check';
+                                }
+
+                                return;
+                            }
+
+
+                            const token =
+                                document.querySelector(
+                                    'input[name="__RequestVerificationToken"]'
+                                )?.value;
+
+
+                            const response = await fetch(
+                                '/Admin/Articles/CheckGrammar',
+                                {
+                                    method: 'POST',
+
+                                    headers: {
+                                        'Content-Type':
+                                            'application/json',
+
+                                        'RequestVerificationToken':
+                                            token
+                                    },
+
+                                    body: JSON.stringify({
+                                        text: editorText,
+                                        language: 'en-US'
+                                    })
+                                }
+                            );
+
+
+                            if (!response.ok) {
+
+                                const errorData =
+                                    await response
+                                        .json()
+                                        .catch(() => null);
+
+                                throw new Error(
+                                    errorData?.message
+                                    ?? 'Grammar check failed.'
+                                );
+                            }
+
+
+                            const data =
+                                await response.json();
+
+
+                            activeGrammarIssues =
+                                (data.issues ?? [])
+                                    .map(
+                                        function (issue) {
+
+                                            return {
+                                                id: issue.id,
+
+                                                category:
+                                                    issue.category,
+
+                                                original:
+                                                    issue.original,
+
+                                                replacement:
+                                                    issue.replacement,
+
+                                                message:
+                                                    issue.message,
+
+                                                ruleId:
+                                                    issue.ruleId,
+
+                                                index:
+                                                    issue.offset,
+
+                                                length:
+                                                    issue.length
+                                            };
+                                        }
+                                    );
+
+
+                            refreshGrammarReview();
+                        }
+                        catch (error) {
+
+                            console.error(
+                                'Grammar check error:',
+                                error
+                            );
+
+                            activeGrammarIssues = [];
+
+                            clearGrammarHighlights();
+
+                            if (grammarIssueCount) {
+
+                                grammarIssueCount.textContent =
+                                    'Grammar check failed';
+                            }
+
+                            if (grammarSuggestions) {
+
+                                grammarSuggestions.innerHTML = `
+                                    <div class="alert alert-danger mb-0">
+                                        ${escapeHtml(
+                                            error.message
+                                            || 'Unable to check grammar.'
+                                        )}
+                                    </div>
+                                `;
+                            }
+
+                            grammarActions
+                                ?.classList
+                                .add('d-none');
+                        }
+                        finally {
+
+                            grammarLoading
+                                ?.classList
+                                .add('d-none');
+
+                            btnCheckGrammar.disabled =
+                                false;
+                        }
+                    }
+                );
+            }
+
+
+            // ============================================================
+            // CLOSE GRAMMAR PANEL
+            // ============================================================
+
+            if (btnCloseGrammar) {
+
+                btnCloseGrammar.addEventListener(
+                    'click',
+                    function () {
+
+                        closeGrammarPanel();
+                    }
+                );
+            }
+
+
+            function openGrammarPanel() {
+
+                if (
+                    !editorColumn ||
+                    !grammarPanelColumn
+                ) {
+                    return;
+                }
+
+                editorColumn.classList.remove(
+                    'col-12'
+                );
+
+                editorColumn.classList.add(
+                    'col-lg-8'
+                );
+
+                grammarPanelColumn.classList.remove(
+                    'd-none'
+                );
+            }
+
+
+            function closeGrammarPanel() {
+
+                if (
+                    !editorColumn ||
+                    !grammarPanelColumn
+                ) {
+                    return;
+                }
+
+                grammarPanelColumn.classList.add(
+                    'd-none'
+                );
+
+                editorColumn.classList.remove(
+                    'col-lg-8'
+                );
+
+                editorColumn.classList.add(
+                    'col-12'
+                );
+            }
+
+
+            // ============================================================
+            // GRAMMAR PANEL BUTTONS
+            // ============================================================
+
+            if (grammarSuggestions) {
+
+                grammarSuggestions.addEventListener(
+                    'click',
+                    function (e) {
+
+                        const applyButton =
+                            e.target.closest(
+                                '.btn-apply-grammar'
+                            );
+
+                        if (applyButton) {
+
+                            e.stopPropagation();
+
+                            const issueId =
+                                Number(
+                                    applyButton.dataset.issueId
+                                );
+
+                            applyGrammarIssue(
+                                issueId
+                            );
+
+                            return;
+                        }
+
+
+                        const ignoreButton =
+                            e.target.closest(
+                                '.btn-ignore-grammar'
+                            );
+
+                        if (ignoreButton) {
+
+                            e.stopPropagation();
+
+                            const issueId =
+                                Number(
+                                    ignoreButton.dataset.issueId
+                                );
+
+                            ignoreGrammarIssue(
+                                issueId
+                            );
+                        }
+                    }
+                );
+            }
+
+
+            if (btnApplyAllGrammar) {
+
+                btnApplyAllGrammar.addEventListener(
+                    'click',
+                    function () {
+
+                        applyAllGrammarIssues();
+                    }
+                );
+            }
+
+
+            // ============================================================
+            // APPLY ONE
+            // ============================================================
+
+            function applyGrammarIssue(issueId) {
+
+                const issueIndex =
+                    activeGrammarIssues.findIndex(
+                        issue => issue.id === issueId
+                    );
+
+                if (issueIndex === -1) {
+                    return;
+                }
+
+                const issue =
+                    activeGrammarIssues[issueIndex];
+
+
+                const currentText =
+                    quill.getText(
+                        issue.index,
+                        issue.length
+                    );
+
+
+                if (
+                    currentText !== issue.original
+                ) {
+
+                    alert(
+                        'The article content has changed since the grammar check. ' +
+                        'Please run Check Grammar again.'
+                    );
+
+                    return;
+                }
+
+
+                quill.deleteText(
+                    issue.index,
+                    issue.length,
+                    'user'
+                );
+
+
+                quill.insertText(
+                    issue.index,
+                    issue.replacement,
+                    'user'
+                );
+
+
+                const lengthDifference =
+                    issue.replacement.length
+                    -
+                    issue.length;
+
+
+                activeGrammarIssues.splice(
+                    issueIndex,
+                    1
+                );
+
+
+                activeGrammarIssues.forEach(
+                    function (remainingIssue) {
+
+                        if (
+                            remainingIssue.index >
+                            issue.index
+                        ) {
+
+                            remainingIssue.index +=
+                                lengthDifference;
+                        }
+                    }
+                );
+
+
+                refreshGrammarReview();
+            }
+
+
+            // ============================================================
+            // IGNORE ONE
+            // ============================================================
+
+            function ignoreGrammarIssue(issueId) {
+
+                const issueIndex =
+                    activeGrammarIssues.findIndex(
+                        issue => issue.id === issueId
+                    );
+
+                if (issueIndex === -1) {
+                    return;
+                }
+
+                activeGrammarIssues.splice(
+                    issueIndex,
+                    1
+                );
+
+                refreshGrammarReview();
+            }
+
+
+            // ============================================================
+            // APPLY ALL
+            // ============================================================
+
+            function applyAllGrammarIssues() {
+
+                if (
+                    activeGrammarIssues.length === 0
+                ) {
+                    return;
+                }
+
+
+                const issuesToApply = [
+                    ...activeGrammarIssues
+                ];
+
+
+                issuesToApply.sort(
+                    (a, b) => b.index - a.index
+                );
+
+
+                const invalidIssue =
+                    issuesToApply.find(
+                        function (issue) {
+
+                            const currentText =
+                                quill.getText(
+                                    issue.index,
+                                    issue.length
+                                );
+
+                            return (
+                                currentText
+                                !== issue.original
+                            );
+                        }
+                    );
+
+
+                if (invalidIssue) {
+
+                    alert(
+                        'The article content has changed since the grammar check. ' +
+                        'Please run Check Grammar again.'
+                    );
+
+                    return;
+                }
+
+
+                issuesToApply.forEach(
+                    function (issue) {
+
+                        quill.deleteText(
+                            issue.index,
+                            issue.length,
+                            'user'
+                        );
+
+                        quill.insertText(
+                            issue.index,
+                            issue.replacement,
+                            'user'
+                        );
+                    }
+                );
+
+
+                activeGrammarIssues = [];
+
+                refreshGrammarReview();
+            }
+
+
+            // ============================================================
+            // REFRESH GRAMMAR REVIEW
+            // ============================================================
+
+            function refreshGrammarReview() {
+
+                clearGrammarHighlights();
+
+
+                activeGrammarIssues.forEach(
+                    function (issue) {
+
+                        quill.formatText(
+                            issue.index,
+                            issue.length,
+                            'grammarHighlight',
+                            'error',
+                            'silent'
+                        );
+                    }
+                );
+
+
+                renderGrammarSuggestions(
+                    activeGrammarIssues
+                );
+            }
+
+
+            // ============================================================
+            // CLEAR GRAMMAR HIGHLIGHTS
+            // ============================================================
+
+            function clearGrammarHighlights() {
+
+                quill.formatText(
+                    0,
+                    quill.getLength(),
+                    'grammarHighlight',
+                    false,
+                    'silent'
+                );
+            }
+
+
+            // ============================================================
+            // RENDER GRAMMAR SUGGESTIONS
+            // ============================================================
+
+            function renderGrammarSuggestions(
+                issues
+            ) {
+
+                if (
+                    !grammarSuggestions ||
+                    !grammarIssueCount
+                ) {
+                    return;
+                }
+
+
+                grammarSuggestions.innerHTML = '';
+
+
+                grammarIssueCount.textContent =
+                    `${issues.length} issue${issues.length === 1 ? '' : 's'} found`;
+
+
+                if (issues.length === 0) {
+
+                    grammarSuggestions.innerHTML = `
+                        <div class="alert alert-success mb-0">
+                            No grammar issues found.
+                        </div>
+                    `;
+
+                    grammarActions
+                        ?.classList
+                        .add('d-none');
+
+                    return;
+                }
+
+
+                issues.forEach(
+                    function (issue) {
+
+                        const suggestion =
+                            document.createElement(
+                                'div'
+                            );
+
+
+                        suggestion.className =
+                            'grammar-suggestion';
+
+
+                        suggestion.dataset.issueId =
+                            issue.id;
+
+                        suggestion.dataset.index =
+                            issue.index;
+
+                        suggestion.dataset.length =
+                            issue.length;
+
+
+                        suggestion.innerHTML = `
+
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+
+                                <span class="badge text-bg-secondary">
+                                    ${escapeHtml(issue.category)}
+                                </span>
+
+                            </div>
+
+
+                            <div class="mb-2">
+
+                                <span class="grammar-suggestion-original">
+                                    ${escapeHtml(issue.original)}
+                                </span>
+
+                                <span class="mx-2">
+                                    →
+                                </span>
+
+                                <span class="grammar-suggestion-replacement text-success">
+                                    ${escapeHtml(issue.replacement)}
+                                </span>
+
+                            </div>
+
+
+                            <div class="small text-muted mb-3">
+                                ${escapeHtml(issue.message)}
+                            </div>
+
+
+                            <div class="d-flex gap-2">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-primary btn-apply-grammar"
+                                    data-issue-id="${issue.id}">
+
+                                    Apply
+
+                                </button>
+
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary btn-ignore-grammar"
+                                    data-issue-id="${issue.id}">
+
+                                    Ignore
+
+                                </button>
+
+                            </div>
+                        `;
+
+
+                        grammarSuggestions.appendChild(
+                            suggestion
+                        );
+
+
+                        suggestion.addEventListener(
+                            'click',
+                            function (e) {
+
+                                if (
+                                    e.target.closest('button')
+                                ) {
+                                    return;
+                                }
+
+                                const index =
+                                    Number(
+                                        suggestion.dataset.index
+                                    );
+
+                                const length =
+                                    Number(
+                                        suggestion.dataset.length
+                                    );
+
+
+                                quill.setSelection(
+                                    index,
+                                    length,
+                                    'silent'
+                                );
+
+                                quill.scrollSelectionIntoView();
+
+                                quill.focus();
+                            }
+                        );
+                    }
+                );
+
+
+                grammarActions
+                    ?.classList
+                    .remove('d-none');
+            }
+
+
+            // ============================================================
+            // CONTENT SYNCHRONIZATION
+            // ============================================================
+
+            quill.on(
+                'text-change',
+                function () {
+
+                    if (contentField) {
+
+                        contentField.value =
+                            cleanHtml(
+                                quill.root.innerHTML
+                            );
+                    }
+                }
+            );
+
+
+            // ============================================================
+            // FORM SUBMISSION
+            // ============================================================
+
+            const form =
+                document.querySelector('form');
+
+
+            if (form) {
+
+                form.addEventListener(
+                    'submit',
+                    function () {
+
+                        if (contentField) {
+
+                            contentField.value =
+                                cleanHtml(
+                                    quill.root.innerHTML
+                                );
+                        }
+                    }
+                );
+            }
+
+
+            // ============================================================
+            // HTML HELPERS
+            // ============================================================
+
+            function escapeHtml(value) {
+
+                const div =
+                    document.createElement('div');
+
+                div.textContent =
+                    value ?? '';
+
+                return div.innerHTML;
+            }
+
+
+            function cleanHtml(html) {
+
+                const div =
+                    document.createElement('div');
+
+                div.innerHTML = html;
+
+
+                // Remove temporary image selection marker.
+                div.querySelectorAll('img')
+                    .forEach(
+                        function (img) {
+
+                            img.classList.remove(
+                                'selected-image'
+                            );
+                        }
+                    );
+
+
+                // Remove temporary grammar highlights.
+                div.querySelectorAll(
+                    '[class*="grammar-highlight-"]'
+                )
+                .forEach(
+                    function (span) {
+
+                        span.replaceWith(
+                            ...span.childNodes
+                        );
+                    }
+                );
+
+
+                // Remove unwanted pasted formatting.
+                div.querySelectorAll('span')
+                    .forEach(
+                        function (span) {
+
+                            const style =
+                                span.getAttribute(
+                                    'style'
+                                );
+
+                            if (
+                                style
+                                &&
+                                style.includes(
+                                    'color: rgb(0, 0, 0)'
+                                )
+                                &&
+                                style.includes(
+                                    'background-color: rgb(255, 255, 255)'
+                                )
+                            ) {
+
+                                span.replaceWith(
+                                    ...span.childNodes
+                                );
+                            }
+                        }
+                    );
+
+
+                return div.innerHTML;
+            }
+
+        });
 	</script>
 }
 

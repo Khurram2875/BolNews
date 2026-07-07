@@ -38,6 +38,8 @@ namespace BolNews.Web.Controllers
             ViewBag.CategoryName = pageVM.Article.CategoryName;
             ViewBag.CategorySlug = pageVM.Article.CategorySlug;
             ViewBag.OgType = "article";
+            ViewBag.MetaKeywords = pageVM.MetaKeywords;
+            ViewBag.ArticleTags = pageVM.Article.ArticleTags;
 
             return View(pageVM);
         }

@@ -20,10 +20,12 @@ namespace BolNews.Application.Interfaces
         Task<List<Article>> GetAllAsync();
         Task<List<Article>> GetByAuthorIdAsync(int authorId, int page, int pageSize);
         Task<List<Article>> GetByCategorySlugAsync(string categorySlug, int page, int pageSize);
+        Task<List<Article>> GetByTagSlugAsync(string tagSlug, int page, int pageSize);
         Task<List<Article>> GetPublishedAsync(int count);
         Task<Article?> GetLatestPublishedAsync(IReadOnlyCollection<int>? excludedArticleIds = null);
         Task<List<Article>> GetLatestPublishedAsync(int count, IReadOnlyCollection<int>? excludedArticleIds = null);
         Task<List<Article>> GetByCategoryIdAsync(int categoryId, int count);
+        Task<List<Article>> GetRelatedArticlesAsync(int articleId, int categoryId, IReadOnlyCollection<int> tagIds, int count);
         Task<List<Article>> GetForCategoriesAsync(List<int> categoryIds);
         Task<List<Article>> GetPublishedSinceAsync(DateTime fromDate, int limit);
         Task<List<Article>> SearchAsync(string term, int page, int pageSize);

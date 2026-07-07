@@ -1,0 +1,33 @@
+@using System.Text.Json
+@{
+    var inputName = ViewData["InputName"]?.ToString() ?? string.Empty;
+    var inputId = ViewData["InputId"]?.ToString() ?? inputName;
+    var label = ViewData["Label"]?.ToString() ?? "Tags";
+    var helpText = ViewData["HelpText"]?.ToString();
+    var existingValue = ViewData["ExistingValue"]?.ToString() ?? "[]";
+    var suggestions = ViewBag.TagSuggestions as IEnumerable<string> ?? Enumerable.Empty<string>();
+    var editorId = $"{inputId}_editor";
+}
+
+<div class="mb-3 bn-tag-editor" id="@editorId" data-existing='@Html.Raw(existingValue)' data-suggestions='@Html.Raw(JsonSerializer.Serialize(suggestions))'>
+    <label class="form-label">@label</label>
+    <input type="hidden" name="@inputName" id="@inputId" value='@Html.Raw(existingValue)' />
+    <div class="border rounded p-2">
+        <div class="d-flex flex-wrap gap-2 mb-2" data-role="chips"></div>
+        <input type="text"
+               class="form-control"
+               list="@($"{inputId}_suggestions")"
+               data-role="input"
+               placeholder="Type a tag and press Enter" />
+        <datalist id="@($"{inputId}_suggestions")">
+            @foreach (var tag in suggestions)
+            {
+                <option value="@tag"></option>
+            }
+        </datalist>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(helpText))
+    {
+        <small class="text-muted">@helpText</small>
+    }
+</div>

@@ -61,6 +61,7 @@ namespace BolNews.Web.Services
                 BaseUrl = _urlService.GetBaseUrl()
             };
 
+            pageVM.MetaKeywords = _seoService.BuildKeywords(pageVM.Article);
             pageVM.ArticleSchemaJson = _seoService.BuildArticleSchema(pageVM.Article, pageVM.BaseUrl);
             pageVM.BreadcrumbSchemaJson = _seoService.BuildBreadcrumb(pageVM.Article, pageVM.BaseUrl);
 

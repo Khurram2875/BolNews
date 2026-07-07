@@ -7,5 +7,6 @@
         Task<string> GenerateCategorySitemapAsync();
         Task<string> GenerateNewsSitemapAsync();
         Task<string> GenerateAuthorSitemapAsync();
+        Task<string> GenerateTagSitemapAsync();
     }
 }
