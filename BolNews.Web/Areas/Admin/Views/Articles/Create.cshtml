@@ -1328,7 +1328,7 @@
 
                             if (!editorText.trim()) {
 
-                                renderMockGrammarSuggestions([]);
+                                renderGrammarSuggestions([]);
 
                                 grammarIssueCount.textContent =
                                     'No content to check';
@@ -1660,7 +1660,7 @@
             // RENDER GRAMMAR SUGGESTIONS
             // ========================================================
 
-            function renderMockGrammarSuggestions(
+            function renderGrammarSuggestions(
                 issues
             ) {
 
@@ -1717,7 +1717,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
 
                             <span class="badge text-bg-secondary">
-                                ${issue.category}
+                                ${escapeHtml(issue.original)}
                             </span>
 
                         </div>
@@ -1726,7 +1726,7 @@
                         <div class="mb-2">
 
                             <span class="grammar-suggestion-original">
-                                ${issue.original}
+                                ${escapeHtml(issue.original)}
                             </span>
 
                             <span class="mx-2">
@@ -1734,14 +1734,14 @@
                             </span>
 
                             <span class="grammar-suggestion-replacement text-success">
-                                ${issue.replacement}
+                                ${escapeHtml(issue.replacement)}
                             </span>
 
                         </div>
 
 
                         <div class="small text-muted mb-3">
-                            ${issue.message}
+                            ${escapeHtml(issue.message)}
                         </div>
 
 
@@ -1990,7 +1990,7 @@
                     }
                 );
 
-                renderMockGrammarSuggestions(
+                renderGrammarSuggestions(
                     activeGrammarIssues
                 );
             }
