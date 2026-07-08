@@ -95,5 +95,9 @@ namespace BolNews.Domain.Entities
         public ICollection<ArticleRevision> Revisions { get; set; } = new List<ArticleRevision>();
 
         public ICollection<ArticleDiscussionComment> DiscussionComments { get; set; } = new List<ArticleDiscussionComment>();
+
+        public ICollection<ArticleTag> ArticleTags { get; set; } = new List<ArticleTag>();
+
+        public FeaturedImageMetadata? FeaturedImageMetadata { get; set; }
     }
 }

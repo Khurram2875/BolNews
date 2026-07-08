@@ -29,7 +29,26 @@ namespace BolNews.Web
      .ForMember(dest => dest.AuthorSlug, opt => opt.MapFrom(src => src.Author.Slug))
      .ForMember(dest => dest.AuthorImage, opt => opt.MapFrom(src => src.Author.ProfileImageUrl))
      .ForMember(dest => dest.CategorySlug, opt => opt.MapFrom(src => src.Category.Slug))
-     .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
+     .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
+     .ForMember(dest => dest.FeaturedImageAltText, opt => opt.MapFrom(src => src.FeaturedImageMetadata != null ? src.FeaturedImageMetadata.AltText : null))
+     .ForMember(dest => dest.FeaturedImageCaption, opt => opt.MapFrom(src => src.FeaturedImageMetadata != null ? src.FeaturedImageMetadata.Caption : null))
+     .ForMember(dest => dest.FeaturedImageCredit, opt => opt.MapFrom(src => src.FeaturedImageMetadata != null ? src.FeaturedImageMetadata.Credit : null))
+     .ForMember(dest => dest.ArticleTags, opt => opt.Ignore())
+     .ForMember(dest => dest.FeaturedImageTags, opt => opt.Ignore())
+     .AfterMap((src, dest) =>
+     {
+         dest.ArticleTags = src.ArticleTags
+             .Where(at => at.Tag != null)
+             .Select(at => new TagDto { Id = at.Tag.Id, Name = at.Tag.Name, Slug = at.Tag.Slug })
+             .OrderBy(t => t.Name)
+             .ToList();
+
+         dest.FeaturedImageTags = src.FeaturedImageMetadata?.FeaturedImageTags
+             .Where(ft => ft.Tag != null)
+             .Select(ft => new TagDto { Id = ft.Tag.Id, Name = ft.Tag.Name, Slug = ft.Tag.Slug })
+             .OrderBy(t => t.Name)
+             .ToList() ?? new List<TagDto>();
+     });
 
 
             CreateMap<CategoryDto, CategoryVM>().ReverseMap();

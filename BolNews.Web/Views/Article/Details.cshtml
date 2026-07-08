@@ -121,14 +121,33 @@
                 <!-- Featured image -->
                 @if (!string.IsNullOrEmpty(Model.Article.FeaturedImageLarge))
                 {
+                    var imageAlt = !string.IsNullOrWhiteSpace(Model.Article.FeaturedImageAltText)
+                        ? Model.Article.FeaturedImageAltText
+                        : (Model.Article.FeaturedImageTags.Any()
+                            ? $"{Model.Article.Title} - {string.Join(", ", Model.Article.FeaturedImageTags.Select(t => t.Name))}"
+                            : Model.Article.Title);
+
                     <figure style="margin:0 0 24px;" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
                         <img src="@Model.Article.FeaturedImageLarge"
-                             alt="@Model.Article.Title"
+                             alt="@imageAlt"
                              itemprop="url"
                              style="width:100%;border-radius:var(--bn-radius-md);display:block;max-height:500px;object-fit:cover;"
                              loading="eager" />
                         <meta itemprop="width" content="1200" />
                         <meta itemprop="height" content="675" />
+                        @if (!string.IsNullOrWhiteSpace(Model.Article.FeaturedImageCaption) || !string.IsNullOrWhiteSpace(Model.Article.FeaturedImageCredit))
+                        {
+                            <figcaption style="font-family:var(--bn-font-ui);font-size:12px;color:var(--bn-text-muted);margin-top:8px;">
+                                @if (!string.IsNullOrWhiteSpace(Model.Article.FeaturedImageCaption))
+                                {
+                                    <span>@Model.Article.FeaturedImageCaption</span>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(Model.Article.FeaturedImageCredit))
+                                {
+                                    <span> Photo: @Model.Article.FeaturedImageCredit</span>
+                                }
+                            </figcaption>
+                        }
                     </figure>
                 }
 
@@ -136,6 +155,20 @@
                 <div class="bn-article-body" itemprop="articleBody">
                     @Html.Raw(Model.Article.Content)
                 </div>
+
+                @if (Model.Article.ArticleTags.Any())
+                {
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:28px;">
+                        <span style="font-family:var(--bn-font-ui);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--bn-text-muted);">Tags</span>
+                        @foreach (var tag in Model.Article.ArticleTags)
+                        {
+                            <a href="/tag/@tag.Slug"
+                               style="font-family:var(--bn-font-ui);font-size:12px;font-weight:600;color:var(--bn-accent);text-decoration:none;padding:6px 12px;border:1px solid var(--bn-border);border-radius:18px;background:var(--bn-surface-alt);">
+                                @tag.Name
+                            </a>
+                        }
+                    </div>
+                }
 
                 <!-- Share bar -->
                 <div style="

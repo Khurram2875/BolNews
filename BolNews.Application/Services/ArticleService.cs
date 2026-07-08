@@ -22,6 +22,7 @@ namespace BolNews.Application.Services
         private readonly IEditorialAssignmentService _editorialAssignmentService;
         private readonly ISlaService _slaService;
         private readonly IEditorialPlacementRepository? _editorialPlacementRepository;
+        private readonly ITagService? _tagService;
 
         #region Role and other private helpers
         private bool IsAdmin(IList<string> roles)
@@ -128,7 +129,7 @@ namespace BolNews.Application.Services
             }
         }
         #endregion
-        public ArticleService(IArticleRepository repo, IMemoryCache cache, IArticleScoringService articleScoringService, IArticleRevisionService articleRevisionService, IAuthorService authorService, INotificationService notificationService, IWorkflowTransitionService workflowTransitionService, IEditorialAssignmentService editorialAssignmentService, ISlaService slaService, IEditorialPlacementRepository? editorialPlacementRepository = null)
+        public ArticleService(IArticleRepository repo, IMemoryCache cache, IArticleScoringService articleScoringService, IArticleRevisionService articleRevisionService, IAuthorService authorService, INotificationService notificationService, IWorkflowTransitionService workflowTransitionService, IEditorialAssignmentService editorialAssignmentService, ISlaService slaService, IEditorialPlacementRepository? editorialPlacementRepository = null, ITagService? tagService = null)
         {
             _repo = repo;
             _cache = cache;
@@ -140,6 +141,7 @@ namespace BolNews.Application.Services
             _editorialAssignmentService = editorialAssignmentService;
             _slaService = slaService;
             _editorialPlacementRepository = editorialPlacementRepository;
+            _tagService = tagService;
         }
 
         public async Task<int> CreateAsync(ArticleDto dto, string currentUserId,IList<string> roles)
@@ -193,7 +195,21 @@ namespace BolNews.Application.Services
 
             await _articleScoringService.CalculateScoresAsync(article);
 
-            return await _repo.AddAsync(article);
+            var articleId = await _repo.AddAsync(article);
+
+            if (_tagService != null)
+            {
+                await _tagService.ReplaceArticleTagsAsync(articleId, dto.ArticleTagsInput, currentUserId);
+                await _tagService.ReplaceFeaturedImageTagsAsync(
+                    articleId,
+                    dto.FeaturedImageTagsInput,
+                    dto.FeaturedImageAltText,
+                    dto.FeaturedImageCaption,
+                    dto.FeaturedImageCredit,
+                    currentUserId);
+            }
+
+            return articleId;
         }
 
         public async Task UpdateAsync(ArticleDto dto, string currentUserId, IList<string> roles, string? changeReason = null)
@@ -269,6 +285,18 @@ namespace BolNews.Application.Services
             try
             {
                 await _repo.UpdateAsync(article);
+
+                if (_tagService != null)
+                {
+                    await _tagService.ReplaceArticleTagsAsync(article.Id, dto.ArticleTagsInput, currentUserId);
+                    await _tagService.ReplaceFeaturedImageTagsAsync(
+                        article.Id,
+                        dto.FeaturedImageTagsInput,
+                        dto.FeaturedImageAltText,
+                        dto.FeaturedImageCaption,
+                        dto.FeaturedImageCredit,
+                        currentUserId);
+                }
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -314,7 +342,28 @@ namespace BolNews.Application.Services
                 EditorialPriority = a.EditorialPriority,
                 IsFactChecked = a.IsFactChecked,
                 ScheduledPublishAt = a.ScheduledPublishAt,
-                EmbargoUntil = a.EmbargoUntil
+                EmbargoUntil = a.EmbargoUntil,
+                FeaturedImageAltText = a.FeaturedImageMetadata?.AltText,
+                FeaturedImageCaption = a.FeaturedImageMetadata?.Caption,
+                FeaturedImageCredit = a.FeaturedImageMetadata?.Credit,
+                ArticleTags = a.ArticleTags
+                    .Select(at => new TagDto
+                    {
+                        Id = at.Tag.Id,
+                        Name = at.Tag.Name,
+                        Slug = at.Tag.Slug
+                    })
+                    .OrderBy(t => t.Name)
+                    .ToList(),
+                FeaturedImageTags = a.FeaturedImageMetadata?.FeaturedImageTags
+                    .Select(ft => new TagDto
+                    {
+                        Id = ft.Tag.Id,
+                        Name = ft.Tag.Name,
+                        Slug = ft.Tag.Slug
+                    })
+                    .OrderBy(t => t.Name)
+                    .ToList() ?? new List<TagDto>()
             };
         }
 
@@ -380,13 +429,26 @@ namespace BolNews.Application.Services
 
         public async Task<Article> GetBySlugAsync(string slug) => await _repo.FindBySlugAsync(slug);
         public async Task<List<Article>> GetByCategorySlugAsync(string categorySlug, int page) => await _repo.GetByCategorySlugAsync(categorySlug, page, 10);
+        public async Task<List<Article>> GetByTagSlugAsync(string tagSlug, int page = 1, int pageSize = 20) => await _repo.GetByTagSlugAsync(tagSlug, page, pageSize);
 
         public async Task<List<Article>> GetRelatedArticlesAsync(int categoryId, int excludeId, int count = 5)
         {
             string key = $"related_{categoryId}_{excludeId}";
             if (_cache.TryGetValue(key, out List<Article>? cached)) return cached!;
-            var result = (await _repo.GetByCategoryIdAsync(categoryId, count + 1))
-                .Where(a => a.Id != excludeId).Take(count).ToList();
+            var article = await _repo.FindByIdAsync(excludeId);
+            var tagIds = article?.ArticleTags.Select(at => at.TagId).ToList() ?? new List<int>();
+            var result = await _repo.GetRelatedArticlesAsync(excludeId, categoryId, tagIds, count);
+
+            if (result.Count < count)
+            {
+                var existingIds = result.Select(a => a.Id).Append(excludeId).ToHashSet();
+                var fallback = (await _repo.GetByCategoryIdAsync(categoryId, count + 1))
+                    .Where(a => !existingIds.Contains(a.Id))
+                    .Take(count - result.Count);
+
+                result.AddRange(fallback);
+            }
+
             _cache.Set(key, result, TimeSpan.FromMinutes(5));
             return result;
         }

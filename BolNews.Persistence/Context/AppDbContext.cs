@@ -28,6 +28,10 @@ namespace BolNews.Persistence.Context
         public DbSet<ArticleDiscussionComment> ArticleDiscussionComments { get; set; }
         //public DbSet<AdPlacement> AdPlacements { get; set; }
         public DbSet<EditorialPlacement> EditorialPlacements { get; set; }
+        public DbSet<Tag> Tags { get; set; }
+        public DbSet<ArticleTag> ArticleTags { get; set; }
+        public DbSet<FeaturedImageMetadata> FeaturedImageMetadata { get; set; }
+        public DbSet<FeaturedImageTag> FeaturedImageTags { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

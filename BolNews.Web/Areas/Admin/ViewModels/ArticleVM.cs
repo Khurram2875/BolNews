@@ -39,6 +39,9 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         public string? FeaturedImageThumb { get; set; }
         public string? FeaturedImageMedium { get; set; }
         public string? FeaturedImageLarge { get; set; }
+        public string? FeaturedImageAltText { get; set; }
+        public string? FeaturedImageCaption { get; set; }
+        public string? FeaturedImageCredit { get; set; }
 
         public string AuthorName { get; set; } = string.Empty;
         public string CategoryName { get; set; } = string.Empty;
@@ -53,6 +56,10 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         // Schedule Publishing /Emabrgo
         public DateTime? ScheduledPublishAt { get; set; }
         public DateTime? EmbargoUntil { get; set; }
+        public string? ArticleTagsInput { get; set; }
+        public string? FeaturedImageTagsInput { get; set; }
+        public List<TagDto> ArticleTags { get; set; } = new();
+        public List<TagDto> FeaturedImageTags { get; set; } = new();
         
         public IEnumerable<ValidationResult> Validate( ValidationContext validationContext)
         {

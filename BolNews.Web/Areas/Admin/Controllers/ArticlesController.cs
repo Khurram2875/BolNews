@@ -3,6 +3,7 @@ using Azure;
 using BolNews.Application.Common;
 using BolNews.Application.Common.Helpers;
 using BolNews.Application.DTOs;
+using BolNews.Application.DTOs.Grammar;
 using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
 using BolNews.Domain.Common;
@@ -20,6 +21,7 @@ using Microsoft.EntityFrameworkCore;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
+using System.Text.Json;
 
 namespace BolNews.Web.Areas.Admin.Controllers
 {
@@ -27,7 +29,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
     Roles.Admin + "," +
     Roles.Editor + "," +
     Roles.SubEditor + "," +
-    Roles.Author+ "," +
+    Roles.Author + "," +
         Roles.Factchecker)]
     [Area("Admin")]
     public class ArticlesController : Controller
@@ -44,20 +46,24 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly IArticleDiscussionService _discussionService;
         private readonly ICacheService _cacheService;
         private readonly IEditorialPlacementService _editorialPlacementService;
+        private readonly ITagService _tagService;
         private readonly IGeminiService _geminiService;
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IGrammarService _grammarService;
 
         public ArticlesController(
              IArticleService articleService,
              ICategoryService categoryService,
              IAuthorService authorService,
-             IWebHostEnvironment env, IMapper mapper, IImageService imageService, 
-             IDiscoverService discoverService, IHeadlineService headlineService, 
+             IWebHostEnvironment env, IMapper mapper, IImageService imageService,
+             IDiscoverService discoverService, IHeadlineService headlineService,
              ITrendingService trendingService, ICacheService cacheService,
-             UserManager<ApplicationUser> userManager, IArticleLockService articleLockService, 
+             UserManager<ApplicationUser> userManager, IArticleLockService articleLockService,
              IArticleDiscussionService discussionService, IGeminiService geminiService,
-             IEditorialPlacementService editorialPlacementService)
+             IEditorialPlacementService editorialPlacementService,
+             ITagService tagService,
+             IGrammarService grammarService)
         {
             _articleService = articleService;
             _categoryService = categoryService;
@@ -74,6 +80,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _discussionService = discussionService;
             _geminiService = geminiService;
             _editorialPlacementService = editorialPlacementService;
+            _tagService = tagService;
+            _grammarService = grammarService;
         }
 
         // GET: Admin/Articles
@@ -137,9 +145,11 @@ namespace BolNews.Web.Areas.Admin.Controllers
         {
             var categories = await _categoryService.GetAllAsync();
             var authors = await _authorService.GetAllAsync();
+            var tags = await _tagService.GetAllAsync();
 
             ViewBag.Categories = new SelectList(categories, "Id", "Name", categoryId);
             ViewBag.Authors = new SelectList(authors, "Id", "Name", authorId);
+            ViewBag.TagSuggestions = tags.Select(x => x.Name).ToList();
         }
         // POST: Admin/Articles/Create
         [HttpPost]
@@ -150,7 +160,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
             {
                 await PopulateDropdowns(model.CategoryId);
                 var errorList = ModelState.Where(x => x.Value.Errors.Count > 0)
-                .Select(x => new {
+                .Select(x => new
+                {
                     Property = x.Key,
                     Errors = x.Value.Errors.Select(e => e.ErrorMessage).ToArray()
                 }).ToList();
@@ -270,6 +281,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 return NotFound();
 
             var model = _mapper.Map<ArticleVM>(dto);
+            model.ArticleTagsInput = JsonSerializer.Serialize(model.ArticleTags.Select(x => x.Name));
+            model.FeaturedImageTagsInput = JsonSerializer.Serialize(model.FeaturedImageTags.Select(x => x.Name));
 
             model.DiscussionComments = await _discussionService.GetThreadAsync(id, user.Id, roles);
 
@@ -287,7 +300,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
                     PublishedAt = model.PublishedAt
                 });
 
-           
+
 
             await PopulateDropdowns(model.CategoryId);
 
@@ -444,6 +457,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _cacheService.Remove(CacheKeys.Sitemap + "_index");
             _cacheService.Remove(CacheKeys.Sitemap + "_articles");
             _cacheService.Remove(CacheKeys.Sitemap + "_news");
+            _cacheService.Remove(CacheKeys.Sitemap + "_tags");
 
             for (int i = 1; i <= 5; i++)
             {
@@ -629,6 +643,30 @@ namespace BolNews.Web.Areas.Admin.Controllers
             {
                 metaTitle = metaTitle,
                 metaDescription = metaDescription
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CheckGrammar([FromBody] GrammarCheckRequest request, CancellationToken cancellationToken)
+        {
+            if (request is null ||
+                string.IsNullOrWhiteSpace(request.Text))
+            {
+                return BadRequest(new
+                {
+                    message = "Article content is required."
+                });
+            }
+
+            var issues = await _grammarService.CheckAsync(
+                request.Text,
+                request.Language,
+                cancellationToken);
+
+            return Ok(new
+            {
+                issues
             });
         }
 

@@ -1,0 +1,102 @@
+@using BolNews.Web.Areas.Admin.ViewModels
+@model CategorySectionVM
+
+@{
+    var tagName = ViewBag.TagName as string ?? Model.CategoryName;
+    var tagSlug = ViewBag.TagSlug as string ?? Model.CategorySlug;
+}
+
+<div style="background:var(--bn-surface-alt);border-bottom:1px solid var(--bn-border);">
+    <div class="container py-2">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0" style="font-family:var(--bn-font-ui);font-size:12px;">
+                <li class="breadcrumb-item"><a href="/" style="color:var(--bn-text-muted);text-decoration:none;">Home</a></li>
+                <li class="breadcrumb-item active" style="color:var(--bn-text-muted);" aria-current="page">@tagName</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div style="background:var(--bn-nav-bg);padding:28px 0 24px;">
+    <div class="container">
+        <span class="bn-tag d-inline-block mb-2">Tag</span>
+        <h1 style="font-family:var(--bn-font-display);font-size:clamp(26px,4vw,40px);font-weight:800;color:#fff;margin:0;line-height:1.2;">
+            @tagName
+        </h1>
+    </div>
+</div>
+
+<div class="container" style="padding-top:32px;padding-bottom:48px;">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            @if (!Model.Articles.Any())
+            {
+                <div style="padding:60px 24px;text-align:center;background:var(--bn-surface);border-radius:var(--bn-radius-md);border:1px solid var(--bn-border);">
+                    <h3 style="font-family:var(--bn-font-display);color:var(--bn-text-primary);">No articles yet</h3>
+                    <p style="font-family:var(--bn-font-ui);color:var(--bn-text-muted);">Check back soon for more stories tagged @tagName.</p>
+                    <a href="/" style="font-family:var(--bn-font-ui);font-size:13px;font-weight:600;color:var(--bn-accent);">Back to Home</a>
+                </div>
+            }
+            else
+            {
+                @foreach (var item in Model.Articles)
+                {
+                    <a href="/news/@item.CategorySlug/@item.Slug"
+                       class="bn-card-h track-click d-flex"
+                       data-article-id="@item.Id"
+                       style="text-decoration:none;">
+                        <div class="bn-card-h-img">
+                            <img src="@item.FeaturedImageThumb"
+                                 alt="@item.Title"
+                                 loading="lazy"
+                                 style="width:100%;height:100%;object-fit:cover;" />
+                        </div>
+                        <div class="bn-card-h-body">
+                            <div class="bn-card-h-tag">@item.CategoryName</div>
+                            <div class="bn-card-h-title">@item.Title</div>
+                            <div class="bn-card-h-meta">
+                                @item.AuthorName · @item.TimeAgo
+                            </div>
+                        </div>
+                    </a>
+                }
+
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 0;margin-top:16px;border-top:1px solid var(--bn-border);">
+                    <div>
+                        @if (Model.Page > 1)
+                        {
+                            <a href="/tag/@tagSlug?page=@(Model.Page - 1)"
+                               style="display:inline-flex;align-items:center;gap:6px;font-family:var(--bn-font-ui);font-size:13px;font-weight:600;color:var(--bn-text-primary);text-decoration:none;padding:8px 16px;border:1px solid var(--bn-border);border-radius:var(--bn-radius-sm);background:var(--bn-surface);">
+                                Previous
+                            </a>
+                        }
+                    </div>
+                    <span style="font-family:var(--bn-font-ui);font-size:12px;color:var(--bn-text-muted);">Page @Model.Page</span>
+                    <div>
+                        @if (Model.HasNextPage)
+                        {
+                            <a href="/tag/@tagSlug?page=@(Model.Page + 1)"
+                               style="display:inline-flex;align-items:center;gap:6px;font-family:var(--bn-font-ui);font-size:13px;font-weight:600;color:#fff;text-decoration:none;padding:8px 16px;border-radius:var(--bn-radius-sm);background:var(--bn-accent);">
+                                Next
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <aside class="col-lg-4">
+            <div style="position:sticky;top:70px;">
+                <div class="bn-widget">
+                    @await Component.InvokeAsync("TrendingNews", new { type = Context.Request.Query["type"].ToString() })
+                </div>
+                <div class="bn-widget mb-4">
+                    <div class="bn-widget-title">Latest News</div>
+                    <div class="bn-scroll-container">
+                        @await Component.InvokeAsync("LatestNews", new { count = 10 })
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>

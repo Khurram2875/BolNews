@@ -32,6 +32,10 @@
     <!-- SEO -->
     <title>@(ViewBag.MetaTitle ?? "Bol News")</title>
     <meta name="description" content="@(ViewBag.MetaDescription ?? "Latest news from Bol News")" />
+    @if (!string.IsNullOrWhiteSpace(ViewBag.MetaKeywords as string))
+    {
+        <meta name="keywords" content="@ViewBag.MetaKeywords" />
+    }
     <link rel="canonical" href="@canonicalUrl" />
 
     <!-- Open Graph -->
@@ -42,12 +46,24 @@
     <meta property="og:image" content="@ogImage" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="675" />
+    @if (ViewBag.ArticleTags is IEnumerable<BolNews.Application.DTOs.TagDto> articleTags)
+    {
+        foreach (var tag in articleTags)
+        {
+            <meta property="article:tag" content="@tag.Name" />
+        }
+    }
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="@(ViewBag.MetaTitle ?? "")" />
     <meta name="twitter:description" content="@(ViewBag.MetaDescription ?? "")" />
     <meta name="twitter:image" content="@ogImage" />
+    @if (!string.IsNullOrWhiteSpace(ViewBag.MetaKeywords as string))
+    {
+        <meta name="twitter:label1" content="Tags" />
+        <meta name="twitter:data1" content="@ViewBag.MetaKeywords" />
+    }
 
     <!-- Styles -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />

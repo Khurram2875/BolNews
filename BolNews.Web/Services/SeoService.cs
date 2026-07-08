@@ -15,6 +15,7 @@ namespace BolNews.Web.Services
         }
         public string BuildArticleSchema(PublicArticleVM article, string baseUrl)
         {
+            var keywords = BuildKeywords(article);
             var schema = new
             {
                 @context = "https://schema.org",
@@ -25,7 +26,29 @@ namespace BolNews.Web.Services
                 datePublished = article.PublishedAt,
                 dateModified = article.UpdatedAt ?? article.PublishedAt,
 
-                image = new[] { article.FeaturedImageXl },
+                keywords,
+
+                about = article.ArticleTags.Select(tag => new
+                {
+                    @type = "Thing",
+                    name = tag.Name,
+                    url = $"{baseUrl}/tag/{tag.Slug}"
+                }),
+
+                image = new[]
+                {
+                    new
+                    {
+                        @type = "ImageObject",
+                        url = article.FeaturedImageXl,
+                        caption = article.FeaturedImageCaption,
+                        creditText = article.FeaturedImageCredit,
+                        description = string.IsNullOrWhiteSpace(article.FeaturedImageAltText)
+                            ? article.Title
+                            : article.FeaturedImageAltText,
+                        keywords = string.Join(", ", article.FeaturedImageTags.Select(tag => tag.Name))
+                    }
+                },
 
                 author = new
                 {
@@ -49,6 +72,15 @@ namespace BolNews.Web.Services
             };
 
             return JsonSerializer.Serialize(schema);
+        }
+
+        public string BuildKeywords(PublicArticleVM article)
+        {
+            return string.Join(", ", article.ArticleTags
+                .Select(tag => tag.Name)
+                .Concat(new[] { article.CategoryName, article.AuthorName })
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .Distinct(StringComparer.OrdinalIgnoreCase));
         }
 
         public string BuildCategorySchema(
