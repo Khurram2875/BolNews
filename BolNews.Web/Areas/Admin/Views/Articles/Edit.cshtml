@@ -1314,6 +1314,11 @@
                                         }
                                     );
 
+                            activeGrammarIssues =
+                                normalizeGrammarIssues(
+                                    activeGrammarIssues
+                                );
+
 
                             refreshGrammarReview();
                         }
@@ -1512,6 +1517,22 @@
                     activeGrammarIssues[issueIndex];
 
 
+                const currentIndex =
+                    resolveGrammarIssueIndex(issue);
+
+                if (currentIndex === -1) {
+
+                    alert(
+                        'The article content has changed since the grammar check. ' +
+                        'Please run Check Grammar again.'
+                    );
+
+                    return;
+                }
+
+                issue.index = currentIndex;
+                issue.length = issue.original.length;
+
                 const currentText =
                     quill.getText(
                         issue.index,
@@ -1628,16 +1649,20 @@
                     issuesToApply.find(
                         function (issue) {
 
-                            const currentText =
-                                quill.getText(
-                                    issue.index,
-                                    issue.length
+                            const currentIndex =
+                                resolveGrammarIssueIndex(
+                                    issue
                                 );
 
-                            return (
-                                currentText
-                                !== issue.original
-                            );
+                            if (currentIndex === -1) {
+                                return true;
+                            }
+
+                            issue.index = currentIndex;
+                            issue.length =
+                                issue.original.length;
+
+                            return false;
                         }
                     );
 
@@ -1685,6 +1710,10 @@
 
                 clearGrammarHighlights();
 
+                activeGrammarIssues =
+                    normalizeGrammarIssues(
+                        activeGrammarIssues
+                    );
 
                 activeGrammarIssues.forEach(
                     function (issue) {
@@ -1718,6 +1747,65 @@
                     'grammarHighlight',
                     false,
                     'silent'
+                );
+            }
+
+
+            function normalizeGrammarIssues(issues) {
+
+                return issues
+                    .map(function (issue) {
+
+                        const index =
+                            resolveGrammarIssueIndex(
+                                issue
+                            );
+
+                        if (index === -1) {
+                            return null;
+                        }
+
+                        return {
+                            ...issue,
+                            index: index,
+                            length:
+                                issue.original.length
+                        };
+                    })
+                    .filter(function (issue) {
+                        return issue !== null;
+                    });
+            }
+
+
+            function resolveGrammarIssueIndex(issue) {
+
+                const editorText =
+                    quill.getText();
+
+                if (
+                    Number.isInteger(issue.index) &&
+                    issue.index >= 0 &&
+                    quill.getText(
+                        issue.index,
+                        issue.original.length
+                    ) === issue.original
+                ) {
+                    return issue.index;
+                }
+
+                const fromCurrentOffset =
+                    editorText.indexOf(
+                        issue.original,
+                        Math.max(issue.index || 0, 0)
+                    );
+
+                if (fromCurrentOffset !== -1) {
+                    return fromCurrentOffset;
+                }
+
+                return editorText.indexOf(
+                    issue.original
                 );
             }
 
