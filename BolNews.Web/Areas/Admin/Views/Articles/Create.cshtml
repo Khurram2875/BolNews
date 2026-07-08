@@ -376,1739 +376,221 @@
 </div>
 @section Scripts
 {
-    <script src="~/js/tag-editor.js" asp-append-version="true"></script>
+	<script src="~/js/tag-editor.js" asp-append-version="true"></script>
 
-    <script>
+	<script>
 
-        // ============================================================
-        // HEADLINE GENERATION
-        // ============================================================
+		// ============================================================
+		// HEADLINE GENERATION
+		// ============================================================
 
-        async function generateHeadlines() {
+		async function generateHeadlines() {
 
-            const title = document.getElementById("Title").value;
+			const title = document.getElementById("Title").value;
 
-            const res = await fetch('/admin/articles/generateheadlines', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(title)
-            });
+			const res = await fetch('/admin/articles/generateheadlines', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(title)
+			});
 
-            const data = await res.json();
+			const data = await res.json();
 
-            let html = "<ul>";
+			let html = "<ul>";
 
-            data.suggestions.forEach(s => {
-                html += `<li onclick="useHeadline('${s}')">${s}</li>`;
-            });
+			data.suggestions.forEach(s => {
+				html += `<li onclick="useHeadline('${s}')">${s}</li>`;
+			});
 
-            html += "</ul>";
+			html += "</ul>";
 
-            document.getElementById("headlineSuggestions").innerHTML = html;
-        }
+			document.getElementById("headlineSuggestions").innerHTML = html;
+		}
 
 
-        function useHeadline(text) {
-            document.getElementById("Title").value = text;
-        }
+		function useHeadline(text) {
+			document.getElementById("Title").value = text;
+		}
 
 
-        // ============================================================
-        // MAIN PAGE INITIALIZATION
-        // ============================================================
+		// ============================================================
+		// MAIN PAGE INITIALIZATION
+		// ============================================================
 
-        document.addEventListener('DOMContentLoaded', function () {
+		document.addEventListener('DOMContentLoaded', function () {
 
 
-            // ========================================================
-            // AUTO-FILL SLUG
-            // ========================================================
+			// ========================================================
+			// AUTO-FILL SLUG
+			// ========================================================
 
-            const titleInput = document.getElementById("Title");
+			const titleInput = document.getElementById("Title");
 
-            if (titleInput) {
+			if (titleInput) {
 
-                titleInput.addEventListener("blur", function () {
+				titleInput.addEventListener("blur", function () {
 
-                    const titleValue = this.value;
+					const titleValue = this.value;
 
-                    if (titleValue.trim() !== "") {
+					if (titleValue.trim() !== "") {
 
-                        const slugValue = titleValue
-                            .toLowerCase()
-                            .trim()
-                            .replace(/[^a-z0-9\s-]/g, '')
-                            .replace(/\s+/g, '-')
-                            .replace(/-+/g, '-');
+						const slugValue = titleValue
+							.toLowerCase()
+							.trim()
+							.replace(/[^a-z0-9\s-]/g, '')
+							.replace(/\s+/g, '-')
+							.replace(/-+/g, '-');
 
-                        const slugInput =
-                            document.getElementById("Slug");
+						const slugInput =
+							document.getElementById("Slug");
 
-                        if (slugInput) {
-                            slugInput.value = slugValue;
-                        }
+						if (slugInput) {
+							slugInput.value = slugValue;
+						}
 
-                        const summaryInput =
-                            document.getElementById("Summary");
+						const summaryInput =
+							document.getElementById("Summary");
 
-                        if (summaryInput) {
-                            summaryInput.focus();
-                        }
-                    }
-                });
-            }
+						if (summaryInput) {
+							summaryInput.focus();
+						}
+					}
+				});
+			}
 
 
-            // ========================================================
-            // GEMINI META TITLE / DESCRIPTION GENERATION
-            // ========================================================
+			// ========================================================
+			// GEMINI META TITLE / DESCRIPTION GENERATION
+			// ========================================================
 
-            const categoryInput =
-                document.getElementById("CategoryId");
+			const categoryInput =
+				document.getElementById("CategoryId");
 
-            if (categoryInput) {
+			if (categoryInput) {
 
-                categoryInput.addEventListener(
-                    "change",
-                    async function () {
+				categoryInput.addEventListener(
+					"change",
+					async function () {
 
-                        const title =
-                            document.getElementById("Title")?.value;
+						const title =
+							document.getElementById("Title")?.value;
 
-                        const summary =
-                            document.getElementById("Summary")?.value;
-
-                        const categoryDropdown = this;
-
-                        const categoryText =
-                            categoryDropdown.options[
-                                categoryDropdown.selectedIndex
-                            ].text;
-
-                        if (
-                            !title ||
-                            !summary ||
-                            !categoryDropdown.value
-                        ) {
-                            return;
-                        }
-
-                        const spinner =
-                            document.getElementById("metaSpinner");
-
-                        const metaTitleInput =
-                            document.getElementById("MetaTitle");
-
-                        const metaDescInput =
-                            document.getElementById("MetaDescription");
-
-                        if (spinner) {
-                            spinner.classList.remove("d-none");
-                            spinner.classList.add("d-flex");
-                        }
-
-                        if (metaTitleInput) {
-                            metaTitleInput.disabled = true;
-                        }
-
-                        if (metaDescInput) {
-                            metaDescInput.disabled = true;
-                        }
-
-                        try {
-
-                            const response = await fetch(
-                                '/admin/articles/generatemetadata',
-                                {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({
-                                        title: title,
-                                        summary: summary,
-                                        category: categoryText
-                                    })
-                                }
-                            );
-
-                            if (response.ok) {
-
-                                const data =
-                                    await response.json();
-
-                                if (metaTitleInput) {
-                                    metaTitleInput.value =
-                                        data.metaTitle;
-                                }
-
-                                if (metaDescInput) {
-                                    metaDescInput.value =
-                                        data.metaDescription;
-                                }
-                            }
-                            else {
-                                console.error(
-                                    "Failed to fetch meta data from Gemini."
-                                );
-                            }
-                        }
-                        catch (error) {
-
-                            console.error(
-                                "Error connecting to metadata generator endpoint:",
-                                error
-                            );
-                        }
-                        finally {
-
-                            if (spinner) {
-                                spinner.classList.remove("d-flex");
-                                spinner.classList.add("d-none");
-                            }
-
-                            if (metaTitleInput) {
-                                metaTitleInput.disabled = false;
-                            }
-
-                            if (metaDescInput) {
-                                metaDescInput.disabled = false;
-                            }
-
-                            document
-                                .getElementById("editor")
-                                ?.focus();
-                        }
-                    }
-                );
-            }
-
-
-            // ========================================================
-            // QUILL IMPORTS
-            // ========================================================
-
-            const Parchment =
-                Quill.import('parchment');
-
-            const BlockEmbed =
-                Quill.import('blots/block/embed');
-
-            const ImageBlot =
-                Quill.import('formats/image');
-
-                const GrammarHighlightAttributor =
-            new Parchment.ClassAttributor(
-                'grammarHighlight',
-                'grammar-highlight',
-                {
-                    scope: Parchment.Scope.INLINE
-                }
-            );
-
-
-            // ========================================================
-            // GRAMMAR HIGHLIGHT BLOT
-            // Must be declared BEFORE Quill.register()
-            // ========================================================
-
-            Quill.register(
-                GrammarHighlightAttributor,
-                true
-            );
-
-
-            // ========================================================
-            // IMAGE SIZE ATTRIBUTOR
-            // ========================================================
-
-            const ImageSizeAttributor =
-                new Parchment.Attributor(
-                    'data-size',
-                    'data-size',
-                    {
-                        scope: Parchment.Scope.INLINE,
-
-                        whitelist: [
-                            'small',
-                            'medium',
-                            'large',
-                            'full'
-                        ]
-                    }
-                );
-
-            Quill.register(
-                ImageSizeAttributor,
-                true
-            );
-
-
-            // ========================================================
-            // SOCIAL EMBED BLOT
-            // ========================================================
-
-            class SocialEmbedBlot extends BlockEmbed {
-
-                static create(value) {
-
-                    const node = super.create();
-
-                    node.setAttribute(
-                        'class',
-                        'quill-social-embed'
-                    );
-
-                    node.setAttribute(
-                        'contenteditable',
-                        'false'
-                    );
-
-                    node.setAttribute(
-                        'data-raw-html',
-                        btoa(
-                            unescape(
-                                encodeURIComponent(value)
-                            )
-                        )
-                    );
-
-                    let platformName = "Social Media";
-
-                    const domainMatch = value.match(
-                        /(?:www\.)?([a-zA-Z0-9-]+)\.(?:com|net|org|be)/i
-                    );
-
-                    if (
-                        domainMatch &&
-                        domainMatch[1]
-                    ) {
-
-                        platformName =
-                            domainMatch[1]
-                                .charAt(0)
-                                .toUpperCase()
-                            +
-                            domainMatch[1].slice(1);
-
-                        if (
-                            platformName.toLowerCase() === 'youtu'
-                        ) {
-                            platformName = 'YouTube';
-                        }
-
-                        if (
-                            platformName.toLowerCase() === 'fb'
-                        ) {
-                            platformName = 'Facebook';
-                        }
-                    }
-
-                    node.innerHTML = `
-                        <div class="embed-placeholder-box">
-
-                            <span class="embed-icon">
-                                🌐
-                            </span>
-
-                            <p class="embed-title">
-                                ${platformName} Integration Widget
-                            </p>
-
-                            <small class="embed-subtitle">
-                                The complete interactive embed will
-                                render live on your main website
-                            </small>
-
-                        </div>
-                    `;
-
-                    return node;
-                }
-
-
-                static value(node) {
-
-                    const encodedData =
-                        node.getAttribute('data-raw-html');
-
-                    if (encodedData) {
-
-                        return decodeURIComponent(
-                            escape(
-                                atob(encodedData)
-                            )
-                        );
-                    }
-
-                    return node.innerHTML;
-                }
-            }
-
-            SocialEmbedBlot.blotName =
-                'socialEmbed';
-
-            SocialEmbedBlot.tagName =
-                'div';
-
-            Quill.register(
-                ImageBlot,
-                true
-            );
-
-            Quill.register(
-                SocialEmbedBlot,
-                true
-            );
-
-
-            // ========================================================
-            // QUILL INITIALIZATION
-            // ========================================================
-
-            const contentField =
-                document.getElementById('Content');
-
-            let selectedImage = null;
-
-
-            const quill = new Quill('#editor', {
-
-                theme: 'snow',
-
-                modules: {
-
-                    toolbar: [
-
-                        [
-                            {
-                                header: [
-                                    1,
-                                    2,
-                                    3,
-                                    4,
-                                    false
-                                ]
-                            }
-                        ],
-
-                        [
-                            'bold',
-                            'italic',
-                            'underline',
-                            'strike'
-                        ],
-
-                        [
-                            { color: [] },
-                            { background: [] }
-                        ],
-
-                        [
-                            { align: [] }
-                        ],
-
-                        [
-                            { list: 'ordered' },
-                            { list: 'bullet' }
-                        ],
-
-                        [
-                            'blockquote'
-                        ],
-
-                        [
-                            'link',
-                            'image'
-                        ],
-
-                        [
-                            'clean'
-                        ]
-                    ]
-                }
-            });
-
-
-            // Optional debugging access from DevTools
-            window.quill = quill;
-
-
-            // ========================================================
-            // LOAD EXISTING CONTENT
-            // ========================================================
-
-            if (
-                contentField &&
-                contentField.value
-            ) {
-
-                quill.clipboard.dangerouslyPasteHTML(
-                    contentField.value
-                );
-            }
-
-
-            // ========================================================
-            // IMAGE UPLOAD
-            // ========================================================
-
-            const toolbar =
-                quill.getModule('toolbar');
-
-            toolbar.addHandler(
-                'image',
-                imageHandler
-            );
-
-
-            async function imageHandler() {
-
-                const input =
-                    document.createElement('input');
-
-                input.type = 'file';
-
-                input.accept = 'image/*';
-
-                input.click();
-
-
-                input.onchange = async () => {
-
-                    const file =
-                        input.files[0];
-
-                    if (!file) {
-                        return;
-                    }
-
-                    const formData =
-                        new FormData();
-
-                    formData.append(
-                        'upload',
-                        file
-                    );
-
-                    try {
-
-                        const token =
-                            document.querySelector(
-                                'input[name="__RequestVerificationToken"]'
-                            )?.value;
-
-                        const response = await fetch(
-                            '/Admin/Articles/UploadEditorImage',
-                            {
-                                method: 'POST',
-
-                                headers: {
-                                    'RequestVerificationToken':
-                                        token
-                                },
-
-                                body: formData
-                            }
-                        );
-
-                        if (!response.ok) {
-                            throw new Error(
-                                'Upload failed'
-                            );
-                        }
-
-                        const result =
-                            await response.json();
-
-                        const range =
-                            quill.getSelection(true);
-
-                        quill.insertEmbed(
-                            range.index,
-                            'image',
-                            result.url
-                        );
-
-                        quill.setSelection(
-                            range.index + 1
-                        );
-                    }
-                    catch (error) {
-
-                        console.error(error);
-
-                        alert(
-                            'Image upload failed.'
-                        );
-                    }
-                };
-            }
-
-
-            // ========================================================
-            // IMAGE SELECTION
-            // ========================================================
-
-            quill.root.addEventListener(
-                'click',
-                function (e) {
-
-                    document
-                        .querySelectorAll(
-                            '.ql-editor img'
-                        )
-                        .forEach(img => {
-
-                            img.classList.remove(
-                                'selected-image'
-                            );
-                        });
-
-                    if (
-                        e.target.tagName === 'IMG'
-                    ) {
-
-                        selectedImage =
-                            e.target;
-
-                        selectedImage
-                            .classList
-                            .add(
-                                'selected-image'
-                            );
-                    }
-                    else {
-
-                        selectedImage = null;
-                    }
-                }
-            );
-
-
-            // ========================================================
-            // IMAGE ALIGNMENT
-            // ========================================================
-
-            const imgLeft =
-                document.getElementById('imgLeft');
-
-            const imgCenter =
-                document.getElementById('imgCenter');
-
-            const imgRight =
-                document.getElementById('imgRight');
-
-
-            function applyImageAlignment(
-                alignmentClass
-            ) {
-
-                if (!selectedImage) {
-                    return;
-                }
-
-                const parent =
-                    selectedImage.parentElement;
-
-                parent.classList.remove(
-                    'ql-align-left',
-                    'ql-align-center',
-                    'ql-align-right'
-                );
-
-                parent.classList.add(
-                    alignmentClass
-                );
-            }
-
-
-            if (imgLeft) {
-
-                imgLeft.addEventListener(
-                    'click',
-                    function () {
-
-                        applyImageAlignment(
-                            'ql-align-left'
-                        );
-                    }
-                );
-            }
-
-
-            if (imgCenter) {
-
-                imgCenter.addEventListener(
-                    'click',
-                    function () {
-
-                        applyImageAlignment(
-                            'ql-align-center'
-                        );
-                    }
-                );
-            }
-
-
-            if (imgRight) {
-
-                imgRight.addEventListener(
-                    'click',
-                    function () {
-
-                        applyImageAlignment(
-                            'ql-align-right'
-                        );
-                    }
-                );
-            }
-
-
-            // ========================================================
-            // IMAGE SIZE
-            // ========================================================
-
-            const imgSmall =
-                document.getElementById('imgSmall');
-
-            const imgMedium =
-                document.getElementById('imgMedium');
-
-            const imgLarge =
-                document.getElementById('imgLarge');
-
-            const imgFull =
-                document.getElementById('imgFull');
-
-
-            function applyImageSize(size) {
-
-                if (!selectedImage) {
-                    return;
-                }
-
-                selectedImage.setAttribute(
-                    'data-size',
-                    size
-                );
-
-                const blot =
-                    Quill.find(selectedImage);
-
-                if (blot) {
-
-                    blot.format(
-                        'data-size',
-                        size
-                    );
-
-                    quill.update();
-
-                    if (contentField) {
-
-                        contentField.value =
-                            cleanHtml(
-                                quill.root.innerHTML
-                            );
-                    }
-                }
-            }
-
-
-            if (imgSmall) {
-
-                imgSmall.addEventListener(
-                    'click',
-                    () => applyImageSize('small')
-                );
-            }
-
-
-            if (imgMedium) {
-
-                imgMedium.addEventListener(
-                    'click',
-                    () => applyImageSize('medium')
-                );
-            }
-
-
-            if (imgLarge) {
-
-                imgLarge.addEventListener(
-                    'click',
-                    () => applyImageSize('large')
-                );
-            }
-
-
-            if (imgFull) {
-
-                imgFull.addEventListener(
-                    'click',
-                    () => applyImageSize('full')
-                );
-            }
-
-
-            // ========================================================
-            // SOCIAL EMBED INSERTION
-            // ========================================================
-
-            const btnSocialEmbed =
-                document.getElementById(
-                    'btnSocialEmbed'
-                );
-
-            if (btnSocialEmbed) {
-
-                btnSocialEmbed.addEventListener(
-                    'click',
-                    function () {
-
-                        const embedCode = prompt(
-                            "Paste your full Social Media Embed Code:"
-                        );
-
-                        if (
-                            embedCode &&
-                            embedCode.trim() !== ''
-                        ) {
-
-                            const range =
-                                quill.getSelection(true);
-
-                            quill.insertEmbed(
-                                range.index,
-                                'socialEmbed',
-                                embedCode.trim()
-                            );
-
-                            quill.setSelection(
-                                range.index + 1
-                            );
-                        }
-                    }
-                );
-            }
-
-
-            // ========================================================
-            // REMOVE SOCIAL EMBED
-            // ========================================================
-
-            quill.root.addEventListener(
-                'dblclick',
-                function (e) {
-
-                    const embedWrapper =
-                        e.target.closest(
-                            '.quill-social-embed'
-                        );
-
-                    if (!embedWrapper) {
-                        return;
-                    }
-
-                    const confirmDelete =
-                        confirm(
-                            "Do you want to remove this social media embed?"
-                        );
-
-                    if (!confirmDelete) {
-                        return;
-                    }
-
-                    const blot =
-                        Quill.find(embedWrapper);
-
-                    if (blot) {
-
-                        blot.remove();
-
-                        quill.update();
-                    }
-                }
-            );
-
-
-            // ========================================================
-            // GRAMMAR REVIEW ELEMENTS
-            // ========================================================
-
-            const btnCheckGrammar =
-                document.getElementById(
-                    'btnCheckGrammar'
-                );
-
-            const btnCloseGrammar =
-                document.getElementById(
-                    'btnCloseGrammar'
-                );
-
-            const btnApplyAllGrammar =
-                document.getElementById(
-                    'btnApplyAllGrammar'
-                );
-
-            const editorColumn =
-                document.getElementById(
-                    'editorColumn'
-                );
-
-            const grammarPanelColumn =
-                document.getElementById(
-                    'grammarPanelColumn'
-                );
-
-            const grammarLoading =
-                document.getElementById(
-                    'grammarLoading'
-                );
-
-            const grammarSuggestions =
-                document.getElementById(
-                    'grammarSuggestions'
-                );
-
-            const grammarIssueCount =
-                document.getElementById(
-                    'grammarIssueCount'
-                );
-
-            const grammarActions =
-                document.getElementById(
-                    'grammarActions'
-                );
-
-            
-            let activeGrammarIssues = [];
-
-            // ========================================================
-            // CHECK GRAMMAR BUTTON
-            // ========================================================
-
-            if (btnCheckGrammar) {
-
-                btnCheckGrammar.addEventListener(
-                    'click',
-                    async function () {
-
-                        openGrammarPanel();
-
-                        clearGrammarHighlights();
-
-                        activeGrammarIssues = [];
-
-                        grammarLoading
-                            ?.classList
-                            .remove('d-none');
-
-                        if (grammarSuggestions) {
-                            grammarSuggestions.innerHTML = '';
-                        }
-
-                        grammarActions
-                            ?.classList
-                            .add('d-none');
-
-                        if (grammarIssueCount) {
-                            grammarIssueCount.textContent =
-                                'Checking content...';
-                        }
-
-                        btnCheckGrammar.disabled = true;
-
-                        try {
-
-                            const editorText = quill.getText();
-
-                            if (!editorText.trim()) {
-
-                                renderGrammarSuggestions([]);
-
-                                grammarIssueCount.textContent =
-                                    'No content to check';
-
-                                return;
-                            }
-
-                            const token =
-                                document.querySelector(
-                                    'input[name="__RequestVerificationToken"]'
-                                )?.value;
-
-                            const response = await fetch(
-                                '/Admin/Articles/CheckGrammar',
-                                {
-                                    method: 'POST',
-
-                                    headers: {
-                                        'Content-Type':
-                                            'application/json',
-
-                                        'RequestVerificationToken':
-                                            token
-                                    },
-
-                                    body: JSON.stringify({
-                                        text: editorText,
-                                        language: 'en-US'
-                                    })
-                                }
-                            );
-
-                            if (!response.ok) {
-
-                                const errorData =
-                                    await response.json()
-                                        .catch(() => null);
-
-                                throw new Error(
-                                    errorData?.message
-                                    ?? 'Grammar check failed.'
-                                );
-                            }
-
-                            const data =
-                                await response.json();
-
-                            activeGrammarIssues =
-                                (data.issues ?? []).map(
-                                    function (issue) {
-
-                                        return {
-                                            id: issue.id,
-
-                                            category:
-                                                issue.category,
-
-                                            original:
-                                                issue.original,
-
-                                            replacement:
-                                                issue.replacement,
-
-                                            message:
-                                                issue.message,
-
-                                            ruleId:
-                                                issue.ruleId,
-
-                                            index:
-                                                issue.offset,
-
-                                            length:
-                                                issue.length
-                                        };
-                                    }
-                                );
-
-                            refreshGrammarReview();
-                        }
-                        catch (error) {
-
-                            console.error(
-                                'Grammar check error:',
-                                error
-                            );
-
-                            activeGrammarIssues = [];
-
-                            clearGrammarHighlights();
-
-                            if (grammarIssueCount) {
-                                grammarIssueCount.textContent =
-                                    'Grammar check failed';
-                            }
-
-                            if (grammarSuggestions) {
-
-                                grammarSuggestions.innerHTML = `
-                                    <div class="alert alert-danger mb-0">
-                                        ${escapeHtml(
-                                            error.message
-                                            || 'Unable to check grammar.'
-                                        )}
-                                    </div>
-                                `;
-                            }
-
-                            grammarActions
-                                ?.classList
-                                .add('d-none');
-                        }
-                        finally {
-
-                            grammarLoading
-                                ?.classList
-                                .add('d-none');
-
-                            btnCheckGrammar.disabled = false;
-                        }
-                    }
-                );
-            }
-            if (btnApplyAllGrammar) {
-
-                btnApplyAllGrammar.addEventListener(
-                    'click',
-                    function () {
-
-                        applyAllGrammarIssues();
-                    }
-                );
-            }
-            if (grammarSuggestions) {
-
-                grammarSuggestions.addEventListener(
-                    'click',
-                    function (e) {
-
-                        // ----------------------------------------
-                        // Apply one suggestion
-                        // ----------------------------------------
-
-                        const applyButton =
-                            e.target.closest(
-                                '.btn-apply-grammar'
-                            );
-
-                        if (applyButton) {
-
-                            e.stopPropagation();
-
-                            const issueId =
-                                Number(
-                                    applyButton.dataset.issueId
-                                );
-
-                            applyGrammarIssue(issueId);
-
-                            return;
-                        }
-
-
-                        // ----------------------------------------
-                        // Ignore one suggestion
-                        // ----------------------------------------
-
-                        const ignoreButton =
-                            e.target.closest(
-                                '.btn-ignore-grammar'
-                            );
-
-                        if (ignoreButton) {
-
-                            e.stopPropagation();
-
-                            const issueId =
-                                Number(
-                                    ignoreButton.dataset.issueId
-                                );
-
-                            ignoreGrammarIssue(issueId);
-                        }
-                    }
-                );
-            }
-
-            // ========================================================
-            // CLOSE GRAMMAR PANEL
-            // ========================================================
-
-            if (btnCloseGrammar) {
-
-                btnCloseGrammar.addEventListener(
-                    'click',
-                    function () {
-
-                        closeGrammarPanel();
-                    }
-                );
-            }
-
-            function openGrammarPanel() {
-
-                if (
-                    !editorColumn ||
-                    !grammarPanelColumn
-                ) {
-                    return;
-                }
-
-                editorColumn.classList.remove(
-                    'col-12'
-                );
-
-                editorColumn.classList.add(
-                    'col-lg-8'
-                );
-
-                grammarPanelColumn.classList.remove(
-                    'd-none'
-                );
-            }
-
-            function closeGrammarPanel() {
-
-                if (
-                    !editorColumn ||
-                    !grammarPanelColumn
-                ) {
-                    return;
-                }
-
-                grammarPanelColumn.classList.add(
-                    'd-none'
-                );
-
-                editorColumn.classList.remove(
-                    'col-lg-8'
-                );
-
-                editorColumn.classList.add(
-                    'col-12'
-                );
-            }
-
-            // ========================================================
-            // FIND AND HIGHLIGHT MATCHING ISSUES
-            // ========================================================
-
-            function findAndHighlightGrammarIssues(
-                issues
-            ) {
-
-                const editorText =
-                    quill.getText();
-
-                const matchedIssues = [];
-
-
-                issues.forEach(function (issue) {
-
-                    const index =
-                        editorText.indexOf(
-                            issue.original
-                        );
-
-                    if (index === -1) {
-                        return;
-                    }
-
-                    const matchedIssue = {
-
-                        ...issue,
-
-                        index: index,
-
-                        length:
-                            issue.original.length
-                    };
-
-
-                    quill.formatText(
-
-                        matchedIssue.index,
-
-                        matchedIssue.length,
-
-                        'grammarHighlight',
-
-                        'error',
-                        'silent'
-                    );
-
-
-                    matchedIssues.push(
-                        matchedIssue
-                    );
-                });
-
-
-                return matchedIssues;
-            }
-
-            // ========================================================
-            // CLEAR GRAMMAR HIGHLIGHTS
-            // ========================================================
-
-            function clearGrammarHighlights() {
-
-                const length =
-                    quill.getLength();
-
-                quill.formatText(
-
-                    0,
-
-                    length,
-
-                    'grammarHighlight',
-
-                    false,
-
-                    'silent'
-                );
-            }
-
-            // ========================================================
-            // RENDER GRAMMAR SUGGESTIONS
-            // ========================================================
-
-            function renderGrammarSuggestions(
-                issues
-            ) {
-
-                if (
-                    !grammarSuggestions ||
-                    !grammarIssueCount
-                ) {
-                    return;
-                }
-
-                grammarSuggestions.innerHTML = '';
-
-
-                grammarIssueCount.textContent =
-                    `${issues.length} issue${issues.length === 1 ? '' : 's'} found`;
-
-
-                if (issues.length === 0) {
-
-                    grammarSuggestions.innerHTML = `
-                        <div class="alert alert-success mb-0">
-                            No grammar issues found.
-                        </div>
-                    `;
-
-                    grammarActions
-                        ?.classList
-                        .add('d-none');
-
-                    return;
-                }
-
-
-                issues.forEach(function (issue) {
-
-                    const suggestion =
-                        document.createElement('div');
-
-                    suggestion.className =
-                        'grammar-suggestion';
-
-                    suggestion.dataset.issueId =
-                        issue.id;
-
-                    suggestion.dataset.index =
-                        issue.index;
-
-                    suggestion.dataset.length =
-                        issue.length;
-
-
-                    suggestion.innerHTML = `
-
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-
-                            <span class="badge text-bg-secondary">
-                                ${escapeHtml(issue.original)}
-                            </span>
-
-                        </div>
-
-
-                        <div class="mb-2">
-
-                            <span class="grammar-suggestion-original">
-                                ${escapeHtml(issue.original)}
-                            </span>
-
-                            <span class="mx-2">
-                                →
-                            </span>
-
-                            <span class="grammar-suggestion-replacement text-success">
-                                ${escapeHtml(issue.replacement)}
-                            </span>
-
-                        </div>
-
-
-                        <div class="small text-muted mb-3">
-                            ${escapeHtml(issue.message)}
-                        </div>
-
-
-                        <div class="d-flex gap-2">
-
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-primary btn-apply-grammar"
-                                data-issue-id="${issue.id}">
-
-                                Apply
-
-                            </button>
-
-
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-outline-secondary btn-ignore-grammar"
-                                data-issue-id="${issue.id}">
-
-                                Ignore
-
-                            </button>
-
-                        </div>
-                    `;
-
-
-                    grammarSuggestions.appendChild(
-                        suggestion
-                    );
-
-
-                    // Clicking card jumps to the error
-                    suggestion.addEventListener(
-                        'click',
-                        function (e) {
-
-                            if (
-                                e.target.closest('button')
-                            ) {
-                                return;
-                            }
-
-                            const index =
-                                Number(
-                                    suggestion.dataset.index
-                                );
-
-                            const length =
-                                Number(
-                                    suggestion.dataset.length
-                                );
-
-                            quill.setSelection(
-                                index,
-                                length,
-                                'silent'
-                            );
-
-                            quill.scrollSelectionIntoView();
-
-                            quill.focus();
-                        }
-                    );
-                });
-
-
-                grammarActions
-                    ?.classList
-                    .remove('d-none');
-            }
-
-            function applyGrammarIssue(issueId) {
-
-                const issueIndex =
-                    activeGrammarIssues.findIndex(
-                        issue => issue.id === issueId
-                    );
-
-                if (issueIndex === -1) {
-                    return;
-                }
-
-                const issue =
-                    activeGrammarIssues[issueIndex];
-
-                // Verify that the expected text still exists
-                // at the recorded position.
-                const currentText =
-                    quill.getText(
-                        issue.index,
-                        issue.length
-                    );
-
-                if (currentText !== issue.original) {
-
-                    alert(
-                        'The article content has changed since the grammar check. ' +
-                        'Please run Check Grammar again.'
-                    );
-
-                    return;
-                }
-
-                // Remove the old text.
-                quill.deleteText(
-                    issue.index,
-                    issue.length,
-                    'user'
-                );
-
-                // Insert the suggested replacement.
-                quill.insertText(
-                    issue.index,
-                    issue.replacement,
-                    'user'
-                );
-
-                const lengthDifference =
-                    issue.replacement.length -
-                    issue.length;
-
-                // Remove the applied issue.
-                activeGrammarIssues.splice(
-                    issueIndex,
-                    1
-                );
-
-                // Update indexes of all issues located after it.
-                activeGrammarIssues.forEach(
-                    function (remainingIssue) {
-
-                        if (
-                            remainingIssue.index >
-                            issue.index
-                        ) {
-                            remainingIssue.index +=
-                                lengthDifference;
-                        }
-                    }
-                );
-
-                refreshGrammarReview();
-            }
-
-            function ignoreGrammarIssue(issueId) {
-
-                const issueIndex =
-                    activeGrammarIssues.findIndex(
-                        issue => issue.id === issueId
-                    );
-
-                if (issueIndex === -1) {
-                    return;
-                }
-
-                // Remove only this issue from the active review.
-                // The Quill article text remains unchanged.
-                activeGrammarIssues.splice(
-                    issueIndex,
-                    1
-                );
-
-            refreshGrammarReview();
-            }
-
-            function applyAllGrammarIssues() {
-
-                if (activeGrammarIssues.length === 0) {
-                    return;
-                }
-
-                // Create a copy so the active array is not changed
-                // while corrections are being processed.
-                const issuesToApply = [
-                    ...activeGrammarIssues
-                ];
-
-                // Always process from the end of the article backwards.
-                issuesToApply.sort(
-                    (a, b) => b.index - a.index
-                );
-
-                // Verify all text before changing anything.
-                const invalidIssue =
-                    issuesToApply.find(function (issue) {
-
-                        const currentText =
-                            quill.getText(
-                                issue.index,
-                                issue.length
-                            );
-
-                        return currentText !== issue.original;
-                    });
-
-                if (invalidIssue) {
-
-                    alert(
-                        'The article content has changed since the grammar check. ' +
-                        'Please run Check Grammar again.'
-                    );
-
-                    return;
-                }
-
-                // Apply all replacements.
-                issuesToApply.forEach(
-                    function (issue) {
-
-                        quill.deleteText(
-                            issue.index,
-                            issue.length,
-                            'user'
-                        );
-
-                        quill.insertText(
-                            issue.index,
-                            issue.replacement,
-                            'user'
-                        );
-                    }
-                );
-
-                // All active suggestions have now been resolved.
-                activeGrammarIssues = [];
-
-                refreshGrammarReview();
-            }
-
-            function refreshGrammarReview() {
-
-                clearGrammarHighlights();
-
-                activeGrammarIssues.forEach(
-                    function (issue) {
-
-                        quill.formatText(
-                            issue.index,
-                            issue.length,
-                            'grammarHighlight',
-                            'error',
-                            'silent'
-                        );
-                    }
-                );
-
-                renderGrammarSuggestions(
-                    activeGrammarIssues
-                );
-            }
-
-            function escapeHtml(value) {
-
-                const div =
-                    document.createElement('div');
-
-                div.textContent =
-                    value ?? '';
-
-                return div.innerHTML;
-            }
-            // ========================================================
-            // CONTENT SYNCHRONIZATION
-            // ========================================================
-
-            quill.on(
-                'text-change',
-                function () {
-
-                    if (contentField) {
-
-                        contentField.value =
-                            cleanHtml(
-                                quill.root.innerHTML
-                            );
-                    }
-                }
-            );
-
-
-            // ========================================================
-            // FORM SUBMISSION
-            // ========================================================
-
-            const form =
-                document.querySelector('form');
-
-            if (form) {
-
-                form.addEventListener(
-                    'submit',
-                    function () {
-
-                        if (contentField) {
-
-                            contentField.value =
-                                cleanHtml(
-                                    quill.root.innerHTML
-                                );
-                        }
-                    }
-                );
-            }
-
-
-            // ========================================================
-            // CLEAN HTML BEFORE SAVING
-            // ========================================================
-
-            function cleanHtml(html) {
-
-                const div =
-                    document.createElement('div');
-
-                div.innerHTML = html;
-
-
-                // Remove temporary image selection marker
-                div.querySelectorAll('img')
-                    .forEach(function (img) {
-
-                        img.classList.remove(
-                            'selected-image'
-                        );
-                    });
-
-
-                // Remove temporary grammar review highlights
-                div.querySelectorAll('[class*="grammar-highlight-"]')
-                    .forEach(function (span) {
-
-                        span.replaceWith(
-                            ...span.childNodes
-                        );
-                });
-
-
-                // Remove unwanted black text / white background spans
-                div.querySelectorAll('span')
-                    .forEach(function (span) {
-
-                        const style =
-                            span.getAttribute('style');
-
-                        if (
-                            style &&
-                            style.includes(
-                                'color: rgb(0, 0, 0)'
-                            ) &&
-                            style.includes(
-                                'background-color: rgb(255, 255, 255)'
-                            )
-                        ) {
-
-                            span.replaceWith(
-                                ...span.childNodes
-                            );
-                        }
-                    });
-
-
-                return div.innerHTML;
-            }
-
-        });
-
-    </script>
+						const summary =
+							document.getElementById("Summary")?.value;
+
+						const categoryDropdown = this;
+
+						const categoryText =
+							categoryDropdown.options[
+								categoryDropdown.selectedIndex
+							].text;
+
+						if (
+							!title ||
+							!summary ||
+							!categoryDropdown.value
+						) {
+							return;
+						}
+
+						const spinner =
+							document.getElementById("metaSpinner");
+
+						const metaTitleInput =
+							document.getElementById("MetaTitle");
+
+						const metaDescInput =
+							document.getElementById("MetaDescription");
+
+						if (spinner) {
+							spinner.classList.remove("d-none");
+							spinner.classList.add("d-flex");
+						}
+
+						if (metaTitleInput) {
+							metaTitleInput.disabled = true;
+						}
+
+						if (metaDescInput) {
+							metaDescInput.disabled = true;
+						}
+
+						try {
+
+							const response = await fetch(
+								'/admin/articles/generatemetadata',
+								{
+									method: 'POST',
+									headers: {
+										'Content-Type': 'application/json'
+									},
+									body: JSON.stringify({
+										title: title,
+										summary: summary,
+										category: categoryText
+									})
+								}
+							);
+
+							if (response.ok) {
+
+								const data =
+									await response.json();
+
+								if (metaTitleInput) {
+									metaTitleInput.value =
+										data.metaTitle;
+								}
+
+								if (metaDescInput) {
+									metaDescInput.value =
+										data.metaDescription;
+								}
+							}
+							else {
+								console.error(
+									"Failed to fetch meta data from Gemini."
+								);
+							}
+						}
+						catch (error) {
+
+							console.error(
+								"Error connecting to metadata generator endpoint:",
+								error
+							);
+						}
+						finally {
+
+							if (spinner) {
+								spinner.classList.remove("d-flex");
+								spinner.classList.add("d-none");
+							}
+
+							if (metaTitleInput) {
+								metaTitleInput.disabled = false;
+							}
+
+							if (metaDescInput) {
+								metaDescInput.disabled = false;
+							}
+
+							document
+								.getElementById("editor")
+								?.focus();
+						}
+					}
+				);
+			}
+
+
+			// ========================================================
+
+		});
+
+	</script>
+
+	<script src="~/js/article-editor.js" asp-append-version="true"></script>
 }
