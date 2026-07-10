@@ -823,6 +823,12 @@
                             );
 
 
+                    activeGrammarIssues =
+                        normalizeGrammarIssues(
+                            activeGrammarIssues
+                        );
+
+
                     refreshGrammarReview();
                 }
                 catch (error) {
@@ -1018,6 +1024,28 @@
             activeGrammarIssues[issueIndex];
 
 
+        const currentIndex =
+            resolveGrammarIssueIndex(issue);
+
+
+        if (currentIndex === -1) {
+
+            alert(
+                'The article content has changed since the grammar check. ' +
+                'Please run Check Grammar again.'
+            );
+
+            return;
+        }
+
+
+        issue.index =
+            currentIndex;
+
+        issue.length =
+            issue.original.length;
+
+
         // Verify that the article text still matches
         // the text checked by the grammar service.
         const currentText =
@@ -1147,16 +1175,23 @@
             issuesToApply.find(
                 function (issue) {
 
-                    const currentText =
-                        quill.getText(
-                            issue.index,
-                            issue.length
+                    const currentIndex =
+                        resolveGrammarIssueIndex(
+                            issue
                         );
 
-                    return (
-                        currentText
-                        !== issue.original
-                    );
+                    if (currentIndex === -1) {
+                        return true;
+                    }
+
+
+                    issue.index =
+                        currentIndex;
+
+                    issue.length =
+                        issue.original.length;
+
+                    return false;
                 }
             );
 
@@ -1206,6 +1241,11 @@
 
         clearGrammarHighlights();
 
+        activeGrammarIssues =
+            normalizeGrammarIssues(
+                activeGrammarIssues
+            );
+
 
         activeGrammarIssues.forEach(
             function (issue) {
@@ -1239,6 +1279,76 @@
             'grammarHighlight',
             false,
             'silent'
+        );
+    }
+
+
+    // ============================================================
+    // NORMALIZE GRAMMAR ISSUE POSITIONS
+    // ============================================================
+
+    function normalizeGrammarIssues(issues) {
+
+        return issues
+            .map(
+                function (issue) {
+
+                    const index =
+                        resolveGrammarIssueIndex(
+                            issue
+                        );
+
+                    if (index === -1) {
+                        return null;
+                    }
+
+                    return {
+                        ...issue,
+                        index: index,
+                        length:
+                            issue.original.length
+                    };
+                }
+            )
+            .filter(
+                function (issue) {
+                    return issue !== null;
+                }
+            );
+    }
+
+
+    function resolveGrammarIssueIndex(issue) {
+
+        const editorText =
+            quill.getText();
+
+        const expectedLength =
+            issue.original.length;
+
+        if (
+            Number.isInteger(issue.index) &&
+            issue.index >= 0 &&
+            quill.getText(
+                issue.index,
+                expectedLength
+            ) === issue.original
+        ) {
+            return issue.index;
+        }
+
+        const fromCurrentOffset =
+            editorText.indexOf(
+                issue.original,
+                Math.max(issue.index || 0, 0)
+            );
+
+        if (fromCurrentOffset !== -1) {
+            return fromCurrentOffset;
+        }
+
+        return editorText.indexOf(
+            issue.original
         );
     }
 
