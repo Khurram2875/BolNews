@@ -6,6 +6,7 @@
     ViewData["Title"] = "Articles";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
     var canManageHomepagePlacement = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Editor);
+    var canViewRevisionHistory = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Editor) || User.IsInRole(Roles.SubEditor);
     int? pinnedTopStoryArticleId = ViewBag.PinnedTopStoryArticleId as int?;
     var secondaryPlacementByArticleId =
         ViewBag.SecondaryPlacementByArticleId as Dictionary<int, int> ?? new Dictionary<int, int>();
@@ -214,6 +215,14 @@
                             <a href="/news/@article.CategorySlug/@article.Slug" target="_blank" class="badge bg-info text-decoration-none me-1">
                                 Preview
                             </a>
+                            @if (canViewRevisionHistory)
+                            {
+                                <a asp-action="Revisions"
+                                   asp-route-id="@article.Id"
+                                   class="badge bg-secondary text-decoration-none me-1">
+                                    Changes
+                                </a>
+                            }
                             @if (canManageHomepagePlacement && article.IsPublished)
                             {
                                 if (pinnedTopStoryArticleId == article.Id)

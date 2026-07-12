@@ -42,5 +42,11 @@ namespace BolNews.Persistence.Repositories
                 .OrderByDescending(x => x.RevisionNumber)
                 .ToListAsync();
         }
+
+        public async Task<ArticleRevision?> GetByIdAsync(int revisionId)
+        {
+            return await _context.ArticleRevisions
+                .FirstOrDefaultAsync(x => x.Id == revisionId);
+        }
     }
 }
