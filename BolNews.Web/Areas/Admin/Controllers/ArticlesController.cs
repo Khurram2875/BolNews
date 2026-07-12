@@ -51,6 +51,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IGrammarService _grammarService;
+        private readonly IArticleRevisionService _articleRevisionService;
+        private readonly IArticleDiffService _articleDiffService;
 
         public ArticlesController(
              IArticleService articleService,
@@ -63,7 +65,9 @@ namespace BolNews.Web.Areas.Admin.Controllers
              IArticleDiscussionService discussionService, IGeminiService geminiService,
              IEditorialPlacementService editorialPlacementService,
              ITagService tagService,
-             IGrammarService grammarService)
+             IGrammarService grammarService,
+             IArticleRevisionService articleRevisionService,
+             IArticleDiffService articleDiffService)
         {
             _articleService = articleService;
             _categoryService = categoryService;
@@ -82,6 +86,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _editorialPlacementService = editorialPlacementService;
             _tagService = tagService;
             _grammarService = grammarService;
+            _articleRevisionService = articleRevisionService;
+            _articleDiffService = articleDiffService;
         }
 
         // GET: Admin/Articles
@@ -135,6 +141,142 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             return View(viewModels);
         }
+
+        public async Task<IActionResult> Revisions(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Challenge();
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            if (!await CanViewArticleRevisionsAsync(id, user.Id, roles))
+                return Forbid();
+
+            var article = await _articleService.GetByIdAsync(id);
+
+            if (article == null)
+                return NotFound();
+
+            var revisions =
+                await _articleRevisionService.GetByArticleIdAsync(id);
+
+            var userNames =
+                await GetUserDisplayNamesAsync(
+                    revisions.Select(x => x.ChangedByUserId));
+
+            var model =
+                new ArticleRevisionHistoryVM
+                {
+                    Article = _mapper.Map<ArticleVM>(article),
+                    Revisions = revisions
+                        .Select(x => new ArticleRevisionListItemVM
+                        {
+                            Revision = x,
+                            ChangedByName = GetDisplayName(
+                                userNames,
+                                x.ChangedByUserId)
+                        })
+                        .ToList()
+                };
+
+            return View(model);
+        }
+
+        public async Task<IActionResult> RevisionPreview(
+            int articleId,
+            int revisionId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Challenge();
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            if (!await CanViewArticleRevisionsAsync(articleId, user.Id, roles))
+                return Forbid();
+
+            var article = await _articleService.GetByIdAsync(articleId);
+            var revision = await _articleRevisionService.GetByIdAsync(revisionId);
+
+            if (article == null || revision == null || revision.ArticleId != articleId)
+                return NotFound();
+
+            var userNames =
+                await GetUserDisplayNamesAsync(
+                    new[] { revision.ChangedByUserId });
+
+            var model =
+                new ArticleRevisionPreviewVM
+                {
+                    Article = _mapper.Map<ArticleVM>(article),
+                    Revision = revision,
+                    ChangedByName = GetDisplayName(
+                        userNames,
+                        revision.ChangedByUserId)
+                };
+
+            return View(model);
+        }
+
+        public async Task<IActionResult> CompareRevision(
+            int articleId,
+            int revisionId,
+            string target = "current")
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Challenge();
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            if (!await CanViewArticleRevisionsAsync(articleId, user.Id, roles))
+                return Forbid();
+
+            var article = await _articleService.GetByIdAsync(articleId);
+            var revision = await _articleRevisionService.GetByIdAsync(revisionId);
+
+            if (article == null || revision == null || revision.ArticleId != articleId)
+                return NotFound();
+
+            var comparison =
+                target.Equals("previous", StringComparison.OrdinalIgnoreCase)
+                    ? await CompareWithPreviousRevisionAsync(articleId, revision)
+                    : _articleDiffService.Compare(
+                        revision,
+                        article,
+                        "Current Article");
+
+            if (comparison == null)
+            {
+                TempData["Error"] =
+                    "There is no earlier revision to compare with.";
+
+                return RedirectToAction(
+                    nameof(Revisions),
+                    new { id = articleId });
+            }
+
+            var userNames =
+                await GetUserDisplayNamesAsync(
+                    new[] { revision.ChangedByUserId });
+
+            var model =
+                new ArticleRevisionCompareVM
+                {
+                    Article = _mapper.Map<ArticleVM>(article),
+                    Comparison = comparison,
+                    FromChangedByName = GetDisplayName(
+                        userNames,
+                        revision.ChangedByUserId)
+                };
+
+            return View(model);
+        }
+
         // GET: Admin/Articles/Create
         public async Task<IActionResult> Create()
         {
@@ -641,6 +783,77 @@ namespace BolNews.Web.Areas.Admin.Controllers
             {
                 issues
             });
+        }
+
+        private async Task<bool> CanViewArticleRevisionsAsync(
+            int articleId,
+            string userId,
+            IList<string> roles)
+        {
+            if (!(
+                roles.Contains(Roles.Admin) ||
+                roles.Contains(Roles.Editor) ||
+                roles.Contains(Roles.SubEditor)))
+            {
+                return false;
+            }
+
+            return await _articleService.CanEditAsync(
+                articleId,
+                userId,
+                roles);
+        }
+
+        private async Task<ArticleRevisionCompareDto?> CompareWithPreviousRevisionAsync(
+            int articleId,
+            ArticleRevisionDto revision)
+        {
+            var revisions =
+                await _articleRevisionService.GetByArticleIdAsync(articleId);
+
+            var previousRevision =
+                revisions
+                    .Where(x => x.RevisionNumber < revision.RevisionNumber)
+                    .OrderByDescending(x => x.RevisionNumber)
+                    .FirstOrDefault();
+
+            if (previousRevision == null)
+                return null;
+
+            return _articleDiffService.Compare(
+                previousRevision,
+                revision,
+                $"Revision {revision.RevisionNumber}");
+        }
+
+        private async Task<Dictionary<string, string>> GetUserDisplayNamesAsync(
+            IEnumerable<string> userIds)
+        {
+            var ids =
+                userIds
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Distinct()
+                    .ToList();
+
+            if (ids.Count == 0)
+                return new Dictionary<string, string>();
+
+            return await _userManager.Users
+                .Where(x => ids.Contains(x.Id))
+                .ToDictionaryAsync(
+                    x => x.Id,
+                    x => !string.IsNullOrWhiteSpace(x.FullName)
+                        ? x.FullName
+                        : x.UserName ?? x.Email ?? x.Id);
+        }
+
+        private static string GetDisplayName(
+            Dictionary<string, string> userNames,
+            string userId)
+        {
+            return userNames.TryGetValue(userId, out var name)
+                ? name
+                : userId;
         }
 
         public class MetadataRequestDto

@@ -1,0 +1,94 @@
+@model BolNews.Web.Areas.Admin.ViewModels.ArticleRevisionCompareVM
+
+@{
+    ViewData["Title"] = "Compare Article Changes";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .revision-diff del {
+        background: #f8d7da;
+        color: #842029;
+        text-decoration: line-through;
+        padding: 0 0.15rem;
+    }
+
+    .revision-diff ins {
+        background: #d1e7dd;
+        color: #0f5132;
+        text-decoration: none;
+        padding: 0 0.15rem;
+    }
+</style>
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+        <h2 class="mb-1">Compare Changes</h2>
+        <div class="text-muted">
+            @Model.Article.Title
+        </div>
+    </div>
+
+    <a asp-action="Revisions"
+       asp-route-id="@Model.Article.Id"
+       class="btn btn-secondary">
+        Back to Revisions
+    </a>
+</div>
+
+<div class="alert alert-info">
+    Comparing revision #@Model.Comparison.FromRevision.RevisionNumber
+    saved by @Model.FromChangedByName on
+    @Model.Comparison.FromRevision.CreatedAt.ToLocalTime().ToString("g")
+    with @Model.Comparison.ToLabel.
+</div>
+
+@if (!Model.Comparison.HasChanges)
+{
+    <div class="alert alert-success">
+        No differences were found between these versions.
+    </div>
+}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-dark text-white">
+        Field Changes
+    </div>
+
+    <div class="card-body">
+        @foreach (var diff in Model.Comparison.FieldDiffs)
+        {
+            <div class="border-bottom pb-3 mb-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h5 class="mb-0">@diff.FieldName</h5>
+
+                    @if (diff.HasChanged)
+                    {
+                        <span class="badge bg-warning text-dark">
+                            Changed
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">
+                            No Change
+                        </span>
+                    }
+                </div>
+
+                @if (diff.HasChanged)
+                {
+                    <div class="revision-diff">
+                        @Html.Raw(diff.DiffHtml)
+                    </div>
+                }
+                else
+                {
+                    <div class="text-muted">
+                        @diff.NewValue
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,112 @@
+@model BolNews.Web.Areas.Admin.ViewModels.ArticleRevisionHistoryVM
+
+@{
+    ViewData["Title"] = "Article Changes";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+        <h2 class="mb-1">Article Changes</h2>
+        <div class="text-muted">@Model.Article.Title</div>
+    </div>
+
+    <div>
+        <a asp-action="Edit"
+           asp-route-id="@Model.Article.Id"
+           class="btn btn-warning">
+            Edit Article
+        </a>
+
+        <a asp-action="Index"
+           class="btn btn-secondary ms-2">
+            Back
+        </a>
+    </div>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-dark text-white">
+        Revision History
+    </div>
+
+    <div class="card-body p-0">
+        @if (!Model.Revisions.Any())
+        {
+            <div class="p-4 text-muted">
+                No revisions have been recorded for this article yet.
+            </div>
+        }
+        else
+        {
+            <table class="table-hover table mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Revision</th>
+                        <th>Saved At</th>
+                        <th>Changed By</th>
+                        <th>Workflow State</th>
+                        <th>Reason</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Revisions)
+                    {
+                        <tr>
+                            <td>
+                                <span class="badge bg-dark">
+                                    #@item.Revision.RevisionNumber
+                                </span>
+                            </td>
+                            <td>@item.Revision.CreatedAt.ToLocalTime().ToString("g")</td>
+                            <td>@item.ChangedByName</td>
+                            <td>@item.Revision.WorkflowState</td>
+                            <td>
+                                @if (string.IsNullOrWhiteSpace(item.Revision.ChangeReason))
+                                {
+                                    <span class="text-muted">None</span>
+                                }
+                                else
+                                {
+                                    @item.Revision.ChangeReason
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="RevisionPreview"
+                                   asp-route-articleId="@Model.Article.Id"
+                                   asp-route-revisionId="@item.Revision.Id"
+                                   class="badge bg-info text-decoration-none">
+                                    View Snapshot
+                                </a>
+
+                                <a asp-action="CompareRevision"
+                                   asp-route-articleId="@Model.Article.Id"
+                                   asp-route-revisionId="@item.Revision.Id"
+                                   asp-route-target="current"
+                                   class="badge bg-primary text-decoration-none">
+                                    Compare Current
+                                </a>
+
+                                <a asp-action="CompareRevision"
+                                   asp-route-articleId="@Model.Article.Id"
+                                   asp-route-revisionId="@item.Revision.Id"
+                                   asp-route-target="previous"
+                                   class="badge bg-secondary text-decoration-none">
+                                    Compare Previous
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

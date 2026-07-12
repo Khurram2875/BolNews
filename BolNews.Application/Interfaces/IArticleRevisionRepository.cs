@@ -14,5 +14,7 @@ namespace BolNews.Application.Interfaces
         Task<int> GetNextRevisionNumberAsync(int articleId);
 
         Task<List<ArticleRevision>> GetByArticleIdAsync(int articleId);
+
+        Task<ArticleRevision?> GetByIdAsync(int revisionId);
     }
 }
