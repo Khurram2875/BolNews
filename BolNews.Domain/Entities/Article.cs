@@ -99,5 +99,7 @@ namespace BolNews.Domain.Entities
         public ICollection<ArticleTag> ArticleTags { get; set; } = new List<ArticleTag>();
 
         public FeaturedImageMetadata? FeaturedImageMetadata { get; set; }
+        //For linking of breaking news Ticker
+        public virtual ICollection<BreakingNews> BreakingNews { get; set; } = new List<BreakingNews>();
     }
 }

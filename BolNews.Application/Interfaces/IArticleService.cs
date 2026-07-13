@@ -55,5 +55,6 @@ namespace BolNews.Application.Interfaces
         Task AssignFactCheckerAsync(int articleId,string factCheckerUserId,string currentUserId, IList<string> roles);
         Task<Article?> GetEntityByIdAsync(int id);
         Task CancelScheduleAsync(int articleId, string currentUserId, IList<string> roles);
+        Task<List<Article>> SearchArticlesAsync(string search, int take = 20);
     }
 }
