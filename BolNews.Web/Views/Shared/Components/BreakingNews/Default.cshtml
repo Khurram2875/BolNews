@@ -7,34 +7,29 @@
     <div class="ticker-wrapper">
         <div class="ticker">
 
-            @foreach (var item in Model)
+            @for (int i = 0; i < 2; i++)
             {
-                <span class="d-inline-flex align-items-center me-4">
+                foreach (var item in Model)
+                {
+                    <span class="ticker-item">
 
-                    <span class="badge rounded-circle bg-danger ms-1 p-1"
-                          style="width:8px;height:8px;">
+                        <span class="ticker-dot"></span>
+
+                        @if (item.Article != null)
+                        {
+                            <a href="/news/@item.Article.Category.Slug/@item.Article.Slug"
+                               class="track-click"
+                               data-article-id="@item.ArticleId">
+                                @item.Text
+                            </a>
+                        }
+                        else
+                        {
+                            <span>@item.Text</span>
+                        }
+
                     </span>
-
-                    @if (item.Article != null)
-                    {
-                        <a href="/news/@item.Article.Category.Slug/@item.Article.Slug"
-                           class="track-click"
-                           data-article-id="@item.ArticleId">
-
-                            @item.Text
-
-                        </a>
-                    }
-                    else
-                    {
-                        <span>
-
-                            @item.Text
-
-                        </span>
-                    }
-
-                </span>
+                }
             }
 
         </div>

@@ -203,6 +203,7 @@ img {
 /* ============================================================
    BREAKING NEWS TICKER
    ============================================================ */
+
 .breaking-news-bar {
     display: flex;
     align-items: center;
@@ -218,7 +219,7 @@ img {
         background: rgba(0,0,0,0.25) !important;
         font-size: 10px;
         font-weight: 700;
-        letter-spacing: 0.1em;
+        letter-spacing: .1em;
         text-transform: uppercase;
         padding: 5px 12px;
         border-radius: 0;
@@ -230,16 +231,17 @@ img {
     }
 
 .ticker-wrapper {
-    overflow: hidden;
     position: relative;
+    overflow: hidden;
     flex: 1;
 }
 
 .ticker {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     white-space: nowrap;
-    padding-left: 100%;
-    animation: ticker-scroll 90s linear infinite;
+    padding-left: 45%;
+    animation: ticker-scroll 60s linear infinite;
     font-size: 12px;
     font-weight: 400;
 }
@@ -248,31 +250,53 @@ img {
         animation-play-state: paused;
     }
 
-    .ticker span {
-        display: inline-block;
-        margin-right: 40px;
-    }
+/* Individual ticker item */
+.ticker-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px; /* Space between dot and text */
+    margin-right: 20px; /* Space between two ticker items */
+    white-space: nowrap;
+}
 
-    .ticker a {
-        color: var(--bn-ticker-text);
-        text-decoration: none;
-        font-weight: 500;
-        opacity: 0.9;
-        transition: opacity var(--bn-transition);
-    }
+/* Red dot */
+.ticker-dot {
+    width: 5px;
+    height: 5px;
+    min-width: 5px;
+    background: #9b1c1c;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
 
-        .ticker a:hover {
-            opacity: 1;
-            text-decoration: underline;
-        }
+/* Ticker text */
+.ticker-item a,
+.ticker-item > span {
+    display: inline-flex;
+    align-items: center;
+    color: var(--bn-ticker-text);
+    text-decoration: none;
+    font-weight: 500;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+    opacity: .9;
+    transition: opacity var(--bn-transition);
+}
+
+    .ticker-item a:hover {
+        opacity: 1;
+        text-decoration: underline;
+    }
 
 @keyframes ticker-scroll {
-    0% {
-        transform: translateX(0%);
+
+    from {
+        transform: translateX(0);
     }
 
-    100% {
-        transform: translateX(-100%);
+    to {
+        transform: translateX(-50%);
     }
 }
 
@@ -284,6 +308,7 @@ img {
     width: 30px;
     height: 100%;
     z-index: 2;
+    pointer-events: none;
 }
 
 .ticker-wrapper::before {
@@ -295,7 +320,6 @@ img {
     right: 0;
     background: linear-gradient(to left, var(--bn-ticker-bg), transparent);
 }
-
 /* ============================================================
    UTILITY BAR
    ============================================================ */
