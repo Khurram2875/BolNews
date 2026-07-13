@@ -43,8 +43,8 @@ builder.Services.AddHttpClient<IGrammarService, LanguageToolGrammarService>(
             client.Timeout =
                 TimeSpan.FromSeconds(30);
         });
-builder.Services.AddSignalR();
-//builder.Services.AddSignalR().AddAzureSignalR(builder.Configuration["Azure:SignalR:ConnectionString"]!);
+//builder.Services.AddSignalR();
+builder.Services.AddSignalR().AddAzureSignalR(builder.Configuration["Azure:SignalR:ConnectionString"]!);
 
 builder.Services.AddResponseCompression(options =>
 {

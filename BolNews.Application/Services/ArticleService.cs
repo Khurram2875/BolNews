@@ -769,5 +769,10 @@ namespace BolNews.Application.Services
 
             await _repo.SaveChangesAsync();
         }
+
+        public async Task<List<Article>> SearchArticlesAsync(string search, int take = 20)
+        {
+            return await _repo.SearchPublishedAsync(search, take);
+        }
     }
 }

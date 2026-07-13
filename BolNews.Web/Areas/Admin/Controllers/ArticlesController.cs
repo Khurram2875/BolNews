@@ -862,5 +862,18 @@ namespace BolNews.Web.Areas.Admin.Controllers
             public string Summary { get; set; }
             public string Category { get; set; }
         }
+        [HttpGet]
+        public async Task<IActionResult> Search(string term)
+        {
+            var articles = await _articleService.SearchArticlesAsync(term);
+
+            var result = articles.Select(a => new
+            {
+                id = a.Id,
+                text = a.Title
+            });
+
+            return Json(result);
+        }
     }
 }

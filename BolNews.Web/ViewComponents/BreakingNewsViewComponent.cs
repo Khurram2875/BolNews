@@ -1,6 +1,5 @@
-﻿using AutoMapper;
-using BolNews.Application.Interfaces;
-using BolNews.Web.Areas.Admin.ViewModels;
+﻿using BolNews.Application.Interfaces;
+using BolNews.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -8,33 +7,29 @@ namespace BolNews.Web.ViewComponents
 {
     public class BreakingNewsViewComponent : ViewComponent
     {
-        private readonly IArticleService _articleService;
-        private readonly IMapper _mapper;
+        private readonly IBreakingNewsService _breakingNewsService;
         private readonly IMemoryCache _cache;
 
         public BreakingNewsViewComponent(
-            IArticleService articleService,
-            IMapper mapper,
+            IBreakingNewsService breakingNewsService,
             IMemoryCache cache)
         {
-            _articleService = articleService;
-            _mapper = mapper;
+            _breakingNewsService = breakingNewsService;
             _cache = cache;
         }
 
-        public async Task<IViewComponentResult> InvokeAsync(int count = 5)
+        public async Task<IViewComponentResult> InvokeAsync()
         {
-            var cacheKey = "breaking_news";
+            const string cacheKey = "breaking_news";
 
-            var vm = await _cache.GetOrCreateAsync(cacheKey, async entry =>
+            var model = await _cache.GetOrCreateAsync(cacheKey, async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2);
 
-                var articles = await _articleService.GetBreakingNewsAsync(count);
-                return _mapper.Map<List<PublicArticleVM>>(articles);
+                return await _breakingNewsService.GetActiveAsync();
             });
 
-            return View(vm);
+            return View(model);
         }
     }
 }

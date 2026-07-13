@@ -80,6 +80,8 @@ namespace BolNews.Persistence
             services.AddScoped<IArticleLockService, ArticleLockService>();
             services.AddScoped<IArticleDiscussionService, ArticleDiscussionService>();
             services.AddSingleton<IPresenceTracker, PresenceTracker>();
+            services.AddScoped<IBreakingNewsRepository, BreakingNewsRepository>();
+            services.AddScoped<IBreakingNewsService, BreakingNewsService>();
 
             return services;
         }

@@ -1,0 +1,31 @@
+﻿@using BolNews.Web.Areas.Admin.ViewModels.BreakingNews
+@model CreateBreakingNewsVM
+
+@{
+    ViewData["Title"] = "Create Breaking News";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <h2>Create Breaking News</h2>
+
+    <hr />
+
+    <form asp-action="Create"
+          method="post">
+
+        <partial name="_Form"
+                 model="Model" />
+
+    </form>
+
+</div>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="~/js/AdminArea/breaking-news.js"></script>
+
+}

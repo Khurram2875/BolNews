@@ -13,7 +13,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddHttpContextAccessor();
         services.AddAutoMapper(typeof(MappingProfile));
-
+        services.AddAutoMapper(typeof(BreakingNewsProfile));
         services.AddScoped<IArticleService, ArticleService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IAuthorService, AuthorService>();

@@ -393,5 +393,16 @@ namespace BolNews.Persistence.Repositories
 
             return query.OrderByDescending(a => a.PublishedAt);
         }
+
+        public async Task<List<Article>> SearchPublishedAsync(string search, int take = 20)
+        {
+            return await _context.Articles
+                .Where(a =>
+                    a.WorkflowStatus == ArticleWorkflowStatus.Published &&
+                    a.Title.Contains(search))
+                .OrderByDescending(a => a.PublishedAt)
+                .Take(take)
+                .ToListAsync();
+        }
     }
 }
