@@ -55,7 +55,7 @@ namespace BolNews.Application.Services
                 if (article == null || string.IsNullOrWhiteSpace(article.Slug) || article.Category == null || string.IsNullOrWhiteSpace(article.Category.Slug))
                     continue;
 
-                var url = $"{baseUrl}/news/{article.Category.Slug}/{article.Slug}";
+                var url = $"{baseUrl}/{article.Category.Slug}/{article.Slug}";
 
                 // avoid adding a link if the URL already exists in current DOM
                 if (doc.DocumentNode.InnerHtml.Contains(url, StringComparison.OrdinalIgnoreCase))

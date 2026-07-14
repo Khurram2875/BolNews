@@ -68,7 +68,7 @@ namespace BolNews.Web.Services
                     }
                 },
 
-                mainEntityOfPage = $"{baseUrl}/news/{article.CategorySlug}/{article.Slug}"
+                mainEntityOfPage = $"{baseUrl}/{article.CategorySlug}/{article.Slug}"
             };
 
             return JsonSerializer.Serialize(schema);
@@ -97,7 +97,7 @@ namespace BolNews.Web.Services
 
                 name = categoryName,
                 description = metaDescription,
-                url = $"{baseUrl}/news/{categorySlug}",
+                url = $"{baseUrl}/{categorySlug}",
 
                 mainEntity = new
                 {
@@ -106,7 +106,7 @@ namespace BolNews.Web.Services
                     {
                         @type = "ListItem",
                         position = index + 1,
-                        url = $"{baseUrl}/news/{a.CategorySlug}/{a.Slug}"
+                        url = $"{baseUrl}/{a.CategorySlug}/{a.Slug}"
                     })
                 }
             };
@@ -151,13 +151,13 @@ namespace BolNews.Web.Services
                     @type = "ListItem",
                     position = 2,
                     name = article.CategoryName,
-                    item = $"{baseUrl}/news/{article.CategorySlug}"
+                    item = $"{baseUrl}/{article.CategorySlug}"
                 },
                 new {
                         @type = "ListItem",
                         position = 3,
                         name = article.Title,
-                        item = $"{baseUrl}/news/{article.CategorySlug}/{article.Slug}"
+                        item = $"{baseUrl}/{article.CategorySlug}/{article.Slug}"
                     }
                 }
             };
@@ -184,7 +184,7 @@ namespace BolNews.Web.Services
                 @type = "ListItem",
                 position = 2,
                 name = categoryName,
-                item = $"{baseUrl}/news/{categorySlug}"
+                item = $"{baseUrl}/{categorySlug}"
             }
                 }
             };

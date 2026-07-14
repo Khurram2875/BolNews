@@ -91,7 +91,7 @@ namespace BolNews.Web.Services
                                 article.Author.UserId,
                                 "Article Published",
                                 $"Your article '{article.Title}' is now live.",
-                                $"/news/{article.Category.Slug}/{article.Slug}");
+                                $"/{article.Category.Slug}/{article.Slug}");
                         }
 
                         _logger.LogInformation( "Auto publishing article {Id} - {Title}", article.Id, article.Title);
