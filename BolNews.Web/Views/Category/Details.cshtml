@@ -70,7 +70,7 @@
 
                 @if (ViewBag.Page == 1 || ViewBag.Page == null)
                 {
-                    <a href="/news/@first.CategorySlug/@first.Slug"
+                    <a href="/@first.CategorySlug/@first.Slug"
                        class="bn-card-featured track-click d-block mb-4"
                        data-article-id="@first.Id"
                        style="text-decoration:none;">
@@ -103,7 +103,7 @@
                     <!-- Remaining articles as horizontal cards -->
                     @foreach (var item in rest)
                     {
-                        <a href="/news/@item.CategorySlug/@item.Slug"
+                        <a href="/@item.CategorySlug/@item.Slug"
                            class="bn-card-h track-click d-flex"
                            data-article-id="@item.Id"
                            style="text-decoration:none;">
@@ -128,7 +128,7 @@
                     <!-- All pages after first: uniform horizontal cards -->
                     @foreach (var item in Model.Articles)
                     {
-                        <a href="/news/@item.CategorySlug/@item.Slug"
+                        <a href="/@item.CategorySlug/@item.Slug"
                            class="bn-card-h track-click d-flex"
                            data-article-id="@item.Id"
                            style="text-decoration:none;">
@@ -160,7 +160,7 @@
                     <div>
                         @if (ViewBag.Page > 1)
                         {
-                            <a href="/news/@ViewBag.CategorySlug?page=@(ViewBag.Page - 1)"
+                            <a href="/@ViewBag.CategorySlug?page=@(ViewBag.Page - 1)"
                                style="display:inline-flex;align-items:center;gap:6px;font-family:var(--bn-font-ui);font-size:13px;font-weight:600;color:var(--bn-text-primary);text-decoration:none;padding:8px 16px;border:1px solid var(--bn-border);border-radius:var(--bn-radius-sm);background:var(--bn-surface);transition:all 0.2s;">
                                 ← Previous
                             </a>
@@ -172,7 +172,7 @@
                     <div>
                         @if (Model.Articles.Count == ViewBag.PageSize)
                         {
-                            <a href="/news/@ViewBag.CategorySlug?page=@(ViewBag.Page + 1)"
+                            <a href="/@ViewBag.CategorySlug?page=@(ViewBag.Page + 1)"
                                style="display:inline-flex;align-items:center;gap:6px;font-family:var(--bn-font-ui);font-size:13px;font-weight:600;color:#fff;text-decoration:none;padding:8px 16px;border-radius:var(--bn-radius-sm);background:var(--bn-accent);">
                                 Next →
                             </a>

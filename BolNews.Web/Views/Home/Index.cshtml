@@ -18,7 +18,7 @@
 
 			<div class="bn-hero-grid bg-dark mt-1">
 
-				<a href="/news/@Model.TopStory.CategorySlug/@Model.TopStory.Slug"
+				<a href="/@Model.TopStory.CategorySlug/@Model.TopStory.Slug"
 				   class="bn-hero-card bn-hero-main track-click"
 				   data-article-id="@Model.TopStory.Id">
 					<img src="@Model.TopStory.FeaturedImageLarge"
@@ -49,7 +49,7 @@
 							@* Skips the first story to optimize feed density and pulls adjacent articles *@
 							@foreach (var item in Model.SecondaryStories.Take(8))
 							{
-								<a href="/news/@item.CategorySlug/@item.Slug"
+								<a href="/@item.CategorySlug/@item.Slug"
 								   class="bn-list-item d-flex align-items-center text-decoration-none border-bottom border-secondary track-click py-3 text-white"
 								   data-article-id="@item.Id">
 
@@ -99,7 +99,7 @@
 								@foreach (var item in chunk)
 								{
 									<div class="col-9 col-sm-6 col-md-6 col-lg-3">
-										<a href="/news/@item.CategorySlug/@item.Slug"
+										<a href="/@item.CategorySlug/@item.Slug"
 										   class="bn-card track-click d-block h-100 text-decoration-none"
 										   data-article-id="@item.Id">
 
@@ -156,13 +156,13 @@
 
 					<div class="bn-section-header">
 						<span class="bn-section-title">@cat.CategoryName</span>
-						<a href="/news/@cat.CategorySlug" class="bn-section-link">More →</a>
+						<a href="/@cat.CategorySlug" class="bn-section-link">More →</a>
 					</div>
 
 					<div class="bn-cat-grid">
 						@foreach (var item in cat.Articles.Take(4))
 						{
-							<a href="/news/@item.CategorySlug/@item.Slug"
+							<a href="/@item.CategorySlug/@item.Slug"
 							   class="bn-card track-click"
 							   data-article-id="@item.Id">
 								<div class="bn-card-img">

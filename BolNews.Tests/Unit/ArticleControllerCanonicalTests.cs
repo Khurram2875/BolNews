@@ -38,6 +38,8 @@ public class ArticleControllerCanonicalTests
         var redirect = Assert.IsType<RedirectToRouteResult>(result);
         Assert.True(redirect.Permanent);
         Assert.Equal("articleDetails", redirect.RouteName);
+        Assert.Equal("canonical-category", redirect.RouteValues?["categorySlug"]);
+        Assert.Equal("my-article", redirect.RouteValues?["slug"]);
         service.Verify(s => s.TrackArticleEngagementAsync(It.IsAny<int>(), It.IsAny<ISession>()), Times.Never);
     }
 
@@ -74,7 +76,23 @@ public class ArticleControllerCanonicalTests
         var result = await controller.Details("canonical-category", "my-article");
 
         Assert.IsType<ViewResult>(result);
+        Assert.Equal("/canonical-category/my-article", controller.ViewBag.CanonicalUrl);
         service.Verify(s => s.TrackArticleEngagementAsync(42, It.IsAny<ISession>()), Times.Once);
+    }
+
+    [Fact]
+    public void LegacyDetails_ShouldRedirectPermanentlyToRootLevelArticleRoute()
+    {
+        var service = new Mock<IArticlePageService>();
+        var controller = new ArticleController(service.Object);
+
+        var result = controller.LegacyDetails("canonical-category", "my-article");
+
+        var redirect = Assert.IsType<RedirectToRouteResult>(result);
+        Assert.True(redirect.Permanent);
+        Assert.Equal("articleDetails", redirect.RouteName);
+        Assert.Equal("canonical-category", redirect.RouteValues?["categorySlug"]);
+        Assert.Equal("my-article", redirect.RouteValues?["slug"]);
     }
 
     private sealed class SessionFeature : ISessionFeature

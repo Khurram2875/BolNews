@@ -84,7 +84,7 @@ namespace BolNews.Web.Services
 
                     var urls = articles.Select(a =>
                         new XElement(ns + "url",
-                            new XElement(ns + "loc", $"{baseUrl}/news/{a.Category.Slug}/{a.Slug}"),
+                            new XElement(ns + "loc", $"{baseUrl}/{a.Category.Slug}/{a.Slug}"),
                             new XElement(ns + "lastmod",
                                 (a.UpdatedAt ?? a.PublishedAt)?.ToString("yyyy-MM-dd")),
                             new XElement(ns + "changefreq", "hourly"),
@@ -112,7 +112,7 @@ namespace BolNews.Web.Services
 
                     var urls = categories.Select(c =>
                         new XElement(ns + "url",
-                            new XElement(ns + "loc", $"{baseUrl}/news/{c.Slug}"),
+                            new XElement(ns + "loc", $"{baseUrl}/{c.Slug}"),
                             new XElement(ns + "changefreq", "daily"),
                             new XElement(ns + "priority", "0.8")
                         )
@@ -139,7 +139,7 @@ namespace BolNews.Web.Services
 
                     var urls = articles.Select(a =>
                         new XElement(ns + "url",
-                            new XElement(ns + "loc", $"{baseUrl}/news/{a.Category.Slug}/{a.Slug}"),
+                            new XElement(ns + "loc", $"{baseUrl}/{a.Category.Slug}/{a.Slug}"),
                             new XElement(newsNs + "news",
                                 new XElement(newsNs + "publication",
                                     new XElement(newsNs + "name", "Bol News"),

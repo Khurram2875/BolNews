@@ -12,6 +12,11 @@ namespace BolNews.Web.Controllers
             _articlePageService = articlePageService;
         }
 
+        public IActionResult LegacyDetails(string categorySlug, string slug)
+        {
+            return RedirectToRoutePermanent("articleDetails", new { categorySlug, slug });
+        }
+
         public async Task<IActionResult> Details(string categorySlug, string slug)
         {
             var pageVM = await _articlePageService.BuildDetailsPageAsync(slug);
@@ -34,7 +39,7 @@ namespace BolNews.Web.Controllers
                 ? pageVM.Article.Title
                 : pageVM.Article.MetaTitle;
             ViewBag.MetaDescription = pageVM.Article.MetaDescription ?? pageVM.Article.Summary;
-            ViewBag.CanonicalUrl = $"/news/{pageVM.Article.CategorySlug}/{pageVM.Article.Slug}";
+            ViewBag.CanonicalUrl = $"/{pageVM.Article.CategorySlug}/{pageVM.Article.Slug}";
             ViewBag.CategoryName = pageVM.Article.CategoryName;
             ViewBag.CategorySlug = pageVM.Article.CategorySlug;
             ViewBag.OgType = "article";

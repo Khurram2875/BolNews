@@ -14,9 +14,8 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0" style="font-family:var(--bn-font-ui);font-size:12px;">
                 <li class="breadcrumb-item"><a href="/" style="color:var(--bn-text-muted);text-decoration:none;">Home</a></li>
-                <li class="breadcrumb-item"><a href="/news" style="color:var(--bn-text-muted);text-decoration:none;">News</a></li>
                 <li class="breadcrumb-item">
-                    <a href="/news/@Model.Article.CategorySlug" style="color:var(--bn-accent);text-decoration:none;">@Model.Article.CategoryName</a>
+                    <a href="/@Model.Article.CategorySlug" style="color:var(--bn-accent);text-decoration:none;">@Model.Article.CategoryName</a>
                 </li>
                 <li class="breadcrumb-item active" style="color:var(--bn-text-muted);" aria-current="page">
                     @(Model.Article.Title.Length > 50 ? Model.Article.Title.Substring(0, 50) + "…" : Model.Article.Title)
@@ -36,7 +35,7 @@
 
                 <!-- Category tag + title -->
                 <div class="mb-3">
-                    <a href="/news/@Model.Article.CategorySlug" class="bn-tag d-inline-block mb-3">@Model.Article.CategoryName</a>
+                    <a href="/@Model.Article.CategorySlug" class="bn-tag d-inline-block mb-3">@Model.Article.CategoryName</a>
                     <h1 itemprop="headline" style="
                         font-family:var(--bn-font-display);
                         font-size:clamp(22px,3.5vw,34px);
@@ -181,17 +180,17 @@
                     border-top:1px solid var(--bn-border);
                     border-bottom:1px solid var(--bn-border);">
                     <span style="font-family:var(--bn-font-ui);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--bn-text-muted);">Share</span>
-                    <a href="https://twitter.com/intent/tweet?url=@Uri.EscapeDataString($"{Model.BaseUrl}/news/{Model.Article.CategorySlug}/{Model.Article.Slug}")&text=@Uri.EscapeDataString(Model.Article.Title)"
+                    <a href="https://twitter.com/intent/tweet?url=@Uri.EscapeDataString($"{Model.BaseUrl}/{Model.Article.CategorySlug}/{Model.Article.Slug}")&text=@Uri.EscapeDataString(Model.Article.Title)"
                        target="_blank" rel="noopener"
                        style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-family:var(--bn-font-ui);font-size:12px;font-weight:600;background:#000;color:#fff;text-decoration:none;">
                         𝕏 Twitter
                     </a>
-                    <a href="https://www.facebook.com/sharer/sharer.php?u=@Uri.EscapeDataString($"{Model.BaseUrl}/news/{Model.Article.CategorySlug}/{Model.Article.Slug}")"
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=@Uri.EscapeDataString($"{Model.BaseUrl}/{Model.Article.CategorySlug}/{Model.Article.Slug}")"
                        target="_blank" rel="noopener"
                        style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-family:var(--bn-font-ui);font-size:12px;font-weight:600;background:#1877f2;color:#fff;text-decoration:none;">
                         Facebook
                     </a>
-                    <a href="https://wa.me/?text=@Uri.EscapeDataString($"{Model.Article.Title} - {Model.BaseUrl}/news/{Model.Article.CategorySlug}/{Model.Article.Slug}")"
+                    <a href="https://wa.me/?text=@Uri.EscapeDataString($"{Model.Article.Title} - {Model.BaseUrl}/{Model.Article.CategorySlug}/{Model.Article.Slug}")"
                        target="_blank" rel="noopener"
                        style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-family:var(--bn-font-ui);font-size:12px;font-weight:600;background:#25d366;color:#fff;text-decoration:none;">
                         WhatsApp
@@ -236,13 +235,13 @@
                 <div style="margin-top:40px;">
                     <div class="bn-section-header">
                         <span class="bn-section-title">Related Articles</span>
-                        <a href="/news/@Model.Article.CategorySlug" class="bn-section-link">More in @Model.Article.CategoryName →</a>
+                        <a href="/@Model.Article.CategorySlug" class="bn-section-link">More in @Model.Article.CategoryName →</a>
                     </div>
                     <div class="row g-3 mt-1">
                         @foreach (var item in Model.RelatedArticles)
                         {
                             <div class="col-sm-6">
-                                <a href="/news/@item.CategorySlug/@item.Slug"
+                                <a href="/@item.CategorySlug/@item.Slug"
                                    class="bn-card track-click d-flex flex-column h-100"
                                    data-article-id="@item.Id"
                                    style="text-decoration:none;">
@@ -484,5 +483,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 }
-
 

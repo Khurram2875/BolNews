@@ -28,6 +28,12 @@ namespace BolNews.Web.Controllers
             _seoService = seoService;
             _cacheService = cacheService;
         }
+
+        public IActionResult LegacyDetails(string categorySlug)
+        {
+            return RedirectToRoutePermanent("categoryListing", new { categorySlug });
+        }
+
         public async Task<IActionResult> Details(string categorySlug, int page = 1)
         {
             var category = await _categoryService.GetBySlugAsync(categorySlug);
@@ -61,8 +67,8 @@ namespace BolNews.Web.Controllers
                 : category.MetaDescription;
 
             ViewBag.CanonicalUrl = page == 1
-                ? $"/news/{category.Slug}"
-                : $"/news/{category.Slug}?page={page}";
+                ? $"/{category.Slug}"
+                : $"/{category.Slug}?page={page}";
             ViewBag.OgType = "website";
 
             ViewBag.CategoryName = category.Name;
