@@ -29,6 +29,8 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         public string AuthorName { get; set; }
         public string AuthorSlug { get; set; } 
         public string AuthorImage { get; set; }
+        public string? ReporterName { get; set; }
+        public string? ReporterSourceName { get; set; }
         public List<TagDto> ArticleTags { get; set; } = new();
         public List<TagDto> FeaturedImageTags { get; set; } = new();
         public string Keywords => string.Join(", ", ArticleTags.Select(t => t.Name));

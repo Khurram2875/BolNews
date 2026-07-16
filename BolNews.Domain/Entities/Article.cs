@@ -32,6 +32,8 @@ namespace BolNews.Domain.Entities
         public int AuthorId { get; set; }
         public Author Author { get; set; }
 
+        public int? ReporterId { get; set; }
+        public Reporter? Reporter { get; set; }
 
         public DateTime? SubmittedAt { get; set; }
         public DateTime? ReviewStartedAt { get; set; }

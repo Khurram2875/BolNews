@@ -32,6 +32,7 @@ namespace BolNews.Persistence.Repositories
                 .ThenInclude(a => a.User)
 
             .Include(a => a.Category)
+            .Include(a => a.Reporter)
 
             .Include(a => a.ReviewerUser)
 
@@ -62,6 +63,7 @@ namespace BolNews.Persistence.Repositories
             => await _context.Articles
                 .AsNoTrackingWithIdentityResolution()
                 .Include(a => a.Category)
+                .Include(a => a.Reporter)
                 .Include(a => a.Author)
                 .Include(a => a.ArticleTags)
                     .ThenInclude(a => a.Tag)
@@ -75,6 +77,7 @@ namespace BolNews.Persistence.Repositories
                 .Include(a => a.Author)
                     .ThenInclude(a => a.User)
                 .Include(a => a.Category)
+                .Include(a => a.Reporter)
                 .Include(a => a.ReviewerUser)
                 .Include(a => a.FactCheckerUser)
                 .Where(a => !a.IsDeleted)
@@ -94,6 +97,7 @@ namespace BolNews.Persistence.Repositories
             => await _context.Articles
                 .Include(a => a.Author)
                 .Include(a => a.Category)
+                .Include(a => a.Reporter)
                 .Where(a => a.Category.Slug == categorySlug && !a.IsDeleted)
                 .OrderByDescending(a => a.PublishedAt)
                 .Skip((page - 1) * pageSize)
@@ -107,6 +111,7 @@ namespace BolNews.Persistence.Repositories
                             !a.IsDeleted &&
                             a.ArticleTags.Any(at => at.Tag.Slug == tagSlug))
                 .Include(a => a.Author)
+                .Include(a => a.Reporter)
                 .Include(a => a.Category)
                 .Include(a => a.ArticleTags)
                     .ThenInclude(at => at.Tag)
@@ -119,6 +124,8 @@ namespace BolNews.Persistence.Repositories
             => await _context.Articles.AsNoTracking()
                 .AsNoTracking()
                 .Include(a => a.Category)
+                .Include(a => a.Author)
+                .Include(a => a.Reporter)
                 .Where(a => a.IsPublished && !a.IsDeleted)
                 .OrderByDescending(a => a.PublishedAt)
                 .Take(count)
@@ -137,6 +144,8 @@ namespace BolNews.Persistence.Repositories
             => await _context.Articles
                 .AsNoTracking()
                 .Include(a => a.Category)
+                .Include(a => a.Author)
+                .Include(a => a.Reporter)
                 .Where(a => a.CategoryId == categoryId && a.IsPublished && !a.IsDeleted)
                 .OrderByDescending(a => a.PublishedAt)
                 .Take(count)
@@ -148,6 +157,7 @@ namespace BolNews.Persistence.Repositories
                 .AsNoTracking()
                 .Include(a => a.Category)
                 .Include(a => a.Author)
+                .Include(a => a.Reporter)
                 .Include(a => a.ArticleTags)
                     .ThenInclude(at => at.Tag)
                 .Where(a =>
@@ -177,6 +187,8 @@ namespace BolNews.Persistence.Repositories
         public async Task<List<Article>> GetForCategoriesAsync(List<int> categoryIds)
             => await _context.Articles.AsNoTracking()
                 .Include(a => a.Category)
+                .Include(a => a.Author)
+                .Include(a => a.Reporter)
                 .Where(a => categoryIds.Contains(a.CategoryId) && a.IsPublished && !a.IsDeleted)
                 .OrderByDescending(a => a.PublishedAt)
                 .ToListAsync();
@@ -184,6 +196,8 @@ namespace BolNews.Persistence.Repositories
         public async Task<List<Article>> GetPublishedSinceAsync(DateTime fromDate, int limit)
             => await _context.Articles
                 .Include(a => a.Category)
+                .Include(a => a.Author)
+                .Include(a => a.Reporter)
                 .Where(a => a.PublishedAt >= fromDate && a.IsPublished)
                 .OrderByDescending(a => a.PublishedAt)
                 .Take(limit)
@@ -207,6 +221,8 @@ namespace BolNews.Persistence.Repositories
         public async Task<List<Article>> GetTrendingCandidatesAsync(DateTime fromDate, int candidateLimit)
             => await _context.Articles.AsNoTracking()
                 .Include(a => a.Category)
+                .Include(a => a.Author)
+                .Include(a => a.Reporter)
                 .Where(a => a.IsPublished && !a.IsDeleted && a.PublishedAt >= fromDate)
                 .OrderByDescending(a => a.ViewCount)
                 .Take(candidateLimit)
@@ -214,6 +230,9 @@ namespace BolNews.Persistence.Repositories
 
         public async Task<List<Article>> GetTopByViewCountAsync(int count)
             => await _context.Articles.AsNoTracking()
+                .Include(a => a.Category)
+                .Include(a => a.Author)
+                .Include(a => a.Reporter)
                 .Where(a => !a.IsDeleted && a.IsPublished)
                 .OrderByDescending(a => a.ViewCount)
                 .Take(count)
@@ -221,6 +240,9 @@ namespace BolNews.Persistence.Repositories
 
         public async Task<List<Article>> GetLowPerformingAsync(DateTime since, int maxViews, int limit)
             => await _context.Articles.AsNoTracking()
+                .Include(a => a.Category)
+                .Include(a => a.Author)
+                .Include(a => a.Reporter)
                 .Where(a => a.PublishedAt >= since && a.ViewCount < maxViews)
                 .OrderByDescending(a => a.PublishedAt)
                 .Take(limit)
@@ -291,6 +313,7 @@ namespace BolNews.Persistence.Repositories
                 .Include(a => a.Author)
                     .ThenInclude(a => a.User)
                 .Include(a => a.Category)
+                .Include(a => a.Reporter)
                 .Where(a => !a.IsDeleted && a.IsPublished)
                 .OrderByDescending(a => a.OverallScore)
                 .ThenByDescending(a => a.PublishedAt)
@@ -304,6 +327,7 @@ namespace BolNews.Persistence.Repositories
                 .Include(a => a.Author)
                 .ThenInclude(a => a.User)
                 .Include(a => a.Category)
+                .Include(a => a.Reporter)
                 .Where(a =>
                     !a.IsDeleted &&
                     a.IsPublished &&
@@ -319,6 +343,7 @@ namespace BolNews.Persistence.Repositories
                 .Include(a => a.Author)
                     .ThenInclude(a => a.User)
                 .Include(a => a.Category)
+                .Include(a => a.Reporter)
                 .Where(a =>
                     !a.IsDeleted &&
                     a.WorkflowStatus == status)
@@ -331,6 +356,7 @@ namespace BolNews.Persistence.Repositories
              .Include(a => a.Author)
              .ThenInclude(a => a.User)
              .Include(a => a.Category)
+             .Include(a => a.Reporter)
              .Include(a => a.ReviewerUser)
              .Include(a => a.FactCheckerUser)
              .Where(a =>
@@ -346,6 +372,7 @@ namespace BolNews.Persistence.Repositories
                     .ThenInclude(a => a.User)
 
                 .Include(a => a.Category)
+                .Include(a => a.Reporter)
 
                 .Where(a =>
                     a.WorkflowStatus == ArticleWorkflowStatus.Submitted ||
@@ -365,6 +392,7 @@ namespace BolNews.Persistence.Repositories
                 .Include(a => a.Author)
                     .ThenInclude(a => a.User)
                 .Include(a => a.Category)
+                .Include(a => a.Reporter)
                 .Where(a =>
                     !a.IsDeleted &&
                     !a.IsPublished &&
@@ -384,6 +412,8 @@ namespace BolNews.Persistence.Repositories
             var query = _context.Articles
                 .AsNoTracking()
                 .Include(a => a.Category)
+                .Include(a => a.Author)
+                .Include(a => a.Reporter)
                 .Where(a => a.IsPublished && !a.IsDeleted);
 
             if (excludedArticleIds is { Count: > 0 })

@@ -45,6 +45,8 @@ namespace BolNews.Web.Controllers
             ViewBag.OgType = "article";
             ViewBag.MetaKeywords = pageVM.MetaKeywords;
             ViewBag.ArticleTags = pageVM.Article.ArticleTags;
+            ViewBag.Author = pageVM.Article.AuthorName;
+            ViewBag.Source = pageVM.Article.ReporterName;
 
             return View(pageVM);
         }

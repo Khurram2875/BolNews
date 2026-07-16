@@ -161,6 +161,16 @@ namespace BolNews.Application.Services
 
                 authorId = author.Id;
             }
+            else if (IsSubEditor(roles))
+            {
+                var author = await _authorService.GetAuthorByUserId(currentUserId);
+
+                if (author == null)
+                    throw new UnauthorizedAccessException(
+                        "Author profile not found.");
+
+                authorId = author.Id;
+            }
             var workflowStatus = DetermineInitialWorkflowStatus(dto, roles);
             var article = new Article
             {
@@ -178,7 +188,8 @@ namespace BolNews.Application.Services
                 FeaturedImageXl = dto.FeaturedImageXl,
                 
                 CategoryId = dto.CategoryId,
-                AuthorId = dto.AuthorId,
+                AuthorId = authorId,
+                ReporterId = dto.ReporterId,
 
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = currentUserId,
@@ -240,6 +251,7 @@ namespace BolNews.Application.Services
             article.EmbargoUntil = dto.EmbargoUntil;
 
             article.CategoryId = dto.CategoryId;
+            article.ReporterId = dto.ReporterId;
             article.UpdatedAt = DateTime.UtcNow;
             article.UpdatedBy = currentUserId;
 
@@ -323,6 +335,9 @@ namespace BolNews.Application.Services
                 CategoryId = a.CategoryId,
                 AuthorId = a.AuthorId,
                 AuthorName= a.Author.Name,
+                ReporterId = a.ReporterId,
+                ReporterName = a.Reporter?.Name,
+                ReporterSourceName = a.Reporter?.SourceName,
                 IsPublished = a.IsPublished,
                 PublishedAt = a.PublishedAt,
                 WorkflowStatus = a.WorkflowStatus,
@@ -378,6 +393,7 @@ namespace BolNews.Application.Services
                 FeaturedImageMedium = a.FeaturedImageMedium,
                 FeaturedImageLarge = a.FeaturedImageLarge,
                 AuthorId = a.AuthorId,
+                ReporterId = a.ReporterId,
                 CategoryId = a.CategoryId,
                 IsPublished = a.IsPublished,
                 PublishedAt = a.PublishedAt,
@@ -389,6 +405,8 @@ namespace BolNews.Application.Services
                 EditorialPriority = a.EditorialPriority,
                 IsFactChecked = a.IsFactChecked,
                 AuthorName = a.Author?.User?.FullName,
+                ReporterName = a.Reporter?.Name,
+                ReporterSourceName = a.Reporter?.SourceName,
                 CategoryName = a.Category?.Name,
                 CategorySlug=a.Category?.Slug
             });
@@ -600,6 +618,7 @@ namespace BolNews.Application.Services
                 FeaturedImageLarge = a.FeaturedImageLarge,
                 FeaturedImageXl = a.FeaturedImageXl,
                 AuthorId = a.AuthorId,
+                ReporterId = a.ReporterId,
                 CategoryId = a.CategoryId,
                 IsPublished = a.IsPublished,
                 PublishedAt = a.PublishedAt,
@@ -607,6 +626,8 @@ namespace BolNews.Application.Services
                 EditorialPriority = a.EditorialPriority,
                 IsFactChecked = a.IsFactChecked,
                 AuthorName = a.Author?.User?.FullName,
+                ReporterName = a.Reporter?.Name,
+                ReporterSourceName = a.Reporter?.SourceName,
                 CategoryName = a.Category?.Name,
                 CategorySlug= a.Category?.Slug
             });
@@ -627,6 +648,7 @@ namespace BolNews.Application.Services
                 FeaturedImageLarge = a.FeaturedImageLarge,
                 FeaturedImageXl = a.FeaturedImageXl,
                 AuthorId = a.AuthorId,
+                ReporterId = a.ReporterId,
                 CategoryId = a.CategoryId,
                 IsPublished = a.IsPublished,
                 PublishedAt = a.PublishedAt,
@@ -634,6 +656,8 @@ namespace BolNews.Application.Services
                 EditorialPriority = a.EditorialPriority,
                 IsFactChecked = a.IsFactChecked,
                 AuthorName = a.Author?.User?.FullName,
+                ReporterName = a.Reporter?.Name,
+                ReporterSourceName = a.Reporter?.SourceName,
                 CategoryName = a.Category?.Name
             });
         }
@@ -687,6 +711,8 @@ namespace BolNews.Application.Services
                 Id = a.Id,
                 Title = a.Title,
                 AuthorName = a.Author?.Name ?? "",
+                ReporterName = a.Reporter?.Name,
+                ReporterSourceName = a.Reporter?.SourceName,
                 CategoryName = a.Category?.Name ?? "",
                 CreatedAt = a.CreatedAt,
                 WorkflowStatus = a.WorkflowStatus,

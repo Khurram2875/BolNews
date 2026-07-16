@@ -12,6 +12,8 @@ namespace BolNews.Application.DTOs
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public string AuthorName { get; set; } = string.Empty;
+        public string? ReporterName { get; set; }
+        public string? ReporterSourceName { get; set; }
         public string CategoryName { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public ArticleWorkflowStatus WorkflowStatus { get; set; }

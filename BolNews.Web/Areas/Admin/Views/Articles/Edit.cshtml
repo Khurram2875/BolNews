@@ -388,6 +388,16 @@
 				<span asp-validation-for="CategoryId" class="text-danger"></span>
 			</div>
 
+			<div class="mb-3">
+				<label asp-for="ReporterId" class="form-label">Reporter / Source</label>
+				<select asp-for="ReporterId"
+						class="form-select"
+						asp-items="ViewBag.Reporters">
+					<option value="">-- Select Reporter / Source --</option>
+				</select>
+				<span asp-validation-for="ReporterId" class="text-danger"></span>
+			</div>
+
 			@*  @if (!isAuthor)
             {
                 <div class="mb-3">

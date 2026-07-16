@@ -22,6 +22,7 @@ namespace BolNews.Persistence.Context
         public DbSet<Article> Articles { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Author> Authors { get; set; }
+        public DbSet<Reporter> Reporters { get; set; }
         public DbSet<ArticleAnalytics> ArticleAnalytics { get; set; }
         public DbSet<ArticleRevision> ArticleRevisions { get; set; }
         public DbSet<Notification> Notifications { get; set; }
@@ -110,6 +111,12 @@ namespace BolNews.Persistence.Context
                 .HasOne(a => a.Author)
                 .WithMany(a => a.Articles)
                 .HasForeignKey(a => a.AuthorId);
+
+            modelBuilder.Entity<Article>()
+                .HasOne(a => a.Reporter)
+                .WithMany(r => r.Articles)
+                .HasForeignKey(a => a.ReporterId)
+                .OnDelete(DeleteBehavior.SetNull);
 
 
         }
