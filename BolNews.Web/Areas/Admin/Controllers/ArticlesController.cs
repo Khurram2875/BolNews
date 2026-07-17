@@ -53,6 +53,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly IGrammarService _grammarService;
         private readonly IArticleRevisionService _articleRevisionService;
         private readonly IArticleDiffService _articleDiffService;
+        private readonly IReporterService _reporterService;
 
         public ArticlesController(
              IArticleService articleService,
@@ -67,7 +68,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
              ITagService tagService,
              IGrammarService grammarService,
              IArticleRevisionService articleRevisionService,
-             IArticleDiffService articleDiffService)
+             IArticleDiffService articleDiffService,
+             IReporterService reporterService)
         {
             _articleService = articleService;
             _categoryService = categoryService;
@@ -88,6 +90,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _grammarService = grammarService;
             _articleRevisionService = articleRevisionService;
             _articleDiffService = articleDiffService;
+            _reporterService = reporterService;
         }
 
         // GET: Admin/Articles
@@ -283,14 +286,16 @@ namespace BolNews.Web.Areas.Admin.Controllers
             await PopulateDropdowns();
             return View(new ArticleVM());
         }
-        private async Task PopulateDropdowns(int? categoryId = null, int? authorId = null)
+        private async Task PopulateDropdowns(
+            int? categoryId = null,
+            int? reporterId = null)
         {
             var categories = await _categoryService.GetAllAsync();
-            var authors = await _authorService.GetAllAsync();
             var tags = await _tagService.GetAllAsync();
+            var reporters = await _reporterService.GetAllAsync();
 
             ViewBag.Categories = new SelectList(categories, "Id", "Name", categoryId);
-            ViewBag.Authors = new SelectList(authors, "Id", "Name", authorId);
+            ViewBag.Reporters = new SelectList(reporters, "Id", "DisplayName", reporterId);
             ViewBag.TagSuggestions = tags.Select(x => x.Name).ToList();
         }
         // POST: Admin/Articles/Create
@@ -300,7 +305,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await PopulateDropdowns(model.CategoryId);
+                await PopulateDropdowns(model.CategoryId, model.ReporterId);
                 var errorList = ModelState.Where(x => x.Value.Errors.Count > 0)
                 .Select(x => new
                 {
@@ -317,45 +322,26 @@ namespace BolNews.Web.Areas.Admin.Controllers
             }
             var userId = _userManager.GetUserId(User);
 
+            var author = await _authorService.GetAuthorByUserId(userId);
+            //.FirstOrDefaultAsync(a => a.UserId == userId);
+
+            if (author == null)
+            {
+                ModelState.AddModelError("", "Author profile not found.");
+                await PopulateDropdowns(model.CategoryId, model.ReporterId);
+                return View(model);
+            }
+
             var slug = await _articleService.GenerateUniqueSlugAsync(model.Title);
 
             var dto = _mapper.Map<ArticleDto>(model);
+            dto.AuthorId = author.Id;
             dto.Slug = slug;
             dto.MetaTitle = model.MetaTitle ?? model.Title;
             dto.MetaDescription = model.MetaDescription;
             //await _articleService.CreateAsync(dto);
             //var articleId = await _articleService.CreateAsync(dto);
             var roles = await _userManager.GetRolesAsync(await _userManager.GetUserAsync(User));
-            if (roles.Contains(Roles.Author))
-            {
-                var modelAuthor = model.AuthorId;
-                var author = await _authorService.GetAuthorByUserId(userId);
-
-                if (author == null)
-                {
-                    ModelState.AddModelError("", "Author profile not found.");
-                    await PopulateDropdowns(model.CategoryId, model.AuthorId);
-                    return View(model);
-                }
-                else if(model.AuthorId==author.Id)
-                {
-                    dto.AuthorId = author.Id;
-                }
-                else
-                {
-                    dto.AuthorId = model.AuthorId;
-                }
-               
-            }
-            else if ((roles.Contains(Roles.Admin) ||
-                      roles.Contains(Roles.Editor) ||
-                      roles.Contains(Roles.SubEditor)) &&
-                     dto.AuthorId <= 0)
-            {
-                ModelState.AddModelError(nameof(model.AuthorId), "Author is required.");
-                await PopulateDropdowns(model.CategoryId, model.AuthorId);
-                return View(model);
-            }
 
             var articleId = await _articleService.CreateAsync(
                 dto,
@@ -367,6 +353,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 if (!ImageValidator.IsValid(model.ImageFile, out var error))
                 {
                     ModelState.AddModelError("ImageFile", error);
+                    await PopulateDropdowns(model.CategoryId, model.ReporterId);
                     return View(model);
                 }
 
@@ -444,7 +431,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
 
 
-            await PopulateDropdowns(model.CategoryId);
+            await PopulateDropdowns(model.CategoryId, model.ReporterId);
 
             return View(model);
         }
@@ -502,7 +489,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
                         PublishedAt = model.PublishedAt
                     });
 
-                await PopulateDropdowns(model.CategoryId);
+                await PopulateDropdowns(model.CategoryId, model.ReporterId);
 
                 return View(model);
             }
@@ -551,7 +538,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 {
                     ModelState.AddModelError("ImageFile", error);
 
-                    await PopulateDropdowns(model.CategoryId);
+                    await PopulateDropdowns(model.CategoryId, model.ReporterId);
 
                     return View(model);
                 }

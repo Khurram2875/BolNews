@@ -36,6 +36,10 @@ namespace BolNews.Application.DTOs
         public int AuthorId { get; set; }
         public string? AuthorName { get; set; }
 
+        public int? ReporterId { get; set; }
+        public string? ReporterName { get; set; }
+        public string? ReporterSourceName { get; set; }
+
         public bool IsPublished { get; set; }
         public DateTime? PublishedAt { get; set; }
 

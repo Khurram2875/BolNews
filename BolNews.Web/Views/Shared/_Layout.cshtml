@@ -41,6 +41,8 @@
     <!-- Open Graph -->
     <meta property="og:title" content="@(ViewBag.MetaTitle ?? "")" />
     <meta property="og:description" content="@(ViewBag.MetaDescription ?? "")" />
+    <meta property="og:author" content="@(ViewBag.Author ??"")"/>
+    <meta property="og:source" content="@(ViewBag.Source ?? "")" />
     <meta property="og:type" content="@ogType" />
     <meta property="og:url" content="@canonicalUrl" />
     <meta property="og:image" content="@ogImage" />

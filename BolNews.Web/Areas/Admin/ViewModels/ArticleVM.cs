@@ -22,6 +22,7 @@ namespace BolNews.Web.Areas.Admin.ViewModels
 
         public int CategoryId { get; set; }
         public int AuthorId { get; set; }
+        public int? ReporterId { get; set; }
 
         public bool IsPublished { get; set; }
         public DateTime? PublishedAt { get; set; }
@@ -44,6 +45,8 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         public string? FeaturedImageCredit { get; set; }
 
         public string AuthorName { get; set; } = string.Empty;
+        public string? ReporterName { get; set; }
+        public string? ReporterSourceName { get; set; }
         public string CategoryName { get; set; } = string.Empty;
         public string CategorySlug { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }

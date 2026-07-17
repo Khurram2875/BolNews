@@ -54,16 +54,13 @@
 				<span asp-validation-for="CategoryId" class="text-danger"></span>
 			</div>
 
-			@if (isSubEditor || isEditor || isAdmin)
-			{
-				<div class="mb-3">
-					<label asp-for="AuthorId" class="form-label">Author</label>
-					<select asp-for="AuthorId" class="form-select" asp-items="ViewBag.Authors">
-						<option value="">-- Select Author --</option>
-					</select>
-					<span asp-validation-for="AuthorId" class="text-danger"></span>
-				</div>
-			}
+			<div class="mb-3">
+				<label asp-for="ReporterId" class="form-label">Reporter / Source</label>
+				<select asp-for="ReporterId" class="form-select" asp-items="ViewBag.Reporters">
+					<option value="">-- Select Reporter / Source --</option>
+				</select>
+				<span asp-validation-for="ReporterId" class="text-danger"></span>
+			</div>
 
 			<div id="metaContainer" class="position-relative rounded p-2">
 

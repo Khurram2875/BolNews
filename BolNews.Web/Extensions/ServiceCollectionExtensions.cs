@@ -17,6 +17,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IArticleService, ArticleService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IAuthorService, AuthorService>();
+        services.AddScoped<IReporterService, ReporterService>();
         services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IUrlService, UrlService>();
         services.AddScoped<ISeoService, SeoService>();

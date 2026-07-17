@@ -14,6 +14,7 @@ namespace BolNews.Web
 
             CreateMap<ArticleDto, ArticleVM>()
              .ForMember(dest => dest.AuthorId, opt => opt.MapFrom(src => src.AuthorId))
+             .ForMember(dest => dest.ReporterId, opt => opt.MapFrom(src => src.ReporterId))
              .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId));
 
             CreateMap<ArticleVM, ArticleDto>();
@@ -21,6 +22,10 @@ namespace BolNews.Web
             CreateMap<Article, ArticleVM>()
      .ForMember(dest => dest.AuthorName,
          opt => opt.MapFrom(src => src.Author.Name))
+     .ForMember(dest => dest.ReporterName,
+         opt => opt.MapFrom(src => src.Reporter != null ? src.Reporter.Name : null))
+     .ForMember(dest => dest.ReporterSourceName,
+         opt => opt.MapFrom(src => src.Reporter != null ? src.Reporter.SourceName : null))
      .ForMember(dest => dest.CategoryId,
          opt => opt.MapFrom(src => src.Category.ParentCategoryId));
 
@@ -28,6 +33,8 @@ namespace BolNews.Web
      .ForMember(dest => dest.AuthorName, opt => opt.MapFrom(src => src.Author.Name))
      .ForMember(dest => dest.AuthorSlug, opt => opt.MapFrom(src => src.Author.Slug))
      .ForMember(dest => dest.AuthorImage, opt => opt.MapFrom(src => src.Author.ProfileImageUrl))
+     .ForMember(dest => dest.ReporterName, opt => opt.MapFrom(src => src.Reporter != null ? src.Reporter.Name : null))
+     .ForMember(dest => dest.ReporterSourceName, opt => opt.MapFrom(src => src.Reporter != null ? src.Reporter.SourceName : null))
      .ForMember(dest => dest.CategorySlug, opt => opt.MapFrom(src => src.Category.Slug))
      .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
      .ForMember(dest => dest.FeaturedImageAltText, opt => opt.MapFrom(src => src.FeaturedImageMetadata != null ? src.FeaturedImageMetadata.AltText : null))

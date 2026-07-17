@@ -75,22 +75,38 @@
                     border-radius:var(--bn-radius-md);
                     margin-bottom:22px;
                     border:1px solid var(--bn-border);">
-                    <a href="/author/@Model.Article.AuthorSlug"
+                    <a href=""
                        style="display:flex;align-items:center;gap:11px;text-decoration:none;color:inherit;">
-                        <img src="@Model.Article.AuthorImage"
-                             alt="@Model.Article.AuthorName"
+                        <img src="~/images/webdesk.png"
+                             alt="@Model.Article.ReporterName"
                              itemprop="image"
-                             style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;"
+                             style="width:25px;height:25px;border-radius:0%;object-fit:cover;flex-shrink:0;"
                              loading="lazy" />
                         <div>
-                            <div style="font-family:var(--bn-font-ui);font-size:13px;font-weight:700;color:var(--bn-text-primary);">
-                                @Model.Article.AuthorName
+                            <div style="font-family:var(--bn-font-ui);font-size:12px;font-weight:700;color:var(--bn-text-primary);">
+                                @Model.Article.ReporterName
                             </div>
-                            <div style="font-family:var(--bn-font-ui);font-size:11px;color:var(--bn-text-muted);">
+                           @*  <div style="font-family:var(--bn-font-ui);font-size:11px;color:var(--bn-text-muted);">
                                 Journalist at Bol News
-                            </div>
+                            </div> *@
+                            @* @if (!string.IsNullOrWhiteSpace(Model.Article.ReporterName))
+                            {
+                                <div style="font-family:var(--bn-font-ui);font-size:11px;color:var(--bn-text-muted);">
+                                    @Model.Article.ReporterName
+                                    @if (!string.IsNullOrWhiteSpace(Model.Article.ReporterSourceName))
+                                    {
+                                        <span>(@Model.Article.ReporterSourceName)</span>
+                                    }
+                                </div>
+                            } *@
                         </div>
                     </a>
+                    <div>
+						<a href="https://www.google.com/preferences/source?q=bolnews.com" target="_blank">
+							<img src="~/images/googlepreferred.webp"
+                                 title="" alt="340PX_GoolePreferred" loading="lazy"/>
+                        </a>
+                    </div>
                     <div style="font-family:var(--bn-font-ui);font-size:11px;color:var(--bn-text-muted);display:flex;gap:14px;flex-wrap:wrap;">
                         @if (Model.Article.PublishedAt.HasValue)
                         {
@@ -246,7 +262,7 @@
                                    data-article-id="@item.Id"
                                    style="text-decoration:none;">
                                     <div class="bn-card-img">
-                                        <img src="@item.FeaturedImageThumb"
+                                        <img src="@item.FeaturedImageMedium"
                                              alt="@item.Title"
                                              loading="lazy"
                                              style="width:100%;height:100%;object-fit:cover;" />
