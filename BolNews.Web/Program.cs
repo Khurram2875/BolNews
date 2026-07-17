@@ -32,17 +32,7 @@ builder.Services.AddScoped<INotificationRealtimeService, NotificationRealtimeSer
 builder.Services.AddHostedService<SlaMonitoringWorker>();
 builder.Services.AddHostedService<ScheduledPublishingService>();
 builder.Services.AddScoped<IGeminiService, GeminiService>();
-builder.Services.AddHttpClient<IGrammarService, LanguageToolGrammarService>(
-        client =>
-        {
-            client.BaseAddress =
-                new Uri(
-                    "https://api.languagetool.org/"
-                );
-
-            client.Timeout =
-                TimeSpan.FromSeconds(30);
-        });
+builder.Services.AddScoped<IGrammarService, GeminiGrammarService>();
 builder.Services.AddSignalR();
 //builder.Services.AddSignalR().AddAzureSignalR(builder.Configuration["Azure:SignalR:ConnectionString"]!);
 
