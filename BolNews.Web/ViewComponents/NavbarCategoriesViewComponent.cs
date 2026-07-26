@@ -26,7 +26,23 @@ namespace BolNews.Web.ViewComponents
                 return await _categoryService.GetParentCategoriesWithChildrenAsync();
             });
 
-            return View(categories);
+            var displayOrder = new[]
+            {
+                "pakistan",
+                "world-news",
+                "sports",
+                "entertainment",
+                "business",
+                "lifestyle",
+                "technology"
+
+            };
+            var ordered = displayOrder
+                .Select(slug => categories.FirstOrDefault(c =>
+                    string.Equals(c.Slug, slug, StringComparison.OrdinalIgnoreCase)))
+                .Where(c => c != null)
+                .ToList();
+            return View(ordered);
         }
     }
 }

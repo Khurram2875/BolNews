@@ -1,0 +1,42 @@
+﻿<div class="bn-brand">
+    <div class="bn-container">
+
+        <div class="row align-items-center">
+
+            <!-- Left -->
+            <div class="col-lg-3 col-md-3 d-none d-md-flex">
+                <div class="bn-brand-date">
+                    @DateTime.Now.ToString("ddd, dd-MMMM-yyyy")
+                </div>
+            </div>
+
+            <!-- Center -->
+            <div class="col-lg-6 col-md-6 col-8 text-center">
+
+                <a asp-controller="Home"
+                   asp-action="Index"
+                   class="bn-brand-logo">
+
+                    <img src="~/images/logo-black.png"
+                         alt="Bol News" />
+
+                </a>
+
+            </div>
+
+            <!-- Right -->
+            <div class="col-lg-3 col-md-3 col-4 text-end">
+
+                <a href="/home/live"
+                   class="bn-watch-live">
+
+                    Watch Live
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>

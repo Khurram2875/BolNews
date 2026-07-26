@@ -18,8 +18,16 @@ namespace BolNews.Web.Controllers
 
         public async Task<IActionResult> Index(string q, int page = 1)
         {
+            ViewBag.Query = q ?? "";
+            ViewBag.CurrentPage = page;
+
             if (string.IsNullOrWhiteSpace(q))
-                return RedirectToAction("Index", "Home");
+            {
+                ViewBag.MetaTitle = "Search";
+                ViewBag.MetaDescription = "Search Bol News for the latest stories.";
+                ViewBag.HasNextPage = false;
+                return View(new List<PublicArticleVM>());   // empty result set, shows the search bar with no query yet
+            }
 
             int pageSize = 10;
 
@@ -27,11 +35,8 @@ namespace BolNews.Web.Controllers
 
             var vm = _mapper.Map<List<PublicArticleVM>>(articles);
 
-            ViewBag.Query = q;
-            ViewBag.CurrentPage = page;
             ViewBag.HasNextPage = articles.Count == pageSize;
 
-            // SEO
             ViewBag.MetaTitle = $"Search results for '{q}'";
             ViewBag.MetaDescription = $"Search results for {q} on Bol News";
 

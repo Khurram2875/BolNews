@@ -4,6 +4,7 @@ using BolNews.Persistence;
 using BolNews.Persistence.Identity;
 using BolNews.Web;
 using BolNews.Web.BackgroundServices;
+using BolNews.Web.Configuration;
 using BolNews.Web.Extensions;
 using BolNews.Web.Hubs;
 using BolNews.Web.Interfaces;
@@ -33,6 +34,8 @@ builder.Services.AddHostedService<SlaMonitoringWorker>();
 builder.Services.AddHostedService<ScheduledPublishingService>();
 builder.Services.AddScoped<IGeminiService, GeminiService>();
 builder.Services.AddScoped<IGrammarService, GeminiGrammarService>();
+builder.Services.Configure<LatestNewsOptions>(
+    builder.Configuration.GetSection(LatestNewsOptions.SectionName));
 builder.Services.AddSignalR();
 //builder.Services.AddSignalR().AddAzureSignalR(builder.Configuration["Azure:SignalR:ConnectionString"]!);
 

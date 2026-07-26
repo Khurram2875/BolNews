@@ -31,17 +31,18 @@ namespace BolNews.Web.Controllers
         {
             //ClearLatestNewsCache(5);
              //var vm = new HomePageVM();
-             var vm = await _cache.GetOrCreateAsync(CacheKeys.HomePage, async entry =>
+             var vm = await _cache.GetOrCreateAsync(CacheKeys.HomePage+ "_Index", async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
 
                 var model = new HomePageVM();
 
                 var topStory = await _articleService.GetTopStoryAsync();
+               
                 if (topStory != null)
                     model.TopStory = _mapper.Map<PublicArticleVM>(topStory);
 
-                var secondary = await _articleService.GetSecondaryStoriesAsync(25);
+                var secondary = await _articleService.GetSecondaryStoriesAsync(50);
                 model.SecondaryStories = _mapper.Map<List<PublicArticleVM>>(secondary);
 
                  // Use GetParentCategoriesWithChildrenAsync so we know which
@@ -66,7 +67,27 @@ namespace BolNews.Web.Controllers
                 var allCategoryIds = categoryIdMap.Values.SelectMany(ids => ids).Distinct().ToList();
                 var articlesDict = await _articleService.GetArticlesForCategoriesAsync(allCategoryIds, 5);
 
-                foreach (var category in categories)
+                var displayOrder = new[]
+                    {
+                        "pakistan",
+                        "world-news",
+                        "business",
+                        "sports",
+                        "entertainment",
+                        "technology",
+                        "health",
+                        "lifestyle"
+                       
+
+                    };
+
+                var orderedCategories = displayOrder
+                    .Select(slug => categories.FirstOrDefault(c =>
+                        string.Equals(c.Slug, slug, StringComparison.OrdinalIgnoreCase)))
+                    .Where(c => c != null)
+                    .ToList();
+
+                foreach (var category in orderedCategories)
                 {
                     // Merge articles from the parent + all its subcategories
                     var relevantIds = categoryIdMap[category.Id];
@@ -95,7 +116,97 @@ namespace BolNews.Web.Controllers
             ViewBag.Type = type;
             return View(vm);
         }
+        public async Task<IActionResult> Index1(string type = "today")
+        {
+            //ClearLatestNewsCache(5);
+            //var vm = new HomePageVM();
+            var vm = await _cache.GetOrCreateAsync(CacheKeys.HomePage + "_Index1", async entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
 
+                var model = new HomePageVM();
+
+                var topStory = await _articleService.GetTopStoryAsync();
+
+                if (topStory != null)
+                    model.TopStory = _mapper.Map<PublicArticleVM>(topStory);
+
+                var secondary = await _articleService.GetSecondaryStoriesAsync(50);
+                model.SecondaryStories = _mapper.Map<List<PublicArticleVM>>(secondary);
+
+                // Use GetParentCategoriesWithChildrenAsync so we know which
+                // parent categories have subcategories (e.g. Sports → Cricket, Football)
+                var categories = await _categoryService.GetParentCategoriesWithChildrenAsync();
+
+                // Build a flat map: parentCategoryId → [parentId, subId1, subId2, ...]
+                // This lets us fetch articles from sub-categories and display them
+                // under the parent section (Sports shows Cricket + Football articles)
+                var categoryIdMap = categories.ToDictionary(
+                    c => c.Id,
+                    c =>
+                    {
+                        var ids = new List<int> { c.Id };
+                        if (c.SubCategories != null)
+                            ids.AddRange(c.SubCategories.Select(s => s.Id));
+                        return ids;
+                    }
+                );
+
+                // Fetch articles for ALL relevant IDs in one DB call
+                var allCategoryIds = categoryIdMap.Values.SelectMany(ids => ids).Distinct().ToList();
+                var articlesDict = await _articleService.GetArticlesForCategoriesAsync(allCategoryIds, 4);
+
+                var displayOrder = new[]
+                {
+                    "pakistan",
+                    "world-news",
+                    "business",
+                    "sports",
+                    "entertainment",
+                    "technology",
+                    "health",
+                    "lifestyle"
+
+
+                };
+
+                var orderedCategories = displayOrder
+                    .Select(slug => categories.FirstOrDefault(c =>
+                        string.Equals(c.Slug, slug, StringComparison.OrdinalIgnoreCase)))
+                    .Where(c => c != null)
+                    .ToList();
+
+                foreach (var category in orderedCategories)
+                {
+                    // Merge articles from the parent + all its subcategories
+                    var relevantIds = categoryIdMap[category.Id];
+                    var mergedArticles = relevantIds
+                        .Where(id => articlesDict.ContainsKey(id))
+                        .SelectMany(id => articlesDict[id])
+                        .OrderByDescending(a => a.PublishedAt)
+                        .Take(5)
+                        .ToList();
+
+                    // Skip categories that have no articles at all
+                    // (neither direct nor via subcategories)
+                    if (!mergedArticles.Any())
+                        continue;
+
+
+
+                    model.CategorySections.Add(new CategorySectionVM
+                    {
+                        CategoryName = category.Name,
+                        CategorySlug = category.Slug,
+                        Articles = _mapper.Map<List<PublicArticleVM>>(mergedArticles)
+                    });
+                }
+
+                return model;
+            });
+            ViewBag.Type = type;
+            return View(vm);
+        }
         public IActionResult Privacy()
         {
             return View();
@@ -131,6 +242,10 @@ namespace BolNews.Web.Controllers
             var vm = _mapper.Map<List<PublicArticleVM>>(articles);
 
             return PartialView("~/Views/Shared/Components/TrendingNews/_TrendingList.cshtml", vm);
+        }
+        public IActionResult About()
+        {
+            return View();
         }
     }
 }

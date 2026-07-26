@@ -56,5 +56,6 @@ namespace BolNews.Application.Interfaces
         Task<Article?> GetEntityByIdAsync(int id);
         Task CancelScheduleAsync(int articleId, string currentUserId, IList<string> roles);
         Task<List<Article>> SearchArticlesAsync(string search, int take = 20);
+        Task<List<Article>> GetLatestArticlesForCategoriesAsync(List<int> categoryIds, int count);
     }
 }

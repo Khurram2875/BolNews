@@ -209,10 +209,17 @@ namespace BolNews.Persistence.Repositories
                 .Include(a => a.Author)
                 .Include(a => a.ArticleTags)
                     .ThenInclude(at => at.Tag)
+                .Include(a => a.FeaturedImageMetadata)
+                    .ThenInclude(fim => fim.FeaturedImageTags)
+                        .ThenInclude(fit => fit.Tag)
                 .Where(a => a.IsPublished && !a.IsDeleted &&
                     (EF.Functions.Like(a.Title, $"%{term}%") ||
                      EF.Functions.Like(a.Content, $"%{term}%") ||
-                     a.ArticleTags.Any(at => EF.Functions.Like(at.Tag.Name, $"%{term}%"))))
+                     a.ArticleTags.Any(at => EF.Functions.Like(at.Tag.Name, $"%{term}%")) ||
+                     (a.FeaturedImageMetadata != null &&
+                      (EF.Functions.Like(a.FeaturedImageMetadata.AltText ?? "", $"%{term}%") ||
+                       EF.Functions.Like(a.FeaturedImageMetadata.Caption ?? "", $"%{term}%") ||
+                       a.FeaturedImageMetadata.FeaturedImageTags.Any(fit => EF.Functions.Like(fit.Tag.Name, $"%{term}%"))))))
                 .OrderByDescending(a => a.PublishedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -409,12 +416,13 @@ namespace BolNews.Persistence.Repositories
 
         private IQueryable<Article> LatestPublishedQuery(IReadOnlyCollection<int>? excludedArticleIds)
         {
+            var exccludeCategories = new[] {"Entertainment","Lifestyle","Health" };
             var query = _context.Articles
                 .AsNoTracking()
                 .Include(a => a.Category)
                 .Include(a => a.Author)
                 .Include(a => a.Reporter)
-                .Where(a => a.IsPublished && !a.IsDeleted);
+                .Where(a => a.IsPublished && !a.IsDeleted && !exccludeCategories.Contains(a.Category.Name));
 
             if (excludedArticleIds is { Count: > 0 })
             {

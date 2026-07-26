@@ -1,23 +1,32 @@
-﻿@using BolNews.Domain.Entities
-@model List<Category>
+﻿@{
+    var currentPath = Context.Request.Path.Value?.ToLowerInvariant() ?? "";
+}
+<ul class="bn-menu">
 
-<ul class="navbar-nav mb-lg-0 mb-2 me-auto">
+    <li class="bn-menu-item">
 
-    <!-- Home -->
-    <li class="nav-item">
-        <a class="nav-link" href="/">Home</a>
+        <a href="/"
+           class="bn-menu-link @(currentPath == "/" ? "active" : "")">
+
+            Home
+
+        </a>
+
     </li>
-
+    <li class="bn-menu-item">
+        <a href="/latest-news"
+           class="bn-menu-link @(currentPath.StartsWith("/latest-news") ? "active" : "")">
+            Latest
+        </a>
+    </li>
     @foreach (var parent in Model)
     {
-        if (parent.SubCategories != null && parent.SubCategories.Any())
+        @if (parent.SubCategories != null && parent.SubCategories.Count > 0)
         {
-            <!-- 🔽 Dropdown -->
-            <li class="nav-item dropdown">
+            <li class="bn-menu-item dropdown">
 
-                <a class="nav-link dropdown-toggle"
-                   href="/@parent.Slug"
-                   data-bs-toggle="dropdown">
+                <a class="bn-menu-link @(currentPath.StartsWith("/" + parent.Slug.ToLower()) ? "active" : "")"
+                   href="/@parent.Slug">
                     @parent.Name
                 </a>
 
@@ -26,7 +35,7 @@
                     @foreach (var child in parent.SubCategories)
                     {
                         <li>
-                            <a class="dropdown-item"
+                            <a class="dropdown-item @(currentPath.StartsWith("/" + child.Slug.ToLower()) ? "active" : "")"
                                href="/@child.Slug">
                                 @child.Name
                             </a>
@@ -34,17 +43,34 @@
                     }
 
                 </ul>
+
             </li>
         }
         else
         {
-            <!-- 🔹 Simple Link -->
-            <li class="nav-item">
-                <a class="nav-link" href="/@parent.Slug">
+            <li class="bn-menu-item">
+
+                <a class="bn-menu-link @(currentPath.StartsWith("/" + parent.Slug.ToLower()) ? "active" : "")"
+                   href="/@parent.Slug">
                     @parent.Name
                 </a>
+
             </li>
         }
     }
 
+
+    <li class="bn-menu-item">
+        <a href="#"
+           class="bn-menu-link">
+            VIDEOS
+        </a>
+    </li>
+
+    <li class="bn-menu-item">
+        <a href="https://www.bolnews.com/urdu"
+           class="bn-menu-link">
+            URDU
+        </a>
+    </li>
 </ul>

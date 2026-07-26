@@ -15,7 +15,7 @@
         </div>
     }
 </div> *@
-<div class="bn-section-header"><span class="bn-section-title">Popular Right Now</span></div>
+@* <div class="bn-section-header"><span class="bn-section-title">Popular Right Now</span></div>
 <div class="bn-popular-scroll-grid">
     @foreach (var item in Model)
     {
@@ -45,4 +45,35 @@
             
         </a>
     }
+</div> *@
+
+<div class="bn-popular-section">
+    <!-- Centered Header with Side Lines -->
+    <div class="bn-popular-header">
+        <h2>Popular Stories</h2>
+    </div>
+
+    <!-- 6-Card Grid Layout -->
+    <div class="bn-popular-grid">
+        @foreach (var item in Model.Take(6))
+        {
+            <a href="~/@item.CategorySlug/@item.Slug"
+               class="bn-popular-card track-click"
+               data-article-id="@item.Id">
+
+                <div class="bn-popular-card__img">
+                    <img class="lazy-image"
+                         src="/images/placeholder.png"
+                         data-src="@item.FeaturedImageThumb"
+                         alt="@item.Title"
+                         loading="lazy" />
+                </div>
+
+                <div class="bn-popular-card__body">
+                    <h3>@item.Title</h3>
+                    <span class="bn-popular-card__time">@item.TimeAgo</span>
+                </div>
+            </a>
+        }
+    </div>
 </div>

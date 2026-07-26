@@ -1,4 +1,4 @@
-@using BolNews.Web.Areas.Admin.ViewModels
+﻿@using BolNews.Web.Areas.Admin.ViewModels
 @using System.IO
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment WebHostEnvironment
 @model HomePageVM
@@ -11,7 +11,7 @@
     var featuredCategories = new[] { "Entertainment", "Lifestyle", "Business", "Technology" };
     var remainingTopStories = secondaryStories.Take(2).ToList();
     var latestStories = secondaryStories.Skip(3).Take(14).ToList();
-    var featuredStories = secondaryStories.Where(a=>featuredCategories.Contains(a.CategoryName)).Skip(8).Take(10).ToList();
+    var featuredStories = secondaryStories.Where(a => featuredCategories.Contains(a.CategoryName)).Skip(8).Take(10).ToList();
     var secondaryCards = secondaryStories.Skip(10).Take(12).ToList();
 
     string relativePath = "/images/shows/";
@@ -84,7 +84,7 @@
                         }
                     </div>
                 </a>
-                <hr  />
+                <hr />
                 <!-- Secondary Stories Grid -->
                 @if (remainingTopStories != null && remainingTopStories.Any())
                 {
@@ -110,30 +110,17 @@
                         }
                     </div>
                 }
-               
+
                 @await Component.InvokeAsync("SmartTrending", new { count = 6 })
             </article>
 
             @if (featuredStories.Any())
             {
                 <aside class="bn-story-rail" aria-label="Featured">
-                    <h2>Featured</h2>
+                    <h2>Trending</h2>
                     <div class="bn-latest-list">
 
-                        @foreach (var item in featuredStories)
-                        {
-                            <a href="/@item.CategorySlug/@item.Slug"
-                               class="bn-latest-item track-click"
-                               data-article-id="@item.Id">
-                                <img src="@(item.FeaturedImageThumb ?? item.FeaturedImageMedium ?? "/images/placeholder.png")"
-                                     alt="@(item.FeaturedImageAltText ?? item.Title)"
-                                     loading="lazy" />
-                                <span>
-                                    <strong>@item.Title</strong>
-                                    <small>@item.TimeAgo</small>
-                                </span>
-                            </a>
-                        }
+                        @await Component.InvokeAsync("TrendingNews", new { count = 10 })
                     </div>
                     <h2>Shows</h2>
                     @if (imagePaths.Any())
@@ -186,7 +173,7 @@
         </section>
     }
 </div>
-    @* @if (secondaryCards.Any())
+@* @if (secondaryCards.Any())
     {
         var cardChunks = secondaryCards.Chunk(4).ToList();
 

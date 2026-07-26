@@ -30,5 +30,8 @@ namespace BolNews.Application.Common
 
         public static string HomePage
             => "homepage";
+
+        public static string LatestNewsFiltered(int count)
+    => $"latest_news_filtered_{count}";
     }
 }

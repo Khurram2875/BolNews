@@ -71,6 +71,12 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BolNews.Web.styles.css" asp-append-version="true" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Include Font Awesome 6 in your <head> section -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+          rel="stylesheet">
 
     @{
         var baseUrl = UrlService.GetBaseUrl();
@@ -123,168 +129,23 @@
 </head>
 <body>
 
-    <header id="main-header">
-        <!-- ── Top bar: date / logo / live ── -->
-        <div class="container">
-            <div class="bn-header-top">
-                <div class="bn-header-date">
-                    @DateTime.UtcNow.ToString("dddd, dd MMMM yyyy")
-                </div>
-                <div class="bn-header-logo">
-                    <a href="/">
-                        <img src="/images/logo-black.png" alt="BolNews" />
-                    </a>
-                </div>
-                <div>
-                    <a href="/home/live" class="bn-header-live">Watch Live</a>
-                </div>
-            </div>
-        </div>
+    <partial name="_Header" />
 
-        <!-- ── Breaking news ticker ── -->
-        <div class="container-fluid px-0">
-            @await Component.InvokeAsync("BreakingNews")
-        </div>
-
-        <!-- ── Utility bar ── -->
-        <div class="container-fluid px-0">
-            @await Component.InvokeAsync("UtilityBar")
-        </div>
-
-        <!-- ── Sticky navbar ── -->
-        <nav id="sticky-navbar" class="navbar navbar-expand-lg p-0">
-            <div class="container">
-                <button class="navbar-toggler border-0 py-3" type="button"
-                        data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="white" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z" />
-                    </svg>
-                </button>
-
-                <div class="navbar-collapse collapse" id="navbarNav">
-                    @await Component.InvokeAsync("NavbarCategories")
-                </div>
-
-                <!-- Right side: search + auth + theme switcher -->
-                <div class="d-flex align-items-center gap-2 py-2">
-                    <!-- Search -->
-                    <form method="get" action="/search" class="d-flex align-items-center">
-                        <input type="text" name="q"
-                               class="form-control form-control-sm d-none d-lg-block me-1"
-                               placeholder="Search..."
-                               style="width:140px;" />
-                        <button class="btn btn-link p-1" type="submit" aria-label="Search">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
-                            </svg>
-                        </button>
-                    </form>
-
-                    <!-- Auth -->
-                    @if (User.Identity.IsAuthenticated)
-                    {
-                        var displayName = User.FindFirst("FullName")?.Value
-                            ?? User.Identity?.Name
-                            ?? "User";
-                        <span class="d-none d-lg-inline" style="color:rgba(255,255,255,0.65);font-family:var(--bn-font-ui);font-size:13px;">@displayName</span>
-                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Logout</button>
-                        </form>
-                    }
-                    else
-                    {
-                        <a class="btn btn-sm btn-outline-primary" asp-controller="Account" asp-action="Login">Login</a>
-                        <a class="btn btn-sm btn-primary" asp-controller="Account" asp-action="Register">Register</a>
-                    }
-
-                    <!-- Theme switcher -->
-                    <div class="bn-theme-switcher" role="group" aria-label="Choose theme">
-                        <button class="bn-theme-btn active" data-t="default" title="Default" onclick="bnSetTheme('default',this)"></button>
-                        <button class="bn-theme-btn" data-t="dark" title="Dark" onclick="bnSetTheme('dark',this)"></button>
-                        <button class="bn-theme-btn" data-t="editorial" title="Editorial" onclick="bnSetTheme('editorial',this)"></button>
-                        <button class="bn-theme-btn" data-t="bold" title="Bold" onclick="bnSetTheme('bold',this)"></button>
-                    </div>
-                </div>
-            </div>
-        </nav>
-        <div class="my-2 text-center">
-            @Html.Raw(AdService.GetHeaderAd())
-        </div>
-    </header>
-
-    <!-- ── Page content ── -->
-    <div class="container-fluid">
-        <div class="row">
-
-            <!-- LEFT SIDEBAR AD -->
-            <aside class="col-lg-2 d-none d-lg-block text-center">
-                @Html.Raw(AdService.GetSidebarAd())
-            </aside>
-
-            <!-- MAIN CONTENT -->
-            <main role="main" class="col-lg-8 col-md-12">
-                @RenderBody()
-            </main>
-
-            <!-- RIGHT SIDEBAR AD -->
-            <aside class="col-lg-2 d-none d-lg-block text-center">
-                @Html.Raw(AdService.GetSidebarAd())
-            </aside>
-
-        </div>
+    @* Sample ad placement: top leaderboard immediately after header, before homepage/content. *@
+    <div class="bn-ad-code-block bn-ad-code-block--top" aria-label="Advertisement">
+        <div id="Bolnews_Top_Leaderboard_ATF" data-ad-slot="top-leaderboard-atf"></div>
     </div>
 
-    <!-- ── Footer ── -->
-    <footer class="bn-footer">
-        <div class="container">
-            <div class="bn-footer-grid">
-                <div>
-                    <a href="/" class="bn-footer-logo">Bol<span>News</span></a>
-                    <p class="bn-footer-desc">
-                        Pakistan's trusted source for breaking news, in-depth analysis,
-                        and comprehensive coverage of national and international affairs.
-                    </p>
-                </div>
-                <div class="bn-footer-col">
-                    <h4>Sections</h4>
-                    
-                    <ul>
-                        <li><a href="/">Home</a></li>
-                        <li><a href="/pakistan">Pakistan</a></li>
-                        <li><a href="/world-news">World</a></li>
-                        <li><a href="/business">Business</a></li>
-                        <li><a href="/sports">Sports</a></li>
-                        <li><a href="/technology">Technology</a></li>
-                    </ul>
-                </div>
-                <div class="bn-footer-col">
-                    <h4>Company</h4>
-                    <ul>
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="#">Our Team</a></li>
-                        <li><a href="#">Advertise</a></li>
-                        <li><a href="#">Careers</a></li>
-                        <li><a href="#">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="bn-footer-col">
-                    <h4>Legal</h4>
-                    <ul>
-                        <li><a href="/Home/Privacy">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Use</a></li>
-                        <li><a href="#">Cookie Policy</a></li>
-                        <li><a href="#">Corrections</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="bn-footer-bottom">
-                <span>&copy; @DateTime.UtcNow.Year BolNews. All rights reserved.</span>
-                <span>Built with ASP.NET Core 8 in Pakistan</span>
-            </div>
-        </div>
-    </footer>
+    <main class="bn-main">
+        @RenderBody()
+    </main>
+
+    @* Sample ad placement: bottom BTF immediately before footer. *@
+    <div class="bn-ad-code-block bn-ad-code-block--bottom" aria-label="Advertisement">
+        <div id="Bolnews_Bottom_BTF" data-ad-slot="bottom-btf"></div>
+    </div>
+
+    <partial name="_Footer" />
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>

@@ -800,5 +800,12 @@ namespace BolNews.Application.Services
         {
             return await _repo.SearchPublishedAsync(search, take);
         }
+        public async Task<List<Article>> GetLatestArticlesForCategoriesAsync(List<int> categoryIds, int count)
+        {
+            // GetForCategoriesAsync already returns published articles for these
+            // category ids, ordered by PublishedAt descending (see GetArticlesForCategoriesAsync above)
+            var articles = await _repo.GetForCategoriesAsync(categoryIds);
+            return articles.Take(count).ToList();
+        }
     }
 }
