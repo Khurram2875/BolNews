@@ -1,76 +1,29 @@
-﻿@{
+@{
     var currentPath = Context.Request.Path.Value?.ToLowerInvariant() ?? "";
 }
 <ul class="bn-menu">
-
-    <li class="bn-menu-item">
-
-        <a href="/"
-           class="bn-menu-link @(currentPath == "/" ? "active" : "")">
-
-            Home
-
-        </a>
-
-    </li>
-    <li class="bn-menu-item">
-        <a href="/latest-news"
-           class="bn-menu-link @(currentPath.StartsWith("/latest-news") ? "active" : "")">
-            Latest
-        </a>
-    </li>
+    <li class="bn-menu-item"><a href="/" class="bn-menu-link @(currentPath == "/" ? "active" : "")">Home</a></li>
+    <li class="bn-menu-item"><a href="/category/latest-news" class="bn-menu-link @(currentPath.StartsWith("/category/latest-news") ? "active" : "")">Latest</a></li>
     @foreach (var parent in Model)
     {
-        @if (parent.SubCategories != null && parent.SubCategories.Count > 0)
+        var parentIsActive = currentPath.StartsWith("/category/" + parent.Slug.ToLowerInvariant());
+        if (parent.SubCategories != null && parent.SubCategories.Count > 0)
         {
             <li class="bn-menu-item dropdown">
-
-                <a class="bn-menu-link @(currentPath.StartsWith("/" + parent.Slug.ToLower()) ? "active" : "")"
-                   href="/@parent.Slug">
-                    @parent.Name
-                </a>
-
+                <a class="bn-menu-link @(parentIsActive ? "active" : "")" href="/category/@parent.Slug">@parent.Name</a>
                 <ul class="dropdown-menu">
-
                     @foreach (var child in parent.SubCategories)
                     {
-                        <li>
-                            <a class="dropdown-item @(currentPath.StartsWith("/" + child.Slug.ToLower()) ? "active" : "")"
-                               href="/@child.Slug">
-                                @child.Name
-                            </a>
-                        </li>
+                        <li><a class="dropdown-item @(currentPath.StartsWith("/category/" + child.Slug.ToLowerInvariant()) ? "active" : "")" href="/category/@child.Slug">@child.Name</a></li>
                     }
-
                 </ul>
-
             </li>
         }
         else
         {
-            <li class="bn-menu-item">
-
-                <a class="bn-menu-link @(currentPath.StartsWith("/" + parent.Slug.ToLower()) ? "active" : "")"
-                   href="/@parent.Slug">
-                    @parent.Name
-                </a>
-
-            </li>
+            <li class="bn-menu-item"><a class="bn-menu-link @(parentIsActive ? "active" : "")" href="/category/@parent.Slug">@parent.Name</a></li>
         }
     }
-
-
-    <li class="bn-menu-item">
-        <a href="#"
-           class="bn-menu-link">
-            VIDEOS
-        </a>
-    </li>
-
-    <li class="bn-menu-item">
-        <a href="https://www.bolnews.com/urdu"
-           class="bn-menu-link">
-            URDU
-        </a>
-    </li>
+    <li class="bn-menu-item"><a href="#" class="bn-menu-link">VIDEOS</a></li>
+    <li class="bn-menu-item"><a href="https://www.bolnews.com/urdu" class="bn-menu-link">URDU</a></li>
 </ul>

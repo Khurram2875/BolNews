@@ -117,6 +117,9 @@ namespace BolNews.Application.Services
                 if (dto.IsPublished && !article.PublishedAt.HasValue)
                     article.PublishedAt = DateTime.UtcNow;
 
+                if (dto.IsPublished)
+                    article.WorkflowStatus = ArticleWorkflowStatus.Published;
+
                 if (!dto.IsPublished)
                     article.PublishedAt = null;
 
@@ -435,6 +438,8 @@ namespace BolNews.Application.Services
 
         public async Task<Article> GetBySlugAsync(string slug) => await _repo.FindBySlugAsync(slug);
         public async Task<List<Article>> GetByCategorySlugAsync(string categorySlug, int page) => await _repo.GetByCategorySlugAsync(categorySlug, page, 10);
+        public async Task<List<Article>> GetCategoryArticlesAsync(string categorySlug, int skip, int take) =>
+            await _repo.GetCategoryArticlesAsync(categorySlug, skip, take);
         public async Task<List<Article>> GetByTagSlugAsync(string tagSlug, int page = 1, int pageSize = 20) => await _repo.GetByTagSlugAsync(tagSlug, page, pageSize);
 
         public async Task<List<Article>> GetRelatedArticlesAsync(int categoryId, int excludeId, int count = 5)

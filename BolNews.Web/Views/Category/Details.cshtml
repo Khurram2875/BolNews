@@ -1,208 +1,136 @@
-﻿@using BolNews.Web.Areas.Admin.ViewModels
+@using BolNews.Web.Areas.Admin.ViewModels
 @model CategorySectionVM
 
 @{
     var categoryName = Model.CategoryName ?? ViewBag.CategorySlug;
 }
 
-<!-- ── Breadcrumb ──────────────────────────────────────────── -->
-<div style="background:var(--bn-surface-alt);border-bottom:1px solid var(--bn-border);">
-    <div class="container py-2">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0" style="font-family:var(--bn-font-ui);font-size:12px;">
-                <li class="breadcrumb-item"><a href="/" style="color:var(--bn-text-muted);text-decoration:none;">Home</a></li>
-                <li class="breadcrumb-item active" style="color:var(--bn-text-muted);" aria-current="page">@categoryName</li>
-            </ol>
-        </nav>
-    </div>
-</div>
-
-<!-- ── Category header ────────────────────────────────────── -->
-<div style="background:var(--bn-nav-bg);padding:28px 0 24px;">
-    <div class="container">
-        <span class="bn-tag d-inline-block mb-2">Section</span>
-        <h1 style="
-            font-family:var(--bn-font-display);
-            font-size:clamp(26px,4vw,40px);
-            font-weight:800;
-            color:#fff;
-            margin:0;
-            line-height:1.2;">
-            @categoryName
-        </h1>
-        @if (!string.IsNullOrEmpty(ViewBag.CategoryDescription as string))
-        {
-            <p style="font-family:var(--bn-font-ui);font-size:14px;color:rgba(255,255,255,0.6);margin-top:8px;margin-bottom:0;">
-                @Html.Raw(ViewBag.CategoryDescription)
-            </p>
-        }
-    </div>
-</div>
-
-<!-- ── Main layout ────────────────────────────────────────── -->
-<div class="container" style="padding-top:32px;padding-bottom:48px;">
-    <div class="row g-4">
-
-        <!-- ── Articles grid ───────────────────────────────── -->
-        <div class="col-lg-8">
-
-            @if (!Model.Articles.Any())
+<div class="bn-home-shell">
+    <div class="container" style="padding-top:16px;">
+        <div class="bn-category-navigation">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 bn-category-breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page"><a href="/category/@Model.CategorySlug">@categoryName</a></li>
+                </ol>
+            </nav>
+            @if (Model.RelatedCategories.Any())
             {
-                <div style="
-                    padding:60px 24px;
-                    text-align:center;
-                    background:var(--bn-surface);
-                    border-radius:var(--bn-radius-md);
-                    border:1px solid var(--bn-border);">
-                    <div style="font-size:48px;margin-bottom:12px;">📰</div>
-                    <h3 style="font-family:var(--bn-font-display);color:var(--bn-text-primary);">No articles yet</h3>
-                    <p style="font-family:var(--bn-font-ui);color:var(--bn-text-muted);">Check back soon for the latest stories in @categoryName.</p>
-                    <a href="/" style="font-family:var(--bn-font-ui);font-size:13px;font-weight:600;color:var(--bn-accent);">← Back to Home</a>
-                </div>
-            }
-            else
-            {
-                <!-- First article: featured large card -->
-              
-                    var first = Model.Articles.First();
-                    var rest  = Model.Articles.Skip(1).ToList();
-               
-
-                @if (ViewBag.Page == 1 || ViewBag.Page == null)
-                {
-                    <a href="/@first.CategorySlug/@first.Slug"
-                       class="bn-card-featured track-click d-block mb-4"
-                       data-article-id="@first.Id"
-                       style="text-decoration:none;">
-                        <div class="bn-card-featured-img">
-                            <img src="@first.FeaturedImageLarge"
-                                 alt="@first.Title"
-                                 loading="eager"
-                                 style="width:100%;height:100%;object-fit:cover;" />
-                        </div>
-                        <div class="bn-card-featured-body">
-                            <div class="bn-card-tag">@first.CategoryName</div>
-                            <h2 class="bn-card-featured-title">@first.Title</h2>
-                            @if (!string.IsNullOrEmpty(first.Summary))
-                            {
-                                <p class="bn-card-featured-excerpt">@first.Summary</p>
-                            }
-                            <div class="bn-card-meta">
-                                <span>@first.AuthorName</span>
-                                <span class="bn-card-meta-dot"></span>
-                                <span>@first.TimeAgo</span>
-                                @if (first.ReadingTimeMinutes > 0)
-                                {
-                                    <span class="bn-card-meta-dot"></span>
-                                    <span>@first.ReadingTimeMinutes min read</span>
-                                }
-                            </div>
-                        </div>
-                    </a>
-
-                    <!-- Remaining articles as horizontal cards -->
-                    @foreach (var item in rest)
+                <div class="bn-category-pills" aria-label="Related categories">
+                    @foreach (var item in Model.RelatedCategories)
                     {
-                        <a href="/@item.CategorySlug/@item.Slug"
-                           class="bn-card-h track-click d-flex"
-                           data-article-id="@item.Id"
-                           style="text-decoration:none;">
-                            <div class="bn-card-h-img">
-                                <img src="@item.FeaturedImageThumb"
-                                     alt="@item.Title"
-                                     loading="lazy"
-                                     style="width:100%;height:100%;object-fit:cover;" />
-                            </div>
-                            <div class="bn-card-h-body">
-                                <div class="bn-card-h-tag">@item.CategoryName</div>
-                                <div class="bn-card-h-title">@item.Title</div>
-                                <div class="bn-card-h-meta">
-                                    @item.AuthorName · @item.TimeAgo
-                                </div>
-                            </div>
-                        </a>
+                        <a href="/category/@item.Slug" class="@(item.IsSelected ? "is-active" : null)">@item.Name</a>
                     }
-                }
-                else
-                {
-                    <!-- All pages after first: uniform horizontal cards -->
-                    @foreach (var item in Model.Articles)
-                    {
-                        <a href="/@item.CategorySlug/@item.Slug"
-                           class="bn-card-h track-click d-flex"
-                           data-article-id="@item.Id"
-                           style="text-decoration:none;">
-                            <div class="bn-card-h-img">
-                                <img src="@item.FeaturedImageThumb"
-                                     alt="@item.Title"
-                                     loading="lazy"
-                                     style="width:100%;height:100%;object-fit:cover;" />
-                            </div>
-                            <div class="bn-card-h-body">
-                                <div class="bn-card-h-tag">@item.CategoryName</div>
-                                <div class="bn-card-h-title">@item.Title</div>
-                                <div class="bn-card-h-meta">
-                                    @item.AuthorName · @item.TimeAgo
-                                </div>
-                            </div>
-                        </a>
-                    }
-                }
-
-                <!-- Pagination -->
-                <div style="
-                    display:flex;
-                    align-items:center;
-                    justify-content:space-between;
-                    padding:20px 0;
-                    margin-top:16px;
-                    border-top:1px solid var(--bn-border);">
-                    <div>
-                        @if (ViewBag.Page > 1)
-                        {
-                            <a href="/@ViewBag.CategorySlug?page=@(ViewBag.Page - 1)"
-                               style="display:inline-flex;align-items:center;gap:6px;font-family:var(--bn-font-ui);font-size:13px;font-weight:600;color:var(--bn-text-primary);text-decoration:none;padding:8px 16px;border:1px solid var(--bn-border);border-radius:var(--bn-radius-sm);background:var(--bn-surface);transition:all 0.2s;">
-                                ← Previous
-                            </a>
-                        }
-                    </div>
-                    <span style="font-family:var(--bn-font-ui);font-size:12px;color:var(--bn-text-muted);">
-                        Page @ViewBag.Page
-                    </span>
-                    <div>
-                        @if (Model.Articles.Count == ViewBag.PageSize)
-                        {
-                            <a href="/@ViewBag.CategorySlug?page=@(ViewBag.Page + 1)"
-                               style="display:inline-flex;align-items:center;gap:6px;font-family:var(--bn-font-ui);font-size:13px;font-weight:600;color:#fff;text-decoration:none;padding:8px 16px;border-radius:var(--bn-radius-sm);background:var(--bn-accent);">
-                                Next →
-                            </a>
-                        }
-                    </div>
                 </div>
             }
         </div>
+    </div>
 
-        <!-- ── Sidebar ──────────────────────────────────────── -->
-        <aside class="col-lg-4">
-            <div style="position:sticky;top:70px;">
-                <!-- Trending -->
-                <div class="bn-widget">
-                    @await Component.InvokeAsync("TrendingNews",
-                    new { type = Context.Request.Query["type"].ToString() })
-                </div>
-                <!-- Latest news -->
-                <div class="bn-widget mb-4">
-                    <div class="bn-widget-title">Latest News</div>
-                    <div class="bn-scroll-container">
-                        @await Component.InvokeAsync("LatestNews", new { count = 10 })
+    <div class="container" style="padding-top:32px;padding-bottom:48px;">
+        <div class="row g-4">
+            <main class="col-lg-8">
+                @if (Model.FeaturedArticle is { } featured)
+                {
+                    <a href="/@featured.CategorySlug/@featured.Slug" class="bn-category-featured track-click d-block" data-article-id="@featured.Id">
+                        <img src="@featured.FeaturedImageLarge" alt="@featured.Title" loading="eager" />
+                        <div class="bn-category-featured-body">
+                            <div class="bn-category-label">Latest in @categoryName</div>
+                            <h1>@featured.Title</h1>
+                            @if (!string.IsNullOrWhiteSpace(featured.Summary))
+                            {
+                                <p>@featured.Summary</p>
+                            }
+                            <span>@featured.TimeAgo</span>
+                        </div>
+                    </a>
+                }
+
+                @if (Model.Articles.Any())
+                {
+                    <div class="row g-3 mt-1">
+                        @foreach (var item in Model.Articles)
+                        {
+                            <div class="col-6 col-md-4">
+                                <a href="/@item.CategorySlug/@item.Slug" class="bn-category-card track-click d-block h-100" data-article-id="@item.Id">
+                                    <div class="bn-category-card-img">
+                                        <img src="@item.FeaturedImageMedium" alt="@item.Title" loading="lazy" />
+                                    </div>
+                                    <h2>@item.Title</h2>
+                                    <span>@item.TimeAgo</span>
+                                </a>
+                            </div>
+                        }
                     </div>
-                </div>
-            </div>
-        </aside>
+                }
+                else if (Model.Page == 1)
+                {
+                    <p class="bn-category-empty">No additional stories are available in @categoryName yet.</p>
+                }
 
+                <nav class="bn-category-pagination" aria-label="Category pagination">
+                    @if (Model.Page > 1)
+                    {
+                        <a href="/category/@Model.CategorySlug?page=@(Model.Page - 1)">← Previous</a>
+                    }
+                    else
+                    {
+                        <span></span>
+                    }
+                    <span>Page @Model.Page</span>
+                    @if (Model.HasNextPage)
+                    {
+                        <a href="/category/@Model.CategorySlug?page=@(Model.Page + 1)">Next →</a>
+                    }
+                    else
+                    {
+                        <span></span>
+                    }
+                </nav>
+            </main>
+
+            <aside class="col-lg-4">
+                <div style="position:sticky;top:70px;">
+                    <div class="bn-story-rail"><h2>Latest News</h2></div>
+                    <div class="mb-4">
+                        @await Component.InvokeAsync("LatestNews", new { count = 8 })
+                    </div>
+                    <div class="bn-story-rail"><h2>Trending</h2></div>
+                    @await Component.InvokeAsync("TrendingNews", new { type = Context.Request.Query["type"].ToString() })
+                </div>
+            </aside>
+        </div>
     </div>
 </div>
 
-<!-- ── SEO Schemas (preserved exactly) ───────────────────── -->
+<style>
+    .bn-category-breadcrumb { display:inline-flex; font-family:var(--bn-font-body); font-size:12px; font-weight:600; background:#fff; border:1px solid #dee2e6; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,.08); padding:13px; margin:0; }
+    .bn-category-breadcrumb a { color:#000; text-decoration:none; }
+    .bn-category-breadcrumb .active a { color:#C4161C; }
+    .bn-category-navigation { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .bn-category-pills { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .bn-category-pills a { border:1px solid #dee2e6; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,.08); color:#000; font-family:var(--bn-font-body); font-size:12px; font-weight:600; padding:13px; text-decoration:none; }
+    .bn-category-pills a:hover, .bn-category-pills a.is-active { background:#C4161C; border-color:#C4161C; color:#fff; }
+    .bn-category-featured { color:inherit; text-decoration:none; border-top:3px double #00000087; border-bottom:3px double #00000087; padding:8px 0 12px; }
+    .bn-category-featured > img { display:block; width:100%; max-height:420px; object-fit:cover; }
+    .bn-category-featured-body { padding:12px 10px 0; }
+    .bn-category-label { color:#C4161C; font-family:var(--bn-font-ui); font-size:12px; font-weight:700; text-transform:uppercase; }
+    .bn-category-featured h1 { color:#C4161C; font-family:var(--bn-font-body); font-size:22px; font-weight:600; line-height:32px; margin:6px 0; }
+    .bn-category-featured p { color:#000; font-family:var(--bn-font-body); font-size:14px; line-height:22px; margin:0 0 8px; }
+    .bn-category-featured span, .bn-category-card span { color:var(--bn-text-muted); font-family:var(--bn-font-ui); font-size:11px; }
+    .bn-category-card { color:inherit; text-decoration:none; border:1px solid rgba(0,0,0,.08); border-radius:3px; box-shadow:0 0 5px rgba(0,0,0,.15); padding:7px; transition:box-shadow .2s ease; }
+    .bn-category-card:hover { box-shadow:0 0 5px rgba(0,0,0,.35); }
+    .bn-category-card-img { aspect-ratio:5/3; overflow:hidden; margin-bottom:7px; }
+    .bn-category-card-img img { width:100%; height:100%; object-fit:cover; }
+    .bn-category-card h2 { color:#C4161C; font-family:var(--bn-font-ui); font-size:13px; font-weight:600; line-height:20px; text-align:center; margin:0 0 7px; }
+    .bn-category-card:hover h2 { color:#000; }
+    .bn-category-card span { display:block; text-align:center; }
+    .bn-category-pagination { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:12px; margin-top:28px; padding-top:20px; border-top:1px solid var(--bn-border); font-family:var(--bn-font-ui); font-size:13px; }
+    .bn-category-pagination > :first-child { justify-self:start; }
+    .bn-category-pagination > :last-child { justify-self:end; }
+    .bn-category-pagination a { border:1px solid var(--bn-border); border-radius:var(--bn-radius-sm); color:var(--bn-text-primary); padding:8px 16px; text-decoration:none; }
+    .bn-category-pagination a:last-child { background:var(--bn-accent); border-color:var(--bn-accent); color:#fff; }
+    .bn-category-empty { color:var(--bn-text-muted); font-family:var(--bn-font-ui); margin-top:24px; }
+</style>
+
 <script type="application/ld+json">@Html.Raw(Model.CategorySchemaJson)</script>
 <script type="application/ld+json">@Html.Raw(Model.BreadcrumbSchemaJson)</script>

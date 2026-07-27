@@ -97,7 +97,7 @@ namespace BolNews.Web.Services
 
                 name = categoryName,
                 description = metaDescription,
-                url = $"{baseUrl}/{categorySlug}",
+                url = $"{baseUrl}/category/{categorySlug}",
 
                 mainEntity = new
                 {
@@ -151,7 +151,7 @@ namespace BolNews.Web.Services
                     @type = "ListItem",
                     position = 2,
                     name = article.CategoryName,
-                    item = $"{baseUrl}/{article.CategorySlug}"
+                    item = $"{baseUrl}/category/{article.CategorySlug}"
                 },
                 new {
                         @type = "ListItem",
@@ -184,7 +184,7 @@ namespace BolNews.Web.Services
                 @type = "ListItem",
                 position = 2,
                 name = categoryName,
-                item = $"{baseUrl}/{categorySlug}"
+                item = $"{baseUrl}/category/{categorySlug}"
             }
                 }
             };

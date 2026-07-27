@@ -39,7 +39,7 @@
     }
 }
 
-<div class="bn-home-shell">
+<div style="padding-top:20px" class="bn-home-shell">
     @if (Model.TopStory != null)
     {
         <section class="bn-home-hero bn-home-hero--three" aria-label="Top stories">
@@ -257,7 +257,7 @@
 
                     <header class="bn-category-heading">
                         <h2 id="category-@cat.CategorySlug">@cat.CategoryName</h2>
-                        <a href="/@cat.CategorySlug">More</a>
+                        <a href="/category/@cat.CategorySlug">More</a>
                     </header>
 
                     <div class="bn-category-list">

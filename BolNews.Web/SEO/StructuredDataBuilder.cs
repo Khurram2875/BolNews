@@ -68,7 +68,7 @@ namespace BolNews.Web.SEO
                     @type = "ListItem",
                     position = 2,
                     name = article.CategoryName,
-                        item = $"{baseUrl}/{article.CategorySlug}"
+                        item = $"{baseUrl}/category/{article.CategorySlug}"
                 },
                 new {
                         @type = "ListItem",
@@ -117,7 +117,7 @@ namespace BolNews.Web.SEO
 
                 name = categoryName,
                 description = metaDescription,
-                url = $"{baseUrl}/{categorySlug}",
+                url = $"{baseUrl}/category/{categorySlug}",
 
                 mainEntity = new
                 {

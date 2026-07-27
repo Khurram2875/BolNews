@@ -98,10 +98,25 @@ namespace BolNews.Persistence.Repositories
                 .Include(a => a.Author)
                 .Include(a => a.Category)
                 .Include(a => a.Reporter)
-                .Where(a => a.Category.Slug == categorySlug && !a.IsDeleted)
+                .Where(a => a.Category.Slug == categorySlug && a.IsPublished && !a.IsDeleted)
                 .OrderByDescending(a => a.PublishedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
+                .ToListAsync();
+
+        public async Task<List<Article>> GetCategoryArticlesAsync(
+            string categorySlug,
+            int skip,
+            int take)
+            => await _context.Articles
+                .AsNoTracking()
+                .Include(a => a.Author)
+                .Include(a => a.Category)
+                .Include(a => a.Reporter)
+                .Where(a => a.Category.Slug == categorySlug && a.IsPublished && !a.IsDeleted)
+                .OrderByDescending(a => a.PublishedAt)
+                .Skip(skip)
+                .Take(take)
                 .ToListAsync();
 
         public async Task<List<Article>> GetByTagSlugAsync(string tagSlug, int page, int pageSize)

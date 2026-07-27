@@ -29,10 +29,14 @@
     --bn-radius-sm: 4px;
     --bn-radius-md: 8px;
     --bn-radius-lg: 12px;
-    --bn-font-display: 'Playfair Display', Georgia, serif;
+    --bn-font-display: 'Inter', sans-serif; /* was 'Playfair Display', Georgia, serif */
+    --bn-font-body: 'Inter', sans-serif; /* was 'Source Serif 4', Georgia, serif */
+    --bn-font-ui: 'Poppins', sans-serif; /* was 'DM Sans', system-ui, sans-serif */
+    --bn-font-accent: 'Belleza', serif; /* NEW — for section-header labels only */
+    /*--bn-font-display: 'Playfair Display', Georgia, serif;
     --bn-font-body: 'Source Serif 4', Georgia, serif;
     --bn-font-ui: 'DM Sans', system-ui, sans-serif;
-    --bn-transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+    --bn-transition: 0.22s cubic-bezier(0.4,0,0.2,1);*/
 }
 
 /* ── DARK THEME ─────────────────────────────────────────────── */
@@ -617,6 +621,15 @@ body.nav-fixed {
     color: #fff;
     padding: 2px 8px;
     border-radius: 2px;
+}
+/* ============================================================
+   BREAD CRUMB
+   ============================================================ */
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "»";
+    color: #000000;
+    padding: 0 6px;
 }
 
 /* ============================================================
@@ -1374,6 +1387,9 @@ body.nav-fixed {
         height: 2px;
         background: var(--bn-accent);
     }
+
+    
+
 
 /* ============================================================
    CATEGORY STRIP
@@ -2359,9 +2375,9 @@ body.nav-fixed {
     display: block;
 }
 
-.bn-home-shell {
+/*.bn-home-shell {
     padding-top: 34px;
-}
+}*/
 
 .bn-ad-placeholder {
     min-height: 90px;
@@ -2659,9 +2675,9 @@ body {
     height: 18px;
 }
 
-.bn-home-shell {
+/*.bn-home-shell {
     padding-top: 44px;
-}
+}*/
 
 .bn-home-hero--three {
     display: grid;
@@ -2767,10 +2783,10 @@ body {
     box-shadow: none;
 }
 
-.bn-latest-item img {
-    aspect-ratio: 1.2 / 1;
+/*.bn-latest-item img {
+    aspect-ratio: 16 / 9;
 }
-
+*/
 /*.bn-latest-item strong {
     color: #333;
     font-size: 12px;
@@ -3208,9 +3224,9 @@ body,
     color: #C4161C;
 }
 
-.bn-home-shell {
+/*.bn-home-shell {
     padding-top: 42px;
-}
+}*/
 
 .bn-home-hero--three {
     grid-template-columns: 292px minmax(0, 1fr) 292px;
@@ -3222,7 +3238,7 @@ body,
 }
 
     .bn-top-stories-panel > h2 {
-        font-family: "Inter";
+        font-family: "Belleza", Sans-serif;
         margin-bottom: 15px;
         padding: 8px 10px;
         font-size: 20px;
@@ -3232,10 +3248,10 @@ body,
 
 .bn-story-rail h2,
 .bn-popular-header h2 {
-    font-size : 18px;
+    font-size : 20px;
     font-weight: 600;
     line-height: 1;
-    font-family: "Inter", sans-serif;
+    font-family: "Belleza", sans-serif;
     letter-spacing: 1px;
 }
 

@@ -48,6 +48,9 @@ namespace BolNews.Web.Controllers
 
         public async Task<IActionResult> Details(string categorySlug, int page = 1)
         {
+            if (page < 1)
+                return RedirectToRoutePermanent("categoryListing", new { categorySlug });
+
             if (string.Equals(categorySlug, "latest-news", StringComparison.OrdinalIgnoreCase))
                 return await LatestNewsVirtualCategory(page);
 
@@ -56,22 +59,52 @@ namespace BolNews.Web.Controllers
             if (category == null)
                 return NotFound();
 
-            var articles = await _cacheService.GetOrCreateAsync(
-                    CacheKeys.Category(categorySlug, page),
-                    async () => await _articleService.GetByCategorySlugAsync(categorySlug, page),
+            var parentCategories = await _categoryService.GetParentCategoriesWithChildrenAsync();
+            var navigationParentId = category.ParentCategoryId ?? category.Id;
+            var navigationParent = parentCategories.FirstOrDefault(x => x.Id == navigationParentId);
+            var relatedCategories = navigationParent?.SubCategories?
+                .Where(x => !x.IsDeleted)
+                .OrderBy(x => x.Name)
+                .Select(x => new CategoryNavigationItemVM
+                {
+                    Name = x.Name,
+                    Slug = x.Slug,
+                    IsSelected = x.Id == category.Id
+                })
+                .ToList() ?? new List<CategoryNavigationItemVM>();
+
+            const int pageSize = 15;
+            const int featureOffset = 1;
+
+            var featuredArticle = await _cacheService.GetOrCreateAsync(
+                    $"{CacheKeys.Category(categorySlug, 0)}_featured",
+                    async () => (await _articleService.GetCategoryArticlesAsync(categorySlug, 0, 1)).FirstOrDefault(),
                     5
                 );
 
-            if (articles == null || !articles.Any())
+            if (featuredArticle == null)
                 return NotFound();
 
-            var vm = _mapper.Map<List<PublicArticleVM>>(articles);
+            var articles = await _cacheService.GetOrCreateAsync(
+                    CacheKeys.Category(categorySlug, page),
+                    async () => await _articleService.GetCategoryArticlesAsync(
+                        categorySlug,
+                        featureOffset + ((page - 1) * pageSize),
+                        pageSize + 1),
+                    5
+                );
+
+            if (page > 1 && (articles == null || !articles.Any()))
+                return NotFound();
+
+            var vm = _mapper.Map<List<PublicArticleVM>>(articles.Take(pageSize));
+            var featuredVm = _mapper.Map<PublicArticleVM>(featuredArticle);
 
             var baseUrl = _urlService.GetBaseUrl();
             // ✅ SEO FROM DATABASE
             ViewBag.CategoryDescription = category.Description;
 
-            ViewBag.OgImage = vm.FirstOrDefault()?.FeaturedImageXl;
+            ViewBag.OgImage = featuredVm.FeaturedImageXl;
 
             ViewBag.MetaTitle = string.IsNullOrWhiteSpace(category.MetaTitle)
                 ? category.Name
@@ -82,15 +115,13 @@ namespace BolNews.Web.Controllers
                 : category.MetaDescription;
 
             ViewBag.CanonicalUrl = page == 1
-                ? $"/{category.Slug}"
-                : $"/{category.Slug}?page={page}";
+                ? $"/category/{category.Slug}"
+                : $"/category/{category.Slug}?page={page}";
             ViewBag.OgType = "website";
 
             ViewBag.CategoryName = category.Name;
             ViewBag.CategorySlug = category.Slug;
             
-
-            const int pageSize = 10;
 
             ViewBag.PageSize = pageSize;
             //ViewBag.HasNextPage = articles.Count == pageSize;
@@ -100,6 +131,8 @@ namespace BolNews.Web.Controllers
             var vm2 = new CategorySectionVM
             {
                 Articles = vm,
+                FeaturedArticle = featuredVm,
+                RelatedCategories = relatedCategories,
                 CategoryName = category.Name,
                 CategorySlug = category.Slug,
                 MetaTitle = string.IsNullOrWhiteSpace(category.MetaTitle)
@@ -110,7 +143,7 @@ namespace BolNews.Web.Controllers
                     : category.MetaDescription,
                 BaseUrl = baseUrl,
                 Page = page,                       // ✅
-                HasNextPage = articles.Count == pageSize
+                HasNextPage = articles.Count > pageSize
             };
             ViewBag.HasNextPage = vm2.HasNextPage;
             vm2.CategorySchemaJson = await _cacheService.GetOrCreateAsync(
@@ -119,7 +152,7 @@ namespace BolNews.Web.Controllers
                         vm2.CategoryName,
                         vm2.CategorySlug,
                         vm2.MetaDescription,
-                        vm2.Articles,
+                        new[] { featuredVm }.Concat(vm2.Articles).ToList(),
                         vm2.BaseUrl
                     ),
                     10
@@ -134,7 +167,10 @@ namespace BolNews.Web.Controllers
         }
         private async Task<IActionResult> LatestNewsVirtualCategory(int page)
         {
-            const int pageSize = 20;
+            if (page < 1)
+                return RedirectToRoutePermanent("categoryListing", new { categorySlug = "latest-news" });
+
+            const int pageSize = 15;
             const string virtualSlug = "latest-news";
             const string virtualName = "Latest News";
 
@@ -151,24 +187,29 @@ namespace BolNews.Web.Controllers
 
             // Fetch a capped merged pool, then paginate in-memory
             var pooled = await _cacheService.GetOrCreateAsync(
-                $"latest_news_pool_{pageSize * 5}",
-                async () => await _articleService.GetLatestArticlesForCategoriesAsync(categoryIds, pageSize * 5),
+                $"latest_news_pool_{(pageSize * 5) + 1}",
+                async () => await _articleService.GetLatestArticlesForCategoriesAsync(categoryIds, (pageSize * 5) + 1),
                 2
             );
 
-            var pageArticles = pooled.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            var featuredArticle = pooled.FirstOrDefault();
+            var pageArticles = pooled
+                .Skip(1 + ((page - 1) * pageSize))
+                .Take(pageSize + 1)
+                .ToList();
 
-            if (!pageArticles.Any())
+            if (featuredArticle == null || (page > 1 && !pageArticles.Any()))
                 return NotFound();
 
-            var vm = _mapper.Map<List<PublicArticleVM>>(pageArticles);
+            var vm = _mapper.Map<List<PublicArticleVM>>(pageArticles.Take(pageSize));
+            var featuredVm = _mapper.Map<PublicArticleVM>(featuredArticle);
             var baseUrl = _urlService.GetBaseUrl();
 
             ViewBag.CategoryDescription = "The latest stories across all our sections.";
-            ViewBag.OgImage = vm.FirstOrDefault()?.FeaturedImageXl;
+            ViewBag.OgImage = featuredVm.FeaturedImageXl;
             ViewBag.MetaTitle = virtualName;
             ViewBag.MetaDescription = "Stay up to date with the latest news.";
-            ViewBag.CanonicalUrl = page == 1 ? $"/{virtualSlug}" : $"/{virtualSlug}?page={page}";
+            ViewBag.CanonicalUrl = page == 1 ? $"/category/{virtualSlug}" : $"/category/{virtualSlug}?page={page}";
             ViewBag.OgType = "website";
             ViewBag.CategoryName = virtualName;
             ViewBag.CategorySlug = virtualSlug;
@@ -178,18 +219,20 @@ namespace BolNews.Web.Controllers
             var vm2 = new CategorySectionVM
             {
                 Articles = vm,
+                FeaturedArticle = featuredVm,
                 CategoryName = virtualName,
                 CategorySlug = virtualSlug,
                 MetaTitle = virtualName,
                 MetaDescription = "Stay up to date with the latest news.",
                 BaseUrl = baseUrl,
                 Page = page,
-                HasNextPage = pageArticles.Count == pageSize
+                HasNextPage = pageArticles.Count > pageSize
             };
             ViewBag.HasNextPage = vm2.HasNextPage;
 
             vm2.CategorySchemaJson = _seoService.BuildCategorySchema(
-                vm2.CategoryName, vm2.CategorySlug, vm2.MetaDescription, vm2.Articles, vm2.BaseUrl);
+                vm2.CategoryName, vm2.CategorySlug, vm2.MetaDescription,
+                new[] { featuredVm }.Concat(vm2.Articles).ToList(), vm2.BaseUrl);
             vm2.BreadcrumbSchemaJson = _seoService.BuildCategoryBreadcrumb(
                 vm2.CategoryName, vm2.CategorySlug, vm2.BaseUrl);
 

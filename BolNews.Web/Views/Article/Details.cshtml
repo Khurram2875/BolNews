@@ -5,366 +5,332 @@
 @model ArticleDetailsPageVM
 
 @{
-    ViewData["Title"] = Model.Article.MetaTitle ?? Model.Article.Title;
+	ViewData["Title"] = Model.Article.MetaTitle ?? Model.Article.Title;
 }
+<div style="padding-top:0px;" class="bn-home-shell">
+	<!-- ── Breadcrumb ──────────────────────────────────────────── -->
+	<div class="container" style="padding-top:16px;">
+		<nav aria-label="breadcrumb">
+			<ol class="breadcrumb mb-0" style="
+				display:inline-flex;
+                font-family:var(--bn-font-body);
+                font-size:12px;
+                font-weight:600;
+                background:#ffffff;
+                border:1px solid #dee2e6;
+                border-radius:12px;
+                box-shadow:0 4px 20px rgba(0,0,0,0.08);
+                padding:13px;
+                margin:0;">
+				<li class="breadcrumb-item">
+					<a href="/" style="color:#000000;text-decoration:none;">Home</a>
+				</li>
+				<li class="breadcrumb-item active" aria-current="page">
+					<a href="/category/@Model.Article.CategorySlug" style="color:#C4161C;text-decoration:none;">
+						@Model.Article.CategoryName
+					</a>
+				</li>
+			</ol>
+		</nav>
+	</div>
 
-<!-- ── Breadcrumb ──────────────────────────────────────────── -->
-<div style="background:var(--bn-surface-alt);border-bottom:1px solid var(--bn-border);">
-    <div class="container py-2">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0" style="font-family:var(--bn-font-ui);font-size:12px;">
-                <li class="breadcrumb-item"><a href="/" style="color:var(--bn-text-muted);text-decoration:none;">Home</a></li>
-                <li class="breadcrumb-item">
-                    <a href="/@Model.Article.CategorySlug" style="color:var(--bn-accent);text-decoration:none;">@Model.Article.CategoryName</a>
-                </li>
-                <li class="breadcrumb-item active" style="color:var(--bn-text-muted);" aria-current="page">
-                    @(Model.Article.Title.Length > 50 ? Model.Article.Title.Substring(0, 50) + "…" : Model.Article.Title)
-                </li>
-            </ol>
-        </nav>
-    </div>
-</div>
+	<!-- ── Main layout ────────────────────────────────────────── -->
+	<div class="container" style="padding-top:32px;padding-bottom:48px;">
+		<div class="row g-4">
 
-<!-- ── Main layout ────────────────────────────────────────── -->
-<div class="container" style="padding-top:32px;padding-bottom:48px;">
-    <div class="row g-4">
+			<!-- ── Article column ──────────────────────────────── -->
+			<div class="col-lg-8">
+				<article itemscope itemtype="https://schema.org/NewsArticle">
 
-        <!-- ── Article column ──────────────────────────────── -->
-        <div class="col-lg-8">
-            <article itemscope itemtype="https://schema.org/NewsArticle">
+					<!-- Category tag + title -->
+					<div class="mb-3" style="border-top:3px double #00000087; padding-top:5px; padding-left:10px">
+						@* <a href="/@Model.Article.CategorySlug" class="bn-tag d-inline-block mb-3">@Model.Article.CategoryName</a> *@
+						<h1 itemprop="headline" style="
+								font-family:var(--bn-font-body);
+								font-size:22px;
+								font-weight:600;
+								line-height:32px;
+								color:#C4161C;
+								margin-top:10px;">
+							@Model.Article.Title
+						</h1>
+					</div>
 
-                <!-- Category tag + title -->
-                <div class="mb-3">
-                    <a href="/@Model.Article.CategorySlug" class="bn-tag d-inline-block mb-3">@Model.Article.CategoryName</a>
-                    <h1 itemprop="headline" style="
-                        font-family:var(--bn-font-display);
-                        font-size:clamp(22px,3.5vw,34px);
-                        font-weight:800;
-                        line-height:1.2;
-                        color:var(--bn-text-primary);
-                        margin-top:10px;">
-                        @Model.Article.Title
-                    </h1>
-                </div>
+					<!-- Summary / deck -->
+					@if (!string.IsNullOrEmpty(Model.Article.Summary))
+					{
+						<p style="
+								font-family:var(--bn-font-body);
+								font-size:15px;
+								font-weight:600;
+								color:#000000;
+								line-height:26px;
+								padding-left:10px;
+								margin-bottom:18px;">
+										@Model.Article.Summary
+						</p>
+					}
 
-                <!-- Summary / deck -->
-                @if (!string.IsNullOrEmpty(Model.Article.Summary))
-                {
-                    <p style="
-                            font-family:var(--bn-font-body);
-                            font-size:18px;
-                            font-weight:600;
-                            color:var(--bn-text-body);
-                            line-height:1.55;
-                            border-left:3px solid var(--bn-accent);
-                            padding-left:14px;
-                            margin-bottom:20px;">
-                        @Model.Article.Summary
-                    </p>
-                }
+					<!-- Author bar -->
+					<div style="
+						 display:flex;
+							align-items:center;
+							flex-wrap:wrap;
+							gap:16px;
+							padding:12px 0;
+							padding-left:10px;
+							margin-bottom:6px;
+							border-bottom:3px double #00000087;">
 
-                <!-- Author bar -->
-                <div style="
-                    display:flex;
-                    align-items:center;
-                    justify-content:space-between;
-                    flex-wrap:wrap;
-                    gap:12px;
-                    padding:14px 16px;
-                    background:var(--bn-surface-alt);
-                    border-radius:var(--bn-radius-md);
-                    margin-bottom:22px;
-                    border:1px solid var(--bn-border);">
-                    <a href=""
-                       style="display:flex;align-items:center;gap:11px;text-decoration:none;color:inherit;">
-                        <img src="~/images/webdesk.png"
-                             alt="@Model.Article.ReporterName"
-                             itemprop="image"
-                             style="width:25px;height:25px;border-radius:0%;object-fit:cover;flex-shrink:0;"
-                             loading="lazy" />
-                        <div>
-                            <div style="font-family:var(--bn-font-ui);font-size:12px;font-weight:700;color:var(--bn-text-primary);">
-                                @Model.Article.ReporterName
-                            </div>
-                           @*  <div style="font-family:var(--bn-font-ui);font-size:11px;color:var(--bn-text-muted);">
-                                Journalist at Bol News
-                            </div> *@
-                            @* @if (!string.IsNullOrWhiteSpace(Model.Article.ReporterName))
-                            {
-                                <div style="font-family:var(--bn-font-ui);font-size:11px;color:var(--bn-text-muted);">
-                                    @Model.Article.ReporterName
-                                    @if (!string.IsNullOrWhiteSpace(Model.Article.ReporterSourceName))
-                                    {
-                                        <span>(@Model.Article.ReporterSourceName)</span>
-                                    }
-                                </div>
-                            } *@
-                        </div>
-                    </a>
-                    <div>
-						<a href="https://www.google.com/preferences/source?q=bolnews.com" target="_blank">
-							<img src="~/images/googlepreferred.webp"
-                                 title="" alt="340PX_GoolePreferred" loading="lazy"/>
-                        </a>
-                    </div>
-                    <div style="font-family:var(--bn-font-ui);font-size:11px;color:var(--bn-text-muted);display:flex;gap:14px;flex-wrap:wrap;">
-                        @if (Model.Article.PublishedAt.HasValue)
-                        {
-                            <span itemprop="datePublished" content="@Model.Article.PublishedAt.Value.ToString("yyyy-MM-dd")">
-                                📅 @Model.Article.PublishedAt.Value.ToString("dd MMM yyyy")
-                            </span>
-                        }
-                        else
-                        {
-                            <span  content="Not published">
-                                Not published
-                            </span>
-                        }
-                        @if (Model.Article.UpdatedAt.HasValue)
-                        {
-                            <span itemprop="dateModified" content="@Model.Article.UpdatedAt.Value.ToString("yyyy-MM-dd")">
-                                🔄 Updated @Model.Article.UpdatedAt.Value.ToString("dd MMM yyyy")
-                            </span>
-                        }
-                        @if (Model.Article.ReadingTimeMinutes > 0)
-                        {
-                            <span>⏱ @Model.Article.ReadingTimeMinutes min read</span>
-                        }
-                    </div>
-                </div>
+						<span style="display:flex;align-items:center;gap:6px;font-family:var(--bn-font-body);font-size:14px;font-weight:500;line-height:26px;color:#000000;">
+							<svg width="14" height="14" viewBox="0 0 576 512" fill="#C4161C"><path d="M402.6 83.2l90.2 90.2c3.8 3.8 3.8 10 0 13.8L274.4 405.6l-92.8 10.3c-12.4 1.4-22.9-9.1-21.5-21.5l10.3-92.8L388.8 83.2c3.8-3.8 10-3.8 13.8 0zm162-22.9l-48.8-48.8c-15.2-15.2-39.9-15.2-55.2 0l-35.4 35.4c-3.8 3.8-3.8 10 0 13.8l90.2 90.2c3.8 3.8 10 3.8 13.8 0l35.4-35.4c15.2-15.3 15.2-40 0-55.2zM384 346.2V448H64V128h229.8c3.2 0 6.2-1.3 8.5-3.5l40-40c7.6-7.6 2.2-20.5-8.5-20.5H48C21.5 64 0 85.5 0 112v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V306.2c0-10.7-12.9-16-20.5-8.5l-40 40c-2.2 2.3-3.5 5.3-3.5 8.5z" /></svg>
+							@Model.Article.ReporterName
+						</span>
 
-                <!-- Featured image -->
-                @if (!string.IsNullOrEmpty(Model.Article.FeaturedImageLarge))
-                {
-                    var imageAlt = !string.IsNullOrWhiteSpace(Model.Article.FeaturedImageAltText)
-                        ? Model.Article.FeaturedImageAltText
-                        : (Model.Article.FeaturedImageTags.Any()
-                            ? $"{Model.Article.Title} - {string.Join(", ", Model.Article.FeaturedImageTags.Select(t => t.Name))}"
-                            : Model.Article.Title);
+						@if (Model.Article.PublishedAt.HasValue)
+						{
+							<span style="display:flex;align-items:center;gap:6px;font-family:var(--bn-font-body);font-size:14px;font-weight:500;line-height:26px;color:#000000; padding-left:20px;">
+								<svg width="14" height="14" viewBox="0 0 448 512" fill="#C4161C"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-160v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z" /></svg>
+								@Model.Article.PublishedAt.Value.ToString("MMMM dd, yyyy")
+							</span>
+						}
 
-                    <figure style="margin:0 0 24px;" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-                        <img src="@Model.Article.FeaturedImageLarge"
-                             alt="@imageAlt"
-                             itemprop="url"
-                             style="width:100%;border-radius:var(--bn-radius-md);display:block;max-height:500px;object-fit:cover;"
-                             loading="eager" />
-                        <meta itemprop="width" content="1200" />
-                        <meta itemprop="height" content="675" />
-                        @if (!string.IsNullOrWhiteSpace(Model.Article.FeaturedImageCaption) || !string.IsNullOrWhiteSpace(Model.Article.FeaturedImageCredit))
-                        {
-                            <figcaption style="font-family:var(--bn-font-ui);font-size:12px;color:var(--bn-text-muted);margin-top:8px;">
-                                @if (!string.IsNullOrWhiteSpace(Model.Article.FeaturedImageCaption))
-                                {
-                                    <span>@Model.Article.FeaturedImageCaption</span>
-                                }
-                                @if (!string.IsNullOrWhiteSpace(Model.Article.FeaturedImageCredit))
-                                {
-                                    <span> Photo: @Model.Article.FeaturedImageCredit</span>
-                                }
-                            </figcaption>
-                        }
-                    </figure>
-                }
+						<a href="https://www.google.com/preferences/source?q=bolnews.com" target="_blank" style="display:flex;align-items:center;">
+							<img src="~/images/googlepreferred.webp" alt="Add Bol News as a trusted source" loading="lazy" style="height:30px;width:auto;padding-left:20px" />
+						</a>
+						
+						<div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+							<a href="https://wa.me/?text=@Uri.EscapeDataString($"{Model.Article.Title} - {Model.BaseUrl}/{Model.Article.CategorySlug}/{Model.Article.Slug}")"
+							   target="_blank" rel="noopener" aria-label="Share on WhatsApp"
+							   style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#25d366;color:#fff;">
+								<svg width="0" height="0" viewBox="0 0 448 512" fill="currentColor"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6z" /></svg>
+								<svg width="18" height="18" viewBox="0 0 448 512" fill="currentColor"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z "></path></svg>
+							</a>
+							<a href="https://www.facebook.com/sharer/sharer.php?u=@Uri.EscapeDataString($"{Model.BaseUrl}/{Model.Article.CategorySlug}/{Model.Article.Slug}")"
+							   target="_blank" rel="noopener" aria-label="Share on Facebook"
+							   style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#1877f2;color:#fff;">
+								<svg width="8" height="14" viewBox="0 0 264 512" fill="currentColor"><path d="M76.7 512V283H0v-91h76.7v-71.7C76.7 42.4 124.3 0 193.8 0c33.3 0 61.9 2.5 70.2 3.6V85h-48.2c-37.8 0-45.1 18-45.1 44.3V192H256l-11.2 91h-89.9v229H76.7z" /></svg>
+							</a>
+							<a href="https://twitter.com/intent/tweet?url=@Uri.EscapeDataString($"{Model.BaseUrl}/{Model.Article.CategorySlug}/{Model.Article.Slug}")&text=@Uri.EscapeDataString(Model.Article.Title)"
+							   target="_blank" rel="noopener" aria-label="Share on X"
+							   style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#000;color:#fff;">
+								<svg width="13" height="13" viewBox="0 0 512 512" fill="currentColor"><path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" /></svg>
+							</a>
+							<button onclick="navigator.clipboard.writeText(window.location.href).then(()=>{this.querySelector('svg').style.opacity=0.4})"
+									aria-label="Copy link"
+									style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--bn-surface-alt);color:var(--bn-text-body);border:1px solid var(--bn-border);cursor:pointer;">
+								<svg width="12" height="12" viewBox="0 0 512 512" fill="currentColor"><path d="M326.6 185.4c59.8 59.8 59.8 156.8 0 216.6l-64 64c-59.8 59.8-156.8 59.8-216.6 0s-59.8-156.8 0-216.6l40-40c8.3-8.3 21.9-6.1 27.3 4.3 6.4 12.4 14.9 23.8 25.6 33.3 6.9 6.2 8.9 16.2 4.9 24.7-3.9 8.3-3 18.5 3.9 25.4 8.9 8.9 23.3 8.9 32.2 0l64-64c8.9-8.9 8.9-23.3 0-32.2-6.9-6.9-17.1-7.8-25.4-3.9-8.5 4-18.5 2-24.7-4.9-9.5-10.7-20.9-19.2-33.3-25.6-10.4-5.4-12.6-19-4.3-27.3l40-40c59.8-59.8 156.8-59.8 216.6 0z" /></svg>
+							</button>
+						</div>
+					</div>
 
-                <!-- Article body -->
-                <div class="bn-article-body" itemprop="articleBody">
-                    @Html.Raw(Model.Article.Content)
-                </div>
+					<!-- Featured image -->
+					@if (!string.IsNullOrEmpty(Model.Article.FeaturedImageLarge))
+					{
+						var imageAlt = !string.IsNullOrWhiteSpace(Model.Article.FeaturedImageAltText)
+						? Model.Article.FeaturedImageAltText
+						: (Model.Article.FeaturedImageTags.Any()
+						? $"{Model.Article.Title} - {string.Join(", ", Model.Article.FeaturedImageTags.Select(t => t.Name))}"
+						: Model.Article.Title);
 
-                @if (Model.Article.ArticleTags.Any())
-                {
-                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:28px;">
-                        <span style="font-family:var(--bn-font-ui);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--bn-text-muted);">Tags</span>
-                        @foreach (var tag in Model.Article.ArticleTags)
-                        {
-                            <a href="/tag/@tag.Slug"
-                               style="font-family:var(--bn-font-ui);font-size:12px;font-weight:600;color:var(--bn-accent);text-decoration:none;padding:6px 12px;border:1px solid var(--bn-border);border-radius:18px;background:var(--bn-surface-alt);">
-                                @tag.Name
-                            </a>
-                        }
-                    </div>
-                }
+						<figure style="margin:0 0 0;" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+							<img src="@Model.Article.FeaturedImageLarge"
+								 alt="@imageAlt"
+								 itemprop="url"
+								 style="width:100%;border-radius:var(--bn-radius-md);display:block;max-height:500px;object-fit:cover;"
+								 loading="eager" />
+							<meta itemprop="width" content="1200" />
+							<meta itemprop="height" content="675" />
+							@if (!string.IsNullOrWhiteSpace(Model.Article.FeaturedImageCaption) || !string.IsNullOrWhiteSpace(Model.Article.FeaturedImageCredit))
+							{
+								<figcaption style="font-family:var(--bn-font-ui);font-size:12px;color:var(--bn-text-muted);margin-top:8px;">
+									@if (!string.IsNullOrWhiteSpace(Model.Article.FeaturedImageCaption))
+									{
+										<span>@Model.Article.FeaturedImageCaption</span>
+									}
+									@if (!string.IsNullOrWhiteSpace(Model.Article.FeaturedImageCredit))
+									{
+										<span> Photo: @Model.Article.FeaturedImageCredit</span>
+									}
+								</figcaption>
+							}
+						</figure>
+					}
 
-                <!-- Share bar -->
-                <div style="
-                    display:flex;
-                    align-items:center;
-                    gap:10px;
-                    flex-wrap:wrap;
-                    padding:18px 0;
-                    margin-top:28px;
-                    border-top:1px solid var(--bn-border);
-                    border-bottom:1px solid var(--bn-border);">
-                    <span style="font-family:var(--bn-font-ui);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--bn-text-muted);">Share</span>
-                    <a href="https://twitter.com/intent/tweet?url=@Uri.EscapeDataString($"{Model.BaseUrl}/{Model.Article.CategorySlug}/{Model.Article.Slug}")&text=@Uri.EscapeDataString(Model.Article.Title)"
-                       target="_blank" rel="noopener"
-                       style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-family:var(--bn-font-ui);font-size:12px;font-weight:600;background:#000;color:#fff;text-decoration:none;">
-                        𝕏 Twitter
-                    </a>
-                    <a href="https://www.facebook.com/sharer/sharer.php?u=@Uri.EscapeDataString($"{Model.BaseUrl}/{Model.Article.CategorySlug}/{Model.Article.Slug}")"
-                       target="_blank" rel="noopener"
-                       style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-family:var(--bn-font-ui);font-size:12px;font-weight:600;background:#1877f2;color:#fff;text-decoration:none;">
-                        Facebook
-                    </a>
-                    <a href="https://wa.me/?text=@Uri.EscapeDataString($"{Model.Article.Title} - {Model.BaseUrl}/{Model.Article.CategorySlug}/{Model.Article.Slug}")"
-                       target="_blank" rel="noopener"
-                       style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-family:var(--bn-font-ui);font-size:12px;font-weight:600;background:#25d366;color:#fff;text-decoration:none;">
-                        WhatsApp
-                    </a>
-                    <button onclick="navigator.clipboard.writeText(window.location.href).then(()=>this.textContent='Copied!')"
-                            style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-family:var(--bn-font-ui);font-size:12px;font-weight:600;background:var(--bn-surface-alt);color:var(--bn-text-body);border:1px solid var(--bn-border);cursor:pointer;">
-                        Copy Link
-                    </button>
-                </div>
+					<!-- Article body -->
+					<div class="bn-article-body" itemprop="articleBody">
+						@Html.Raw(Model.Article.Content)
+					</div>
 
-                <!-- Author bio card -->
-                <div style="
-                    display:flex;
-                    gap:18px;
-                    padding:22px;
-                    background:var(--bn-surface);
-                    border:1px solid var(--bn-border);
-                    border-radius:var(--bn-radius-md);
-                    margin-top:28px;
-                    box-shadow:var(--bn-shadow);">
-                    <img src="@Model.Article.AuthorImage"
-                         alt="@Model.Article.AuthorName"
-                         style="width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0;"
-                         loading="lazy" />
-                    <div>
-                        <div style="font-family:var(--bn-font-ui);font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--bn-text-muted);margin-bottom:4px;">About the author</div>
-                        <a href="/author/@Model.Article.AuthorSlug"
-                           style="font-family:var(--bn-font-display);font-size:17px;font-weight:700;color:var(--bn-text-primary);text-decoration:none;">
-                            @Model.Article.AuthorName
-                        </a>
-                        <p style="font-family:var(--bn-font-body);font-size:13px;color:var(--bn-text-muted);margin-top:5px;margin-bottom:0;line-height:1.6;">
-                            Journalist at Bol News
-                        </p>
-                    </div>
-                </div>
+					@if (Model.Article.ArticleTags.Any())
+					{
+						<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:28px;">
+							<span style="font-family:var(--bn-font-ui);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--bn-text-muted);">Tags</span>
+							@foreach (var tag in Model.Article.ArticleTags)
+							{
+								<a href="/tag/@tag.Slug"
+								   style="font-family:var(--bn-font-ui);font-size:12px;font-weight:600;color:var(--bn-accent);text-decoration:none;padding:6px 12px;border:1px solid var(--bn-border);border-radius:18px;background:var(--bn-surface-alt);">
+									@tag.Name
+								</a>
+							}
+						</div>
+					}
 
-            </article>
+				</article>
 
-            <!-- ── Related Articles ──────────────────────────── -->
-            @if (Model.RelatedArticles != null && Model.RelatedArticles.Any())
-            {
-                <div style="margin-top:40px;">
-                    <div class="bn-section-header">
-                        <span class="bn-section-title">Related Articles</span>
-                        <a href="/@Model.Article.CategorySlug" class="bn-section-link">More in @Model.Article.CategoryName →</a>
-                    </div>
-                    <div class="row g-3 mt-1">
-                        @foreach (var item in Model.RelatedArticles)
-                        {
-                            <div class="col-sm-6">
-                                <a href="/@item.CategorySlug/@item.Slug"
-                                   class="bn-card track-click d-flex flex-column h-100"
-                                   data-article-id="@item.Id"
-                                   style="text-decoration:none;">
-                                    <div class="bn-card-img">
-                                        <img src="@item.FeaturedImageMedium"
-                                             alt="@item.Title"
-                                             loading="lazy"
-                                             style="width:100%;height:100%;object-fit:cover;" />
-                                    </div>
-                                    <div class="bn-card-body">
-                                        <div class="bn-card-tag">@item.CategoryName</div>
-                                        <h3 class="bn-card-title">@item.Title</h3>
-                                        <div class="bn-card-meta">
-                                            <span>@item.TimeAgo</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
-        </div>
+				<!-- ── Related Articles ──────────────────────────── -->
+				
+			</div>   <!-- closes .col-lg-8 -->
+			<!-- ── Sidebar ──────────────────────────────────────── -->
+			<aside class="col-lg-4">
+				<div style="position:sticky;top:70px;">
 
-        <!-- ── Sidebar ──────────────────────────────────────── -->
-        <aside class="col-lg-4">
-            <div style="position:sticky;top:70px;">
+					<!-- Latest news widget -->
+					
+						<div class="bn-story-rail"><h2>Latest News</h2></div>
+						<div >
+							@await Component.InvokeAsync("LatestNews", new { count = 8 })
+						</div>
+					
 
-                <!-- Trending widget -->
-                <div class="bn-widget">
-                    @await Component.InvokeAsync("TrendingNews",
-                    new { type = Context.Request.Query["type"].ToString() })
-                </div>
+					<!-- Trending widget -->
+					<div >
+						<div class="bn-story-rail"><h2>Trending</h2></div>
+						@await Component.InvokeAsync("TrendingNews",
+						new { type = Context.Request.Query["type"].ToString() })
+					</div>
+				</div>
+			</aside>
 
-                <!-- Latest news widget -->
-                <div class="bn-widget mb-4">
-                    <div class="bn-widget-title">Latest News</div>
-                    <div class="bn-scroll-container">
-                        @await Component.InvokeAsync("LatestNews", new { count = 6 })
-                    </div>
-                </div>
+		</div>   <!-- closes .row g-4 -->
+		@if (Model.RelatedArticles != null && Model.RelatedArticles.Any())
+		{
+			<div style="margin-top:40px;padding-top:24px;border-top:1px solid var(--bn-border);">
+				<h2 style="text-align:center;font-family:var(--bn-font-accent);font-size:20px;font-weight:600;letter-spacing:1px;color:#000000;margin-bottom:20px;padding:10px 0;border-top:1px solid #0000006B;border-bottom:0.5px solid #0000006B;">
+					Recommended
+				</h2>
+				<div class="row g-3">
+					@foreach (var item in Model.RelatedArticles.Take(4))
+					{
+						<div class="col-6 col-md-3">
+							<a href="/@item.CategorySlug/@item.Slug"
+							   class="track-click bn-rec-card d-block"
+							   data-article-id="@item.Id">
+								<div class="bn-rec-thumb">
+									<img src="@item.FeaturedImageMedium"
+										 alt="@item.Title"
+										 loading="lazy" />
+								</div>
+								<h3 class="bn-rec-title">@item.Title</h3>
+							</a>
+						</div>
+					}
+				</div>
+			</div>
+		}
 
-               
-            </div>
-        </aside>
-
-    </div>
-</div>
-
+	</div>   <!-- closes .container -->
+</div>   <!-- closes .bn-home-shell -->
 <!-- ── Article body typography ───────────────────────────── -->
 <style>
-    .bn-article-body {
-        font-family: var(--bn-font-body);
-        font-size: 17px;
-        line-height: 1.8;
-        color: var(--bn-text-body);
-    }
+	.bn-article-body {
+		font-family: var(--bn-font-body);
+		font-size: 14px;
+		line-height: 26px;
+		color: #000000;
+	}
 
-        .bn-article-body p {
-            margin-bottom: 1.4em;
-        }
+		.bn-article-body p {
+			margin-bottom: 1.4em;
+		}
 
-        .bn-article-body h2 {
-            font-family: var(--bn-font-display);
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--bn-text-primary);
-            margin: 1.8em 0 0.6em;
-        }
+		.bn-article-body h2 {
+			font-family: var(--bn-font-display);
+			font-size: 22px;
+			font-weight: 700;
+			color: var(--bn-text-primary);
+			margin: 1.8em 0 0.6em;
+		}
 
-        .bn-article-body h3 {
-            font-family: var(--bn-font-display);
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--bn-text-primary);
-            margin: 1.5em 0 0.5em;
-        }
+		.bn-article-body h3 {
+			font-family: var(--bn-font-display);
+			font-size: 18px;
+			font-weight: 700;
+			color: var(--bn-text-primary);
+			margin: 1.5em 0 0.5em;
+		}
 
-        .bn-article-body img {
-            max-width: 100%;
-            border-radius: var(--bn-radius-md);
-            margin: 1em 0;
-        }
+		.bn-article-body img {
+			max-width: 100%;
+			border-radius: var(--bn-radius-md);
+			margin: 1em 0;
+		}
 
-        .bn-article-body blockquote {
-            border-left: 3px solid var(--bn-accent);
-            padding: 10px 18px;
-            margin: 1.5em 0;
-            background: var(--bn-surface-alt);
-            border-radius: 0 var(--bn-radius-sm) var(--bn-radius-sm) 0;
-            font-style: italic;
-            color: var(--bn-text-muted);
-        }
+		.bn-article-body blockquote {
+			border-left: 3px solid var(--bn-accent);
+			padding: 10px 18px;
+			margin: 1.5em 0;
+			background: var(--bn-surface-alt);
+			border-radius: 0 var(--bn-radius-sm) var(--bn-radius-sm) 0;
+			font-style: italic;
+			color: var(--bn-text-muted);
+		}
 
-        .bn-article-body a {
-            color: var(--bn-accent);
-            text-decoration: underline;
-        }
+		.bn-article-body a {
+			color: var(--bn-accent);
+			text-decoration: underline;
+		}
 
-        .bn-article-body ul, .bn-article-body ol {
-            padding-left: 1.5em;
-            margin-bottom: 1.4em;
-        }
+		.bn-article-body ul, .bn-article-body ol {
+			padding-left: 1.5em;
+			margin-bottom: 1.4em;
+		}
 
-        .bn-article-body li {
-            margin-bottom: 0.4em;
-        }
+		.bn-article-body li {
+			margin-bottom: 0.4em;
+		}
+
+	.bn-rec-card {
+		display: block;
+		text-decoration: none;
+		border: 1px solid rgba(0,0,0,0.02);
+		border-radius: 3px;
+		padding: 7px;
+		box-shadow: 0 0 5px rgba(0,0,0,0.15);
+		transition: box-shadow 0.2s ease;
+	}
+
+		.bn-rec-card:hover {
+			box-shadow: 0 0 5px rgba(0,0,0,0.35);
+		}
+
+	.bn-rec-thumb {
+		aspect-ratio: 5 / 3;
+		border-radius: 5px;
+		overflow: hidden;
+		margin-bottom: 7px;
+	}
+
+		.bn-rec-thumb img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+	.bn-rec-title {
+		font-family: var(--bn-font-ui);
+		font-size: 13px;
+		font-weight: 600;
+		line-height: 22px;
+		letter-spacing: 0.5px;
+		color: #C4161C;
+		text-align: center; /* was left */
+		margin: 0;
+	}
+
+	.bn-rec-card:hover .bn-rec-title {
+		color: #000000; /* was underline — text now turns black on hover instead */
+	}
 </style>
 
 <!-- ── SEO Schemas (preserved exactly) ───────────────────── -->
@@ -372,131 +338,131 @@
 <script type="application/ld+json">@Html.Raw(Model.BreadcrumbSchemaJson)</script>
 @section Scripts
 {
-   <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const embeds = document.querySelectorAll('.bn-article-body .quill-social-embed');
-    if (embeds.length === 0) return;
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			const embeds = document.querySelectorAll('.bn-article-body .quill-social-embed');
+			if (embeds.length === 0) return;
 
-    const globalScriptTracker = new Set();
+			const globalScriptTracker = new Set();
 
-    // ==========================================
-    // PASS 1: STRUCTURAL RESTORATION & SANITIZATION
-    // ==========================================
-    embeds.forEach(function (container) {
-        const encodedData = container.getAttribute('data-raw-html');
-        if (encodedData) {
-            try {
-                const originalHtml = decodeURIComponent(escape(atob(encodedData)));
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = originalHtml;
-                
-                // Track dynamic external runtime scripts while filtering out YouTube/Google payloads
-                tempDiv.querySelectorAll('script').forEach(function(scriptTag) {
-                    if (scriptTag.src && !scriptTag.src.includes('youtube.com') && !scriptTag.src.includes('google.com')) {
-                        globalScriptTracker.add(scriptTag.src);
-                    }
-                });
-                
-                tempDiv.querySelectorAll('script').forEach(el => el.remove());
+			// ==========================================
+			// PASS 1: STRUCTURAL RESTORATION & SANITIZATION
+			// ==========================================
+			embeds.forEach(function (container) {
+				const encodedData = container.getAttribute('data-raw-html');
+				if (encodedData) {
+					try {
+						const originalHtml = decodeURIComponent(escape(atob(encodedData)));
+						const tempDiv = document.createElement('div');
+						tempDiv.innerHTML = originalHtml;
 
-                // --- OPTIMIZED YOUTUBE LAZY ENGINE ---
-                const youtubeIframe = tempDiv.querySelector('iframe[src*="youtube.com"], iframe[src*="youtu.be"]');
-                if (youtubeIframe) {
-                    const originalSrc = youtubeIframe.getAttribute('src');
-                    const videoIdMatch = originalSrc.match(/(?:embed\/|v=|v%3D|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-                    if (videoIdMatch && videoIdMatch[1]) {
-                        const videoId = videoIdMatch[1];
-                        youtubeIframe.setAttribute('srcdoc', `
-                            <style>
-                                * { padding:0; margin:0; overflow:hidden; box-sizing:border-box; }
-                                html, body { height:100%; width:100%; background:#000; display:flex; align-items:center; justify-content:center; }
-                                img { position:absolute; width:100%; height:100%; object-fit:cover; top:0; left:0; opacity:0.85; transition: opacity 0.2s; }
-                                span { height:60px; width:60px; font-size:30px; color:white; text-align:center; line-height:60px; background:rgba(0,0,0,0.75); position:absolute; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition: all 0.2s ease; border: 2px solid rgba(255,255,255,0.5); }
-                                a:hover img { opacity: 1; }
-                                a:hover span { background: #ff0000; transform: scale(1.1); border-color: #fff; }
-                            </style>
-                            <a href="${originalSrc}?autoplay=1" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;">
-                                <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="Video Thumbnail">
-                                <span>▶</span>
-                            </a>
-                        `);
-                    }
-                }
-                // -------------------------------------
+						// Track dynamic external runtime scripts while filtering out YouTube/Google payloads
+						tempDiv.querySelectorAll('script').forEach(function(scriptTag) {
+							if (scriptTag.src && !scriptTag.src.includes('youtube.com') && !scriptTag.src.includes('google.com')) {
+								globalScriptTracker.add(scriptTag.src);
+							}
+						});
 
-                container.innerHTML = tempDiv.innerHTML;
-            } catch (e) {
-                console.error("Failed to decode social framework:", e);
-            }
-        }
-    });
+						tempDiv.querySelectorAll('script').forEach(el => el.remove());
 
-    // ==========================================
-    // PASS 2: ASYNCHRONOUS ENGINE PROVISIONING
-    // ==========================================
-    window.twttr = (function(d, s, id) {
-        var js, fjs = d.getElementsByTagName(s)[0], t = window.twttr || {};
-        if (d.getElementById(id)) return t;
-        js = d.createElement(s); js.id = id;
-        js.src = "https://platform.twitter.com/widgets.js";
-        fjs.parentNode.insertBefore(js, fjs);
-        t._e = []; t.ready = function(f) { t._e.push(f); };
-        return t;
-    }(document, "script", "twitter-wjs"));
+						// --- OPTIMIZED YOUTUBE LAZY ENGINE ---
+						const youtubeIframe = tempDiv.querySelector('iframe[src*="youtube.com"], iframe[src*="youtu.be"]');
+						if (youtubeIframe) {
+							const originalSrc = youtubeIframe.getAttribute('src');
+							const videoIdMatch = originalSrc.match(/(?:embed\/|v=|v%3D|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+							if (videoIdMatch && videoIdMatch[1]) {
+								const videoId = videoIdMatch[1];
+								youtubeIframe.setAttribute('srcdoc', `
+									<style>
+										* { padding:0; margin:0; overflow:hidden; box-sizing:border-box; }
+										html, body { height:100%; width:100%; background:#000; display:flex; align-items:center; justify-content:center; }
+										img { position:absolute; width:100%; height:100%; object-fit:cover; top:0; left:0; opacity:0.85; transition: opacity 0.2s; }
+										span { height:60px; width:60px; font-size:30px; color:white; text-align:center; line-height:60px; background:rgba(0,0,0,0.75); position:absolute; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition: all 0.2s ease; border: 2px solid rgba(255,255,255,0.5); }
+										a:hover img { opacity: 1; }
+										a:hover span { background: #ff0000; transform: scale(1.1); border-color: #fff; }
+									</style>
+									<a href="${originalSrc}?autoplay=1" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;">
+										<img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="Video Thumbnail">
+										<span>▶</span>
+									</a>
+								`);
+							}
+						}
+						// -------------------------------------
 
-    globalScriptTracker.forEach(function(scriptUrl) {
-        if (scriptUrl.includes('twitter.com') || scriptUrl.includes('x.com')) return; 
-        if (!document.querySelector(`script[src="${scriptUrl}"]`)) {
-            const scriptNode = document.createElement('script');
-            scriptNode.src = scriptUrl;
-            scriptNode.async = true;
-            scriptNode.charset = "utf-8";
-            document.head.appendChild(scriptNode);
-        }
-    });
+						container.innerHTML = tempDiv.innerHTML;
+					} catch (e) {
+						console.error("Failed to decode social framework:", e);
+					}
+				}
+			});
 
-    // ==========================================
-    // PASS 3: PROGRAMMATIC EXECUTION (CRITICAL FIX)
-    // ==========================================
-    setTimeout(function () {
-        
-        // Handle Twitter isolated rendering programmatically via direct API insertion
-        if (window.twttr && typeof window.twttr.ready === 'function') {
-            window.twttr.ready(function (tw) {
-                embeds.forEach(function (container) {
-                    const tweetAnchor = container.querySelector('.twitter-tweet a[href*="/status/"]');
-                    if (tweetAnchor) {
-                        const href = tweetAnchor.getAttribute('href');
-                        // Extract the unique numeric Tweet ID directly from the URL link
-                        const tweetIdMatch = href.match(/\/status\/(\d+)/);
-                        
-                        if (tweetIdMatch && tweetIdMatch[1]) {
-                            const tweetId = tweetIdMatch[1];
-                            // Clear out the static blockquote string template entirely
-                            container.innerHTML = '';
-                            // Build a fresh isolated layout widget target directly via Twitter's API
-                            tw.widgets.createTweet(tweetId, container, {
-                                theme: 'light',
-                                align: 'center'
-                            }).catch(err => console.error("Twitter dynamic create failed:", err));
-                        }
-                    }
-                });
-            });
-        }
+			// ==========================================
+			// PASS 2: ASYNCHRONOUS ENGINE PROVISIONING
+			// ==========================================
+			window.twttr = (function(d, s, id) {
+				var js, fjs = d.getElementsByTagName(s)[0], t = window.twttr || {};
+				if (d.getElementById(id)) return t;
+				js = d.createElement(s); js.id = id;
+				js.src = "https://platform.twitter.com/widgets.js";
+				fjs.parentNode.insertBefore(js, fjs);
+				t._e = []; t.ready = function(f) { t._e.push(f); };
+				return t;
+			}(document, "script", "twitter-wjs"));
 
-        // Handle Facebook and TikTok widgets explicitly using element tracking indicators
-        embeds.forEach(function (container) {
-            if (window.FB) {
-                window.FB.XFBML.parse(container);
-            }
-            if (window.tiktok && window.tiktok.embed && container.querySelector('.tiktok-embed')) {
-                window.tiktok.embed.render(container);
-            }
-        });
+			globalScriptTracker.forEach(function(scriptUrl) {
+				if (scriptUrl.includes('twitter.com') || scriptUrl.includes('x.com')) return;
+				if (!document.querySelector(`script[src="${scriptUrl}"]`)) {
+					const scriptNode = document.createElement('script');
+					scriptNode.src = scriptUrl;
+					scriptNode.async = true;
+					scriptNode.charset = "utf-8";
+					document.head.appendChild(scriptNode);
+				}
+			});
 
-    }, 150); 
-});
-</script>
+			// ==========================================
+			// PASS 3: PROGRAMMATIC EXECUTION (CRITICAL FIX)
+			// ==========================================
+			setTimeout(function () {
+
+				// Handle Twitter isolated rendering programmatically via direct API insertion
+				if (window.twttr && typeof window.twttr.ready === 'function') {
+					window.twttr.ready(function (tw) {
+						embeds.forEach(function (container) {
+							const tweetAnchor = container.querySelector('.twitter-tweet a[href*="/status/"]');
+							if (tweetAnchor) {
+								const href = tweetAnchor.getAttribute('href');
+								// Extract the unique numeric Tweet ID directly from the URL link
+								const tweetIdMatch = href.match(/\/status\/(\d+)/);
+
+								if (tweetIdMatch && tweetIdMatch[1]) {
+									const tweetId = tweetIdMatch[1];
+									// Clear out the static blockquote string template entirely
+									container.innerHTML = '';
+									// Build a fresh isolated layout widget target directly via Twitter's API
+									tw.widgets.createTweet(tweetId, container, {
+										theme: 'light',
+										align: 'center'
+									}).catch(err => console.error("Twitter dynamic create failed:", err));
+								}
+							}
+						});
+					});
+				}
+
+				// Handle Facebook and TikTok widgets explicitly using element tracking indicators
+				embeds.forEach(function (container) {
+					if (window.FB) {
+						window.FB.XFBML.parse(container);
+					}
+					if (window.tiktok && window.tiktok.embed && container.querySelector('.tiktok-embed')) {
+						window.tiktok.embed.render(container);
+					}
+				});
+
+			}, 150);
+		});
+	</script>
 }
 

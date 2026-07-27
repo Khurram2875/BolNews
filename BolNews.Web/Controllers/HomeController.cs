@@ -207,10 +207,26 @@ namespace BolNews.Web.Controllers
             ViewBag.Type = type;
             return View(vm);
         }
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+        [HttpGet("/privacy-policy")]
+        public IActionResult Privacy() => Information("privacy");
+
+        [HttpGet("/contact-us")]
+        public IActionResult ContactUs() => Information("contact");
+
+        [HttpGet("/advertise")]
+        public IActionResult Advertise() => Information("advertise");
+
+        [HttpGet("/blogs")]
+        public IActionResult Blogs() => Information("blogs");
+
+        [HttpGet("/branded-content")]
+        public IActionResult BrandedContent() => Information("branded-content");
+
+        [HttpGet("/editorial-policy")]
+        public IActionResult EditorialPolicy() => Information("editorial-policy");
+
+        [HttpGet("/terms-of-service")]
+        public IActionResult TermsOfService() => Information("terms-of-service");
         public IActionResult Live()
         {
             return View();
@@ -243,9 +259,13 @@ namespace BolNews.Web.Controllers
 
             return PartialView("~/Views/Shared/Components/TrendingNews/_TrendingList.cshtml", vm);
         }
-        public IActionResult About()
+        [HttpGet("/about-us")]
+        public IActionResult About() => Information("about");
+
+        private IActionResult Information(string page)
         {
-            return View();
+            ViewData["InformationPage"] = page;
+            return View("Information");
         }
     }
 }

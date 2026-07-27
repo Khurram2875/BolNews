@@ -4,7 +4,7 @@
 @foreach (var item in Model)
 {
    
-        <a href="/@item.CategorySlug/@item.Slug"
+       @*  <a href="/@item.CategorySlug/@item.Slug"
            class="bn-card-h track-click"
            data-article-id="@item.Id">
             <div class="bn-card-h-img">
@@ -17,6 +17,17 @@
                 <div class="bn-card-h-title">@item.Title</div>
                 <div class="bn-card-h-meta">@item.TimeAgo</div>
             </div>
+    </a> *@
+    <a href="/@item.CategorySlug/@item.Slug"
+       class="bn-latest-item track-click"
+       data-article-id="@item.Id">
+        <img src="@(item.FeaturedImageThumb ?? item.FeaturedImageMedium ?? "/images/placeholder.png")"
+             alt="@(item.FeaturedImageAltText ?? item.Title)"
+             loading="lazy" />
+        <span>
+            <strong>@item.Title</strong>
+            <small>@item.TimeAgo</small>
+        </span>
     </a>
 
     

@@ -128,6 +128,32 @@ namespace BolNews.Tests.Integration
         }
 
         [Fact]
+        public async Task Create_SubEditorPublishedArticle_SetsPublishedWorkflowStatus()
+        {
+            var dto = new ArticleDto
+            {
+                Title = "Subeditor Published Article",
+                Slug = "subeditor-published-article",
+                MetaTitle = "Subeditor Published Meta",
+                MetaDescription = "Meta description",
+                Summary = "Summary",
+                Content = "Content",
+                CategoryId = 1,
+                AuthorId = 1,
+                IsPublished = true
+            };
+
+            var id = await _service.CreateAsync(
+                dto,
+                "test-user-id",
+                new List<string> { Roles.SubEditor });
+            var result = await _service.GetByIdAsync(id);
+
+            result!.IsPublished.Should().BeTrue();
+            result.WorkflowStatus.Should().Be(ArticleWorkflowStatus.Published);
+        }
+
+        [Fact]
         public async Task Create_DraftArticle_PublishedAtIsNull()
         {
             var dto = new ArticleDto

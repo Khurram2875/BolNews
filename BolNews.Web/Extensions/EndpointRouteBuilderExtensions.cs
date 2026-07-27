@@ -46,6 +46,26 @@ public static class EndpointRouteBuilderExtensions
         );
 
         endpoints.MapControllerRoute(
+            name: "aboutUs",
+            pattern: "about-us",
+            defaults: new { controller = "Home", action = "About" }
+        );
+
+        endpoints.MapControllerRoute("contactUs", "contact-us", new { controller = "Home", action = "ContactUs" });
+        endpoints.MapControllerRoute("advertise", "advertise", new { controller = "Home", action = "Advertise" });
+        endpoints.MapControllerRoute("blogs", "blogs", new { controller = "Home", action = "Blogs" });
+        endpoints.MapControllerRoute("brandedContent", "branded-content", new { controller = "Home", action = "BrandedContent" });
+        endpoints.MapControllerRoute("editorialPolicy", "editorial-policy", new { controller = "Home", action = "EditorialPolicy" });
+        endpoints.MapControllerRoute("privacyPolicy", "privacy-policy", new { controller = "Home", action = "Privacy" });
+        endpoints.MapControllerRoute("termsOfService", "terms-of-service", new { controller = "Home", action = "TermsOfService" });
+
+        endpoints.MapControllerRoute(
+            name: "categoryListing",
+            pattern: "category/{categorySlug}",
+            defaults: new { controller = "Category", action = "Details" }
+        );
+
+        endpoints.MapControllerRoute(
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}"
         );
@@ -57,9 +77,9 @@ public static class EndpointRouteBuilderExtensions
         );
 
         endpoints.MapControllerRoute(
-            name: "categoryListing",
+            name: "legacyShortCategoryListing",
             pattern: "{categorySlug}",
-            defaults: new { controller = "Category", action = "Details" }
+            defaults: new { controller = "Category", action = "LegacyDetails" }
         );
     }
 }

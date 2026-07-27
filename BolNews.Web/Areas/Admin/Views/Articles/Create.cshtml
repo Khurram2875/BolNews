@@ -428,6 +428,27 @@
 		// ============================================================
 
 		document.addEventListener('DOMContentLoaded', function () {
+			const publishImmediately = document.getElementById('IsPublished');
+			const submitForReview = document.getElementById('SubmitForReview');
+
+			function syncEditorialReviewAvailability() {
+				if (!publishImmediately || !submitForReview) {
+					return;
+				}
+
+				const isPublishingImmediately = publishImmediately.checked;
+				submitForReview.disabled = isPublishingImmediately;
+
+				if (isPublishingImmediately) {
+					submitForReview.checked = false;
+				}
+			}
+
+			publishImmediately?.addEventListener(
+				'change',
+				syncEditorialReviewAvailability);
+
+			syncEditorialReviewAvailability();
 
 
 			// ========================================================

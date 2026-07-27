@@ -1,0 +1,159 @@
+@{
+	var page = ViewData["InformationPage"]?.ToString();
+	ViewData["Title"] = page switch
+	{
+		"about" => "About Us",
+		"contact" => "Contact Us",
+		"advertise" => "Advertise With Us",
+		"blogs" => "Blogs",
+		"branded-content" => "Branded Content",
+		"editorial-policy" => "Editorial Policy",
+		"privacy" => "Privacy Policy",
+		"terms-of-service" => "Terms of Service",
+		_ => "BOL News"
+	};
+}
+<div style="padding-top:20px" class="bn-home-shell">
+	<div class="container" style="padding-top:48px;padding-bottom:48px;">
+		<div class="row g-4">
+			<main class="col-lg-8 bn-information-page">
+				@if (page == "about")
+				{
+					<h1>About Us - Bol News</h1>
+					<p>Bol News is Pakistan’s leading digital news platform, delivering accurate, timely, and engaging news across politics, business, technology, sports, culture, and entertainment. Our mission is to inform, empower, and connect audiences through trustworthy journalism, innovative storytelling, and digital-first solutions.</p>
+					<p><strong>Our Vision:</strong> To be the most reliable, respected, and accessible digital news platform in Pakistan.</p>
+					<p><strong>Our Mission:</strong> To deliver fact-checked, impartial, and high-quality news and insights that help our audiences make informed decisions.</p>
+					<p><strong>Our Values:</strong> Accuracy: Verifying all facts before publishing. · Independence: Editorial decisions free from commercial or political influence. · Transparency: Clear labeling of opinion, news, and sponsored content. · Respect: Ethical reporting and responsible coverage of individuals and communities.</p>
+					<h2>To get in touch with our team:</h2>
+					<h3>Ms. Sophia Chishty</h3>
+
+					<p><strong>Chief Executive Officer, BOL Network</strong></p>
+					<h3>M. Imran Ahmed</h3>
+
+					<p><strong>Director News and Current Affairs, BOL TV</strong><br /><a href="mailto:imran@bolnetwork.com">imran@bolnetwork.com</a></p>
+				}
+				else if (page == "contact")
+				{
+					<h1>Contact Us</h1>
+					<p>We welcome feedback, inquiries, and partnership proposals. Please contact the relevant team using the details below:</p>
+					<p>• General Inquiries: <a href="mailto:info@bolnews.com">info@bolnews.com</a> | <a href="tel:+922137170265">+92-(21)-37170265</a><br />• Editorial Feedback / Corrections: <a href="mailto:editorial@bolnews.com">editorial@bolnews.com</a><br />• Advertising / Commercial Enquiries: <a href="mailto:ads@bolnews.com">ads@bolnews.com</a></p>
+					<p><strong>Head Office:</strong> Bol-News Headquarters, Bolistan, BOL Road, Creek Cantonment, Karachi 75190, Sindh, Pakistan</p>
+					<p><strong>Social Media:</strong> Follow us @@BOLNETWORK on Facebook, Twitter, and Instagram for updates and notifications.</p>
+				}
+				else if (page == "advertise")
+				{
+					<h1>Advertise With Us</h1>
+					<p>Thank you for considering BOL News for your advertising needs. We offer a unique platform to showcase your brand and connect with our diverse and engaged audience.</p>
+					<h2>Why Advertise with BOL News?</h2>
+					<ul><li><strong>Extensive Reach:</strong> BOL News connects your brand with a large and diverse audience.</li><li><strong>Targeted Demographics:</strong> Reach audiences based on the content categories that matter to your campaign.</li><li><strong>Trusted News Source:</strong> Associate your brand with a credible platform.</li><li><strong>Customized Advertising Solutions:</strong> Flexible options, from display ads to sponsored content.</li><li><strong>Analytics and Reporting:</strong> Measure impressions, clicks, and campaign performance.</li></ul>
+					<h2>How to Advertise?</h2>
+
+					<p><strong>Explore Advertising Options:</strong> Choose the option that aligns with your marketing objectives.</p>
+				
+					<p><strong>Contact Our Team:</strong> Please send blogs to <a href="mailto:blogs@bolnews.com">blogs@bolnews.com</a> with a one-line bio and contact number.</p>
+				}
+				else if (page == "blogs")
+				{
+					<h1>Blogs - Bol News</h1>
+					<p>Our blog section features expert analysis, opinion pieces, and in-depth commentary across news, culture, technology, and lifestyle.</p>
+
+					<p><strong>Purpose:</strong> Share insights from experienced journalists and thought leaders. · Provide additional context to major news stories. · Encourage informed discussions among readers.</p>
+				
+					<p><strong>Note:</strong> Blogs are opinion-driven content and are clearly labeled as such; they do not represent Bol News editorial policy.</p>
+				}
+				else if (page == "branded-content")
+				{
+					<h1>Branded Content - Bol News</h1>
+					<p>Branded Content at Bol News refers to articles, videos, or other media created in partnership with brands or sponsors. All branded content is clearly labeled to maintain transparency and reader trust.</p>
+
+					<p><strong>Key Principles:</strong> Transparency: Labeled as “Sponsored” or “Paid Content.” · Editorial Independence: Final decisions rest with our editorial team. · Formats: Sponsored articles, native advertorials, custom videos, and event coverage. · Reporting: Partners receive performance metrics without compromising editorial integrity.</p>
+					<h2>Branded Content</h2>
+
+					<p>No content found.</p>
+				}
+				else if (page == "editorial-policy")
+				{
+					<h1>Editorial Policy - Bol News</h1>
+					<p>Bol News follows strict editorial standards to ensure accuracy, impartiality, and accountability.</p>
+
+					<p><strong>Principles:</strong> Accuracy &amp; Verification: Facts are checked before publication. · Impartiality &amp; Balance: News is unbiased; opinion is clearly labeled. · News vs Opinion vs Branded Content: Transparent labeling maintains reader trust. · Corrections &amp; Clarifications: Mistakes are promptly corrected. · Conflict of Interest: Editors and reporters disclose interests and avoid biased reporting. · Sensitive Coverage: Ethical treatment of minors, victims, and vulnerable subjects.</p>
+				}
+				else if (page == "privacy")
+				{
+					<h1>Privacy Policy - Bol News</h1>
+					<p>We respect the privacy of our online visitors as our own and have made it a primary concern. We collect and store visitor information to improve customer services and the quality of the website. We do not rent or sell visitor or client information collected online.</p>
+
+					<h2>Purpose</h2>
+					<p>This policy describes why we collect personal information about visitors, how we use it, and the circumstances in which we share it with third parties.</p>
+
+					<h2>Collection of Personal Information</h2>
+					<p>We collect a range of information for different purposes. The types of information depend on the visitor relationship with us.</p>
+
+					<h2>General Queries and Comments</h2>
+					<ul><li>Name</li><li>Email</li><li>Phone/Cell Number</li><li>Address</li><li>City</li><li>Country</li></ul>
+
+					<h2>Vendors &amp; Business Associates</h2>
+					<ul><li>Company Information</li><li>Emergency Contact Information</li></ul>
+
+					<h2>Job Seekers</h2>
+					<ul><li>Identification Information</li></ul>
+				}
+				else if (page == "terms-of-service")
+				{
+					<h1>Terms of Service - Bol News</h1>
+				
+					<p>These Terms govern your use of Bol News websites, apps, and services. By accessing our services, you agree to:</p>
+					<ul><li>Use the website lawfully and responsibly.</li><li>Respect intellectual property rights; do not copy or redistribute content without permission.</li><li>Avoid posting offensive or illegal material.</li><li>Accept that Bol News is not liable for errors or third-party content.</li><li>Understand that Terms may be updated; continued use constitutes agreement.</li></ul>
+				}
+			</main>
+			<aside class="col-lg-4">
+				<div style="position:sticky;top:70px;"><div class="bn-story-rail"><h2>Latest News</h2></div>@await Component.InvokeAsync("LatestNews", new { count = 8 })</div>
+			</aside>
+		</div>
+	</div>
+</div>
+<style>
+	.bn-information-page {
+		font-family: var(--bn-font-body);
+		color: #000;
+		font-size: 17px;
+		line-height: 1.55;
+	}
+
+		.bn-information-page h1 {
+			font-family: var(--bn-font-body);
+			font-size: 22px;
+			font-weight: 700;
+			margin: 0 0 30px;
+		}
+
+		.bn-information-page h2 {
+			color: #d30b12;
+			font-family: var(--bn-font-body);
+			font-size: 21px;
+			font-weight: 700;
+			margin: 26px 0 8px;
+		}
+
+		.bn-information-page h3 {
+			color: #d30b12;
+			font-family: var(--bn-font-body);
+			font-size: 24px;
+			font-weight: 700;
+			margin: 26px 0 0;
+		}
+
+		.bn-information-page p {
+			margin-bottom: 22px;
+		}
+
+		.bn-information-page li {
+			margin-bottom: 6px;
+		}
+
+		.bn-information-page a {
+			color: #d30b12;
+			font-weight: 700;
+			text-decoration: none;
+		}
+</style>

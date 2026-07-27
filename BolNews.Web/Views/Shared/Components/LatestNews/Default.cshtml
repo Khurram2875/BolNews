@@ -2,7 +2,7 @@
 
 @* <div class="bn-latest-header mb-3">Latest</div> *@
 
-@foreach (var item in Model)
+@* @foreach (var item in Model)
 {
     <a href="/@item.CategorySlug/@item.Slug"
        class="bn-card-h track-click"
@@ -20,4 +20,20 @@
             <div class="bn-card-h-meta">@item.TimeAgo</div>
         </div>
     </a>
-}
+} *@
+<div class="bn-latest-list">
+    @foreach (var item in Model)
+    {
+        <a href="/@item.CategorySlug/@item.Slug"
+           class="bn-latest-item track-click"
+           data-article-id="@item.Id">
+            <img src="@(item.FeaturedImageMedium ?? item.FeaturedImageLarge ?? "/images/placeholder.png")"
+                 alt="@(item.FeaturedImageAltText ?? item.Title)"
+                 loading="lazy" />
+            <span>
+                <strong>@item.Title</strong>
+                <small>@item.TimeAgo</small>
+            </span>
+        </a>
+    }
+</div>
