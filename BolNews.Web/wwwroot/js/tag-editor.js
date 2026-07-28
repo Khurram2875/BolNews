@@ -62,6 +62,11 @@
                 addTag(input.value);
             });
 
+            editor.addEventListener('set-tags', function (event) {
+                tags = Array.isArray(event.detail) ? event.detail : [];
+                sync();
+            });
+
             sync();
         });
     }
