@@ -42,6 +42,7 @@ namespace BolNews.Persistence.Repositories
             .Include(a => a.FeaturedImageMetadata)
                 .ThenInclude(a => a.FeaturedImageTags)
                     .ThenInclude(a => a.Tag)
+            .Include(a => a.FeaturedMedia)
 
             .Include(a => a.DiscussionComments
                 .Where(c => !c.IsDeleted))

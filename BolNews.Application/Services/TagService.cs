@@ -72,6 +72,13 @@ namespace BolNews.Application.Services
             await _tagRepository.SaveChangesAsync();
         }
 
+        public async Task ReplaceMediaAssetTagsAsync(int mediaAssetId, string? tagInput, string currentUserId)
+        {
+            var tags = await ResolveTagsAsync(ParseTagInput(tagInput), currentUserId);
+            await _tagRepository.ReplaceMediaAssetTagsAsync(mediaAssetId, tags, currentUserId);
+            await _tagRepository.SaveChangesAsync();
+        }
+
         private async Task<List<Tag>> ResolveTagsAsync(IReadOnlyList<string> tagNames, string currentUserId)
         {
             if (tagNames.Count == 0)

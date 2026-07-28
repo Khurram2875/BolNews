@@ -13,5 +13,6 @@ namespace BolNews.Domain.Entities
         public ICollection<ArticleTag> ArticleTags { get; set; } = new List<ArticleTag>();
 
         public ICollection<FeaturedImageTag> FeaturedImageTags { get; set; } = new List<FeaturedImageTag>();
+        public ICollection<MediaAssetTag> MediaAssetTags { get; set; } = new List<MediaAssetTag>();
     }
 }

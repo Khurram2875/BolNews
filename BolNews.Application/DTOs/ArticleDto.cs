@@ -27,6 +27,7 @@ namespace BolNews.Application.DTOs
         public string? FeaturedImageAltText { get; set; }
         public string? FeaturedImageCaption { get; set; }
         public string? FeaturedImageCredit { get; set; }
+        public int? FeaturedMediaId { get; set; }
 
 
         public int CategoryId { get; set; }

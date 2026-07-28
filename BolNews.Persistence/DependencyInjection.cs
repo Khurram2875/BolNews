@@ -60,6 +60,7 @@ namespace BolNews.Persistence
             services.AddScoped<IArticleRepository, ArticleRepository>();
             services.AddScoped<IEditorialPlacementRepository, EditorialPlacementRepository>();
             services.AddScoped<ITagRepository, TagRepository>();
+            services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
             services.AddScoped<IAuthorRepository, AuthorRepository>();
             services.AddScoped<IReporterRepository, ReporterRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();

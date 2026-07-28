@@ -122,6 +122,13 @@ namespace BolNews.Persistence.Repositories
             }
         }
 
+        public async Task ReplaceMediaAssetTagsAsync(int mediaAssetId, IReadOnlyCollection<Tag> tags, string currentUserId)
+        {
+            var existing = await _context.MediaAssetTags.Where(x => x.MediaAssetId == mediaAssetId).ToListAsync();
+            _context.MediaAssetTags.RemoveRange(existing);
+            foreach (var tag in tags) _context.MediaAssetTags.Add(new MediaAssetTag { MediaAssetId = mediaAssetId, TagId = tag.Id });
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

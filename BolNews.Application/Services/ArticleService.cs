@@ -189,6 +189,7 @@ namespace BolNews.Application.Services
                 FeaturedImageMedium = dto.FeaturedImageMedium,
                 FeaturedImageLarge = dto.FeaturedImageLarge,
                 FeaturedImageXl = dto.FeaturedImageXl,
+                FeaturedMediaId = dto.FeaturedMediaId,
                 
                 CategoryId = dto.CategoryId,
                 AuthorId = authorId,
@@ -250,6 +251,7 @@ namespace BolNews.Application.Services
             article.FeaturedImageMedium = dto.FeaturedImageMedium;
             article.FeaturedImageLarge = dto.FeaturedImageLarge;
             article.FeaturedImageXl = dto.FeaturedImageXl;
+            article.FeaturedMediaId = dto.FeaturedMediaId;
             article.ScheduledPublishAt = dto.ScheduledPublishAt;
             article.EmbargoUntil = dto.EmbargoUntil;
 
@@ -353,6 +355,7 @@ namespace BolNews.Application.Services
                 FeaturedImageAltText = a.FeaturedImageMetadata?.AltText,
                 FeaturedImageCaption = a.FeaturedImageMetadata?.Caption,
                 FeaturedImageCredit = a.FeaturedImageMetadata?.Credit,
+                FeaturedMediaId = a.FeaturedMediaId,
                 ArticleTags = a.ArticleTags
                     .Select(at => new TagDto
                     {

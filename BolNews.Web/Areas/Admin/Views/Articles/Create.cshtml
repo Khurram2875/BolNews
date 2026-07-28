@@ -239,6 +239,8 @@
 
 			<div class="mb-3">
 				<label class="form-label">Featured Image</label>
+				<input asp-for="FeaturedMediaId" type="hidden" />
+				<button type="button" class="btn btn-outline-primary btn-sm mb-2" data-media-picker="featured">Choose from Media Library</button>
 				<input type="file" asp-for="ImageFile" class="form-control" />
 				<span asp-validation-for="ImageFile" class="text-danger"></span>
 			</div>
@@ -382,6 +384,7 @@
 		</form>
 	</div>
 </div>
+@await Html.PartialAsync("_MediaLibraryPicker")
 @section Scripts
 {
 	<script src="~/js/tag-editor.js" asp-append-version="true"></script>
@@ -622,4 +625,5 @@
 	</script>
 
 	<script src="~/js/article-editor.js" asp-append-version="true"></script>
+	<script src="~/js/media-library-picker.js" asp-append-version="true"></script>
 }

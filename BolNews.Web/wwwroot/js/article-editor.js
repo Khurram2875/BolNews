@@ -164,9 +164,29 @@
         }
     }
 
+    class MediaEmbedBlot extends BlockEmbed {
+        static create(value) {
+            const node = super.create();
+            node.setAttribute('contenteditable', 'false');
+            node.setAttribute('data-media-type', value.type);
+            node.setAttribute('data-url', value.url);
+            node.innerHTML = value.type === 'audio'
+                ? `<audio controls src="${value.url}"></audio>`
+                : `<video controls src="${value.url}" style="max-width:100%"></video>`;
+            return node;
+        }
+
+        static value(node) {
+            return { type: node.getAttribute('data-media-type'), url: node.getAttribute('data-url') };
+        }
+    }
+
 
     SocialEmbedBlot.blotName = 'socialEmbed';
     SocialEmbedBlot.tagName = 'div';
+
+    MediaEmbedBlot.blotName = 'mediaEmbed';
+    MediaEmbedBlot.tagName = 'div';
 
 
     Quill.register(
@@ -178,6 +198,8 @@
         SocialEmbedBlot,
         true
     );
+
+    Quill.register(MediaEmbedBlot, true);
 
 
     // ============================================================
@@ -236,7 +258,8 @@
 
                     [
                         'link',
-                        'image'
+                        'image',
+                        'mediaLibrary'
                     ],
 
                     [
@@ -275,6 +298,8 @@
         'image',
         imageHandler
     );
+
+    toolbar.addHandler('mediaLibrary', () => document.querySelector('[data-media-picker="inline"]')?.click());
 
 
     async function imageHandler() {

@@ -43,6 +43,7 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         public string? FeaturedImageAltText { get; set; }
         public string? FeaturedImageCaption { get; set; }
         public string? FeaturedImageCredit { get; set; }
+        public int? FeaturedMediaId { get; set; }
 
         public string AuthorName { get; set; } = string.Empty;
         public string? ReporterName { get; set; }

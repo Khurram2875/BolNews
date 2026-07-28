@@ -3,6 +3,7 @@ using BolNews.Application.Interfaces;
 using BolNews.Application.Interfaces.Scoring;
 using BolNews.Application.Services;
 using BolNews.Domain.Common;
+using BolNews.Domain.Enums;
 using BolNews.Persistence.Repositories;
 using BolNews.Tests.Helpers;
 using FluentAssertions;

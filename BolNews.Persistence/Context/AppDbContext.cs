@@ -33,6 +33,8 @@ namespace BolNews.Persistence.Context
         public DbSet<ArticleTag> ArticleTags { get; set; }
         public DbSet<FeaturedImageMetadata> FeaturedImageMetadata { get; set; }
         public DbSet<FeaturedImageTag> FeaturedImageTags { get; set; }
+        public DbSet<MediaAsset> MediaAssets { get; set; }
+        public DbSet<MediaAssetTag> MediaAssetTags { get; set; }
         public DbSet<BreakingNews> BreakingNews => Set<BreakingNews>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

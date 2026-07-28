@@ -17,5 +17,10 @@ namespace BolNews.Application.Interfaces
         SaveArticleImagesAsync(Stream stream, int articleId, string rootPath);
 
         void DeleteArticleImages(int articleId, string rootPath);
+
+        Task<(string thumb, string medium, string large, string xl)>
+        SaveMediaImagesAsync(Stream stream, int mediaId, string rootPath);
+
+        Task<string> SaveMediaFileAsync(Stream stream, string fileName, int mediaId, string rootPath);
     }
 }

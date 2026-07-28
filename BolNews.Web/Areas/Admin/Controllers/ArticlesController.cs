@@ -54,6 +54,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly IArticleRevisionService _articleRevisionService;
         private readonly IArticleDiffService _articleDiffService;
         private readonly IReporterService _reporterService;
+        private readonly IMediaLibraryService _mediaLibraryService;
 
         public ArticlesController(
              IArticleService articleService,
@@ -69,7 +70,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
              IGrammarService grammarService,
              IArticleRevisionService articleRevisionService,
              IArticleDiffService articleDiffService,
-             IReporterService reporterService)
+             IReporterService reporterService,
+             IMediaLibraryService mediaLibraryService)
         {
             _articleService = articleService;
             _categoryService = categoryService;
@@ -91,6 +93,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _articleRevisionService = articleRevisionService;
             _articleDiffService = articleDiffService;
             _reporterService = reporterService;
+            _mediaLibraryService = mediaLibraryService;
         }
 
         // GET: Admin/Articles
@@ -365,7 +368,18 @@ namespace BolNews.Web.Areas.Admin.Controllers
                     await _imageService.SaveArticleImagesAsync(stream, articleId, _env.WebRootPath);
 
                 await _articleService.UpdateImagesAsync(articleId, thumb, medium, large, xl);
+                var mediaId = await _mediaLibraryService.CreateAsync(new MediaAssetDto
+                {
+                    MediaType = MediaType.Image, Url = xl, ThumbnailUrl = thumb, MediumUrl = medium,
+                    LargeUrl = large, AltText = model.FeaturedImageAltText, Caption = model.FeaturedImageCaption,
+                    Credit = model.FeaturedImageCredit, OriginalFileName = model.ImageFile.FileName,
+                    TagsInput = model.FeaturedImageTagsInput
+                }, userId!);
+                await _mediaLibraryService.SetStorageAsync(mediaId, xl, thumb, medium, large, userId!);
+                await _mediaLibraryService.AssignAsFeaturedAsync(articleId, mediaId, userId!);
             }
+            else if (model.FeaturedMediaId.HasValue)
+                await _mediaLibraryService.AssignAsFeaturedAsync(articleId, model.FeaturedMediaId.Value, userId!);
             return RedirectToAction(nameof(Index));
         }
 
@@ -556,7 +570,18 @@ namespace BolNews.Web.Areas.Admin.Controllers
                     medium,
                     large,
                     xl);
+                var mediaId = await _mediaLibraryService.CreateAsync(new MediaAssetDto
+                {
+                    MediaType = MediaType.Image, Url = xl, ThumbnailUrl = thumb, MediumUrl = medium,
+                    LargeUrl = large, AltText = model.FeaturedImageAltText, Caption = model.FeaturedImageCaption,
+                    Credit = model.FeaturedImageCredit, OriginalFileName = model.ImageFile.FileName,
+                    TagsInput = model.FeaturedImageTagsInput
+                }, user.Id);
+                await _mediaLibraryService.SetStorageAsync(mediaId, xl, thumb, medium, large, user.Id);
+                await _mediaLibraryService.AssignAsFeaturedAsync(model.Id, mediaId, user.Id);
             }
+            else if (model.FeaturedMediaId.HasValue)
+                await _mediaLibraryService.AssignAsFeaturedAsync(model.Id, model.FeaturedMediaId.Value, user.Id);
 
             // Release lock after successful save
             await _articleLockService.ReleaseLockAsync(

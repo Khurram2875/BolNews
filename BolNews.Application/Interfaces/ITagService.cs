@@ -18,5 +18,6 @@ namespace BolNews.Application.Interfaces
             string? caption,
             string? credit,
             string currentUserId);
+        Task ReplaceMediaAssetTagsAsync(int mediaAssetId, string? tagInput, string currentUserId);
     }
 }

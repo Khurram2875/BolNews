@@ -37,6 +37,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEditorialAssignmentService, EditorialAssignmentService>();
         services.AddScoped<IEditorialPlacementService, EditorialPlacementService>();
         services.AddScoped<ITagService, TagService>();
+        services.AddScoped<IMediaLibraryService, MediaLibraryService>();
 
         services.AddMemoryCache();
 

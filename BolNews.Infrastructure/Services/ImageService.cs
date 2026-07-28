@@ -82,5 +82,34 @@ namespace BolNews.Infrastructure.Services
             if (Directory.Exists(folderPath))
                 Directory.Delete(folderPath, true);
         }
+
+        public async Task<(string thumb, string medium, string large, string xl)> SaveMediaImagesAsync(Stream stream, int mediaId, string rootPath)
+        {
+            var folderPath = Path.Combine(rootPath, "uploads", "media", mediaId.ToString());
+            Directory.CreateDirectory(folderPath);
+            stream.Position = 0;
+            using var image = await Image.LoadAsync(stream);
+            async Task Save(string name, Size size, ResizeMode mode, int quality)
+            {
+                using var copy = image.Clone(x => x.Resize(new ResizeOptions { Size = size, Mode = mode }));
+                await copy.SaveAsync(Path.Combine(folderPath, name), new WebpEncoder { Quality = quality });
+            }
+            await Save("thumb.webp", new Size(150, 150), ResizeMode.Crop, 75);
+            await Save("medium.webp", new Size(400, 250), ResizeMode.Crop, 80);
+            await Save("large.webp", new Size(800, 450), ResizeMode.Crop, 85);
+            await Save("xl.webp", new Size(1200, 675), ResizeMode.Crop, 90);
+            return ($"/uploads/media/{mediaId}/thumb.webp", $"/uploads/media/{mediaId}/medium.webp", $"/uploads/media/{mediaId}/large.webp", $"/uploads/media/{mediaId}/xl.webp");
+        }
+
+        public async Task<string> SaveMediaFileAsync(Stream stream, string fileName, int mediaId, string rootPath)
+        {
+            var folderPath = Path.Combine(rootPath, "uploads", "media", mediaId.ToString());
+            Directory.CreateDirectory(folderPath);
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            var safeName = $"original{extension}";
+            await using var output = File.Create(Path.Combine(folderPath, safeName));
+            await stream.CopyToAsync(output);
+            return $"/uploads/media/{mediaId}/{safeName}";
+        }
     }
 }
