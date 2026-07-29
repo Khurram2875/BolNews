@@ -101,7 +101,7 @@ namespace BolNews.Web.Services
                     {
                         await articleRepository.SaveChangesAsync();
 
-                        cacheService.Remove(CacheKeys.HomePage);
+                        cacheService.InvalidateHomePage();
 
                         cacheService.Remove(CacheKeys.BreakingNews);
 

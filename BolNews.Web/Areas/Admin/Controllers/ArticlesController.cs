@@ -380,6 +380,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
             }
             else if (model.FeaturedMediaId.HasValue)
                 await _mediaLibraryService.AssignAsFeaturedAsync(articleId, model.FeaturedMediaId.Value, userId!);
+
+            _cacheService.InvalidateHomePage();
             return RedirectToAction(nameof(Index));
         }
 
@@ -600,7 +602,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _cacheService.Remove(CacheKeys.Trending("week"));
 
             _cacheService.Remove(CacheKeys.Trending("month"));
-            _cacheService.Remove(CacheKeys.HomePage);
+            _cacheService.InvalidateHomePage();
 
             _cacheService.Remove(CacheKeys.Dashboard);
             _cacheService.Remove(CacheKeys.Sitemap + "_index");

@@ -20,12 +20,14 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly IArticleService _articleService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IOperationalAnalyticsService _analyticsService;
+        private readonly ICacheService _cacheService;
 
-        public EditorialController(IArticleService articleService, UserManager<ApplicationUser> userManager, IOperationalAnalyticsService analyticsService)
+        public EditorialController(IArticleService articleService, UserManager<ApplicationUser> userManager, IOperationalAnalyticsService analyticsService, ICacheService cacheService)
         {
             _articleService = articleService;
             _userManager = userManager;
             _analyticsService = analyticsService;
+            _cacheService = cacheService;
         }
 
         public async Task<IActionResult> Index(string filter = "all")
@@ -139,6 +141,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 reason, 
                 scheduledPublishAt,
                 embargoUntil);
+
+            BolNews.Application.Common.CacheServiceExtensions.InvalidateHomePage(_cacheService);
 
             return RedirectToAction(nameof(Index));
         }

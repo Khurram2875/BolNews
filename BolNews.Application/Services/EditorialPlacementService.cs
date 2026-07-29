@@ -198,7 +198,7 @@ namespace BolNews.Application.Services
 
         private void InvalidateHomepageCache()
         {
-            _cacheService.Remove(CacheKeys.HomePage);
+            _cacheService.InvalidateHomePage();
         }
     }
 }

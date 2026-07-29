@@ -31,7 +31,7 @@ namespace BolNews.Web.Controllers
         {
             //ClearLatestNewsCache(5);
              //var vm = new HomePageVM();
-             var vm = await _cache.GetOrCreateAsync(CacheKeys.HomePage+ "_Index", async entry =>
+             var vm = await _cache.GetOrCreateAsync(CacheKeys.HomePageIndex, async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
 
@@ -120,7 +120,7 @@ namespace BolNews.Web.Controllers
         {
             //ClearLatestNewsCache(5);
             //var vm = new HomePageVM();
-            var vm = await _cache.GetOrCreateAsync(CacheKeys.HomePage + "_Index1", async entry =>
+            var vm = await _cache.GetOrCreateAsync(CacheKeys.HomePageIndex1, async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
 
