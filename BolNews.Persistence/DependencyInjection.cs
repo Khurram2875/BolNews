@@ -22,11 +22,11 @@ namespace BolNews.Persistence
             IConfiguration configuration)
         {
             ////Get the connection string from configuration
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            //var connectionString = configuration.GetConnectionString("DefaultConnection");
             //Get the connection string from Azure
             //var connectionString = "server=bolnewsdb.mysql.database.azure.com; port=3306; database=bolnewsdb; user=admin_user; password =Bol12345";
             ////local DB connection string
-            //var connectionString = "server=192.168.75.128; port=3306; database=BolNewsDB; user=admin_user; password =Bol12345";
+            var connectionString = "server=192.168.75.128; port=3306; database=BolNewsDB; user=admin_user; password =Bol12345";
             services.AddDbContext<AppDbContext>(options =>
                 options.UseMySql(connectionString,
                     ServerVersion.AutoDetect(connectionString)));
@@ -34,7 +34,7 @@ namespace BolNews.Persistence
             // Identity setup
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
-                options.Password.RequiredLength = 10;
+                options.Password.RequiredLength = 12;
                 options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequireUppercase = true;
                 options.Password.RequireLowercase = true;
@@ -60,6 +60,8 @@ namespace BolNews.Persistence
             services.AddScoped<IArticleRepository, ArticleRepository>();
             services.AddScoped<IEditorialPlacementRepository, EditorialPlacementRepository>();
             services.AddScoped<ITagRepository, TagRepository>();
+            // Add the correct using directive for IMediaAssetRepository and MediaAssetRepository
+            
             services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
             services.AddScoped<IAuthorRepository, AuthorRepository>();
             services.AddScoped<IReporterRepository, ReporterRepository>();

@@ -60,7 +60,10 @@
         ImageSizeAttributor,
         true
     );
-
+    const MediaLibraryFormat = new Parchment.Attributor('mediaLibrary', 'data-media-library-noop', {
+        scope: Parchment.Scope.INLINE
+    });
+    Quill.register(MediaLibraryFormat, true);
 
     // ============================================================
     // SOCIAL EMBED BLOT
@@ -209,6 +212,8 @@
     let selectedImage = null;
     let activeGrammarIssues = [];
 
+    const icons = Quill.import('ui/icons');
+    icons['mediaLibrary'] = '<svg viewBox="0 0 18 18"><rect class="ql-stroke" height="10" width="12" x="3" y="4"></rect><circle class="ql-fill" cx="6" cy="7" r="1"></circle><polyline class="ql-even ql-fill" points="5,12 5,9 9,11 11,9 13,12"></polyline></svg>';
 
     const quill = new Quill(
         '#editor',

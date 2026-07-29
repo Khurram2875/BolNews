@@ -3,5 +3,69 @@
 @model List<MediaAssetDto>
 @{ ViewData["Title"] = "Media Library"; Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml"; }
 <div class="d-flex justify-content-between align-items-center mb-3"><h2>Media Library</h2><a asp-action="Upload" class="btn btn-primary"><i class="bi bi-upload"></i> Upload media</a></div>
-<form method="get" class="row g-2 mb-4"><div class="col-md-4"><input name="query" value="@ViewBag.Query" class="form-control" placeholder="Caption, tag, or article" /></div><div class="col-md-2"><select name="type" class="form-select"><option value="">All types</option>@foreach (var value in Enum.GetValues<MediaType>()) { <option value="@value" selected="@(ViewBag.Type?.ToString() == value.ToString())">@value</option> }</select></div><div class="col-md-2"><input name="createdFrom" type="date" value="@ViewBag.CreatedFrom" class="form-control" /></div><div class="col-md-2"><input name="createdTo" type="date" value="@ViewBag.CreatedTo" class="form-control" /></div><div class="col-md-2"><button class="btn btn-outline-primary">Search</button></div></form>
-<div class="row row-cols-1 row-cols-md-3 g-3">@foreach (var item in Model) { <div class="col"><div class="card h-100">@if(item.MediaType == MediaType.Image) { <img src="@item.LargeUrl" class="card-img-top" style="height:180px;object-fit:cover" /> } else { <div class="p-5 text-center"><i class="bi @(item.MediaType == MediaType.Audio ? "bi-music-note-beamed" : "bi-camera-video") fs-1"></i></div> }<div class="card-body"><span class="badge bg-secondary">@item.MediaType</span><p class="mb-1 mt-2">@item.Caption</p><small class="text-muted">@string.Join(", ", item.Tags.Select(x => x.Name))</small><br /><small class="text-muted">@item.CreatedAt.ToLocalTime().ToString("d")</small></div><div class="card-footer bg-white"><a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit metadata</a></div></div></div>}</div>
+<form method="get" class="row g-2 mb-4">
+	<div class="col-md-4">
+		<input name="query" value="@ViewBag.Query" class="form-control" placeholder="Caption, tag, or article" />
+	</div>
+	<div class="col-md-2">
+		<select name="type" class="form-select">
+			<option value="">All types
+
+			</option>
+				@foreach (var value in Enum.GetValues<MediaType>()) 
+				{	<option value="@value" selected="@(ViewBag.Type?.ToString() == value.ToString())">
+						@value
+					</option> 
+				}
+		</select>
+	</div>
+
+	<div class="col-md-2">
+			<input name="createdFrom" type="date" value="@ViewBag.CreatedFrom" class="form-control" />
+	</div>
+	
+	<div class="col-md-2">
+		<input name="createdTo" type="date" value="@ViewBag.CreatedTo" class="form-control" />
+	</div>
+	
+	<div class="col-md-2">
+		<button class="btn btn-outline-primary">Search</button>
+	</div>
+	
+</form>
+<div class="row row-cols-1 row-cols-md-6 g-6">
+	@foreach (var item in Model) 
+	{	<div class="col">
+			<div class="card h-80">
+				@if(item.MediaType == MediaType.Image) 
+				{ 
+					<img src="@item.MediumUrl" class="card-img-top" style="height:180px;object-fit:cover" />
+				} 
+				else 
+				{	<div class="p-5 text-center">
+						<i class="bi @(item.MediaType == MediaType.Audio ? "bi-music-note-beamed" : "bi-camera-video") fs-1"></i>
+					</div> 
+				}
+
+				<div class="card-body">
+					<span class="badge bg-secondary">@item.MediaType</span>
+					<p style="font-size:smaller" class="mb-1 mt-2"><strong>Caption:</strong> @item.Caption</p>
+					<small style="font-size:small">
+						<strong>Tags:</strong>
+					@foreach (var name in item.Tags)
+					{
+						<span class="badge bg-secondary">@name.Name</span>
+					}
+					</small>
+					@* <small class="text-muted">@string.Join(", ", item.Tags.Select(x => x.Name))</small> *@
+					<br />
+					<small style="font-size:small" class="text-muted">@item.CreatedAt.ToLocalTime().ToString("dd-MMM-yyyy")</small>
+				</div>
+		
+				<div class="card-footer bg-white">
+					<a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit metadata</a>
+				</div>
+			</div>
+		 </div>
+	}
+</div>
