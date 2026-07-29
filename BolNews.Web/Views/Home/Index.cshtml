@@ -8,9 +8,18 @@
     ViewData["Title"] = "Home";
     var secondaryStories = Model.SecondaryStories ?? new List<PublicArticleVM>();
 
-    var featuredCategories = new[] { "Entertainment", "Lifestyle", "Business", "Technology" };
-    var remainingTopStories = secondaryStories.Take(2).ToList();
-    var latestStories = secondaryStories.Skip(3).Take(14).ToList();
+    var featuredCategories = new[] { "Sports","Cricket","Entertainment", "Lifestyle", "Business", "Technology" };
+    var pinnedSecondaryCount = Math.Min(Model.PinnedSecondaryStoryCount, secondaryStories.Count);
+    var pinnedSecondaryStories = secondaryStories.Take(pinnedSecondaryCount).ToList();
+    var unpinnedSecondaryStories = secondaryStories.Skip(pinnedSecondaryCount).ToList();
+    var topStorySlotCount = Math.Min(2, pinnedSecondaryStories.Count);
+    var remainingTopStories = pinnedSecondaryStories.Take(2)
+        .Concat(unpinnedSecondaryStories.Take(2 - topStorySlotCount))
+        .ToList();
+    var latestStories = pinnedSecondaryStories.Skip(2)
+        .Concat(unpinnedSecondaryStories.Skip(2 - topStorySlotCount))
+        .Take(14)
+        .ToList();
     var featuredStories = secondaryStories.Where(a=>featuredCategories.Contains(a.CategoryName)).Skip(8).Take(10).ToList();
     var secondaryCards = secondaryStories.Skip(10).Take(12).ToList();
 

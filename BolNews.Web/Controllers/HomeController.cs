@@ -15,16 +15,18 @@ namespace BolNews.Web.Controllers
         private readonly IArticleService _articleService;
         private readonly ICategoryService _categoryService;
         private readonly IMapper _mapper;
+        private readonly IEditorialPlacementService _editorialPlacementService;
         private readonly IMemoryCache _cache;
         // Add this field to the HomeController class
         private static CancellationTokenSource ResetToken = new CancellationTokenSource();
-        public HomeController(ILogger<HomeController> logger, ICategoryService categoryService, IArticleService articleService, IMapper mapper, IMemoryCache cache)
+        public HomeController(ILogger<HomeController> logger, ICategoryService categoryService, IArticleService articleService, IMapper mapper, IMemoryCache cache, IEditorialPlacementService editorialPlacementService)
         {
             _logger = logger;
             _categoryService = categoryService;
             _articleService = articleService;
             _mapper = mapper;
             _cache = cache;
+            _editorialPlacementService = editorialPlacementService;
         }
 
         public async Task<IActionResult> Index(string type = "today")
@@ -44,6 +46,7 @@ namespace BolNews.Web.Controllers
 
                 var secondary = await _articleService.GetSecondaryStoriesAsync(50);
                 model.SecondaryStories = _mapper.Map<List<PublicArticleVM>>(secondary);
+                model.PinnedSecondaryStoryCount = (await _editorialPlacementService.GetPinnedSecondaryStoriesAsync()).Count;
 
                  // Use GetParentCategoriesWithChildrenAsync so we know which
                 // parent categories have subcategories (e.g. Sports → Cricket, Football)
@@ -133,6 +136,7 @@ namespace BolNews.Web.Controllers
 
                 var secondary = await _articleService.GetSecondaryStoriesAsync(50);
                 model.SecondaryStories = _mapper.Map<List<PublicArticleVM>>(secondary);
+                model.PinnedSecondaryStoryCount = (await _editorialPlacementService.GetPinnedSecondaryStoriesAsync()).Count;
 
                 // Use GetParentCategoriesWithChildrenAsync so we know which
                 // parent categories have subcategories (e.g. Sports → Cricket, Football)
