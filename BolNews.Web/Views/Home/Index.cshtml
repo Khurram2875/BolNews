@@ -1,4 +1,4 @@
-@using BolNews.Web.Areas.Admin.ViewModels
+﻿@using BolNews.Web.Areas.Admin.ViewModels
 @using System.IO
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment WebHostEnvironment
 @model HomePageVM
@@ -8,19 +8,41 @@
     ViewData["Title"] = "Home";
     var secondaryStories = Model.SecondaryStories ?? new List<PublicArticleVM>();
 
-    var featuredCategories = new[] { "Sports","Cricket","Entertainment", "Lifestyle", "Business", "Technology" };
     var pinnedSecondaryCount = Math.Min(Model.PinnedSecondaryStoryCount, secondaryStories.Count);
     var pinnedSecondaryStories = secondaryStories.Take(pinnedSecondaryCount).ToList();
     var unpinnedSecondaryStories = secondaryStories.Skip(pinnedSecondaryCount).ToList();
+
     var topStorySlotCount = Math.Min(2, pinnedSecondaryStories.Count);
     var remainingTopStories = pinnedSecondaryStories.Take(2)
         .Concat(unpinnedSecondaryStories.Take(2 - topStorySlotCount))
         .ToList();
+
     var latestStories = pinnedSecondaryStories.Skip(2)
         .Concat(unpinnedSecondaryStories.Skip(2 - topStorySlotCount))
         .Take(14)
         .ToList();
-    var featuredStories = secondaryStories.Where(a=>featuredCategories.Contains(a.CategoryName)).Skip(8).Take(10).ToList();
+
+    // ── Featured sidebar ────────────────────────────────────────────
+    // Exclude anything already shown (Top Story + remainingTopStories + latestStories),
+    // then prioritize by category slug order, falling back to any other category.
+    var usedIds = new HashSet<int>();
+    if (Model.TopStory != null) usedIds.Add(Model.TopStory.Id);
+    foreach (var s in remainingTopStories) usedIds.Add(s.Id);
+    foreach (var s in latestStories) usedIds.Add(s.Id);
+
+    var priorityCategorySlugs = new[] { "sports", "cricket", "entertainment", "lifestyle", "business", "technology" };
+
+    var featuredStories = secondaryStories
+        .Where(a => !usedIds.Contains(a.Id))
+        .OrderBy(a =>
+        {
+            var idx = Array.IndexOf(priorityCategorySlugs, a.CategorySlug?.ToLowerInvariant());
+            return idx == -1 ? int.MaxValue : idx;
+        })
+        .ThenByDescending(a => a.PublishedAt)
+        .Take(10)
+        .ToList();
+
     var secondaryCards = secondaryStories.Skip(10).Take(12).ToList();
 
     string relativePath = "/images/shows/";
