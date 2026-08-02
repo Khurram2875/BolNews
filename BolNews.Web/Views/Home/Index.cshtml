@@ -17,22 +17,30 @@
         .Concat(unpinnedSecondaryStories.Take(2 - topStorySlotCount))
         .ToList();
 
-    var latestStories = pinnedSecondaryStories.Skip(2)
-        .Concat(unpinnedSecondaryStories.Skip(2 - topStorySlotCount))
-        .Take(14)
+    // ── Latest: editorial pins first, then the organic chronological pool ──
+    var pinnedLatest = Model.PinnedLatestStories ?? new List<PublicArticleVM>();
+    var latestSlotsRemaining = Math.Max(0, 14 - pinnedLatest.Count);
+
+    var organicLatestPool = pinnedSecondaryStories.Skip(2)
+        .Concat(unpinnedSecondaryStories.Skip(2 - topStorySlotCount));
+
+    var latestStories = pinnedLatest
+        .Concat(organicLatestPool.Take(latestSlotsRemaining))
         .ToList();
 
-    // ── Featured sidebar ────────────────────────────────────────────
-    // Exclude anything already shown (Top Story + remainingTopStories + latestStories),
-    // then prioritize by category slug order, falling back to any other category.
+    // ── Featured: editorial pins first, then priority-category fallback ──
+    var pinnedFeatured = Model.PinnedFeaturedStories ?? new List<PublicArticleVM>();
+    var featuredSlotsRemaining = Math.Max(0, 10 - pinnedFeatured.Count);
+
+    var priorityCategorySlugs = new[] { "sports", "cricket", "entertainment", "lifestyle", "business", "technology" };
+
     var usedIds = new HashSet<int>();
     if (Model.TopStory != null) usedIds.Add(Model.TopStory.Id);
     foreach (var s in remainingTopStories) usedIds.Add(s.Id);
     foreach (var s in latestStories) usedIds.Add(s.Id);
+    foreach (var s in pinnedFeatured) usedIds.Add(s.Id);
 
-    var priorityCategorySlugs = new[] { "sports", "cricket", "entertainment", "lifestyle", "business", "technology" };
-
-    var featuredStories = secondaryStories
+    var organicFeatured = secondaryStories
         .Where(a => !usedIds.Contains(a.Id))
         .OrderBy(a =>
         {
@@ -40,8 +48,10 @@
             return idx == -1 ? int.MaxValue : idx;
         })
         .ThenByDescending(a => a.PublishedAt)
-        .Take(10)
+        .Take(featuredSlotsRemaining)
         .ToList();
+
+    var featuredStories = pinnedFeatured.Concat(organicFeatured).ToList();
 
     var secondaryCards = secondaryStories.Skip(10).Take(12).ToList();
 

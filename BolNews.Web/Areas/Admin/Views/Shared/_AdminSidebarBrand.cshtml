@@ -1,0 +1,22 @@
+﻿@using BolNews.Domain.Entities
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var user = await UserManager.GetUserAsync(User);
+}
+<div class="sidebar-brand mb-4 px-3">
+    <h4 class="fw-bold text-danger">BOL<span class="text-white">NEWS</span></h4>
+    <small class="text-uppercase fw-bold text-white" style="font-size: 0.65rem;">Editorial Control</small>
+
+    <div class="d-flex align-items-center mt-2 gap-2">
+        <span class="text-white" style="font-size: smaller;">
+            Hello, @user?.FullName
+        </span>
+
+        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-sm btn-outline-danger bi bi-box-arrow-left" title="Logout"></button>
+        </form>
+    </div>
+</div>
+<hr class="text-secondary" />

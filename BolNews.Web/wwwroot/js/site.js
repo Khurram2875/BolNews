@@ -15,7 +15,62 @@ window.onscroll = function () {
         nav.classList.remove("fixed-nav");
         body.classList.remove("nav-fixed");
     }
+
 };
+(function () {
+    const nav = document.getElementById('sticky-navbar');
+    const toggle = nav?.querySelector('.bn-nav-toggle');
+
+    if (!nav || !toggle) return;
+
+    toggle.setAttribute('aria-expanded', 'false');
+
+    toggle.addEventListener('click', function () {
+        const isOpen = nav.classList.toggle('bn-nav-open');
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    // Close the menu after tapping a link
+    nav.querySelectorAll('.bn-menu-link').forEach(function (link) {
+        link.addEventListener('click', function () {
+            nav.classList.remove('bn-nav-open');
+            toggle.setAttribute('aria-expanded', 'false');
+        });
+    });
+
+    // Close the menu when tapping outside of it
+    document.addEventListener('click', function (e) {
+        if (!nav.contains(e.target)) {
+            nav.classList.remove('bn-nav-open');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+    })
+    nav.querySelectorAll('.bn-menu-item.dropdown').forEach(function (item) {
+        const caret = item.querySelector('.bn-menu-caret');
+        if (!caret) return;
+
+        caret.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const isOpen = item.classList.toggle('is-open');
+            caret.classList.toggle('is-open', isOpen);
+            caret.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
+            // Close any other open dropdown so only one is expanded at a time
+            nav.querySelectorAll('.bn-menu-item.dropdown.is-open').forEach(function (other) {
+                if (other !== item) {
+                    other.classList.remove('is-open');
+                    other.querySelector('.bn-menu-caret')?.classList.remove('is-open');
+                    other.querySelector('.bn-menu-caret')?.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    });
+
+})();
+
+
 
 // ── Analytics click tracking ─────────────────────────────────────
 document.addEventListener("DOMContentLoaded", function () {

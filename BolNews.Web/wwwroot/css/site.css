@@ -2289,6 +2289,106 @@ body.nav-fixed {
     /*overflow-y: visible; for drop down menus*/
     scrollbar-width: none;
 }
+.bn-nav-toggle {
+    display: none;
+}
+.bn-menu-caret {
+    display: none;
+}
+.bn-nav-wrapper {
+    position: relative;
+}
+@media (max-width: 991.98px) {
+    .bn-nav-toggle {
+        display: inline-grid;
+    }
+
+    .bn-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        background: #fff;
+        border-top: 1px solid #cfcfcf;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+        max-height: calc(100vh - 60px);
+        overflow-y: auto;
+        z-index: 1040;
+    }
+
+    #sticky-navbar.bn-nav-open .bn-menu {
+        display: flex;
+    }
+
+    .bn-menu-item,
+    .bn-menu-link {
+        width: 100%;
+    }
+
+    .bn-menu .dropdown-menu {
+        position: static;
+        box-shadow: none;
+        border: none;
+        border-top: 1px solid #eee;
+        margin-left: 12px;
+    }
+
+    .bn-menu-item.dropdown {
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+        .bn-menu-item.dropdown .bn-menu-link {
+            flex: 1;
+        }
+
+    .bn-menu-caret {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        flex: 0 0 auto;
+        transition: transform 0.2s ease;
+    }
+
+        .bn-menu-caret.is-open {
+            transform: rotate(180deg);
+        }
+
+    /* Sub-menu collapsed by default on mobile, expanded via JS-toggled class */
+    .bn-menu-item.dropdown .dropdown-menu {
+        display: none;
+        width: 100%;
+    }
+
+    .bn-menu-item.dropdown.is-open .dropdown-menu {
+        display: block;
+    }
+
+    /* Disable the old hover-to-open behavior on mobile — tap-only now */
+    .bn-menu-item.dropdown:hover .dropdown-menu {
+        display: none;
+    }
+
+    .bn-menu-item.dropdown.is-open:hover .dropdown-menu {
+        display: block;
+    }
+}
+
+
+
+    
+
+
 @media (min-width: 992px) {
     .bn-menu {
         overflow-x: visible; /* desktop nav fits without scrolling — let dropdowns escape */

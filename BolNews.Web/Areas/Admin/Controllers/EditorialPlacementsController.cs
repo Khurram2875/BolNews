@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BolNews.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = Roles.Admin + "," + Roles.Editor)]
+    [Authorize(Roles = Roles.Admin + "," + Roles.Editor + "," + Roles.SubEditor)]
     public class EditorialPlacementsController : Controller
     {
         private readonly IEditorialPlacementService _placementService;
@@ -27,11 +27,15 @@ namespace BolNews.Web.Areas.Admin.Controllers
         {
             var topStory = await _placementService.GetPinnedTopStoryAsync();
             var secondaryStories = await _placementService.GetPinnedSecondaryStoriesAsync();
+            var latestStories = await _placementService.GetPinnedLatestStoriesAsync();
+            var featuredStories = await _placementService.GetPinnedFeaturedStoriesAsync();
 
             var model = new EditorialPlacementIndexVM
             {
                 TopStory = topStory == null ? null : MapPlacement(topStory),
-                SecondaryStories = secondaryStories.Select(MapPlacement).ToList()
+                SecondaryStories = secondaryStories.Select(MapPlacement).ToList(),
+                LatestStories = latestStories.Select(MapPlacement).ToList(),
+                FeaturedStories = featuredStories.Select(MapPlacement).ToList()
             };
 
             return View(model);
@@ -127,5 +131,65 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 PublishedAt = placement.Article?.PublishedAt,
                 SortOrder = placement.SortOrder
             };
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PinLatestStory(int articleId, string? returnUrl = null)
+        {
+            return await ExecutePlacementActionAsync(
+                roles => _placementService.PinLatestStoryAsync(articleId, _userManager.GetUserId(User)!, roles),
+                "Latest story pinned.",
+                returnUrl);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UnpinLatestStory(int placementId, string? returnUrl = null)
+        {
+            return await ExecutePlacementActionAsync(
+                roles => _placementService.UnpinLatestStoryAsync(placementId, _userManager.GetUserId(User)!, roles),
+                "Latest story removed.",
+                returnUrl);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MoveLatestStory(int placementId, int direction, string? returnUrl = null)
+        {
+            return await ExecutePlacementActionAsync(
+                roles => _placementService.MoveLatestStoryAsync(placementId, direction, _userManager.GetUserId(User)!, roles),
+                "Latest story order updated.",
+                returnUrl);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PinFeaturedStory(int articleId, string? returnUrl = null)
+        {
+            return await ExecutePlacementActionAsync(
+                roles => _placementService.PinFeaturedStoryAsync(articleId, _userManager.GetUserId(User)!, roles),
+                "Featured story pinned.",
+                returnUrl);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UnpinFeaturedStory(int placementId, string? returnUrl = null)
+        {
+            return await ExecutePlacementActionAsync(
+                roles => _placementService.UnpinFeaturedStoryAsync(placementId, _userManager.GetUserId(User)!, roles),
+                "Featured story removed.",
+                returnUrl);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MoveFeaturedStory(int placementId, int direction, string? returnUrl = null)
+        {
+            return await ExecutePlacementActionAsync(
+                roles => _placementService.MoveFeaturedStoryAsync(placementId, direction, _userManager.GetUserId(User)!, roles),
+                "Featured story order updated.",
+                returnUrl);
+        }
     }
 }

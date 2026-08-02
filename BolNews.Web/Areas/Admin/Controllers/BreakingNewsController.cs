@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BolNews.Application.Interfaces;
+using BolNews.Domain.Common;
 using BolNews.Domain.Entities;
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Areas.Admin.ViewModels.BreakingNews;
@@ -10,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BolNews.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin,Editor")]
+    [Authorize(Roles = Roles.Admin + "," + Roles.Editor + "," + Roles.SubEditor)]
     public class BreakingNewsController : Controller
     {
         private readonly IBreakingNewsService _breakingNewsService;

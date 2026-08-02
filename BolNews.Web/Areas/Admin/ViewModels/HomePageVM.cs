@@ -5,6 +5,8 @@
         public PublicArticleVM? TopStory { get; set; }
 
         public List<PublicArticleVM> SecondaryStories { get; set; } = new();
+        public List<PublicArticleVM> PinnedLatestStories { get; set; } = new();
+        public List<PublicArticleVM> PinnedFeaturedStories { get; set; } = new();
         public int PinnedSecondaryStoryCount { get; set; }
 
         public List<CategorySectionVM> CategorySections { get; set; } = new();

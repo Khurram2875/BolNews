@@ -121,7 +121,7 @@ namespace BolNews.Application.Services
         //Notification Helper
         private async Task NotifyDiscussionParticipantsAsync(Article article, string currentUserId, string message)
         {
-            var recipients = new HashSet<string>();
+            var recipients = await ResolveDiscussionRecipientsAsync(article, currentUserId);
 
             if (!string.IsNullOrWhiteSpace(article.Author?.UserId))
                 recipients.Add(article.Author.UserId);
@@ -154,7 +154,7 @@ namespace BolNews.Application.Services
         //Reltime Notification Helper
         private async Task SendRealtimeDiscussionUpdateAsync(Article article, string currentUserId, ArticleDiscussionComment comment)
         {
-            var recipients = new HashSet<string>();
+            var recipients = await ResolveDiscussionRecipientsAsync(article, currentUserId);
 
             if (!string.IsNullOrWhiteSpace(article.Author?.UserId))
                 recipients.Add(article.Author.UserId);
@@ -183,6 +183,33 @@ namespace BolNews.Application.Services
 
                 });
            
+        }
+        private async Task<HashSet<string>> ResolveDiscussionRecipientsAsync(Article article, string currentUserId)
+        {
+            var recipients = new HashSet<string>();
+
+            if (!string.IsNullOrWhiteSpace(article.Author?.UserId))
+                recipients.Add(article.Author.UserId);
+
+            if (!string.IsNullOrWhiteSpace(article.ReviewerUserId))
+                recipients.Add(article.ReviewerUserId);
+
+            if (!string.IsNullOrWhiteSpace(article.FactCheckerUserId))
+                recipients.Add(article.FactCheckerUserId);
+
+            // Anyone who has previously commented on this thread should also be notified
+            foreach (var commenterId in article.DiscussionComments
+                         .Where(c => !c.IsDeleted)
+                         .Select(c => c.UserId)
+                         .Distinct())
+            {
+                if (!string.IsNullOrWhiteSpace(commenterId))
+                    recipients.Add(commenterId);
+            }
+
+            recipients.Remove(currentUserId);
+
+            return recipients;
         }
 
     }

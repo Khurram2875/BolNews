@@ -1,4 +1,4 @@
-using BolNews.Application.Common;
+﻿using BolNews.Application.Common;
 using BolNews.Application.Interfaces;
 using BolNews.Domain.Common;
 using BolNews.Domain.Entities;
@@ -22,10 +22,17 @@ namespace BolNews.Application.Services
         }
 
         public Task<EditorialPlacement?> GetPinnedTopStoryAsync()
-            => _placementRepository.GetActivePlacementAsync(EditorialPlacementKeys.HomepageTopStory);
+        => _placementRepository.GetActivePlacementAsync(EditorialPlacementKeys.HomepageTopStory);
 
         public Task<List<EditorialPlacement>> GetPinnedSecondaryStoriesAsync()
             => _placementRepository.GetActivePlacementsWithArticlesAsync(EditorialPlacementKeys.HomepageSecondaryStory);
+
+        public Task<List<EditorialPlacement>> GetPinnedLatestStoriesAsync()
+            => _placementRepository.GetActivePlacementsWithArticlesAsync(EditorialPlacementKeys.HomepageLatestStory);
+
+        public Task<List<EditorialPlacement>> GetPinnedFeaturedStoriesAsync()
+            => _placementRepository.GetActivePlacementsWithArticlesAsync(EditorialPlacementKeys.HomepageFeaturedStory);
+
 
         public async Task PinTopStoryAsync(int articleId, string currentUserId, IList<string> roles)
         {
@@ -47,7 +54,7 @@ namespace BolNews.Application.Services
             if (matchingSecondaryStory != null)
             {
                 await _placementRepository.SoftDeleteAsync(matchingSecondaryStory, currentUserId);
-                await NormalizeSecondaryOrderAsync();
+                await NormalizeOrderAsync(EditorialPlacementKeys.HomepageSecondaryStory);
             }
 
             await _placementRepository.AddAsync(new EditorialPlacement
@@ -72,7 +79,36 @@ namespace BolNews.Application.Services
             InvalidateHomepageCache();
         }
 
-        public async Task PinSecondaryStoryAsync(int articleId, string currentUserId, IList<string> roles)
+        public Task PinSecondaryStoryAsync(int articleId, string currentUserId, IList<string> roles)
+        => PinToListAsync(EditorialPlacementKeys.HomepageSecondaryStory, articleId, currentUserId, roles);
+
+        public Task UnpinSecondaryStoryAsync(int placementId, string currentUserId, IList<string> roles)
+            => UnpinFromListAsync(EditorialPlacementKeys.HomepageSecondaryStory, placementId, currentUserId, roles);
+
+        public Task MoveSecondaryStoryAsync(int placementId, int direction, string currentUserId, IList<string> roles)
+            => MoveWithinListAsync(EditorialPlacementKeys.HomepageSecondaryStory, placementId, direction, currentUserId, roles);
+
+        public Task PinLatestStoryAsync(int articleId, string currentUserId, IList<string> roles)
+            => PinToListAsync(EditorialPlacementKeys.HomepageLatestStory, articleId, currentUserId, roles);
+
+        public Task UnpinLatestStoryAsync(int placementId, string currentUserId, IList<string> roles)
+            => UnpinFromListAsync(EditorialPlacementKeys.HomepageLatestStory, placementId, currentUserId, roles);
+
+        public Task MoveLatestStoryAsync(int placementId, int direction, string currentUserId, IList<string> roles)
+            => MoveWithinListAsync(EditorialPlacementKeys.HomepageLatestStory, placementId, direction, currentUserId, roles);
+
+        public Task PinFeaturedStoryAsync(int articleId, string currentUserId, IList<string> roles)
+            => PinToListAsync(EditorialPlacementKeys.HomepageFeaturedStory, articleId, currentUserId, roles);
+
+        public Task UnpinFeaturedStoryAsync(int placementId, string currentUserId, IList<string> roles)
+            => UnpinFromListAsync(EditorialPlacementKeys.HomepageFeaturedStory, placementId, currentUserId, roles);
+
+        public Task MoveFeaturedStoryAsync(int placementId, int direction, string currentUserId, IList<string> roles)
+            => MoveWithinListAsync(EditorialPlacementKeys.HomepageFeaturedStory, placementId, direction, currentUserId, roles);
+
+        // ── Shared implementation, parameterized by placement key ──────────────
+
+        private async Task PinToListAsync(string placementKey, int articleId, string currentUserId, IList<string> roles)
         {
             EnsureCanManagePlacements(roles);
             await EnsurePublishedArticleExists(articleId);
@@ -83,20 +119,17 @@ namespace BolNews.Application.Services
                 throw new InvalidOperationException("This article is already pinned as the homepage top story.");
             }
 
-            var existingSecondary = await _placementRepository.GetActivePlacementByArticleAsync(
-                EditorialPlacementKeys.HomepageSecondaryStory,
-                articleId);
-
-            if (existingSecondary != null)
+            var existing = await _placementRepository.GetActivePlacementByArticleAsync(placementKey, articleId);
+            if (existing != null)
             {
                 return;
             }
 
-            var sortOrder = await _placementRepository.GetMaxSortOrderAsync(EditorialPlacementKeys.HomepageSecondaryStory) + 1;
+            var sortOrder = await _placementRepository.GetMaxSortOrderAsync(placementKey) + 1;
 
             await _placementRepository.AddAsync(new EditorialPlacement
             {
-                PlacementKey = EditorialPlacementKeys.HomepageSecondaryStory,
+                PlacementKey = placementKey,
                 ArticleId = articleId,
                 SortOrder = sortOrder,
                 CreatedAt = DateTime.UtcNow,
@@ -107,19 +140,19 @@ namespace BolNews.Application.Services
             InvalidateHomepageCache();
         }
 
-        public async Task UnpinSecondaryStoryAsync(int placementId, string currentUserId, IList<string> roles)
+        private async Task UnpinFromListAsync(string placementKey, int placementId, string currentUserId, IList<string> roles)
         {
             EnsureCanManagePlacements(roles);
 
-            var placement = await GetSecondaryPlacementOrThrow(placementId);
+            var placement = await GetPlacementOrThrow(placementKey, placementId);
 
             await _placementRepository.SoftDeleteAsync(placement, currentUserId);
-            await NormalizeSecondaryOrderAsync();
+            await NormalizeOrderAsync(placementKey);
             await _placementRepository.SaveChangesAsync();
             InvalidateHomepageCache();
         }
 
-        public async Task MoveSecondaryStoryAsync(int placementId, int direction, string currentUserId, IList<string> roles)
+        private async Task MoveWithinListAsync(string placementKey, int placementId, int direction, string currentUserId, IList<string> roles)
         {
             EnsureCanManagePlacements(roles);
 
@@ -128,12 +161,12 @@ namespace BolNews.Application.Services
                 throw new ArgumentOutOfRangeException(nameof(direction), "Direction must be -1 or 1.");
             }
 
-            var placements = await _placementRepository.GetActivePlacementsAsync(EditorialPlacementKeys.HomepageSecondaryStory);
+            var placements = await _placementRepository.GetActivePlacementsAsync(placementKey);
             var currentIndex = placements.FindIndex(x => x.Id == placementId);
 
             if (currentIndex < 0)
             {
-                throw new InvalidOperationException("Secondary story placement was not found.");
+                throw new InvalidOperationException("Placement was not found.");
             }
 
             var targetIndex = currentIndex + direction;
@@ -154,29 +187,28 @@ namespace BolNews.Application.Services
             InvalidateHomepageCache();
         }
 
-        private async Task<EditorialPlacement> GetSecondaryPlacementOrThrow(int placementId)
+        private async Task<EditorialPlacement> GetPlacementOrThrow(string placementKey, int placementId)
         {
             var placement = await _placementRepository.GetActivePlacementByIdAsync(placementId);
 
-            if (placement == null ||
-                placement.PlacementKey != EditorialPlacementKeys.HomepageSecondaryStory ||
-                placement.IsDeleted)
+            if (placement == null || placement.PlacementKey != placementKey || placement.IsDeleted)
             {
-                throw new InvalidOperationException("Secondary story placement was not found.");
+                throw new InvalidOperationException("Placement was not found.");
             }
 
             return placement;
         }
 
-        private async Task NormalizeSecondaryOrderAsync()
+        private async Task NormalizeOrderAsync(string placementKey)
         {
-            var placements = await _placementRepository.GetActivePlacementsAsync(EditorialPlacementKeys.HomepageSecondaryStory);
+            var placements = await _placementRepository.GetActivePlacementsAsync(placementKey);
 
             for (var i = 0; i < placements.Count; i++)
             {
                 placements[i].SortOrder = i + 1;
             }
         }
+
 
         private async Task EnsurePublishedArticleExists(int articleId)
         {
@@ -190,7 +222,7 @@ namespace BolNews.Application.Services
 
         private static void EnsureCanManagePlacements(IList<string> roles)
         {
-            if (!roles.Contains(Roles.Admin) && !roles.Contains(Roles.Editor))
+            if (!roles.Contains(Roles.Admin) && !roles.Contains(Roles.Editor) && !roles.Contains(Roles.SubEditor))
             {
                 throw new UnauthorizedAccessException("Only Editors and Admins can manage homepage story placement.");
             }

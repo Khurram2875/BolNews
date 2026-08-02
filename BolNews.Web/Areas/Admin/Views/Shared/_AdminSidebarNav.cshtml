@@ -1,0 +1,67 @@
+﻿@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    string IsActive(string controller) =>
+        string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
+<ul class="nav flex-column mb-auto">
+    <li>@await Component.InvokeAsync("NotificationBell")</li>
+
+    <li class="nav-item">
+        <a class="nav-link @IsActive("Editorial")" asp-area="Admin" asp-controller="Editorial" asp-action="Index">
+            <i class="bi bi-speedometer me-2"></i> Editorial Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+            <i class="bi bi-globe2 me-2"></i> News Home
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @IsActive("Dashboard")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @IsActive("User")" asp-area="Admin" asp-controller="User" asp-action="Index">
+            <i class="bi bi-people me-2"></i> User Mgmt.
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @IsActive("Articles")" asp-area="Admin" asp-controller="Articles" asp-action="Index">
+            <i class="bi bi-journal-text me-2"></i> Articles
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @IsActive("MediaLibrary")" asp-area="Admin" asp-controller="MediaLibrary" asp-action="Index">
+            <i class="bi bi-collection me-2"></i> Media Library
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @IsActive("BreakingNews")" asp-area="Admin" asp-controller="BreakingNews" asp-action="Index">
+            <i class="bi bi-megaphone me-2"></i> Breaking News
+        </a>
+    </li>
+    @if (User.IsInRole("Admin") || User.IsInRole("Editor"))
+    {
+        <li class="nav-item">
+            <a class="nav-link @IsActive("EditorialPlacements")" asp-area="Admin" asp-controller="EditorialPlacements" asp-action="Index">
+                <i class="bi bi-pin-angle me-2"></i> Homepage Placement
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @IsActive("Reporters")" asp-area="Admin" asp-controller="Reporters" asp-action="Index">
+                <i class="bi bi-person-lines-fill me-2"></i> Reporters / Sources
+            </a>
+        </li>
+    }
+    <li class="nav-item">
+        <a class="nav-link @IsActive("Categories")" asp-area="Admin" asp-controller="Categories" asp-action="Index">
+            <i class="bi bi-tags me-2"></i> Categories
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @IsActive("Author")" asp-area="Admin" asp-controller="Author" asp-action="Index">
+            <i class="bi bi-person-badge me-2"></i> Authors
+        </a>
+    </li>
+</ul>

@@ -1575,13 +1575,13 @@
     // FORM SUBMISSION
     // ============================================================
 
-    const form =
-        document.querySelector('form');
+    //const form =
+    //    document.querySelector('form');
+    const articleForm = document.getElementById('articleForm');
 
+    if (articleForm) {
 
-    if (form) {
-
-        form.addEventListener(
+        articleForm.addEventListener(
             'submit',
             function () {
 

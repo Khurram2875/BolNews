@@ -12,7 +12,9 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         public string Title { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
 
+        [Required]
         public string MetaTitle { get; set; }
+        [Required]
         public string MetaDescription { get; set; }
 
         public string Summary { get; set; } = string.Empty;
@@ -22,6 +24,7 @@ namespace BolNews.Web.Areas.Admin.ViewModels
 
         public int CategoryId { get; set; }
         public int AuthorId { get; set; }
+        [Required]
         public int? ReporterId { get; set; }
 
         public bool IsPublished { get; set; }
@@ -67,6 +70,18 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         
         public IEnumerable<ValidationResult> Validate( ValidationContext validationContext)
         {
+            var hasNewUpload = ImageFile != null && ImageFile.Length > 0;
+            var hasMediaLibrarySelection = FeaturedMediaId.HasValue;
+            var hasExistingImage = !string.IsNullOrWhiteSpace(FeaturedImageLarge);
+
+            if (!hasNewUpload && !hasMediaLibrarySelection && !hasExistingImage)
+            {
+                yield return new ValidationResult(
+                    "Please select a featured image — either upload a file or choose one from the Media Library.",
+                    new[] { nameof(ImageFile) });
+            }
+
+
             if (ScheduledPublishAt.HasValue &&
                 ScheduledPublishAt <= DateTime.UtcNow)
             {

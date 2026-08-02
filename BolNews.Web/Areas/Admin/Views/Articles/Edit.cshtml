@@ -46,7 +46,8 @@
 	</div>
 
 	<div class="card-body">
-		<form asp-action="Edit" method="post" enctype="multipart/form-data">
+		
+		<form id="articleForm"  asp-action="Edit" method="post" enctype="multipart/form-data">
 
 			<input type="hidden" asp-for="Id" />
 
@@ -485,6 +486,7 @@
 @section Scripts
 {
 	<script src="~/js/tag-editor.js" asp-append-version="true"></script>
+	@await Html.PartialAsync("_ValidationScriptsPartial")
 	<script>
 		// System Lock Management Call Interval
 		setInterval(function () {

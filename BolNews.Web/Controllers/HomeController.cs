@@ -31,30 +31,56 @@ namespace BolNews.Web.Controllers
 
         public async Task<IActionResult> Index(string type = "today")
         {
-            //ClearLatestNewsCache(5);
-             //var vm = new HomePageVM();
-             var vm = await _cache.GetOrCreateAsync(CacheKeys.HomePageIndex, async entry =>
+            var vm = await _cache.GetOrCreateAsync(CacheKeys.HomePage + "_Index", async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
 
                 var model = new HomePageVM();
 
-                var topStory = await _articleService.GetTopStoryAsync();
-               
-                if (topStory != null)
-                    model.TopStory = _mapper.Map<PublicArticleVM>(topStory);
+                // ── Top story: editorial pin overrides the organic pick ────────
+                var pinnedTop = await _editorialPlacementService.GetPinnedTopStoryAsync();
+                var topStory = pinnedTop != null
+                    ? _mapper.Map<PublicArticleVM>(pinnedTop.Article)
+                    : _mapper.Map<PublicArticleVM>(await _articleService.GetTopStoryAsync());
 
-                var secondary = await _articleService.GetSecondaryStoriesAsync(50);
-                model.SecondaryStories = _mapper.Map<List<PublicArticleVM>>(secondary);
-                model.PinnedSecondaryStoryCount = (await _editorialPlacementService.GetPinnedSecondaryStoriesAsync()).Count;
+                model.TopStory = topStory;
 
-                 // Use GetParentCategoriesWithChildrenAsync so we know which
-                // parent categories have subcategories (e.g. Sports → Cricket, Football)
+                // ── Raw chronological pool ──────────────────────────────────────
+                var secondaryRaw = await _articleService.GetSecondaryStoriesAsync(50);
+                var secondaryAll = _mapper.Map<List<PublicArticleVM>>(secondaryRaw);
+
+                // ── Independent pinned lists for Secondary / Latest / Featured ──
+                var pinnedSecondaryPlacements = await _editorialPlacementService.GetPinnedSecondaryStoriesAsync();
+                var pinnedLatestPlacements = await _editorialPlacementService.GetPinnedLatestStoriesAsync();
+                var pinnedFeaturedPlacements = await _editorialPlacementService.GetPinnedFeaturedStoriesAsync();
+
+                var pinnedSecondary = pinnedSecondaryPlacements.OrderBy(p => p.SortOrder)
+                    .Select(p => _mapper.Map<PublicArticleVM>(p.Article)).ToList();
+                var pinnedLatest = pinnedLatestPlacements.OrderBy(p => p.SortOrder)
+                    .Select(p => _mapper.Map<PublicArticleVM>(p.Article)).ToList();
+                var pinnedFeatured = pinnedFeaturedPlacements.OrderBy(p => p.SortOrder)
+                    .Select(p => _mapper.Map<PublicArticleVM>(p.Article)).ToList();
+
+                // ── Strip anything already pinned anywhere (+ the top story) from the organic pool ──
+                var pinnedIds = new HashSet<int>(
+                    pinnedSecondary.Select(a => a.Id)
+                        .Concat(pinnedLatest.Select(a => a.Id))
+                        .Concat(pinnedFeatured.Select(a => a.Id)));
+                if (topStory != null) pinnedIds.Add(topStory.Id);
+
+                var organicPool = secondaryAll.Where(a => !pinnedIds.Contains(a.Id)).ToList();
+
+                // ── Secondary: pinned first, organic fallback fills the rest ────
+                model.SecondaryStories = pinnedSecondary.Concat(organicPool).ToList();
+                model.PinnedSecondaryStoryCount = pinnedSecondary.Count;
+
+                // ── Latest / Featured: pinned lists passed through as-is ────────
+                model.PinnedLatestStories = pinnedLatest;
+                model.PinnedFeaturedStories = pinnedFeatured;
+
+                // ── Category sections (unchanged from before) ───────────────────
                 var categories = await _categoryService.GetParentCategoriesWithChildrenAsync();
 
-                // Build a flat map: parentCategoryId → [parentId, subId1, subId2, ...]
-                // This lets us fetch articles from sub-categories and display them
-                // under the parent section (Sports shows Cricket + Football articles)
                 var categoryIdMap = categories.ToDictionary(
                     c => c.Id,
                     c =>
@@ -66,23 +92,14 @@ namespace BolNews.Web.Controllers
                     }
                 );
 
-                // Fetch articles for ALL relevant IDs in one DB call
                 var allCategoryIds = categoryIdMap.Values.SelectMany(ids => ids).Distinct().ToList();
                 var articlesDict = await _articleService.GetArticlesForCategoriesAsync(allCategoryIds, 5);
 
                 var displayOrder = new[]
-                    {
-                        "pakistan",
-                        "world-news",
-                        "business",
-                        "sports",
-                        "entertainment",
-                        "technology",
-                        "health",
-                        "lifestyle"
-                       
-
-                    };
+                {
+            "pakistan", "world-news", "business", "sports",
+            "entertainment", "technology", "health", "lifestyle"
+        };
 
                 var orderedCategories = displayOrder
                     .Select(slug => categories.FirstOrDefault(c =>
@@ -92,7 +109,6 @@ namespace BolNews.Web.Controllers
 
                 foreach (var category in orderedCategories)
                 {
-                    // Merge articles from the parent + all its subcategories
                     var relevantIds = categoryIdMap[category.Id];
                     var mergedArticles = relevantIds
                         .Where(id => articlesDict.ContainsKey(id))
@@ -101,8 +117,6 @@ namespace BolNews.Web.Controllers
                         .Take(5)
                         .ToList();
 
-                    // Skip categories that have no articles at all
-                    // (neither direct nor via subcategories)
                     if (!mergedArticles.Any())
                         continue;
 
@@ -116,6 +130,7 @@ namespace BolNews.Web.Controllers
 
                 return model;
             });
+
             ViewBag.Type = type;
             return View(vm);
         }

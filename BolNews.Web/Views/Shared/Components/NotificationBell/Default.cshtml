@@ -16,18 +16,18 @@
 
         @if (Model.Any())
         {
-            <span class="badge bg-danger rounded-pill" id="bn-notification-count">
+            <span class="badge bg-danger rounded-pill" data-notification-count>
                 @Model.Count
             </span>
         }
         else
         {
-            <span class="badge bg-danger rounded-pill d-none" id="bn-notification-count">0</span>
+            <span class="badge bg-danger rounded-pill d-none" data-notification-count>0</span>
         }
     </a>
 
     <ul class="dropdown-menu shadow"
-        id="bn-notification-list"
+        data-notification-list
         style="min-width: 320px; max-width: 380px; max-height: 500px; overflow-y: auto;">
 
         @if (!Model.Any())

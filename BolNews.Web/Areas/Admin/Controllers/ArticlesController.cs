@@ -135,13 +135,19 @@ namespace BolNews.Web.Areas.Admin.Controllers
             ViewBag.HasPreviousPage = page > 1;
             ViewBag.HasNextPage = page < ViewBag.TotalPages;
 
-            if (roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor))
+            if (roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor) || roles.Contains(Roles.SubEditor))
             {
                 var topStory = await _editorialPlacementService.GetPinnedTopStoryAsync();
                 var secondaryStories = await _editorialPlacementService.GetPinnedSecondaryStoriesAsync();
+                var latestStories = await _editorialPlacementService.GetPinnedLatestStoriesAsync();
+                var featuredStories = await _editorialPlacementService.GetPinnedFeaturedStoriesAsync();
 
                 ViewBag.PinnedTopStoryArticleId = topStory?.ArticleId;
                 ViewBag.SecondaryPlacementByArticleId = secondaryStories
+                    .ToDictionary(x => x.ArticleId, x => x.Id);
+                ViewBag.LatestPlacementByArticleId = latestStories
+                    .ToDictionary(x => x.ArticleId, x => x.Id);
+                ViewBag.FeaturedPlacementByArticleId = featuredStories
                     .ToDictionary(x => x.ArticleId, x => x.Id);
             }
 

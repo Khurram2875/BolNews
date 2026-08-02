@@ -21,7 +21,8 @@
 		<h4 class="mb-0">Create New Article</h4>
 	</div>
 	<div class="card-body">
-		<form asp-action="Create" method="post" enctype="multipart/form-data">
+		
+		<form id="articleForm" asp-action="Create" method="post" enctype="multipart/form-data">
 			@Html.AntiForgeryToken()
 			<div class="mb-3">
 				<label asp-for="Title" class="form-label"></label>
@@ -80,6 +81,7 @@
 					<small class="text-muted d-block mt-1">
 						<i class="bi bi-robot text-info"></i> AI generated. Feel free to tweak it if you want.
 					</small>
+					<span asp-validation-for="MetaTitle" class="text-danger"></span>
 				</div>
 
 				<!-- META DESCRIPTION -->
@@ -89,6 +91,7 @@
 					<small class="text-muted d-block mt-1">
 						<i class="bi bi-robot text-info"></i> AI generated. Feel free to tweak it if you want.
 					</small>
+					<span asp-validation-for="MetaDescription" class="text-danger"></span>
 				</div>
 			</div>
 
@@ -385,10 +388,34 @@
 	</div>
 </div>
 @await Html.PartialAsync("_MediaLibraryPicker")
+<div class="modal fade" id="saveChoiceModal" tabindex="-1" aria-labelledby="saveChoiceModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="saveChoiceModalLabel">How would you like to save this article?</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<p class="text-muted mb-3">You haven't chosen "Publish Immediately" or "Submit for Editorial Review." Pick one option below, or save it as a draft.</p>
+				<div class="d-grid gap-2">
+					<button type="button" id="choiceModalDraftBtn" class="btn btn-outline-secondary">
+						<i class="bi bi-file-earmark"></i> Save as Draft
+					</button>
+					<button type="button" id="choiceModalPublishBtn" class="btn btn-success">
+						<i class="bi bi-check-circle"></i> Publish Immediately
+					</button>
+					<button type="button" id="choiceModalReviewBtn" class="btn btn-primary">
+						<i class="bi bi-send"></i> Submit for Editorial Review
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 @section Scripts
 {
 	<script src="~/js/tag-editor.js" asp-append-version="true"></script>
-
+	@await Html.PartialAsync("_ValidationScriptsPartial")
 	<script>
 
 		// ============================================================
@@ -452,7 +479,65 @@
 				syncEditorialReviewAvailability);
 
 			syncEditorialReviewAvailability();
+			//=========================================================
+			// ALERT ON SAVE BUTTON
+			// START===================================================
+			const articleForm = document.getElementById('articleForm');
+			let draftConfirmed = false;
 
+			const saveChoiceModalEl = document.getElementById('saveChoiceModal');
+			const saveChoiceModal = saveChoiceModalEl ? new bootstrap.Modal(saveChoiceModalEl) : null;
+
+			const draftBtn = document.getElementById('choiceModalDraftBtn');
+			const publishBtn = document.getElementById('choiceModalPublishBtn');
+			const reviewBtn = document.getElementById('choiceModalReviewBtn');
+
+			
+
+			if (articleForm && saveChoiceModal) {
+
+				articleForm.addEventListener('submit', function (e) {
+					if (draftConfirmed) {
+						return;
+					}
+
+					const isPublishChecked = publishImmediately?.checked ?? false;
+					const isReviewChecked = submitForReview?.checked ?? false;
+
+					if (!isPublishChecked && !isReviewChecked) {
+						e.preventDefault();
+
+						if (publishBtn) publishBtn.style.display = publishImmediately ? '' : 'none';
+						if (reviewBtn) reviewBtn.style.display = submitForReview ? '' : 'none';
+
+						saveChoiceModal.show();
+					}
+				});
+
+				draftBtn?.addEventListener('click', function () {
+					draftConfirmed = true;
+					saveChoiceModal.hide();
+					articleForm.requestSubmit();
+				});
+
+				publishBtn?.addEventListener('click', function () {
+					if (publishImmediately) {
+						publishImmediately.checked = true;
+						syncEditorialReviewAvailability();
+					}
+					saveChoiceModal.hide();
+					articleForm.requestSubmit();
+				});
+
+				reviewBtn?.addEventListener('click', function () {
+					if (submitForReview) {
+						submitForReview.checked = true;
+					}
+					saveChoiceModal.hide();
+					articleForm.requestSubmit();
+				});
+			}
+			// END======================================================
 
 			// ========================================================
 			// AUTO-FILL SLUG
@@ -619,7 +704,12 @@
 
 
 			// ========================================================
-
+			 var summary = document.getElementById('validationSummary');
+				if (summary && summary.querySelectorAll('li').length > 0) {
+					summary.classList.remove('d-none');
+					summary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				}
+			// ========================================================
 		});
 
 	</script>

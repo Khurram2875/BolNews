@@ -39,113 +39,39 @@
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
 </head>
 <body>
-   
+  
+    <!-- Mobile top bar with hamburger (mobile only) -->
+    <div class="d-md-none admin-mobile-topbar d-flex align-items-center justify-content-between px-3 py-2">
+        <span class="fw-bold text-danger">BOL<span class="text-white">NEWS</span></span>
+        <button class="btn btn-sm btn-outline-light" type="button"
+                data-bs-toggle="offcanvas" data-bs-target="#adminSidebarOffcanvas"
+                aria-controls="adminSidebarOffcanvas" aria-label="Toggle menu">
+            <i class="bi bi-list fs-4"></i>
+        </button>
+    </div>
+
+    <!-- Mobile off-canvas sidebar (mobile only) -->
+    <div class="offcanvas offcanvas-start admin-sidebar-bg d-md-none text-white" tabindex="-1"
+         id="adminSidebarOffcanvas" aria-labelledby="adminSidebarOffcanvasLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="adminSidebarOffcanvasLabel">Menu</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column">
+            @await Html.PartialAsync("_AdminSidebarBrand")
+            @await Html.PartialAsync("_AdminSidebarNav")
+        </div>
+    </div>
+
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
+            <!-- Desktop sidebar (unchanged behavior — still d-none below md) -->
             <nav class="col-md-2 d-none d-md-block sidebar admin-sidebar-bg">
                 <div class="position-sticky d-flex flex-column h-100 pt-3">
-                    <div class="sidebar-brand mb-4 px-3">
-                        <h4 class="fw-bold text-danger">BOL<span class="text-white">NEWS</span></h4>
-                        <small class="text-uppercase fw-bold text-white" style="font-size: 0.65rem;">Editorial Control</small>
-
-                        
-
-                          
-
-                        @{
-                            var user = await UserManager.GetUserAsync(User);
-                        }
-
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="text-white" style="font-size: smaller;">
-                                Hello, @user?.FullName
-                            </span>
-
-                            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="m-0">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-outline-danger bi bi-box-arrow-left" title="Logout"></button>
-                            </form>
-                        </div>
-
-                       
-                    </div>
-                    <hr class="text-secondary" />
-                    <ul class="nav flex-column mb-auto">
-                        <li>
-
-                           
-                        </li>
-                        @await Component.InvokeAsync("NotificationBell")
-
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-controller="Editorial" asp-action="Index">
-                                <i class="bi bi-speedometer me-2"></i> Editorial Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
-                                <i class="bi bi-globe2 me-2"></i> News Home
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
-                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-controller="User" asp-action="Index">
-                                <i class="bi bi-people me-2"></i> User Mgmt.
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-controller="Articles" asp-action="Index">
-                                <i class="bi bi-journal-text me-2"></i> Articles
-                            </a>
-                        </li>
-                        <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="MediaLibrary" asp-action="Index"><i class="bi bi-collection me-2"></i> Media Library</a></li>
-                        <li class="nav-item">
-                            <a class="nav-link"
-                               asp-area="Admin"
-                               asp-controller="BreakingNews"
-                               asp-action="Index">
-
-                                <i class="bi bi-megaphone me-2"></i>
-
-                                Breaking News
-
-                            </a>
-                        </li>
-                        @if (User.IsInRole("Admin") || User.IsInRole("Editor"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="Admin" asp-controller="EditorialPlacements" asp-action="Index">
-                                    <i class="bi bi-pin-angle me-2"></i> Homepage Placement
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="Admin" asp-controller="Reporters" asp-action="Index">
-                                    <i class="bi bi-person-lines-fill me-2"></i> Reporters / Sources
-                                </a>
-                            </li>
-                        }
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-controller="Categories" asp-action="Index">
-                                <i class="bi bi-tags me-2"></i> Categories
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-controller="Author" asp-action="Index">
-                                <i class="bi bi-person-badge me-2"></i> Authors
-                            </a>
-                        </li>
-                       
-                    </ul>
-
-                    
+                    @await Html.PartialAsync("_AdminSidebarBrand")
+                    @await Html.PartialAsync("_AdminSidebarNav")
                 </div>
             </nav>
-         
 
             <!-- Main content -->
             <main class="col-md-10 ms-sm-auto px-md-4 py-4">
@@ -153,7 +79,7 @@
             </main>
         </div>
     </div>
-   
+
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 	@* <script src="~/js/adminarea/localckeditor.js"></script> *@
@@ -166,7 +92,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <!-- Bootstrap -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    @* <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script> *@
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -197,10 +123,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
    
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+            document.addEventListener("DOMContentLoaded", function () {
 
-            const notificationCountEl = document.getElementById("bn-notification-count");
-            const notificationListEl = document.getElementById("bn-notification-list");
+            const notificationCountEls = document.querySelectorAll("[data-notification-count]");
+            const notificationListEls = document.querySelectorAll("[data-notification-list]");
 
             function escapeHtml(value) {
                 return (value || "")
@@ -216,27 +142,19 @@
                 return tokenEl ? tokenEl.value : "";
             }
 
-            function renderNotifications(feed) {
-                if (!notificationCountEl || !notificationListEl) return;
-
-                const unreadCount = feed?.unreadCount ?? 0;
-                const items = feed?.items ?? [];
-
-                notificationCountEl.textContent = unreadCount.toString();
-                notificationCountEl.classList.toggle("d-none", unreadCount === 0);
-
+            function renderNotificationItemsHtml(items) {
                 if (items.length === 0) {
-                    notificationListEl.innerHTML = `
+                    return `
                         <li>
                             <span class="dropdown-item-text text-muted">
                                 No unread notifications
                             </span>
                         </li>`;
-                    return;
                 }
 
                 const token = getAntiForgeryToken();
-                notificationListEl.innerHTML = items.map((item) => {
+
+                return items.map((item) => {
                     const trimmedMessage = (item.message || "").length > 120
                         ? `${item.message.substring(0, 120)}...`
                         : (item.message || "");
@@ -256,6 +174,21 @@
                         </li>
                         <li><hr class="dropdown-divider" /></li>`;
                 }).join("");
+            }
+
+            function renderNotifications(feed) {
+                const items = feed?.items ?? [];
+                const unreadCount = feed?.unreadCount ?? items.length;
+
+                notificationCountEls.forEach(el => {
+                    el.textContent = unreadCount.toString();
+                    el.classList.toggle("d-none", unreadCount === 0);
+                });
+
+                const html = renderNotificationItemsHtml(items);
+                notificationListEls.forEach(el => {
+                    el.innerHTML = html;
+                });
             }
 
             function showNotificationToast(item) {
@@ -330,23 +263,23 @@
                 console.error("SignalR failed to load.");
                 return;
             }
-                window.notificationConnection =
-                    new signalR.HubConnectionBuilder()
-                        .withUrl("/notificationHub")
-                        .withAutomaticReconnect()
-                        .build();
-            
+
+            window.notificationConnection =
+                new signalR.HubConnectionBuilder()
+                    .withUrl("/notificationHub")
+                    .withAutomaticReconnect()
+                    .build();
 
             window.notificationConnection.on("NotificationReceived", function () {
                 refreshNotificationFeed(true);
             });
 
-                window.notificationConnectionReady = window.notificationConnection.start()
-        .then(() => console.log("Notification hub connected"))
-        .catch(err => {
-            console.error(err);
-            throw err;
-        });
+            window.notificationConnectionReady = window.notificationConnection.start()
+                .then(() => console.log("Notification hub connected"))
+                .catch(err => {
+                    console.error(err);
+                    throw err;
+                });
 
             refreshNotificationFeed(false);
         });
@@ -413,5 +346,13 @@
     main {
         background-color: #f5f7f9; /* Light grey background for the dashboard area */
         min-height: 100vh;
+    }
+
+    .admin-mobile-topbar {
+        background-color: #1a1a27;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        position: sticky;
+        top: 0;
+        z-index: 1030;
     }
 </style>
