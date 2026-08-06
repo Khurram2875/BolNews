@@ -1,4 +1,4 @@
-@model BolNews.Web.Areas.Admin.ViewModels.ArticleRevisionHistoryVM
+﻿@model BolNews.Web.Areas.Admin.ViewModels.ArticleRevisionHistoryVM
 
 @{
     ViewData["Title"] = "Article Changes";
@@ -34,19 +34,32 @@
 
 <div class="card shadow-sm">
     <div class="card-header bg-dark text-white">
-        Revision History
+        <h5 class="mb-0">Revision History</h5>
+        @if (Model.Revisions.Any())
+{
+    var earliestRevision = Model.Revisions.OrderBy(r => r.Revision.RevisionNumber).First();
+
+    <a asp-action="CompareRevision"
+       asp-route-articleId="@Model.Article.Id"
+       asp-route-revisionId="@earliestRevision.Revision.Id"
+       asp-route-target="current"
+               class="badge bg-primary mb-2" style="text-decoration:none;">
+        <i class="bi bi-arrow-left-right"></i> Compare First Version with Current
+    </a>
+}
+
     </div>
 
     <div class="card-body p-0">
         @if (!Model.Revisions.Any())
         {
-            <div class="p-4 text-muted">
+            <div class="text-muted p-4">
                 No revisions have been recorded for this article yet.
             </div>
         }
         else
         {
-            <table class="table-hover table mb-0 align-middle">
+            <table class="table-hover mb-0 table align-middle">
                 <thead class="table-light">
                     <tr>
                         <th>Revision</th>

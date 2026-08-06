@@ -41,6 +41,8 @@ namespace BolNews.Application.DTOs
         public string? ReporterName { get; set; }
         public string? ReporterSourceName { get; set; }
 
+        public bool IsDeleted { get; set; }
+
         public bool IsPublished { get; set; }
         public DateTime? PublishedAt { get; set; }
 

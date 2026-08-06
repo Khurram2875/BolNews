@@ -24,6 +24,11 @@
 		
 		<form id="articleForm" asp-action="Create" method="post" enctype="multipart/form-data">
 			@Html.AntiForgeryToken()
+			<div asp-validation-summary="ModelOnly"
+				 id="validationSummary"
+				 class="alert alert-danger d-none">
+			</div>
+
 			<div class="mb-3">
 				<label asp-for="Title" class="form-label"></label>
 				<div class="input-group">
@@ -378,7 +383,7 @@
 			}
 
 
-			<button type="submit" class="btn btn-success">
+			<button type="submit" id="btnSaveArticle" class="btn btn-success">
 				<i class="bi bi-check-circle"></i> Save
 			</button>
 			<a asp-action="Index" class="btn btn-secondary ms-2">
@@ -483,7 +488,9 @@
 			// ALERT ON SAVE BUTTON
 			// START===================================================
 			const articleForm = document.getElementById('articleForm');
-			let draftConfirmed = false;
+			const saveArticleButton = document.getElementById('btnSaveArticle');
+			let saveChoiceConfirmed = false;
+			let formSubmitLocked = false;
 
 			const saveChoiceModalEl = document.getElementById('saveChoiceModal');
 			const saveChoiceModal = saveChoiceModalEl ? new bootstrap.Modal(saveChoiceModalEl) : null;
@@ -497,7 +504,19 @@
 			if (articleForm && saveChoiceModal) {
 
 				articleForm.addEventListener('submit', function (e) {
-					if (draftConfirmed) {
+					if (formSubmitLocked) {
+						e.preventDefault();
+						return;
+					}
+
+					if (!validateArticleFormBeforeSubmit()) {
+						e.preventDefault();
+						saveChoiceConfirmed = false;
+						return;
+					}
+
+					if (saveChoiceConfirmed) {
+						lockArticleFormForSubmit();
 						return;
 					}
 
@@ -511,13 +530,15 @@
 						if (reviewBtn) reviewBtn.style.display = submitForReview ? '' : 'none';
 
 						saveChoiceModal.show();
+						return;
 					}
+
+					lockArticleFormForSubmit();
 				});
 
 				draftBtn?.addEventListener('click', function () {
-					draftConfirmed = true;
 					saveChoiceModal.hide();
-					articleForm.requestSubmit();
+					submitArticleFormFromChoice();
 				});
 
 				publishBtn?.addEventListener('click', function () {
@@ -526,7 +547,7 @@
 						syncEditorialReviewAvailability();
 					}
 					saveChoiceModal.hide();
-					articleForm.requestSubmit();
+					submitArticleFormFromChoice();
 				});
 
 				reviewBtn?.addEventListener('click', function () {
@@ -534,8 +555,131 @@
 						submitForReview.checked = true;
 					}
 					saveChoiceModal.hide();
-					articleForm.requestSubmit();
+					submitArticleFormFromChoice();
 				});
+			}
+
+			function submitArticleFormFromChoice() {
+				saveChoiceConfirmed = true;
+
+				if (!validateArticleFormBeforeSubmit()) {
+					saveChoiceConfirmed = false;
+					return;
+				}
+
+				articleForm.requestSubmit();
+			}
+
+			function validateArticleFormBeforeSubmit() {
+				ensureSlugFromTitle();
+				syncArticleEditorContent();
+				clearContentValidationMessage();
+
+				let isValid = true;
+
+				if (window.jQuery && jQuery.validator) {
+					isValid = jQuery(articleForm).valid();
+				}
+				else {
+					isValid = articleForm.checkValidity();
+				}
+
+				if (!hasArticleEditorContent()) {
+					isValid = false;
+					showContentValidationMessage('Please enter article content.');
+				}
+
+				if (!isValid) {
+					scrollToFirstValidationError();
+				}
+
+				return isValid;
+			}
+
+			function ensureSlugFromTitle() {
+				const titleInput = document.getElementById('Title');
+				const slugInput = document.getElementById('Slug');
+
+				if (!titleInput || !slugInput || slugInput.value.trim()) {
+					return;
+				}
+
+				slugInput.value = titleInput.value
+					.toLowerCase()
+					.trim()
+					.replace(/[^a-z0-9\s-]/g, '')
+					.replace(/\s+/g, '-')
+					.replace(/-+/g, '-');
+			}
+
+			function syncArticleEditorContent() {
+				const contentInput = document.getElementById('Content');
+
+				if (!contentInput || !window.quill) {
+					return;
+				}
+
+				contentInput.value = window.quill.root.innerHTML;
+			}
+
+			function hasArticleEditorContent() {
+				if (window.quill) {
+					return window.quill.getText().trim().length > 0;
+				}
+
+				const contentInput = document.getElementById('Content');
+				const contentValue = contentInput?.value?.trim() ?? '';
+
+				return contentValue.length > 0 && contentValue !== '<p><br></p>';
+			}
+
+			function showContentValidationMessage(message) {
+				const contentInput = document.getElementById('Content');
+				const contentMessage = document.querySelector('[data-valmsg-for="Content"]');
+
+				contentInput?.classList.add('input-validation-error');
+
+				if (contentMessage) {
+					contentMessage.textContent = message;
+					contentMessage.classList.remove('field-validation-valid');
+					contentMessage.classList.add('field-validation-error');
+				}
+			}
+
+			function clearContentValidationMessage() {
+				const contentInput = document.getElementById('Content');
+				const contentMessage = document.querySelector('[data-valmsg-for="Content"]');
+
+				contentInput?.classList.remove('input-validation-error');
+
+				if (contentMessage) {
+					contentMessage.textContent = '';
+					contentMessage.classList.remove('field-validation-error');
+					contentMessage.classList.add('field-validation-valid');
+				}
+			}
+
+			function scrollToFirstValidationError() {
+				const firstError =
+					document.querySelector('.input-validation-error, .field-validation-error:not(:empty)');
+
+				firstError?.scrollIntoView({
+					behavior: 'smooth',
+					block: 'center'
+				});
+			}
+
+			function lockArticleFormForSubmit() {
+				formSubmitLocked = true;
+
+				if (!saveArticleButton) {
+					return;
+				}
+
+				saveArticleButton.disabled = true;
+				saveArticleButton.dataset.originalHtml = saveArticleButton.innerHTML;
+				saveArticleButton.innerHTML =
+					'<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> Saving...';
 			}
 			// END======================================================
 

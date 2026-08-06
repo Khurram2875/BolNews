@@ -48,5 +48,6 @@ namespace BolNews.Application.Interfaces
         Task SaveChangesAsync();
         Task<List<Article>> GetDueScheduledArticlesAsync(DateTime utcNow);
         Task<List<Article>> SearchPublishedAsync(string search, int take = 20);
+        Task<List<Article>> GetDeletedAsync();
     }
 }

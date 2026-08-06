@@ -3,27 +3,32 @@
 // the header (150px), it snaps fixed to the top of the viewport.
 // body.nav-fixed adds padding-top so content doesn't jump.
 
-window.onscroll = function () {
-    const nav = document.getElementById("sticky-navbar");
+document.addEventListener('DOMContentLoaded', function () {
+    const nav = document.getElementById('sticky-navbar');
+    const toggle = nav?.querySelector('.bn-nav-toggle');
     const body = document.body;
     const stickyTrigger = 150;
 
-    if (window.pageYOffset > stickyTrigger) {
-        nav.classList.add("fixed-nav");
-        body.classList.add("nav-fixed");
-    } else {
-        nav.classList.remove("fixed-nav");
-        body.classList.remove("nav-fixed");
+    if (!nav) {
+        return;
     }
 
-};
-(function () {
-    const nav = document.getElementById('sticky-navbar');
-    const toggle = nav?.querySelector('.bn-nav-toggle');
+    function syncStickyNavbar() {
+        const shouldFix = window.scrollY > stickyTrigger;
 
-    if (!nav || !toggle) return;
+        nav.classList.toggle('fixed-nav', shouldFix);
+        body.classList.toggle('nav-fixed', shouldFix);
+    }
+
+    window.addEventListener('scroll', syncStickyNavbar, { passive: true });
+    syncStickyNavbar();
+
+    if (!toggle) return;
 
     toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-controls', 'publicNavbarMenu');
+
+    nav.querySelector('.bn-menu')?.setAttribute('id', 'publicNavbarMenu');
 
     toggle.addEventListener('click', function () {
         const isOpen = nav.classList.toggle('bn-nav-open');
@@ -44,7 +49,8 @@ window.onscroll = function () {
             nav.classList.remove('bn-nav-open');
             toggle.setAttribute('aria-expanded', 'false');
         }
-    })
+    });
+
     nav.querySelectorAll('.bn-menu-item.dropdown').forEach(function (item) {
         const caret = item.querySelector('.bn-menu-caret');
         if (!caret) return;
@@ -68,7 +74,7 @@ window.onscroll = function () {
         });
     });
 
-})();
+});
 
 
 

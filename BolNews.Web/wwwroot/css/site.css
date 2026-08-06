@@ -3558,3 +3558,32 @@ body,
         font-size: 13px;
     }
 }
+
+/* Public navbar hardening: SVG controls and keyboard focus */
+.bn-nav-toggle,
+.bn-search-btn,
+.bn-menu-caret {
+    color: #111;
+}
+
+.bn-nav-toggle svg,
+.bn-search-btn svg,
+.bn-menu-caret svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+    fill: currentColor;
+}
+
+.bn-nav-toggle:focus-visible,
+.bn-search-btn:focus-visible,
+.bn-menu-link:focus-visible,
+.bn-menu-caret:focus-visible,
+.bn-menu .dropdown-item:focus-visible {
+    outline: 2px solid #d71920;
+    outline-offset: 3px;
+}
+
+#sticky-navbar.bn-nav-open {
+    z-index: 1060;
+}

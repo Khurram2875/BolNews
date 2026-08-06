@@ -312,11 +312,23 @@ namespace BolNews.Application.Services
 
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id, string deletedByUserId, string? reason = null)
         {
             var article = await _repo.FindByIdAsync(id);
             if (article == null) return;
+
+            // Snapshot the article's state at the moment of deletion — reuses the same
+            // revision history already surfaced via the "Changes" link in the article list.
+            await _articleRevisionService.CreateSnapshotAsync(
+                article,
+                deletedByUserId,
+                workflowState: $"{article.WorkflowStatus} -> Deleted",
+                changeReason: reason ?? "No reason provided.");
+
             article.IsDeleted = true;
+            article.UpdatedAt = DateTime.UtcNow;
+            article.UpdatedBy = deletedByUserId;
+
             await _repo.UpdateAsync(article);
         }
 
@@ -814,6 +826,41 @@ namespace BolNews.Application.Services
             // category ids, ordered by PublishedAt descending (see GetArticlesForCategoriesAsync above)
             var articles = await _repo.GetForCategoriesAsync(categoryIds);
             return articles.Take(count).ToList();
+        }
+
+        public async Task<List<ArticleDto>> GetDeletedAsync()
+        {
+            var deleted = await _repo.GetDeletedAsync();
+
+            return deleted.Select(a => new ArticleDto
+            {
+                Id = a.Id,
+                Title = a.Title,
+                Slug = a.Slug,
+                Summary = a.Summary,
+                Content = a.Content,
+                FeaturedImageThumb = a.FeaturedImageThumb,
+                FeaturedImageMedium = a.FeaturedImageMedium,
+                FeaturedImageLarge = a.FeaturedImageLarge,
+                AuthorId = a.AuthorId,
+                ReporterId = a.ReporterId,
+                CategoryId = a.CategoryId,
+                IsPublished = a.IsPublished,
+                PublishedAt = a.PublishedAt,
+                WorkflowStatus = a.WorkflowStatus,
+                ReviewerName = a.ReviewerUser?.FullName,
+                FactCheckerName = a.FactCheckerUser?.FullName,
+                WorkflowComment = a.WorkflowComment,
+                IsEditorsPick = a.IsEditorsPick,
+                EditorialPriority = a.EditorialPriority,
+                IsFactChecked = a.IsFactChecked,
+                AuthorName = a.Author?.User?.FullName,
+                ReporterName = a.Reporter?.Name,
+                ReporterSourceName = a.Reporter?.SourceName,
+                CategoryName = a.Category?.Name,
+                CategorySlug = a.Category?.Slug,
+                IsDeleted = a.IsDeleted
+            }).ToList();
         }
     }
 }

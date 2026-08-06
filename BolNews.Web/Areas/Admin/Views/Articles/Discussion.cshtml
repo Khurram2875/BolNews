@@ -133,6 +133,32 @@
 	<script>
 		let typingTimeout = null;
 
+		function escapeDiscussionHtml(value) {
+			return (value || "")
+				.replaceAll("&", "&amp;")
+				.replaceAll("<", "&lt;")
+				.replaceAll(">", "&gt;")
+				.replaceAll("\"", "&quot;")
+				.replaceAll("'", "&#039;");
+		}
+
+		function invokeDiscussionHub(methodName, articleId) {
+			if (typeof signalR === "undefined") {
+				return Promise.resolve();
+			}
+
+			if (!window.notificationConnection ||
+				window.notificationConnection.state !== signalR.HubConnectionState.Connected) {
+				return Promise.resolve();
+			}
+
+			return window.notificationConnection
+				.invoke(methodName, articleId)
+				.catch(function (err) {
+					console.warn(`${methodName} SignalR call failed`, err);
+				});
+		}
+
 		function scrollDiscussionToBottom(smooth = true) {
 			const thread = document.getElementById("discussionThread");
 
@@ -160,11 +186,11 @@
 					<div class="discussion-row theirs">
 						<div class="discussion-bubble their-bubble">
 							<div class="discussion-header">
-								<span class="discussion-user">${data.userName}</span>
-								<span class="discussion-time">${data.createdAt}</span>
+								<span class="discussion-user">${escapeDiscussionHtml(data.userName)}</span>
+								<span class="discussion-time">${escapeDiscussionHtml(data.createdAt)}</span>
 							</div>
 							<div class="discussion-message">
-								${data.message}
+								${escapeDiscussionHtml(data.message)}
 							</div>
 						</div>
 					</div>
@@ -188,7 +214,7 @@
 
 				const indicator = document.getElementById("typingIndicator");
 				if (indicator) {
-					indicator.innerText = `${userName} is typing...`;
+					indicator.innerText = `${userName || "Newsroom User"} is typing...`;
 				}
 			});
 
@@ -202,7 +228,7 @@
 				}
 			});
 
-			window.notificationConnection.invoke("JoinDiscussion", articleId);
+			invokeDiscussionHub("JoinDiscussion", articleId);
 		}
 
 		function attachDiscussion() {
@@ -232,7 +258,7 @@
 						const message = textarea.value.trim();
 						if (!message) return;
 
-						window.notificationConnection.invoke("TypingStopped", articleId);
+						invokeDiscussionHub("TypingStopped", articleId);
 
 						sendBtn.click();
 					}
@@ -242,22 +268,22 @@
 					const message = textarea.value.trim();
 
 					if (!message) {
-						window.notificationConnection.invoke("TypingStopped", articleId);
+						invokeDiscussionHub("TypingStopped", articleId);
 						return;
 					}
 
-					window.notificationConnection.invoke("TypingStarted", articleId);
+					invokeDiscussionHub("TypingStarted", articleId);
 
 					clearTimeout(typingTimeout);
 
 					typingTimeout = setTimeout(function () {
-						window.notificationConnection.invoke("TypingStopped", articleId);
+						invokeDiscussionHub("TypingStopped", articleId);
 					}, 1200);
 				});
 			}
 
 			window.addEventListener("beforeunload", function () {
-				window.notificationConnection.invoke("LeaveDiscussion", articleId);
+				invokeDiscussionHub("LeaveDiscussion", articleId);
 			});
 		}
 

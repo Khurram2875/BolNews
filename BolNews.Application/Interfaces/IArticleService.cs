@@ -13,7 +13,7 @@ namespace BolNews.Application.Interfaces
     {
         Task<int> CreateAsync(ArticleDto dto, string currentUserId, IList<string> roles);
         Task UpdateAsync(ArticleDto dto, string currentUserId, IList<string> roles, string? changeReason = null);
-        Task DeleteAsync(int id);
+        Task DeleteAsync(int id, string userId, string reason);
 
         Task<ArticleDto?> GetByIdAsync(int id);
         Task<IEnumerable<ArticleDto>> GetAllAsync(string Id, IList<string> roles);
@@ -58,5 +58,6 @@ namespace BolNews.Application.Interfaces
         Task CancelScheduleAsync(int articleId, string currentUserId, IList<string> roles);
         Task<List<Article>> SearchArticlesAsync(string search, int take = 20);
         Task<List<Article>> GetLatestArticlesForCategoriesAsync(List<int> categoryIds, int count);
+        Task<List<ArticleDto>> GetDeletedAsync();
     }
 }

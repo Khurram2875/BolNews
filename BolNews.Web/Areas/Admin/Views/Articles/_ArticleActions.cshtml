@@ -1,0 +1,114 @@
+﻿@using BolNews.Domain.Common
+@model BolNews.Web.Areas.Admin.ViewModels.ArticleRowContext
+@{
+    var article = Model.Article;
+}
+
+@if (article.IsDeleted)
+{
+    <a asp-action="Revisions" asp-route-id="@article.Id" class="badge bg-secondary text-decoration-none">
+        View History
+    </a>
+}
+else
+{
+    <div class="d-flex align-items-center flex-wrap gap-1">
+        <a asp-action="Discussion" asp-route-id="@article.Id" class="badge bg-primary">Discussion</a>
+        <a asp-action="Edit" asp-route-id="@article.Id" class="badge bg-warning">Edit</a>
+        <a href="/@article.CategorySlug/@article.Slug" target="_blank" class="badge bg-info text-decoration-none">Preview</a>
+
+        @if (Model.CanViewRevisionHistory)
+        {
+            <a asp-action="Revisions" asp-route-id="@article.Id" class="badge bg-secondary text-decoration-none">Changes</a>
+        }
+
+        @if (Model.CanManageHomepagePlacement && article.IsPublished)
+        {
+            if (Model.PinnedTopStoryArticleId == article.Id)
+            {
+                <form asp-area="Admin" asp-controller="EditorialPlacements" asp-action="UnpinTopStory" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                    <button type="submit" class="badge bg-light border-danger text-danger border">Unpin Top</button>
+                </form>
+            }
+            else
+            {
+                <form asp-area="Admin" asp-controller="EditorialPlacements" asp-action="PinTopStory" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="articleId" value="@article.Id" />
+                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                    <button type="submit" class="badge bg-dark">Pin Top</button>
+                </form>
+            }
+
+            if (Model.SecondaryPlacementByArticleId.TryGetValue(article.Id, out var placementId))
+            {
+                <form asp-area="Admin" asp-controller="EditorialPlacements" asp-action="UnpinSecondaryStory" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="placementId" value="@placementId" />
+                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                    <button type="submit" class="badge bg-light border-primary text-primary border">Unpin Secondary</button>
+                </form>
+            }
+            else if (Model.PinnedTopStoryArticleId != article.Id)
+            {
+                <form asp-area="Admin" asp-controller="EditorialPlacements" asp-action="PinSecondaryStory" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="articleId" value="@article.Id" />
+                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                    <button type="submit" class="badge bg-primary">Pin Secondary</button>
+                </form>
+            }
+
+            if (Model.LatestPlacementByArticleId.TryGetValue(article.Id, out var latestPlacementId))
+            {
+                <form asp-area="Admin" asp-controller="EditorialPlacements" asp-action="UnpinLatestStory" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="placementId" value="@latestPlacementId" />
+                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                    <button type="submit" class="badge bg-light border-success text-success border">Unpin Latest</button>
+                </form>
+            }
+            else if (Model.PinnedTopStoryArticleId != article.Id)
+            {
+                <form asp-area="Admin" asp-controller="EditorialPlacements" asp-action="PinLatestStory" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="articleId" value="@article.Id" />
+                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                    <button type="submit" class="badge bg-success">Pin Latest</button>
+                </form>
+            }
+
+            if (Model.FeaturedPlacementByArticleId.TryGetValue(article.Id, out var featuredPlacementId))
+            {
+                <form asp-area="Admin" asp-controller="EditorialPlacements" asp-action="UnpinFeaturedStory" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="placementId" value="@featuredPlacementId" />
+                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                    <button type="submit" class="badge bg-light border-warning text-warning border">Unpin Featured</button>
+                </form>
+            }
+            else if (Model.PinnedTopStoryArticleId != article.Id)
+            {
+                <form asp-area="Admin" asp-controller="EditorialPlacements" asp-action="PinFeaturedStory" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="articleId" value="@article.Id" />
+                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                    <button type="submit" class="badge bg-warning text-dark">Pin Featured</button>
+                </form>
+            }
+        }
+
+        @if (User.IsInRole("Admin") || User.IsInRole("Editor") || User.IsInRole("Author"))
+        {
+            <form asp-action="Delete" asp-route-id="@article.Id" method="post" class="d-inline js-delete-form" data-article-title="@article.Title">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="reason" class="js-delete-reason-input" value="" />
+                <button type="button" class="badge bg-danger js-delete-trigger" style="border:0;">
+                    Delete
+                </button>
+            </form>
+        }
+    </div>
+}

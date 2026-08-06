@@ -74,7 +74,8 @@ namespace BolNews.Persistence.Repositories
                 .FirstOrDefaultAsync(a => a.Slug == slug && !a.IsDeleted);
 
         public async Task<List<Article>> GetAllAsync()
-            => await _context.Articles
+        {
+            var result = await _context.Articles
                 .Include(a => a.Author)
                     .ThenInclude(a => a.User)
                 .Include(a => a.Category)
@@ -84,6 +85,10 @@ namespace BolNews.Persistence.Repositories
                 .Where(a => !a.IsDeleted)
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();
+
+            return result;
+        }
+            
 
         public async Task<List<Article>> GetByAuthorIdAsync(int authorId, int page, int pageSize)
             => await _context.Articles
@@ -458,5 +463,22 @@ namespace BolNews.Persistence.Repositories
                 .Take(take)
                 .ToListAsync();
         }
+        public async Task<List<Article>> GetDeletedAsync()
+        {
+            var result = await _context.Articles
+             .IgnoreQueryFilters()
+             .Where(x => x.IsDeleted)
+             .Include(a => a.Author)
+                 .ThenInclude(a => a.User)
+             .Include(a => a.Category)
+             .Include(a => a.Reporter)
+             .Include(a => a.ReviewerUser)
+             .Include(a => a.FactCheckerUser)
+             .OrderByDescending(a => a.UpdatedAt)
+             .ToListAsync();
+
+            return result;
+        }
+       
     }
 }

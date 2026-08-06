@@ -84,9 +84,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 	@* <script src="~/js/adminarea/localckeditor.js"></script> *@
    @*  <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script> *@
-	<script src="~/js/adminarea/adminareajs.js"></script>
-    <script src="~/js/lazyload.js"></script>
-	<script src="~/lib/quill/quill.js"></script>
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -274,11 +271,20 @@
                 refreshNotificationFeed(true);
             });
 
+            window.notificationConnection.onreconnected(function () {
+                refreshNotificationFeed(false);
+            });
+
+            window.notificationConnection.onclose(function (err) {
+                if (err) {
+                    console.error("Notification hub closed", err);
+                }
+            });
+
             window.notificationConnectionReady = window.notificationConnection.start()
                 .then(() => console.log("Notification hub connected"))
                 .catch(err => {
                     console.error(err);
-                    throw err;
                 });
 
             refreshNotificationFeed(false);
@@ -296,7 +302,7 @@
     }
 
     /* Sidebar Links */
-    .sidebar .nav-link {
+    .admin-sidebar-bg .nav-link {
         color: #9899ac !important;
         font-weight: 500;
         padding: 12px 20px;
@@ -308,24 +314,24 @@
     }
 
         /* Hover Effect */
-        .sidebar .nav-link:hover {
+        .admin-sidebar-bg .nav-link:hover {
             color: #ffffff !important;
             background-color: rgba(255, 255, 255, 0.05);
         }
 
         /* Active Page Styling */
-        .sidebar .nav-link.active {
+        .admin-sidebar-bg .nav-link.active {
             color: #ffffff !important;
             background-color: #2b2b40 !important;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
 
-            .sidebar .nav-link.active i {
+            .admin-sidebar-bg .nav-link.active i {
                 color: #0d6efd; /* Blue icon for active state */
             }
 
         /* Sidebar Icons */
-        .sidebar .nav-link i {
+        .admin-sidebar-bg .nav-link i {
             font-size: 1.1rem;
             line-height: 0;
         }

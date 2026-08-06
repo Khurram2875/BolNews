@@ -1,0 +1,99 @@
+﻿@using BolNews.Domain.Common
+@using BolNews.Domain.Enums
+@model BolNews.Web.Areas.Admin.ViewModels.ArticleRowContext
+@{
+    var article = Model.Article;
+}
+
+@switch (article.WorkflowStatus)
+{
+    case ArticleWorkflowStatus.Draft:
+        <span class="badge bg-secondary">Draft</span>
+        break;
+    case ArticleWorkflowStatus.Submitted:
+        <span class="badge bg-info text-dark">Submitted</span>
+        break;
+    case ArticleWorkflowStatus.UnderReview:
+        <span class="badge bg-primary">Under Review</span>
+        break;
+    case ArticleWorkflowStatus.FactCheckPending:
+        <span class="badge bg-warning text-dark">Fact Check</span>
+        break;
+    case ArticleWorkflowStatus.Approved:
+        <span class="badge bg-success">Approved</span>
+        break;
+    case ArticleWorkflowStatus.Rejected:
+        <span class="badge bg-danger">Rejected</span>
+        break;
+    case ArticleWorkflowStatus.Published:
+        <span class="badge bg-dark">Published</span>
+        break;
+    case ArticleWorkflowStatus.Archived:
+        <span class="badge bg-light text-dark">Archived</span>
+        break;
+    default:
+        <span class="badge bg-secondary">Unknown</span>
+        break;
+}
+@if (User.IsInRole(Roles.Admin) && article.WorkflowStatus == ArticleWorkflowStatus.Published && article.PublishedAt.HasValue)
+{
+    <div style="font-size:x-small" class="small text-success mt-1">
+        @article.PublishedAt.Value.AddHours(5).ToString("g")
+    </div>
+}
+@if (User.IsInRole(Roles.Author))
+{
+    <div class="small mt-1">
+        @if (article.WorkflowStatus == ArticleWorkflowStatus.Submitted ||
+            article.WorkflowStatus == ArticleWorkflowStatus.UnderReview)
+        {
+            @if (!string.IsNullOrWhiteSpace(article.ReviewerName))
+            {
+                <div class="text-muted">Reviewer: @article.ReviewerName</div>
+            }
+        }
+        @if (article.WorkflowStatus == ArticleWorkflowStatus.FactCheckPending)
+        {
+            @if (!string.IsNullOrWhiteSpace(article.ReviewerName))
+            {
+                <div class="text-muted">Reviewed by: @article.ReviewerName</div>
+            }
+            @if (!string.IsNullOrWhiteSpace(article.FactCheckerName))
+            {
+                <div class="text-muted">Fact Checker: @article.FactCheckerName</div>
+            }
+        }
+        @if (article.WorkflowStatus == ArticleWorkflowStatus.Rejected &&
+            !string.IsNullOrWhiteSpace(article.WorkflowComment))
+        {
+            <div class="text-danger mt-1">Reason: @article.WorkflowComment</div>
+        }
+        @if (article.WorkflowStatus == ArticleWorkflowStatus.Published &&
+            article.PublishedAt.HasValue)
+        {
+            <div class="text-success mt-1">@article.PublishedAt.Value.AddHours(5).ToString("g")</div>
+        }
+    </div>
+}
+
+@if (Model.CanManageHomepagePlacement)
+{
+    <div class="small mt-1">
+        @if (Model.PinnedTopStoryArticleId == article.Id)
+        {
+            <span class="badge bg-danger">Top Story</span>
+        }
+        @if (Model.SecondaryPlacementByArticleId.ContainsKey(article.Id))
+        {
+            <span class="badge bg-primary">Secondary Story</span>
+        }
+        @if (Model.LatestPlacementByArticleId.ContainsKey(article.Id))
+        {
+            <span class="badge bg-success">Latest</span>
+        }
+        @if (Model.FeaturedPlacementByArticleId.ContainsKey(article.Id))
+        {
+            <span class="badge bg-warning text-dark">Featured</span>
+        }
+    </div>
+}

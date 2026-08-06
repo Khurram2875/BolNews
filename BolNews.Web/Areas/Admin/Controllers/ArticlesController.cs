@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Azure;
 using BolNews.Application.Common;
 using BolNews.Application.Common.Helpers;
@@ -55,6 +55,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly IArticleDiffService _articleDiffService;
         private readonly IReporterService _reporterService;
         private readonly IMediaLibraryService _mediaLibraryService;
+        private readonly ILogger<ArticlesController> _logger;
 
         public ArticlesController(
              IArticleService articleService,
@@ -71,7 +72,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
              IArticleRevisionService articleRevisionService,
              IArticleDiffService articleDiffService,
              IReporterService reporterService,
-             IMediaLibraryService mediaLibraryService)
+             IMediaLibraryService mediaLibraryService, ILogger<ArticlesController> logger)
         {
             _articleService = articleService;
             _categoryService = categoryService;
@@ -94,10 +95,11 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _articleDiffService = articleDiffService;
             _reporterService = reporterService;
             _mediaLibraryService = mediaLibraryService;
+            _logger = logger;
         }
 
         // GET: Admin/Articles
-        public async Task<IActionResult> Index(int page = 1)
+        public async Task<IActionResult> Index(int page = 1, bool showDeleted = false)
         {
             //var userId = _userManager.GetUserId(User);
             //var roles = await _userManager.GetRolesAsync(await _userManager.GetUserAsync(User));
@@ -110,10 +112,17 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             var userId = _userManager.GetUserId(User);
             var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
             var roles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
+            var isAdmin = roles.Contains(Roles.Admin);
+
+            // Only Admins can view the deleted list — everyone else silently falls back to active articles
+            showDeleted = showDeleted && isAdmin;
 
             // 1. Fetch all matching business objects/DTOs for this user's permission layer
-            var dtos = await _articleService.GetAllAsync(userId, roles);
+            var dtos =  showDeleted
+                ? await _articleService.GetDeletedAsync()
+                : await _articleService.GetAllAsync(user.Id, roles);
 
             // 2. Setup pagination layout parameters
             const int pageSize = 10; // Number of records displayed per page
@@ -134,6 +143,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
             ViewBag.TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
             ViewBag.HasPreviousPage = page > 1;
             ViewBag.HasNextPage = page < ViewBag.TotalPages;
+            ViewBag.ShowingDeleted = showDeleted;
+            ViewBag.CanViewDeleted = isAdmin;
 
             if (roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor) || roles.Contains(Roles.SubEditor))
             {
@@ -317,24 +328,34 @@ namespace BolNews.Web.Areas.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 await PopulateDropdowns(model.CategoryId, model.ReporterId);
+
                 var errorList = ModelState.Where(x => x.Value.Errors.Count > 0)
-                .Select(x => new
-                {
-                    Property = x.Key,
-                    Errors = x.Value.Errors.Select(e => e.ErrorMessage).ToArray()
-                }).ToList();
+                    .Select(x => new
+                    {
+                        Property = x.Key,
+                        Errors = x.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    }).ToList();
 
                 foreach (var error in errorList)
                 {
-                    // Print to the Output window in Visual Studio
                     Console.WriteLine($"Property: {error.Property}, Error: {string.Join(", ", error.Errors)}");
                 }
+
                 return View(model);
             }
-            var userId = _userManager.GetUserId(User);
 
+            // ── Validate the image FIRST, before anything is written to the database ──
+            // This is the fix: previously the article was created before the image was
+            // even checked, so a bad file left a permanent orphan article with no image.
+            if (model.ImageFile != null && !ImageValidator.IsValid(model.ImageFile, out var imageError))
+            {
+                ModelState.AddModelError("ImageFile", imageError);
+                await PopulateDropdowns(model.CategoryId, model.ReporterId);
+                return View(model);
+            }
+
+            var userId = _userManager.GetUserId(User);
             var author = await _authorService.GetAuthorByUserId(userId);
-            //.FirstOrDefaultAsync(a => a.UserId == userId);
 
             if (author == null)
             {
@@ -344,52 +365,154 @@ namespace BolNews.Web.Areas.Admin.Controllers
             }
 
             var slug = await _articleService.GenerateUniqueSlugAsync(model.Title);
-
             var dto = _mapper.Map<ArticleDto>(model);
             dto.AuthorId = author.Id;
-
             dto.Slug = slug;
             dto.MetaTitle = model.MetaTitle ?? model.Title;
             dto.MetaDescription = model.MetaDescription;
-            //await _articleService.CreateAsync(dto);
-            //var articleId = await _articleService.CreateAsync(dto);
-            var roles = await _userManager.GetRolesAsync(await _userManager.GetUserAsync(User));
-            var articleId = await _articleService.CreateAsync(
-                dto,
-                userId,
-                roles);
 
-            if (model.ImageFile != null)
+            var roles = await _userManager.GetRolesAsync(await _userManager.GetUserAsync(User));
+            var articleId = await _articleService.CreateAsync(dto, userId, roles);
+
+            // ── Everything below this point can fail independently of the article insert. ──
+            // If any of it throws, the article we just created becomes an orphan unless
+            // we explicitly roll it back ourselves (this codebase has no DB transaction
+            // wrapper spanning CreateAsync + image attachment, so this is a manual
+            // compensating rollback rather than a real transaction).
+            try
             {
-                if (!ImageValidator.IsValid(model.ImageFile, out var error))
+                if (model.ImageFile != null)
                 {
-                    ModelState.AddModelError("ImageFile", error);
-                    await PopulateDropdowns(model.CategoryId, model.ReporterId);
-                    return View(model);
+                    using var stream = model.ImageFile.OpenReadStream();
+                    var (thumb, medium, large, xl) =
+                        await _imageService.SaveArticleImagesAsync(stream, articleId, _env.WebRootPath);
+
+                    await _articleService.UpdateImagesAsync(articleId, thumb, medium, large, xl);
+
+                    var mediaId = await _mediaLibraryService.CreateAsync(new MediaAssetDto
+                    {
+                        MediaType = MediaType.Image,
+                        Url = xl,
+                        ThumbnailUrl = thumb,
+                        MediumUrl = medium,
+                        LargeUrl = large,
+                        AltText = model.FeaturedImageAltText,
+                        Caption = model.FeaturedImageCaption,
+                        Credit = model.FeaturedImageCredit,
+                        OriginalFileName = model.ImageFile.FileName,
+                        TagsInput = model.FeaturedImageTagsInput
+                    }, userId!);
+
+                    await _mediaLibraryService.SetStorageAsync(mediaId, xl, thumb, medium, large, userId!);
+                    await _mediaLibraryService.AssignAsFeaturedAsync(articleId, mediaId, userId!);
+                }
+                else if (model.FeaturedMediaId.HasValue)
+                {
+                    await _mediaLibraryService.AssignAsFeaturedAsync(articleId, model.FeaturedMediaId.Value, userId!);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to attach featured image to article {ArticleId}. Rolling back article creation.", articleId);
+
+                // Compensating rollback: don't leave a broken, image-less article behind
+                try
+                {
+                    await _articleService.DeleteAsync(articleId, userId, "Auto deleted by system");
+                }
+                catch (Exception cleanupEx)
+                {
+                    _logger.LogError(cleanupEx, "Failed to clean up orphaned article {ArticleId} after image attachment failure.", articleId);
                 }
 
-                using var stream = model.ImageFile.OpenReadStream();
-
-                var (thumb, medium, large, xl) =
-                    await _imageService.SaveArticleImagesAsync(stream, articleId, _env.WebRootPath);
-
-                await _articleService.UpdateImagesAsync(articleId, thumb, medium, large, xl);
-                var mediaId = await _mediaLibraryService.CreateAsync(new MediaAssetDto
-                {
-                    MediaType = MediaType.Image, Url = xl, ThumbnailUrl = thumb, MediumUrl = medium,
-                    LargeUrl = large, AltText = model.FeaturedImageAltText, Caption = model.FeaturedImageCaption,
-                    Credit = model.FeaturedImageCredit, OriginalFileName = model.ImageFile.FileName,
-                    TagsInput = model.FeaturedImageTagsInput
-                }, userId!);
-                await _mediaLibraryService.SetStorageAsync(mediaId, xl, thumb, medium, large, userId!);
-                await _mediaLibraryService.AssignAsFeaturedAsync(articleId, mediaId, userId!);
+                ModelState.AddModelError("ImageFile",
+                    "The article could not be saved because the featured image failed to attach. Please try again.");
+                await PopulateDropdowns(model.CategoryId, model.ReporterId);
+                return View(model);
             }
-            else if (model.FeaturedMediaId.HasValue)
-                await _mediaLibraryService.AssignAsFeaturedAsync(articleId, model.FeaturedMediaId.Value, userId!);
 
             _cacheService.InvalidateHomePage();
             return RedirectToAction(nameof(Index));
         }
+
+        //public async Task<IActionResult> Create(ArticleVM model)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        await PopulateDropdowns(model.CategoryId, model.ReporterId);
+        //        var errorList = ModelState.Where(x => x.Value.Errors.Count > 0)
+        //        .Select(x => new
+        //        {
+        //            Property = x.Key,
+        //            Errors = x.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+        //        }).ToList();
+
+        //        foreach (var error in errorList)
+        //        {
+        //            // Print to the Output window in Visual Studio
+        //            Console.WriteLine($"Property: {error.Property}, Error: {string.Join(", ", error.Errors)}");
+        //        }
+        //        return View(model);
+        //    }
+        //    var userId = _userManager.GetUserId(User);
+
+        //    var author = await _authorService.GetAuthorByUserId(userId);
+        //    //.FirstOrDefaultAsync(a => a.UserId == userId);
+
+        //    if (author == null)
+        //    {
+        //        ModelState.AddModelError("", "Author profile not found.");
+        //        await PopulateDropdowns(model.CategoryId, model.ReporterId);
+        //        return View(model);
+        //    }
+
+        //    var slug = await _articleService.GenerateUniqueSlugAsync(model.Title);
+
+        //    var dto = _mapper.Map<ArticleDto>(model);
+        //    dto.AuthorId = author.Id;
+
+        //    dto.Slug = slug;
+        //    dto.MetaTitle = model.MetaTitle ?? model.Title;
+        //    dto.MetaDescription = model.MetaDescription;
+        //    //await _articleService.CreateAsync(dto);
+        //    //var articleId = await _articleService.CreateAsync(dto);
+        //    var roles = await _userManager.GetRolesAsync(await _userManager.GetUserAsync(User));
+        //    var articleId = await _articleService.CreateAsync(
+        //        dto,
+        //        userId,
+        //        roles);
+
+        //    if (model.ImageFile != null)
+        //    {
+        //        if (!ImageValidator.IsValid(model.ImageFile, out var error))
+        //        {
+        //            ModelState.AddModelError("ImageFile", error);
+        //            await PopulateDropdowns(model.CategoryId, model.ReporterId);
+        //            return View(model);
+        //        }
+
+        //        using var stream = model.ImageFile.OpenReadStream();
+
+        //        var (thumb, medium, large, xl) =
+        //            await _imageService.SaveArticleImagesAsync(stream, articleId, _env.WebRootPath);
+
+        //        await _articleService.UpdateImagesAsync(articleId, thumb, medium, large, xl);
+        //        var mediaId = await _mediaLibraryService.CreateAsync(new MediaAssetDto
+        //        {
+        //            MediaType = MediaType.Image, Url = xl, ThumbnailUrl = thumb, MediumUrl = medium,
+        //            LargeUrl = large, AltText = model.FeaturedImageAltText, Caption = model.FeaturedImageCaption,
+        //            Credit = model.FeaturedImageCredit, OriginalFileName = model.ImageFile.FileName,
+        //            TagsInput = model.FeaturedImageTagsInput
+        //        }, userId!);
+        //        await _mediaLibraryService.SetStorageAsync(mediaId, xl, thumb, medium, large, userId!);
+        //        await _mediaLibraryService.AssignAsFeaturedAsync(articleId, mediaId, userId!);
+        //    }
+        //    else if (model.FeaturedMediaId.HasValue)
+        //        await _mediaLibraryService.AssignAsFeaturedAsync(articleId, model.FeaturedMediaId.Value, userId!);
+
+        //    _cacheService.InvalidateHomePage();
+        //    return RedirectToAction(nameof(Index));
+        //}
 
         // GET: Admin/Articles/Edit/5
         public async Task<IActionResult> Edit(int id)
@@ -916,6 +1039,28 @@ namespace BolNews.Web.Areas.Admin.Controllers
             });
 
             return Json(result);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id, string? reason = null)
+        {
+            var userId = _userManager.GetUserId(User);
+            var roles = await _userManager.GetRolesAsync(await _userManager.GetUserAsync(User));
+
+            var canDelete = await _articleService.CanDeleteAsync(id, userId!, roles);
+            if (!canDelete)
+            {
+                TempData["Error"] = "You are not authorized to delete this article.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            await _articleService.DeleteAsync(id, userId!, reason);
+            _cacheService.InvalidateHomePage();
+
+            
+
+            TempData["Success"] = "Article deleted.";
+            return RedirectToAction(nameof(Index));
         }
     }
 }

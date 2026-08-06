@@ -9,24 +9,38 @@ namespace BolNews.Web.Areas.Admin.ViewModels
     {
         public int Id { get; set; }
 
+        [Required]
+        [StringLength(250)]
         public string Title { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(250)]
         public string Slug { get; set; } = string.Empty;
 
         [Required]
+        [StringLength(250)]
         public string MetaTitle { get; set; }
+
         [Required]
+        [StringLength(500)]
         public string MetaDescription { get; set; }
 
+        [Required]
+        [StringLength(1000)]
         public string Summary { get; set; } = string.Empty;
+
+        [Required]
         public string Content { get; set; } = string.Empty;
 
         public IFormFile? ImageFile { get; set; }
 
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a category.")]
         public int CategoryId { get; set; }
         public int AuthorId { get; set; }
+
         [Required]
         public int? ReporterId { get; set; }
-
+        public bool IsDeleted { get; set; }
         public bool IsPublished { get; set; }
         public DateTime? PublishedAt { get; set; }
         public bool SubmitForReview { get; set; }
@@ -79,6 +93,14 @@ namespace BolNews.Web.Areas.Admin.ViewModels
                 yield return new ValidationResult(
                     "Please select a featured image — either upload a file or choose one from the Media Library.",
                     new[] { nameof(ImageFile) });
+            }
+
+            if (string.IsNullOrWhiteSpace(Content) ||
+                string.Equals(Content.Trim(), "<p><br></p>", StringComparison.OrdinalIgnoreCase))
+            {
+                yield return new ValidationResult(
+                    "Please enter article content.",
+                    new[] { nameof(Content) });
             }
 
 
