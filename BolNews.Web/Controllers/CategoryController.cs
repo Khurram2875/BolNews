@@ -107,7 +107,7 @@ namespace BolNews.Web.Controllers
             ViewBag.OgImage = featuredVm.FeaturedImageXl;
 
             ViewBag.MetaTitle = string.IsNullOrWhiteSpace(category.MetaTitle)
-                ? category.Name
+                ? category.Name +" - "+ category.MetaTitle
                 : category.MetaTitle;
 
             ViewBag.MetaDescription = string.IsNullOrWhiteSpace(category.MetaDescription)

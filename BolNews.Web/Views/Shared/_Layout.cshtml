@@ -30,7 +30,8 @@
         var ogType = ViewBag.OgType as string ?? "website";
     }
     <!-- SEO -->
-    <title>@(ViewBag.MetaTitle ?? "Bol News")</title>
+    
+    <title>@(ViewData["Title"] ?? "Bol News - Latest News, Politics, Sports and Entertainment")</title>
     <meta name="description" content="@(ViewBag.MetaDescription ?? "Latest news from Bol News")" />
     @if (!string.IsNullOrWhiteSpace(ViewBag.MetaKeywords as string))
     {
@@ -68,6 +69,7 @@
     }
 
     <!-- Styles -->
+    <link rel="icon" type="image/x-icon" href="~/bol_network.ico" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BolNews.Web.styles.css" asp-append-version="true" />

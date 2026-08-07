@@ -54,6 +54,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
                     Id = c.Id,
                     Name = c.Name,
                     Slug = c.Slug,
+                    MetaTitle=c.MetaTitle,
+                    MetaDescription = c.MetaDescription,
                     ParentCategoryId = c.ParentCategoryId,
                     Children = BuildTree(categories, c.Id)
                 })

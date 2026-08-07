@@ -6,7 +6,8 @@
 
         public string Name { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
-
+        public string? MetaTitle { get; set; }
+        public string? MetaDescription { get; set; }
         public int? ParentCategoryId { get; set; }
 
         // For display

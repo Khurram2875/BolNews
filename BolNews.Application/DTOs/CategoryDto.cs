@@ -12,7 +12,8 @@ namespace BolNews.Application.DTOs
 
         public string Name { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
-
+        public string? MetaTitle { get; set; }
+        public string? MetaDescription { get; set; }
         public int? ParentCategoryId { get; set; }
 
         // Optional (for display in UI)

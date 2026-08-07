@@ -1,6 +1,7 @@
 ﻿using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
 using BolNews.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace BolNews.Application.Services
 {
@@ -19,6 +20,8 @@ namespace BolNews.Application.Services
                 Slug = c.Slug,
                 ParentCategoryId = c.ParentCategoryId,
                 ParentCategoryName = c.ParentCategory?.Name,
+                MetaTitle = c.MetaTitle,
+                MetaDescription = c.MetaDescription,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt,
                 IsDeleted = c.IsDeleted
@@ -35,6 +38,8 @@ namespace BolNews.Application.Services
                 Name = c.Name,
                 Slug = c.Slug,
                 ParentCategoryId = c.ParentCategoryId,
+                MetaTitle = c.MetaTitle,
+                MetaDescription = c.MetaDescription,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt,
                 IsDeleted = c.IsDeleted
@@ -48,6 +53,8 @@ namespace BolNews.Application.Services
                 Name = dto.Name,
                 Slug = dto.Slug,
                 ParentCategoryId = dto.ParentCategoryId,
+                MetaTitle = dto.MetaTitle,
+                MetaDescription = dto.MetaDescription,
                 CreatedAt = DateTime.UtcNow,
                 IsDeleted = false
             };
@@ -63,6 +70,8 @@ namespace BolNews.Application.Services
             entity.Name = dto.Name;
             entity.Slug = dto.Slug;
             entity.ParentCategoryId = dto.ParentCategoryId;
+            entity.MetaTitle = dto.MetaTitle;
+            entity.MetaDescription = dto.MetaDescription;
             entity.UpdatedAt = DateTime.UtcNow;
             await _repo.UpdateAsync(entity);
             return dto;
