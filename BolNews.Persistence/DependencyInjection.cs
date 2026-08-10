@@ -22,14 +22,24 @@ namespace BolNews.Persistence
             IConfiguration configuration)
         {
             ////Get the connection string from configuration
-            //var connectionString = configuration.GetConnectionString("DefaultConnection");
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
             //Get the connection string from Azure
             //var connectionString = "server=bolnewsdb.mysql.database.azure.com; port=3306; database=bolnewsdb; user=admin_user; password =Bol12345";
             ////local DB connection string
-            var connectionString = "server=192.168.75.129; port=3306; database=BolNewsDB; user=admin_user; password =Bol12345";
-            services.AddDbContext<AppDbContext>(options =>
-                options.UseMySql(connectionString,
-                    ServerVersion.AutoDetect(connectionString)));
+            //var connectionString = "server=192.168.75.129; port=3306; database=BolNewsDB; user=admin_user; password =Bol12345; " +
+                                   // "Pooling=true; MinimumPoolSize=20; MaximumPoolSize=300; ConnectionTimeout=30; DefaultCommandTimeout=60;";
+            services.AddDbContextPool<AppDbContext>(options =>
+                options.UseMySql(
+                        connectionString,
+                        ServerVersion.AutoDetect(connectionString),
+                        mysqlOptions =>
+                        {
+                            mysqlOptions.EnableRetryOnFailure(
+                                maxRetryCount: 5,
+                                maxRetryDelay: TimeSpan.FromSeconds(10),
+                                errorNumbersToAdd: null);
+                        }),
+                poolSize: 256);
 
             // Identity setup
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>

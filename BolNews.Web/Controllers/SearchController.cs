@@ -9,11 +9,13 @@ namespace BolNews.Web.Controllers
     {
         private readonly IArticleService _articleService;
         private readonly IMapper _mapper;
+        private readonly ICacheService _cacheService;
 
-        public SearchController(IArticleService articleService, IMapper mapper)
+        public SearchController(IArticleService articleService, IMapper mapper, ICacheService cacheService)
         {
             _articleService = articleService;
             _mapper = mapper;
+            _cacheService = cacheService;
         }
 
         public async Task<IActionResult> Index(string q, int page = 1)
@@ -31,11 +33,18 @@ namespace BolNews.Web.Controllers
 
             int pageSize = 10;
 
-            var articles = await _articleService.SearchAsync(q, page, pageSize);
+            var normalizedQuery = q.Trim().ToLowerInvariant();
+            var cacheKey = $"search_{normalizedQuery}_{page}";
 
-            var vm = _mapper.Map<List<PublicArticleVM>>(articles);
+            var articles = await _cacheService.GetOrCreateAsync(
+                cacheKey,
+                async () => await _articleService.SearchAsync(q, page, pageSize + 1),
+                2
+            );
 
-            ViewBag.HasNextPage = articles.Count == pageSize;
+            var vm = _mapper.Map<List<PublicArticleVM>>(articles.Take(pageSize));
+
+            ViewBag.HasNextPage = articles.Count > pageSize;
 
             ViewBag.MetaTitle = $"Search results for '{q}'";
             ViewBag.MetaDescription = $"Search results for {q} on Bol News";

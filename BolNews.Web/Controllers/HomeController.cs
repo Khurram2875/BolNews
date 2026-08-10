@@ -16,6 +16,7 @@ namespace BolNews.Web.Controllers
         private readonly ICategoryService _categoryService;
         private readonly IMapper _mapper;
         private readonly IEditorialPlacementService _editorialPlacementService;
+        private static readonly SemaphoreSlim _homeCacheLock = new(1, 1);
         private readonly IMemoryCache _cache;
         // Add this field to the HomeController class
         private static CancellationTokenSource ResetToken = new CancellationTokenSource();
@@ -27,113 +28,240 @@ namespace BolNews.Web.Controllers
             _mapper = mapper;
             _cache = cache;
             _editorialPlacementService = editorialPlacementService;
+            
         }
+        /// <summary>
+        /// /old index method, kept for reference. The new Index1 method is used for the actual homepage rendering.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        //public async Task<IActionResult> Index(string type = "today")
+        //{
+        //    var vm = await _cache.GetOrCreateAsync(CacheKeys.HomePage + "_Index", async entry =>
+        //    {
+        //        entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+
+        //        var model = new HomePageVM();
+
+        //        // ── Top story: editorial pin overrides the organic pick ────────
+        //        var pinnedTop = await _editorialPlacementService.GetPinnedTopStoryAsync();
+        //        var topStory = pinnedTop != null
+        //            ? _mapper.Map<PublicArticleVM>(pinnedTop.Article)
+        //            : _mapper.Map<PublicArticleVM>(await _articleService.GetTopStoryAsync());
+
+        //        model.TopStory = topStory;
+
+        //        // ── Raw chronological pool ──────────────────────────────────────
+        //        var secondaryRaw = await _articleService.GetSecondaryStoriesAsync(50);
+        //        var secondaryAll = _mapper.Map<List<PublicArticleVM>>(secondaryRaw);
+
+        //        // ── Independent pinned lists for Secondary / Latest / Featured ──
+        //        var pinnedSecondaryPlacements = await _editorialPlacementService.GetPinnedSecondaryStoriesAsync();
+        //        var pinnedLatestPlacements = await _editorialPlacementService.GetPinnedLatestStoriesAsync();
+        //        var pinnedFeaturedPlacements = await _editorialPlacementService.GetPinnedFeaturedStoriesAsync();
+
+        //        var pinnedSecondary = pinnedSecondaryPlacements.OrderBy(p => p.SortOrder)
+        //            .Select(p => _mapper.Map<PublicArticleVM>(p.Article)).ToList();
+        //        var pinnedLatest = pinnedLatestPlacements.OrderBy(p => p.SortOrder)
+        //            .Select(p => _mapper.Map<PublicArticleVM>(p.Article)).ToList();
+        //        var pinnedFeatured = pinnedFeaturedPlacements.OrderBy(p => p.SortOrder)
+        //            .Select(p => _mapper.Map<PublicArticleVM>(p.Article)).ToList();
+
+        //        // ── Strip anything already pinned anywhere (+ the top story) from the organic pool ──
+        //        var pinnedIds = new HashSet<int>(
+        //            pinnedSecondary.Select(a => a.Id)
+        //                .Concat(pinnedLatest.Select(a => a.Id))
+        //                .Concat(pinnedFeatured.Select(a => a.Id)));
+        //        if (topStory != null) pinnedIds.Add(topStory.Id);
+
+        //        var organicPool = secondaryAll.Where(a => !pinnedIds.Contains(a.Id)).ToList();
+
+        //        // ── Secondary: pinned first, organic fallback fills the rest ────
+        //        model.SecondaryStories = pinnedSecondary.Concat(organicPool).ToList();
+        //        model.PinnedSecondaryStoryCount = pinnedSecondary.Count;
+
+        //        // ── Latest / Featured: pinned lists passed through as-is ────────
+        //        model.PinnedLatestStories = pinnedLatest;
+        //        model.PinnedFeaturedStories = pinnedFeatured;
+
+        //        // ── Category sections (unchanged from before) ───────────────────
+        //        var categories = await _categoryService.GetParentCategoriesWithChildrenAsync();
+
+        //        var categoryIdMap = categories.ToDictionary(
+        //            c => c.Id,
+        //            c =>
+        //            {
+        //                var ids = new List<int> { c.Id };
+        //                if (c.SubCategories != null)
+        //                    ids.AddRange(c.SubCategories.Select(s => s.Id));
+        //                return ids;
+        //            }
+        //        );
+
+        //        var allCategoryIds = categoryIdMap.Values.SelectMany(ids => ids).Distinct().ToList();
+        //        var articlesDict = await _articleService.GetArticlesForCategoriesAsync(allCategoryIds, 5);
+
+        //        var displayOrder = new[]
+        //        {
+        //    "pakistan", "world-news", "business", "sports",
+        //    "entertainment", "technology", "health", "lifestyle"
+        //};
+
+        //        var orderedCategories = displayOrder
+        //            .Select(slug => categories.FirstOrDefault(c =>
+        //                string.Equals(c.Slug, slug, StringComparison.OrdinalIgnoreCase)))
+        //            .Where(c => c != null)
+        //            .ToList();
+
+        //        foreach (var category in orderedCategories)
+        //        {
+        //            var relevantIds = categoryIdMap[category.Id];
+        //            var mergedArticles = relevantIds
+        //                .Where(id => articlesDict.ContainsKey(id))
+        //                .SelectMany(id => articlesDict[id])
+        //                .OrderByDescending(a => a.PublishedAt)
+        //                .Take(5)
+        //                .ToList();
+
+        //            if (!mergedArticles.Any())
+        //                continue;
+
+        //            model.CategorySections.Add(new CategorySectionVM
+        //            {
+        //                CategoryName = category.Name,
+        //                CategorySlug = category.Slug,
+        //                Articles = _mapper.Map<List<PublicArticleVM>>(mergedArticles)
+        //            });
+        //        }
+
+        //        return model;
+        //    });
+
+        //    ViewBag.Type = type;
+        //    return View(vm);
+        //}
 
         public async Task<IActionResult> Index(string type = "today")
         {
-            var vm = await _cache.GetOrCreateAsync(CacheKeys.HomePage + "_Index", async entry =>
+            var cacheKey = CacheKeys.HomePage + "_Index";
+
+            if (!_cache.TryGetValue(cacheKey, out HomePageVM vm))
             {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
-
-                var model = new HomePageVM();
-
-                // ── Top story: editorial pin overrides the organic pick ────────
-                var pinnedTop = await _editorialPlacementService.GetPinnedTopStoryAsync();
-                var topStory = pinnedTop != null
-                    ? _mapper.Map<PublicArticleVM>(pinnedTop.Article)
-                    : _mapper.Map<PublicArticleVM>(await _articleService.GetTopStoryAsync());
-
-                model.TopStory = topStory;
-
-                // ── Raw chronological pool ──────────────────────────────────────
-                var secondaryRaw = await _articleService.GetSecondaryStoriesAsync(50);
-                var secondaryAll = _mapper.Map<List<PublicArticleVM>>(secondaryRaw);
-
-                // ── Independent pinned lists for Secondary / Latest / Featured ──
-                var pinnedSecondaryPlacements = await _editorialPlacementService.GetPinnedSecondaryStoriesAsync();
-                var pinnedLatestPlacements = await _editorialPlacementService.GetPinnedLatestStoriesAsync();
-                var pinnedFeaturedPlacements = await _editorialPlacementService.GetPinnedFeaturedStoriesAsync();
-
-                var pinnedSecondary = pinnedSecondaryPlacements.OrderBy(p => p.SortOrder)
-                    .Select(p => _mapper.Map<PublicArticleVM>(p.Article)).ToList();
-                var pinnedLatest = pinnedLatestPlacements.OrderBy(p => p.SortOrder)
-                    .Select(p => _mapper.Map<PublicArticleVM>(p.Article)).ToList();
-                var pinnedFeatured = pinnedFeaturedPlacements.OrderBy(p => p.SortOrder)
-                    .Select(p => _mapper.Map<PublicArticleVM>(p.Article)).ToList();
-
-                // ── Strip anything already pinned anywhere (+ the top story) from the organic pool ──
-                var pinnedIds = new HashSet<int>(
-                    pinnedSecondary.Select(a => a.Id)
-                        .Concat(pinnedLatest.Select(a => a.Id))
-                        .Concat(pinnedFeatured.Select(a => a.Id)));
-                if (topStory != null) pinnedIds.Add(topStory.Id);
-
-                var organicPool = secondaryAll.Where(a => !pinnedIds.Contains(a.Id)).ToList();
-
-                // ── Secondary: pinned first, organic fallback fills the rest ────
-                model.SecondaryStories = pinnedSecondary.Concat(organicPool).ToList();
-                model.PinnedSecondaryStoryCount = pinnedSecondary.Count;
-
-                // ── Latest / Featured: pinned lists passed through as-is ────────
-                model.PinnedLatestStories = pinnedLatest;
-                model.PinnedFeaturedStories = pinnedFeatured;
-
-                // ── Category sections (unchanged from before) ───────────────────
-                var categories = await _categoryService.GetParentCategoriesWithChildrenAsync();
-
-                var categoryIdMap = categories.ToDictionary(
-                    c => c.Id,
-                    c =>
+                await _homeCacheLock.WaitAsync();
+                try
+                {
+                    // someone else may have already rebuilt it while we were waiting
+                    if (!_cache.TryGetValue(cacheKey, out vm))
                     {
-                        var ids = new List<int> { c.Id };
-                        if (c.SubCategories != null)
-                            ids.AddRange(c.SubCategories.Select(s => s.Id));
-                        return ids;
+                        vm = await BuildHomePageAsync();
+                        _cache.Set(cacheKey, vm, TimeSpan.FromMinutes(5));
                     }
-                );
-
-                var allCategoryIds = categoryIdMap.Values.SelectMany(ids => ids).Distinct().ToList();
-                var articlesDict = await _articleService.GetArticlesForCategoriesAsync(allCategoryIds, 5);
-
-                var displayOrder = new[]
-                {
-            "pakistan", "world-news", "business", "sports",
-            "entertainment", "technology", "health", "lifestyle"
-        };
-
-                var orderedCategories = displayOrder
-                    .Select(slug => categories.FirstOrDefault(c =>
-                        string.Equals(c.Slug, slug, StringComparison.OrdinalIgnoreCase)))
-                    .Where(c => c != null)
-                    .ToList();
-
-                foreach (var category in orderedCategories)
-                {
-                    var relevantIds = categoryIdMap[category.Id];
-                    var mergedArticles = relevantIds
-                        .Where(id => articlesDict.ContainsKey(id))
-                        .SelectMany(id => articlesDict[id])
-                        .OrderByDescending(a => a.PublishedAt)
-                        .Take(5)
-                        .ToList();
-
-                    if (!mergedArticles.Any())
-                        continue;
-
-                    model.CategorySections.Add(new CategorySectionVM
-                    {
-                        CategoryName = category.Name,
-                        CategorySlug = category.Slug,
-                        Articles = _mapper.Map<List<PublicArticleVM>>(mergedArticles)
-                    });
                 }
-
-                return model;
-            });
+                finally
+                {
+                    _homeCacheLock.Release();
+                }
+            }
 
             ViewBag.Type = type;
             return View(vm);
         }
+
+        private async Task<HomePageVM> BuildHomePageAsync()
+        {
+            var model = new HomePageVM();
+
+            var pinnedTop = await _editorialPlacementService.GetPinnedTopStoryAsync();
+            var topStory = pinnedTop != null
+                ? _mapper.Map<PublicArticleVM>(pinnedTop.Article)
+                : _mapper.Map<PublicArticleVM>(await _articleService.GetTopStoryAsync());
+
+            model.TopStory = topStory;
+
+            var secondaryRaw = await _articleService.GetSecondaryStoriesAsync(50);
+            var secondaryAll = _mapper.Map<List<PublicArticleVM>>(secondaryRaw);
+
+            var pinnedSecondaryPlacements = await _editorialPlacementService.GetPinnedSecondaryStoriesAsync();
+            var pinnedLatestPlacements = await _editorialPlacementService.GetPinnedLatestStoriesAsync();
+            var pinnedFeaturedPlacements = await _editorialPlacementService.GetPinnedFeaturedStoriesAsync();
+
+            var pinnedSecondary = pinnedSecondaryPlacements.OrderBy(p => p.SortOrder)
+                .Select(p => _mapper.Map<PublicArticleVM>(p.Article)).ToList();
+            var pinnedLatest = pinnedLatestPlacements.OrderBy(p => p.SortOrder)
+                .Select(p => _mapper.Map<PublicArticleVM>(p.Article)).ToList();
+            var pinnedFeatured = pinnedFeaturedPlacements.OrderBy(p => p.SortOrder)
+                .Select(p => _mapper.Map<PublicArticleVM>(p.Article)).ToList();
+
+            var pinnedIds = new HashSet<int>(
+                pinnedSecondary.Select(a => a.Id)
+                    .Concat(pinnedLatest.Select(a => a.Id))
+                    .Concat(pinnedFeatured.Select(a => a.Id)));
+            if (topStory != null) pinnedIds.Add(topStory.Id);
+
+            var organicPool = secondaryAll.Where(a => !pinnedIds.Contains(a.Id)).ToList();
+
+            model.SecondaryStories = pinnedSecondary.Concat(organicPool).ToList();
+            model.PinnedSecondaryStoryCount = pinnedSecondary.Count;
+            model.PinnedLatestStories = pinnedLatest;
+            model.PinnedFeaturedStories = pinnedFeatured;
+
+            //── Category sections(unchanged from before) ───────────────────
+            var categories = await _categoryService.GetParentCategoriesWithChildrenAsync();
+
+            var categoryIdMap = categories.ToDictionary(
+                c => c.Id,
+                c =>
+                {
+                    var ids = new List<int> { c.Id };
+                    if (c.SubCategories != null)
+                        ids.AddRange(c.SubCategories.Select(s => s.Id));
+                    return ids;
+                }
+            );
+
+            var allCategoryIds = categoryIdMap.Values.SelectMany(ids => ids).Distinct().ToList();
+            var articlesDict = await _articleService.GetArticlesForCategoriesAsync(allCategoryIds, 5);
+
+            var displayOrder = new[]
+            {
+                "pakistan", "world-news", "business", "sports",
+                "entertainment", "technology", "health", "lifestyle"
+            };
+
+            var orderedCategories = displayOrder
+                .Select(slug => categories.FirstOrDefault(c =>
+                    string.Equals(c.Slug, slug, StringComparison.OrdinalIgnoreCase)))
+                .Where(c => c != null)
+                .ToList();
+
+            foreach (var category in orderedCategories)
+            {
+                var relevantIds = categoryIdMap[category.Id];
+                var mergedArticles = relevantIds
+                    .Where(id => articlesDict.ContainsKey(id))
+                    .SelectMany(id => articlesDict[id])
+                    .OrderByDescending(a => a.PublishedAt)
+                    .Take(5)
+                    .ToList();
+
+                if (!mergedArticles.Any())
+                    continue;
+
+                model.CategorySections.Add(new CategorySectionVM
+                {
+                    CategoryName = category.Name,
+                    CategorySlug = category.Slug,
+                    Articles = _mapper.Map<List<PublicArticleVM>>(mergedArticles)
+                });
+
+                
+            }
+            return model;
+        }
+
+
+
+
         public async Task<IActionResult> Index1(string type = "today")
         {
             //ClearLatestNewsCache(5);
@@ -226,6 +354,7 @@ namespace BolNews.Web.Controllers
             ViewBag.Type = type;
             return View(vm);
         }
+
         [HttpGet("/privacy-policy")]
         public IActionResult Privacy() => Information("privacy");
 

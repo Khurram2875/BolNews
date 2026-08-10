@@ -1,15 +1,20 @@
+using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
+using System.Collections.Concurrent;
 
 namespace BolNews.Web.Controllers
 {
     public class ArticleController : Controller
     {
         private readonly IArticlePageService _articlePageService;
-
-        public ArticleController(IArticlePageService articlePageService)
+        private readonly IMemoryCache _cache;
+        private static readonly ConcurrentDictionary<string, SemaphoreSlim> _articlePageLocks = new();
+        public ArticleController(IArticlePageService articlePageService, IMemoryCache cache)
         {
             _articlePageService = articlePageService;
+            _cache = cache;
         }
 
         public IActionResult LegacyDetails(string categorySlug, string slug)
@@ -19,7 +24,30 @@ namespace BolNews.Web.Controllers
 
         public async Task<IActionResult> Details(string categorySlug, string slug)
         {
-            var pageVM = await _articlePageService.BuildDetailsPageAsync(slug);
+            var normalizedSlug = slug.ToLowerInvariant();
+            var cacheKey = $"article_page_{normalizedSlug}";
+
+            if (!_cache.TryGetValue(cacheKey, out ArticleDetailsPageVM pageVM))
+            {
+                var keyLock = _articlePageLocks.GetOrAdd(normalizedSlug, _ => new SemaphoreSlim(1, 1));
+                await keyLock.WaitAsync();
+                try
+                {
+                    if (!_cache.TryGetValue(cacheKey, out pageVM))
+                    {
+                        pageVM = await _articlePageService.BuildDetailsPageAsync(slug);
+                        if (pageVM != null)
+                        {
+                            _cache.Set(cacheKey, pageVM, TimeSpan.FromMinutes(2));
+                        }
+                    }
+                }
+                finally
+                {
+                    keyLock.Release();
+                }
+            }
+
             if (pageVM == null)
                 return NotFound();
 
