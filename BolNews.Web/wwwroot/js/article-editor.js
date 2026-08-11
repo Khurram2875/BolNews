@@ -136,8 +136,8 @@
                     </p>
 
                     <small class="embed-subtitle">
-                        The complete interactive embed will
-                        render live on your main website
+                        (The complete interactive embed will
+                        render live on your main website, you can also preview from article list page)
                     </small>
 
                 </div>

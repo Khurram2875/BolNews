@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using AutoMapper;
+using BolNews.Application.Common;
 using BolNews.Application.Interfaces;
 using BolNews.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -20,34 +21,39 @@ namespace BolNews.Web.Controllers
 
         public async Task<IActionResult> Index(string q, int page = 1)
         {
-            ViewBag.Query = q ?? "";
-            ViewBag.CurrentPage = page;
+            if (page < 1)
+            {
+                page = 1;
+            }
 
             if (string.IsNullOrWhiteSpace(q))
             {
+                ViewBag.Query = "";
+                ViewBag.CurrentPage = page;
                 ViewBag.MetaTitle = "Search";
                 ViewBag.MetaDescription = "Search Bol News for the latest stories.";
                 ViewBag.HasNextPage = false;
                 return View(new List<PublicArticleVM>());   // empty result set, shows the search bar with no query yet
             }
 
-            int pageSize = 10;
+            const int pageSize = 10;
 
-            var normalizedQuery = q.Trim().ToLowerInvariant();
-            var cacheKey = $"search_{normalizedQuery}_{page}";
+            var normalizedQuery = q.Trim();
+            var cacheKey = CacheKeys.Search(normalizedQuery, page);
 
             var articles = await _cacheService.GetOrCreateAsync(
                 cacheKey,
-                async () => await _articleService.SearchAsync(q, page, pageSize + 1),
+                async () => await _articleService.SearchAsync(normalizedQuery, page, pageSize + 1),
                 2
             );
 
             var vm = _mapper.Map<List<PublicArticleVM>>(articles.Take(pageSize));
 
             ViewBag.HasNextPage = articles.Count > pageSize;
-
-            ViewBag.MetaTitle = $"Search results for '{q}'";
-            ViewBag.MetaDescription = $"Search results for {q} on Bol News";
+            ViewBag.Query = normalizedQuery;
+            ViewBag.CurrentPage = page;
+            ViewBag.MetaTitle = $"Search results for '{normalizedQuery}'";
+            ViewBag.MetaDescription = $"Search results for {normalizedQuery} on Bol News";
 
             return View(vm);
         }

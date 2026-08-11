@@ -184,7 +184,7 @@ namespace BolNews.Tests.Integration
         [Fact]
         public async Task Delete_ExistingArticle_SoftDeletesIt()
         {
-            await _service.DeleteAsync(2);
+            await _service.DeleteAsync(2, "test-user-id");
 
             // After soft-delete the article is invisible to all service queries
             var allPublished = await _service.GetAllPublishedAsync();

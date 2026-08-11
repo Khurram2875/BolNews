@@ -1,20 +1,20 @@
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Interfaces;
+using BolNews.Application.Common;
+using BolNews.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
-using System.Collections.Concurrent;
 
 namespace BolNews.Web.Controllers
 {
     public class ArticleController : Controller
     {
         private readonly IArticlePageService _articlePageService;
-        private readonly IMemoryCache _cache;
-        private static readonly ConcurrentDictionary<string, SemaphoreSlim> _articlePageLocks = new();
-        public ArticleController(IArticlePageService articlePageService, IMemoryCache cache)
+        private readonly ICacheService _cacheService;
+
+        public ArticleController(IArticlePageService articlePageService, ICacheService cacheService)
         {
             _articlePageService = articlePageService;
-            _cache = cache;
+            _cacheService = cacheService;
         }
 
         public IActionResult LegacyDetails(string categorySlug, string slug)
@@ -24,29 +24,11 @@ namespace BolNews.Web.Controllers
 
         public async Task<IActionResult> Details(string categorySlug, string slug)
         {
-            var normalizedSlug = slug.ToLowerInvariant();
-            var cacheKey = $"article_page_{normalizedSlug}";
-
-            if (!_cache.TryGetValue(cacheKey, out ArticleDetailsPageVM pageVM))
-            {
-                var keyLock = _articlePageLocks.GetOrAdd(normalizedSlug, _ => new SemaphoreSlim(1, 1));
-                await keyLock.WaitAsync();
-                try
-                {
-                    if (!_cache.TryGetValue(cacheKey, out pageVM))
-                    {
-                        pageVM = await _articlePageService.BuildDetailsPageAsync(slug);
-                        if (pageVM != null)
-                        {
-                            _cache.Set(cacheKey, pageVM, TimeSpan.FromMinutes(2));
-                        }
-                    }
-                }
-                finally
-                {
-                    keyLock.Release();
-                }
-            }
+            var cacheKey = CacheKeys.ArticlePage(slug);
+            var pageVM = await _cacheService.GetOrCreateAsync<ArticleDetailsPageVM?>(
+                cacheKey,
+                async () => await _articlePageService.BuildDetailsPageAsync(slug),
+                2);
 
             if (pageVM == null)
                 return NotFound();

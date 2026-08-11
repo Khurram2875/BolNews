@@ -1,6 +1,7 @@
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Controllers;
 using BolNews.Web.Interfaces;
+using BolNews.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
@@ -31,7 +32,7 @@ public class ArticleControllerCanonicalTests
                 BaseUrl = "https://example.com"
             });
 
-        var controller = new ArticleController(service.Object);
+        var controller = new ArticleController(service.Object, CreateCacheService());
 
         var result = await controller.Details("wrong-category", "my-article");
 
@@ -63,7 +64,7 @@ public class ArticleControllerCanonicalTests
                 BaseUrl = "https://example.com"
             });
 
-        var controller = new ArticleController(service.Object);
+        var controller = new ArticleController(service.Object, CreateCacheService());
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext()
@@ -84,7 +85,7 @@ public class ArticleControllerCanonicalTests
     public void LegacyDetails_ShouldRedirectPermanentlyToRootLevelArticleRoute()
     {
         var service = new Mock<IArticlePageService>();
-        var controller = new ArticleController(service.Object);
+        var controller = new ArticleController(service.Object, CreateCacheService());
 
         var result = controller.LegacyDetails("canonical-category", "my-article");
 
@@ -98,5 +99,17 @@ public class ArticleControllerCanonicalTests
     private sealed class SessionFeature : ISessionFeature
     {
         public ISession Session { get; set; } = default!;
+    }
+
+    private static ICacheService CreateCacheService()
+    {
+        var cacheService = new Mock<ICacheService>();
+        cacheService.Setup(c => c.GetOrCreateAsync(
+                It.IsAny<string>(),
+                It.IsAny<Func<Task<ArticleDetailsPageVM?>>>(),
+                It.IsAny<int>()))
+            .Returns<string, Func<Task<ArticleDetailsPageVM?>>, int>((_, factory, _) => factory());
+
+        return cacheService.Object;
     }
 }
