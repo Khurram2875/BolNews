@@ -16,6 +16,7 @@
     const Parchment = Quill.import('parchment');
     const BlockEmbed = Quill.import('blots/block/embed');
     const ImageBlot = Quill.import('formats/image');
+    const Delta = Quill.import('delta');
 
 
     // ============================================================
@@ -87,11 +88,7 @@
 
             node.setAttribute(
                 'data-raw-html',
-                btoa(
-                    unescape(
-                        encodeURIComponent(value)
-                    )
-                )
+                encodeSocialEmbedHtml(value)
             );
 
             let platformName = 'Social Media';
@@ -156,11 +153,7 @@
 
             if (encodedData) {
 
-                return decodeURIComponent(
-                    escape(
-                        atob(encodedData)
-                    )
-                );
+                return decodeSocialEmbedHtml(encodedData);
             }
 
             return node.innerHTML;
@@ -170,6 +163,7 @@
     class MediaEmbedBlot extends BlockEmbed {
         static create(value) {
             const node = super.create();
+            node.classList.add('quill-media-embed');
             node.setAttribute('contenteditable', 'false');
             node.setAttribute('data-media-type', value.type);
             node.setAttribute('data-url', value.url);
@@ -187,9 +181,11 @@
 
     SocialEmbedBlot.blotName = 'socialEmbed';
     SocialEmbedBlot.tagName = 'div';
+    SocialEmbedBlot.className = 'quill-social-embed';
 
     MediaEmbedBlot.blotName = 'mediaEmbed';
     MediaEmbedBlot.tagName = 'div';
+    MediaEmbedBlot.className = 'quill-media-embed';
 
 
     Quill.register(
@@ -278,6 +274,31 @@
 
     // Makes Quill available in DevTools.
     window.quill = quill;
+
+
+    quill.clipboard.addMatcher(
+        'div.quill-social-embed',
+        function (node) {
+            const rawHtml =
+                getSocialEmbedRawHtml(node);
+
+            return new Delta().insert({
+                socialEmbed: rawHtml
+            });
+        }
+    );
+
+    quill.clipboard.addMatcher(
+        'div[data-media-type][data-url]',
+        function (node) {
+            return new Delta().insert({
+                mediaEmbed: {
+                    type: node.getAttribute('data-media-type'),
+                    url: node.getAttribute('data-url')
+                }
+            });
+        }
+    );
 
 
     // ============================================================
@@ -1686,8 +1707,88 @@
                 }
             );
 
+        div.querySelectorAll('.quill-social-embed')
+            .forEach(
+                function (embed) {
+                    const rawHtml =
+                        getSocialEmbedRawHtml(embed);
+
+                    embed.setAttribute(
+                        'contenteditable',
+                        'false'
+                    );
+
+                    embed.setAttribute(
+                        'data-raw-html',
+                        encodeSocialEmbedHtml(rawHtml)
+                    );
+
+                    embed.innerHTML =
+                        SocialEmbedBlot.create(rawHtml).innerHTML;
+                }
+            );
+
+        div.querySelectorAll('div[data-media-type][data-url]')
+            .forEach(
+                function (embed) {
+                    embed.classList.add(
+                        'quill-media-embed'
+                    );
+
+                    embed.setAttribute(
+                        'contenteditable',
+                        'false'
+                    );
+                }
+            );
+
 
         return div.innerHTML;
+    }
+
+
+    function getSocialEmbedRawHtml(node) {
+
+        const encodedData =
+            node.getAttribute(
+                'data-raw-html'
+            );
+
+        if (encodedData) {
+
+            return decodeSocialEmbedHtml(
+                encodedData
+            );
+        }
+
+        return node.innerHTML;
+    }
+
+
+    function encodeSocialEmbedHtml(value) {
+
+        return btoa(
+            unescape(
+                encodeURIComponent(value ?? '')
+            )
+        );
+    }
+
+
+    function decodeSocialEmbedHtml(value) {
+
+        try {
+
+            return decodeURIComponent(
+                escape(
+                    atob(value)
+                )
+            );
+        }
+        catch {
+
+            return '';
+        }
     }
 
 });
