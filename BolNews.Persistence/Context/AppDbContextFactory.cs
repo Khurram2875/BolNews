@@ -14,7 +14,7 @@ namespace BolNews.Persistence.Context
             .Build();
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
             //Connection string for MySQL database local
-            var connectionString = "server=10.3.12.210; port=3306; database=BolNewsDB; user=admin_user; password =Bol12345";
+            var connectionString = "server=192.168.75.129; port=3306; database=BolNewsDB; user=admin_user; password =Bol12345";
             //Get the connection string from Azure
             //var connectionString = "server=bolnewsdb.mysql.database.azure.com; port=3306; database=bolnewsdb; user=admin_user; password =Bol12345";
             optionsBuilder.UseMySql(

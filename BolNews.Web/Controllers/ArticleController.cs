@@ -1,8 +1,9 @@
-using BolNews.Web.Areas.Admin.ViewModels;
-using BolNews.Web.Interfaces;
 using BolNews.Application.Common;
 using BolNews.Application.Interfaces;
+using BolNews.Web.Areas.Admin.ViewModels;
+using BolNews.Web.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace BolNews.Web.Controllers
 {
@@ -10,11 +11,13 @@ namespace BolNews.Web.Controllers
     {
         private readonly IArticlePageService _articlePageService;
         private readonly ICacheService _cacheService;
-
-        public ArticleController(IArticlePageService articlePageService, ICacheService cacheService)
+        private readonly ILogger<ArticleController> _logger;
+        public ArticleController(IArticlePageService articlePageService, ICacheService cacheService, ILogger<ArticleController> logger)
         {
             _articlePageService = articlePageService;
             _cacheService = cacheService;
+            _logger = logger;
+
         }
 
         public IActionResult LegacyDetails(string categorySlug, string slug)
@@ -25,10 +28,11 @@ namespace BolNews.Web.Controllers
         public async Task<IActionResult> Details(string categorySlug, string slug)
         {
             var cacheKey = CacheKeys.ArticlePage(slug);
+        
             var pageVM = await _cacheService.GetOrCreateAsync<ArticleDetailsPageVM?>(
                 cacheKey,
-                async () => await _articlePageService.BuildDetailsPageAsync(slug),
-                2);
+                () => _articlePageService.BuildDetailsPageAsync(slug),
+                10);
 
             if (pageVM == null)
                 return NotFound();
@@ -42,7 +46,12 @@ namespace BolNews.Web.Controllers
                 });
             }
 
+            
             await _articlePageService.TrackArticleEngagementAsync(pageVM.Article.Id, HttpContext.Session);
+            
+
+            
+
 
             ViewBag.OgImage = pageVM.Article.FeaturedImageXl;
             ViewBag.MetaTitle = string.IsNullOrWhiteSpace(pageVM.Article.MetaTitle)

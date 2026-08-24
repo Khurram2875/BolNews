@@ -17,6 +17,7 @@ namespace BolNews.Application.Interfaces
         Task<Article?> FindPublishedByIdAsync(int id);
         Task<bool> SlugExistsAsync(string slug);
         Task<Article?> FindBySlugAsync(string slug);
+        Task<PublicArticleData?> GetPublicArticleBySlugAsync(string slug);
         Task<List<Article>> GetAllAsync();
         Task<List<Article>> GetByAuthorIdAsync(int authorId, int page, int pageSize);
         Task<List<Article>> GetByCategorySlugAsync(string categorySlug, int page, int pageSize);
@@ -27,7 +28,8 @@ namespace BolNews.Application.Interfaces
         Task<List<Article>> GetLatestPublishedAsync(int count, IReadOnlyCollection<int>? excludedArticleIds = null);
         Task<List<Article>> GetByCategoryIdAsync(int categoryId, int count);
         Task<List<Article>> GetRelatedArticlesAsync(int articleId, int categoryId, IReadOnlyCollection<int> tagIds, int count);
-        Task<List<Article>> GetForCategoriesAsync(List<int> categoryIds);
+       
+        Task<List<Article>> GetForCategoriesAsync(List<int> categoryIds, int count);
         Task<List<Article>> GetPublishedSinceAsync(DateTime fromDate, int limit);
         Task<List<Article>> SearchAsync(string term, int page, int pageSize);
         Task<List<Article>> GetTrendingCandidatesAsync(DateTime fromDate, int candidateLimit);
@@ -49,5 +51,6 @@ namespace BolNews.Application.Interfaces
         Task<List<Article>> GetDueScheduledArticlesAsync(DateTime utcNow);
         Task<List<Article>> SearchPublishedAsync(string search, int take = 20);
         Task<List<Article>> GetDeletedAsync();
+        Task<Dictionary<int, List<Article>>> GetLatestArticlesForCategoriesAsync(IReadOnlyCollection<int> categoryIds, int count);
     }
 }

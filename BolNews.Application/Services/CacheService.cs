@@ -1,10 +1,11 @@
+using BolNews.Application.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using BolNews.Application.Interfaces;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace BolNews.Application.Services
 {
@@ -12,6 +13,7 @@ namespace BolNews.Application.Services
     {
         private readonly IMemoryCache _cache;
         private static readonly ConcurrentDictionary<string, CacheKeyLock> _keyLocks = new();
+        private readonly ILogger<CacheService> _logger;
 
         private sealed class CacheKeyLock
         {
@@ -19,30 +21,61 @@ namespace BolNews.Application.Services
             public int ReferenceCount { get; set; }
         }
 
-        public CacheService(IMemoryCache cache)
+        public CacheService(IMemoryCache cache, ILogger<CacheService> logger)
         {
             _cache = cache;
+            _logger = logger;
         }
-
+        //updated code GetOrCreateAsync with logging
         public async Task<T> GetOrCreateAsync<T>(
-            string key,
-            Func<Task<T>> factory,
-            int minutes = 10)
+    string key,
+    Func<Task<T>> factory,
+    int minutes = 10)
         {
             if (_cache.TryGetValue(key, out object? cachedValue))
+            {
+                _logger.LogInformation(
+                    "CACHE HIT key={Key}",
+                    key);
+
                 return (T)cachedValue!;
+            }
+
+            _logger.LogInformation(
+                "CACHE MISS key={Key}",
+                key);
 
             var keyLock = RentLock(key);
+
             await keyLock.Semaphore.WaitAsync();
+
             try
             {
-                // someone else may have already rebuilt this exact key while we waited
                 if (_cache.TryGetValue(key, out cachedValue))
+                {
+                    _logger.LogInformation(
+                        "CACHE HIT_AFTER_LOCK key={Key}",
+                        key);
+
                     return (T)cachedValue!;
+                }
+
+                _logger.LogInformation(
+                    "CACHE BUILD key={Key} minutes={Minutes}",
+                    key,
+                    minutes);
 
                 var value = await factory();
 
-                _cache.Set(key, value, TimeSpan.FromMinutes(minutes));
+                _cache.Set(
+                    key,
+                    value,
+                    TimeSpan.FromMinutes(minutes));
+
+                _logger.LogInformation(
+                    "CACHE STORE key={Key} minutes={Minutes}",
+                    key,
+                    minutes);
 
                 return value;
             }
@@ -52,6 +85,35 @@ namespace BolNews.Application.Services
                 ReturnLock(key, keyLock);
             }
         }
+        //original code GetOrCreateAsync 
+        //public async Task<T> GetOrCreateAsync<T>(
+        //    string key,
+        //    Func<Task<T>> factory,
+        //    int minutes = 10)
+        //{
+        //    if (_cache.TryGetValue(key, out object? cachedValue))
+        //        return (T)cachedValue!;
+
+        //    var keyLock = RentLock(key);
+        //    await keyLock.Semaphore.WaitAsync();
+        //    try
+        //    {
+        //        // someone else may have already rebuilt this exact key while we waited
+        //        if (_cache.TryGetValue(key, out cachedValue))
+        //            return (T)cachedValue!;
+
+        //        var value = await factory();
+
+        //        _cache.Set(key, value, TimeSpan.FromMinutes(minutes));
+
+        //        return value;
+        //    }
+        //    finally
+        //    {
+        //        keyLock.Semaphore.Release();
+        //        ReturnLock(key, keyLock);
+        //    }
+        //}
 
         public void Remove(string key)
         {

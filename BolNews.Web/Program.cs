@@ -58,8 +58,8 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseResponseCompression();
 app.UseStaticFiles();
-app.UseSession();
 app.UseRouting();
+app.UseSession();
 app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();

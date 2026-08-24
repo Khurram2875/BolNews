@@ -113,7 +113,28 @@ namespace BolNews.Persistence.Configurations
 
             builder.Property(x => x.IsFactChecked)
                 .HasDefaultValue(false);
-           
+
+            builder.HasIndex(a => new
+            {
+                a.IsPublished,
+                a.IsDeleted,
+                a.CategoryId,
+                a.PublishedAt
+            })
+                .HasDatabaseName("IX_Articles_Published_Deleted_Category_PublishedAt");
+
+            builder.HasIndex(a => new
+            {
+                a.IsPublished,
+                a.IsDeleted,
+                a.OverallScore,
+                a.PublishedAt
+            })
+            .HasDatabaseName("IX_Articles_Published_Deleted_OverallScore_PublishedAt");
+
+            builder.HasIndex(a => new 
+            { a.Slug, a.IsDeleted })
+            .HasDatabaseName("IX_Articles_Slug_IsDeleted");
         }
     }
 }

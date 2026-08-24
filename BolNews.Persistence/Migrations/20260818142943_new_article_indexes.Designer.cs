@@ -4,16 +4,19 @@ using BolNews.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace BolNews.Persistence.Migrations
+namespace BolNews.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260818142943_new_article_indexes")]
+    partial class new_article_indexes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -313,9 +316,6 @@ namespace BolNews.Persistence.Migrations
                     b.HasIndex("CategoryId", "OverallScore");
 
                     b.HasIndex("IsPublished", "PublishedAt");
-
-                    b.HasIndex("Slug", "IsDeleted")
-                        .HasDatabaseName("IX_Articles_Slug_IsDeleted");
 
                     b.HasIndex("IsPublished", "IsDeleted", "CategoryId", "PublishedAt")
                         .HasDatabaseName("IX_Articles_Published_Deleted_Category_PublishedAt");

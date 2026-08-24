@@ -7,6 +7,8 @@ using BolNews.Domain.Entities;
 using BolNews.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace BolNews.Application.Services
 {
@@ -23,6 +25,7 @@ namespace BolNews.Application.Services
         private readonly ISlaService _slaService;
         private readonly IEditorialPlacementRepository? _editorialPlacementRepository;
         private readonly ITagService? _tagService;
+        private readonly ILogger<ArticleService> _logger;
 
         #region Role and other private helpers
         private bool IsAdmin(IList<string> roles)
@@ -136,7 +139,7 @@ namespace BolNews.Application.Services
             }
         }
         #endregion
-        public ArticleService(IArticleRepository repo, IMemoryCache cache, IArticleScoringService articleScoringService, IArticleRevisionService articleRevisionService, IAuthorService authorService, INotificationService notificationService, IWorkflowTransitionService workflowTransitionService, IEditorialAssignmentService editorialAssignmentService, ISlaService slaService, IEditorialPlacementRepository? editorialPlacementRepository = null, ITagService? tagService = null)
+        public ArticleService(IArticleRepository repo, IMemoryCache cache, IArticleScoringService articleScoringService, IArticleRevisionService articleRevisionService, IAuthorService authorService, INotificationService notificationService, IWorkflowTransitionService workflowTransitionService, IEditorialAssignmentService editorialAssignmentService, ISlaService slaService, IEditorialPlacementRepository? editorialPlacementRepository = null, ITagService? tagService = null, ILogger<ArticleService>? logger = null)
         {
             _repo = repo;
             _cache = cache;
@@ -149,6 +152,8 @@ namespace BolNews.Application.Services
             _slaService = slaService;
             _editorialPlacementRepository = editorialPlacementRepository;
             _tagService = tagService;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            
         }
 
         public async Task<int> CreateAsync(ArticleDto dto, string currentUserId,IList<string> roles)
@@ -452,30 +457,50 @@ namespace BolNews.Application.Services
         }
 
         public async Task<Article> GetBySlugAsync(string slug) => await _repo.FindBySlugAsync(slug);
+        public async Task<PublicArticleData?> GetPublicArticleBySlugAsync(string slug)
+        {
+            return await _repo.GetPublicArticleBySlugAsync(slug);
+        }
         public async Task<List<Article>> GetByCategorySlugAsync(string categorySlug, int page) => await _repo.GetByCategorySlugAsync(categorySlug, page, 10);
         public async Task<List<Article>> GetCategoryArticlesAsync(string categorySlug, int skip, int take) =>
             await _repo.GetCategoryArticlesAsync(categorySlug, skip, take);
         public async Task<List<Article>> GetByTagSlugAsync(string tagSlug, int page = 1, int pageSize = 20) => await _repo.GetByTagSlugAsync(tagSlug, page, pageSize);
 
-        public async Task<List<Article>> GetRelatedArticlesAsync(int categoryId, int excludeId, int count = 5)
+        public async Task<List<Article>> GetRelatedArticlesAsync(int categoryId, int excludeId, List<int> tagIds, int count = 5)
         {
             string key = $"related_{categoryId}_{excludeId}";
-            if (_cache.TryGetValue(key, out List<Article>? cached)) return cached!;
-            var article = await _repo.FindByIdAsync(excludeId);
-            var tagIds = article?.ArticleTags.Select(at => at.TagId).ToList() ?? new List<int>();
-            var result = await _repo.GetRelatedArticlesAsync(excludeId, categoryId, tagIds, count);
+
+            if (_cache.TryGetValue(key, out List<Article>? cached))
+                return cached!;
+
+            var result = await _repo.GetRelatedArticlesAsync(
+                excludeId,
+                categoryId,
+                tagIds,
+                count);
 
             if (result.Count < count)
             {
-                var existingIds = result.Select(a => a.Id).Append(excludeId).ToHashSet();
-                var fallback = (await _repo.GetByCategoryIdAsync(categoryId, count + 1))
-                    .Where(a => !existingIds.Contains(a.Id))
-                    .Take(count - result.Count);
+                var existingIds = result
+                    .Select(a => a.Id)
+                    .Append(excludeId)
+                    .ToHashSet();
 
-                result.AddRange(fallback);
+                var fallback = await _repo.GetByCategoryIdAsync(
+                    categoryId,
+                    count + 1);
+
+                result.AddRange(
+                    fallback
+                        .Where(a => !existingIds.Contains(a.Id))
+                        .Take(count - result.Count));
             }
 
-            _cache.Set(key, result, TimeSpan.FromMinutes(5));
+            _cache.Set(
+                key,
+                result,
+                TimeSpan.FromMinutes(5));
+
             return result;
         }
 
@@ -548,10 +573,46 @@ namespace BolNews.Application.Services
         public async Task<List<Article>> SearchAsync(string q, int page, int pageSize) => await _repo.SearchAsync(q.Trim(), page, pageSize);
         public async Task IncrementViewCountAsync(int articleId) => await _repo.IncrementViewCountAsync(articleId);
 
+        //public async Task<Dictionary<int, List<Article>>> GetArticlesForCategoriesAsync(List<int> categoryIds, int count)
+        //{
+        //    if (categoryIds == null ||
+        //        categoryIds.Count == 0 ||
+        //        count <= 0)
+        //    {
+        //        return new Dictionary<int, List<Article>>();
+        //    }
+
+        //    var ids = categoryIds
+        //        .Where(id => id > 0)
+        //        .Distinct()
+        //        .ToList();
+
+        //    if (ids.Count == 0)
+        //        return new Dictionary<int, List<Article>>();
+
+        //    var articles = await _repo.GetForCategoriesAsync(ids, count);
+
+        //    var result = ids.ToDictionary(
+        //        id => id,
+        //        _ => new List<Article>());
+
+        //    foreach (var article in articles)
+        //    {
+        //        if (!result.TryGetValue(article.CategoryId, out var list))
+        //            continue;
+
+        //        if (list.Count < count)
+        //            list.Add(article);
+        //    }
+
+        //    return result;
+        //}
+
         public async Task<Dictionary<int, List<Article>>> GetArticlesForCategoriesAsync(List<int> categoryIds, int count)
         {
-            var articles = await _repo.GetForCategoriesAsync(categoryIds);
-            return articles.GroupBy(a => a.CategoryId).ToDictionary(g => g.Key, g => g.Take(count).ToList());
+            return await _repo.GetLatestArticlesForCategoriesAsync(
+                categoryIds,
+                count);
         }
 
         public async Task<List<Article>> GetTrendingAsync(int count = 5, string type = "week")
@@ -824,7 +885,7 @@ namespace BolNews.Application.Services
         {
             // GetForCategoriesAsync already returns published articles for these
             // category ids, ordered by PublishedAt descending (see GetArticlesForCategoriesAsync above)
-            var articles = await _repo.GetForCategoriesAsync(categoryIds);
+            var articles = await _repo.GetForCategoriesAsync(categoryIds, count);
             return articles.Take(count).ToList();
         }
 
