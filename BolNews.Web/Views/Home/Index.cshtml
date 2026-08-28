@@ -80,13 +80,14 @@
     }
 }
 
-<div style="padding-top:20px" class="bn-home-shell">
+<div style="padding-top:20px" class="bn-container">
     @if (Model.TopStory != null)
     {
         <section class="bn-home-hero bn-home-hero--three" aria-label="Top stories">
             @if (latestStories.Any())
             {
                 <aside class="bn-story-rail" aria-label="Latest">
+                    
                     <h2>Latest</h2>
                     <div class="bn-latest-list">
                         @foreach (var item in latestStories)
@@ -103,6 +104,9 @@
                                 </span>
                             </a>
                         }
+                    </div>
+                    <div class="bn-ad-slot mt-4">
+                        <div id="Bolnews_Sidebar_Bottom_BTF" data-ad-slot="sidebar-bottom-btf"></div>
                     </div>
                 </aside>
             }
@@ -158,6 +162,9 @@
             @if (featuredStories.Any())
             {
                 <aside class="bn-story-rail" aria-label="Featured">
+                    <div class="bn-ad-slot mb-4">
+                        <div id="Bolnews_Sidebar_Top_ATF" data-ad-slot="sidebar-top-atf"></div>
+                    </div>
                     <h2>Featured</h2>
                     <div class="bn-latest-list">
 
@@ -220,7 +227,7 @@
 
                         </div>
                     }
-
+                   
 
                 </aside>
             }
@@ -287,6 +294,10 @@
 @* <div class="container mt-4">
     @await Component.InvokeAsync("SmartTrending", new { count = 6 })
 </div> *@
+<div class="bn-ad-code-block bn-ad-slot-incontent" aria-label="Advertisement">
+    <div id="Bolnews_Incontent_Lazy"></div>
+</div>
+
 
 @if (Model.CategorySections.Count > 2)
 {

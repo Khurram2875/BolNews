@@ -2,69 +2,634 @@
 @model List<CategoryTreeVM>
 
 @{
-	ViewData["Title"] = "Categories";
-	Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Categories";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 
 <h2 class="mb-4">Categories</h2>
 
-<div class="mb-3">
-	<a asp-action="Create" class="btn btn-primary">
-		<i class="bi bi-plus-circle"></i> Add New Category
-	</a>
+<div class="row">
+    <div class="col-md-6">
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add New Category
+        </a>
+    </div>
+    <div class="col-md-2">
+        <!-- Category Search -->
+        <div class="row mb-3" style="text-align:end; padding-top:5px">
+            
+                <label for="categorySearch" class="form-label fw-semibold">
+                    Search Category
+                </label>
+
+               
+            
+        </div>
+
+        
+    </div>
+    <div class="col-md-4">
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="bi bi-search"></i>
+            </span>
+
+            <input type="text"
+                   id="categorySearch"
+                   class="form-control"
+                   placeholder="Search category by name..."
+                   autocomplete="off" />
+
+            <button type="button"
+                    id="clearCategorySearch"
+                    class="btn btn-outline-secondary"
+                    title="Clear search">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div id="categorySearchInfo"
+             class="small text-muted mb-2"
+             style="display:none;">
+        </div>
+    </div>
+   
 </div>
+
 <div class="card shadow-sm">
-	<div class="card-header bg-primary text-white">
-		<h5 class="mb-0">Categories</h5>
-	</div>
-	<div class="card-body p-0">
-		<table class="table-striped table-hover mb-0 table align-middle">
-			<thead class="table-dark">
-				<tr>
-					<th>Name</th>
-					<th>Slug</th>
-					<th>Meta Title</th>
-					<th>Meta Description</th>
-					<th>Actions</th>
-				</tr>
-			</thead>
-			<tbody>
-				@foreach (var item in Model)
-				{
-					ViewBag.Level = 0;
-					@await Html.PartialAsync("_CategoryRow", item)
-				}
-			</tbody>
-		</table>
-	</div>
+
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Categories</h5>
+    </div>
+
+    <div class="card-body">
+
+        
+
+    </div>
+
+    <div class="table-responsive">
+        <table class="table-sm table-striped table-hover mb-0 table align-middle"
+               id="categoriesTable"
+                style="font:small">
+
+            <thead class="table-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Slug</th>
+                    <th>Meta Title</th>
+                    <th>Meta Description</th>
+                    <th style="width: 150px;">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody id="categoriesTableBody">
+
+                @foreach (var item in Model)
+                {
+                    ViewBag.Level = 0;
+                    @await Html.PartialAsync("_CategoryRow", item)
+                }
+
+            </tbody>
+
+        </table>
+
+        <div id="noCategoriesFound"
+             class="text-muted py-4 text-center"
+             style="display:none;">
+            <i class="bi bi-search fs-3 d-block mb-2"></i>
+            No categories found.
+        </div>
+
+    </div>
 </div>
-@* @functions {
-    void RenderTree(List<CategoryVM> categories, int level)
-    {
-        foreach (var item in categories)
-        {
-            <tr>
-                <td>
-                    @Html.Raw(new string('-', level * 3))
-                    <strong>@item.Name</strong>
-                </td>
-                <td>@item.Slug</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm me-1">Edit</a>
 
-                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline">
-                        <button class="btn btn-danger btn-sm"
-                                onclick="return confirm('Delete this category?');">
-                            Delete
-                        </button>
-                    </form>
-                </td>
-            </tr>
+@section Scripts {
 
-            if (item.Children != null && item.Children.Any())
-            {
-                RenderTree(item.Children, level + 1);
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const searchInput = document.getElementById("categorySearch");
+            const clearButton = document.getElementById("clearCategorySearch");
+            const noResults = document.getElementById("noCategoriesFound");
+            const searchInfo = document.getElementById("categorySearchInfo");
+
+
+            // ============================================================
+            // CATEGORY TREE HELPERS
+            // ============================================================
+
+            /*
+             * Collapse a category and ALL of its descendants.
+             *
+             * Example:
+             *
+             * News
+             *   └── Pakistan
+             *        └── Karachi
+             *
+             * Collapsing News will hide both Pakistan and Karachi.
+             */
+            function collapseDescendants(parentId) {
+
+                const children = document.querySelectorAll(
+                    '.category-row[data-parent-id="' + parentId + '"]'
+                );
+
+                children.forEach(function (child) {
+
+                    // Hide the child
+                    child.classList.add("d-none");
+
+                    const childId =
+                        child.getAttribute("data-category-id");
+
+
+                    // Reset child's toggle button
+                    const childToggle =
+                        document.querySelector(
+                            '.category-toggle[data-target="' + childId + '"]'
+                        );
+
+                    if (childToggle) {
+
+                        childToggle.setAttribute(
+                            "aria-expanded",
+                            "false"
+                        );
+
+                        const icon =
+                            childToggle.querySelector("i");
+
+                        if (icon) {
+
+                            icon.classList.remove(
+                                "bi-chevron-down"
+                            );
+
+                            icon.classList.add(
+                                "bi-chevron-right"
+                            );
+                        }
+                    }
+
+
+                    // Recursively collapse grandchildren
+                    collapseDescendants(childId);
+
+                });
             }
-        }
-    }
-} *@
+
+
+            /*
+             * Expand a category's immediate children only.
+             *
+             * We intentionally don't expand grandchildren here.
+             *
+             * Example:
+             *
+             * News
+             *   └── Pakistan
+             *        └── Karachi
+             *
+             * Clicking News shows Pakistan,
+             * but Karachi remains hidden until Pakistan is expanded.
+             */
+            function expandChildren(parentId) {
+
+                const children = document.querySelectorAll(
+                    '.category-row[data-parent-id="' + parentId + '"]'
+                );
+
+                children.forEach(function (child) {
+
+                    child.classList.remove("d-none");
+
+                });
+            }
+
+
+            /*
+             * Reset the entire tree to its initial state.
+             *
+             * Parent categories are visible.
+             * Child categories are hidden.
+             * All arrows point to the right.
+             */
+            function resetCategoryTree() {
+
+                document.querySelectorAll(
+                    ".category-child-row"
+                ).forEach(function (row) {
+
+                    row.classList.add("d-none");
+
+                });
+
+
+                document.querySelectorAll(
+                    ".category-toggle"
+                ).forEach(function (button) {
+
+                    button.setAttribute(
+                        "aria-expanded",
+                        "false"
+                    );
+
+                    const icon =
+                        button.querySelector("i");
+
+                    if (icon) {
+
+                        icon.classList.remove(
+                            "bi-chevron-down"
+                        );
+
+                        icon.classList.add(
+                            "bi-chevron-right"
+                        );
+                    }
+
+                });
+
+            }
+
+
+            /*
+             * Expand all parents required to display a particular row.
+             *
+             * Used during search.
+             */
+            function expandParentHierarchy(row) {
+
+                let parentId =
+                    row.getAttribute("data-parent-id");
+
+
+                while (parentId) {
+
+                    // Find parent row
+                    const parentRow =
+                        document.querySelector(
+                            '.category-row[data-category-id="' +
+                            parentId +
+                            '"]'
+                        );
+
+                    if (!parentRow) {
+                        break;
+                    }
+
+
+                    // Show parent row
+                    parentRow.classList.remove("d-none");
+
+
+                    // Find parent's toggle button
+                    const parentToggle =
+                        document.querySelector(
+                            '.category-toggle[data-target="' +
+                            parentId +
+                            '"]'
+                        );
+
+                    if (parentToggle) {
+
+                        parentToggle.setAttribute(
+                            "aria-expanded",
+                            "true"
+                        );
+
+
+                        const icon =
+                            parentToggle.querySelector("i");
+
+                        if (icon) {
+
+                            icon.classList.remove(
+                                "bi-chevron-right"
+                            );
+
+                            icon.classList.add(
+                                "bi-chevron-down"
+                            );
+                        }
+                    }
+
+
+                    // Continue up the tree
+                    parentId =
+                        parentRow.getAttribute(
+                            "data-parent-id"
+                        );
+                }
+            }
+
+
+            // ============================================================
+            // INITIAL TREE STATE
+            // ============================================================
+
+            /*
+             * Hide all child categories when the page first loads.
+             */
+            resetCategoryTree();
+
+
+            // ============================================================
+            // EXPAND / COLLAPSE
+            // ============================================================
+
+            document.querySelectorAll(
+                ".category-toggle"
+            ).forEach(function (button) {
+
+                button.addEventListener(
+                    "click",
+                    function () {
+
+                        const categoryId =
+                            this.getAttribute(
+                                "data-target"
+                            );
+
+
+                        const isExpanded =
+                            this.getAttribute(
+                                "aria-expanded"
+                            ) === "true";
+
+
+                        if (isExpanded) {
+
+                            /*
+                             * Currently expanded.
+                             *
+                             * Collapse this category's
+                             * children and descendants.
+                             */
+                            collapseDescendants(
+                                categoryId
+                            );
+
+                        }
+                        else {
+
+                            /*
+                             * Currently collapsed.
+                             *
+                             * Show immediate children only.
+                             */
+                            expandChildren(
+                                categoryId
+                            );
+
+                        }
+
+
+                        /*
+                         * Update aria-expanded.
+                         */
+                        this.setAttribute(
+                            "aria-expanded",
+                            (!isExpanded).toString()
+                        );
+
+
+                        /*
+                         * Update arrow icon.
+                         *
+                         * Collapsed:
+                         *     >
+                         *
+                         * Expanded:
+                         *     v
+                         */
+                        const icon =
+                            this.querySelector("i");
+
+                        if (icon) {
+
+                            if (isExpanded) {
+
+                                icon.classList.remove(
+                                    "bi-chevron-down"
+                                );
+
+                                icon.classList.add(
+                                    "bi-chevron-right"
+                                );
+
+                            }
+                            else {
+
+                                icon.classList.remove(
+                                    "bi-chevron-right"
+                                );
+
+                                icon.classList.add(
+                                    "bi-chevron-down"
+                                );
+
+                            }
+                        }
+
+                    }
+                );
+
+            });
+
+
+            // ============================================================
+            // CATEGORY SEARCH
+            // ============================================================
+
+            searchInput.addEventListener(
+                "input",
+                function () {
+
+                    const searchTerm =
+                        this.value
+                            .trim()
+                            .toLowerCase();
+
+
+                    const allRows =
+                        Array.from(
+                            document.querySelectorAll(
+                                ".category-row"
+                            )
+                        );
+
+
+                    // ----------------------------------------------------
+                    // EMPTY SEARCH
+                    // ----------------------------------------------------
+
+                    if (searchTerm === "") {
+
+                        /*
+                         * Restore normal tree.
+                         */
+                        allRows.forEach(function (row) {
+
+                            row.classList.remove(
+                                "d-none"
+                            );
+
+                        });
+
+
+                        resetCategoryTree();
+
+
+                        noResults.style.display =
+                            "none";
+
+                        searchInfo.style.display =
+                            "none";
+
+                        return;
+                    }
+
+
+                    // ----------------------------------------------------
+                    // SEARCH MODE
+                    // ----------------------------------------------------
+
+                    /*
+                     * Hide every category first.
+                     */
+                    allRows.forEach(function (row) {
+
+                        row.classList.add(
+                            "d-none"
+                        );
+
+                    });
+
+
+                    /*
+                     * Search ONLY the category name.
+                     *
+                     * data-category-name is populated
+                     * from Model.Name in _CategoryRow.cshtml.
+                     */
+                    const matchingRows =
+                        allRows.filter(function (row) {
+
+                            const categoryName =
+                                row.getAttribute(
+                                    "data-category-name"
+                                ) || "";
+
+                            return categoryName
+                                .toLowerCase()
+                                .includes(searchTerm);
+
+                        });
+
+
+                    /*
+                     * Show matching categories.
+                     */
+                    matchingRows.forEach(function (row) {
+
+                        row.classList.remove(
+                            "d-none"
+                        );
+
+
+                        /*
+                         * Show all parents required
+                         * to maintain the hierarchy.
+                         */
+                        expandParentHierarchy(
+                            row
+                        );
+
+                    });
+
+
+                    // ----------------------------------------------------
+                    // SEARCH INFORMATION
+                    // ----------------------------------------------------
+
+                    if (matchingRows.length === 0) {
+
+                        searchInfo.textContent =
+                            "No matching categories.";
+
+                    }
+                    else {
+
+                        searchInfo.textContent =
+                            matchingRows.length +
+                            (
+                                matchingRows.length === 1
+                                    ? " category found."
+                                    : " categories found."
+                            );
+
+                    }
+
+
+                    searchInfo.style.display =
+                        "block";
+
+
+                    // ----------------------------------------------------
+                    // NO RESULTS
+                    // ----------------------------------------------------
+
+                    if (matchingRows.length === 0) {
+
+                        noResults.style.display =
+                            "block";
+
+                    }
+                    else {
+
+                        noResults.style.display =
+                            "none";
+
+                    }
+
+                }
+            );
+
+
+            // ============================================================
+            // CLEAR SEARCH
+            // ============================================================
+
+            clearButton.addEventListener(
+                "click",
+                function () {
+
+                    /*
+                     * Clear search box.
+                     */
+                    searchInput.value = "";
+
+
+                    /*
+                     * Trigger the input event so the
+                     * category tree gets reset.
+                     */
+                    searchInput.dispatchEvent(
+                        new Event("input")
+                    );
+
+
+                    /*
+                     * Put cursor back in search box.
+                     */
+                    searchInput.focus();
+
+                }
+            );
+
+        });
+    </script>
+}

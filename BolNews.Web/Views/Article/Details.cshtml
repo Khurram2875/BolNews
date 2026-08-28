@@ -8,7 +8,7 @@
 	ViewData["Title"] = Model.Article.MetaTitle ?? Model.Article.Title;
 	var articleUrl = $"{Model.BaseUrl}/{Model.Article.CategorySlug}/{Model.Article.Slug}";
 }
-<div style="padding-top:0px;" class="bn-home-shell">
+<div style="padding-top:0px;" class="bn-container">
 	<!-- ── Breadcrumb ──────────────────────────────────────────── -->
 	<div class="container" style="padding-top:16px;">
 		<nav aria-label="breadcrumb">
@@ -194,7 +194,10 @@
 			<!-- ── Sidebar ──────────────────────────────────────── -->
 			<aside class="col-lg-4">
 				<div style="position:sticky;top:70px;">
-
+					<!-- Sidebar Ad — Top -->
+					<div class="bn-ad-slot mb-4">
+						<div id="Bolnews_Sidebar_Top_ATF" data-ad-slot="sidebar-top-atf"></div>
+					</div>
 					<!-- Latest news widget -->
 					
 						<div class="bn-story-rail"><h2>Latest News</h2></div>
@@ -208,6 +211,14 @@
 						<div class="bn-story-rail"><h2>Trending</h2></div>
 						@await Component.InvokeAsync("TrendingNews",
 						new { type = Context.Request.Query["type"].ToString() })
+					</div>
+					<!-- Sidebar Ad — Bottom -->
+					<div class="bn-ad-slot mt-4">
+						<div id="Bolnews_Sidebar_Bottom_BTF" data-ad-slot="sidebar-bottom-btf"></div>
+					</div>
+					<!-- Sidebar Ad — Bottom -->
+					<div class="bn-ad-slot mt-4">
+						<div id="Bolnews_Sidebar_Bottom_BTF" data-ad-slot="sidebar-bottom-btf"></div>
 					</div>
 				</div>
 			</aside>
@@ -366,6 +377,46 @@
 {
 	<script>
 		document.addEventListener('DOMContentLoaded', function () {
+
+			// ==========================================
+			// IN-CONTENT AD INJECTION
+			// ==========================================
+			(function insertInContentAds() {
+				const body = document.querySelector('.bn-article-body');
+				if (!body) return;
+
+				const paragraphs = Array.from(body.querySelectorAll(':scope > p'));
+				if (paragraphs.length === 0) return;
+
+				function makeAdSlot(id, isRepeater) {
+					const wrapper = document.createElement('div');
+					wrapper.className = 'bn-ad-slot bn-ad-slot-incontent';
+
+					const inner = document.createElement('div');
+					if (isRepeater) {
+						inner.className = 'lazy';
+						inner.setAttribute('parent-unit', 'Bolnews_Incontent_Lazy');
+					} else {
+						inner.id = id;
+					}
+
+					wrapper.appendChild(inner);
+					return wrapper;
+				}
+
+				// First ad: right after paragraph 1
+				paragraphs[0].insertAdjacentElement('afterend', makeAdSlot('Bolnews_Incontent_Lazy', false));
+
+				// Repeater: after every 4th paragraph from there on
+				const REPEAT_EVERY = 4;
+				for (let i = REPEAT_EVERY; i < paragraphs.length; i += REPEAT_EVERY) {
+					paragraphs[i].insertAdjacentElement('afterend', makeAdSlot(null, true));
+				}
+			})();
+
+			// ==========================================
+			// SOCIAL EMBEDS (unchanged from before)
+			// ==========================================
 			const embeds = document.querySelectorAll('.bn-article-body .quill-social-embed');
 			if (embeds.length === 0) return;
 
@@ -491,4 +542,133 @@
 		});
 	</script>
 }
+@* @section Scripts
+{
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			const embeds = document.querySelectorAll('.bn-article-body .quill-social-embed');
+			if (embeds.length === 0) return;
+
+			const globalScriptTracker = new Set();
+
+			// ==========================================
+			// PASS 1: STRUCTURAL RESTORATION & SANITIZATION
+			// ==========================================
+			embeds.forEach(function (container) {
+				const encodedData = container.getAttribute('data-raw-html');
+				if (encodedData) {
+					try {
+						const originalHtml = decodeURIComponent(escape(atob(encodedData)));
+						const tempDiv = document.createElement('div');
+						tempDiv.innerHTML = originalHtml;
+
+						// Track dynamic external runtime scripts while filtering out YouTube/Google payloads
+						tempDiv.querySelectorAll('script').forEach(function(scriptTag) {
+							if (scriptTag.src && !scriptTag.src.includes('youtube.com') && !scriptTag.src.includes('google.com')) {
+								globalScriptTracker.add(scriptTag.src);
+							}
+						});
+
+						tempDiv.querySelectorAll('script').forEach(el => el.remove());
+
+						// --- OPTIMIZED YOUTUBE LAZY ENGINE ---
+						const youtubeIframe = tempDiv.querySelector('iframe[src*="youtube.com"], iframe[src*="youtu.be"]');
+						if (youtubeIframe) {
+							const originalSrc = youtubeIframe.getAttribute('src');
+							const videoIdMatch = originalSrc.match(/(?:embed\/|v=|v%3D|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+							if (videoIdMatch && videoIdMatch[1]) {
+								const videoId = videoIdMatch[1];
+								youtubeIframe.setAttribute('srcdoc', `
+									<style>
+										* { padding:0; margin:0; overflow:hidden; box-sizing:border-box; }
+										html, body { height:100%; width:100%; background:#000; display:flex; align-items:center; justify-content:center; }
+										img { position:absolute; width:100%; height:100%; object-fit:cover; top:0; left:0; opacity:0.85; transition: opacity 0.2s; }
+										span { height:60px; width:60px; font-size:30px; color:white; text-align:center; line-height:60px; background:rgba(0,0,0,0.75); position:absolute; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition: all 0.2s ease; border: 2px solid rgba(255,255,255,0.5); }
+										a:hover img { opacity: 1; }
+										a:hover span { background: #ff0000; transform: scale(1.1); border-color: #fff; }
+									</style>
+									<a href="${originalSrc}?autoplay=1" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;">
+										<img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="Video Thumbnail">
+										<span>▶</span>
+									</a>
+								`);
+							}
+						}
+						// -------------------------------------
+
+						container.innerHTML = tempDiv.innerHTML;
+					} catch (e) {
+						console.error("Failed to decode social framework:", e);
+					}
+				}
+			});
+
+			// ==========================================
+			// PASS 2: ASYNCHRONOUS ENGINE PROVISIONING
+			// ==========================================
+			window.twttr = (function(d, s, id) {
+				var js, fjs = d.getElementsByTagName(s)[0], t = window.twttr || {};
+				if (d.getElementById(id)) return t;
+				js = d.createElement(s); js.id = id;
+				js.src = "https://platform.twitter.com/widgets.js";
+				fjs.parentNode.insertBefore(js, fjs);
+				t._e = []; t.ready = function(f) { t._e.push(f); };
+				return t;
+			}(document, "script", "twitter-wjs"));
+
+			globalScriptTracker.forEach(function(scriptUrl) {
+				if (scriptUrl.includes('twitter.com') || scriptUrl.includes('x.com')) return;
+				if (!document.querySelector(`script[src="${scriptUrl}"]`)) {
+					const scriptNode = document.createElement('script');
+					scriptNode.src = scriptUrl;
+					scriptNode.async = true;
+					scriptNode.charset = "utf-8";
+					document.head.appendChild(scriptNode);
+				}
+			});
+
+			// ==========================================
+			// PASS 3: PROGRAMMATIC EXECUTION (CRITICAL FIX)
+			// ==========================================
+			setTimeout(function () {
+
+				// Handle Twitter isolated rendering programmatically via direct API insertion
+				if (window.twttr && typeof window.twttr.ready === 'function') {
+					window.twttr.ready(function (tw) {
+						embeds.forEach(function (container) {
+							const tweetAnchor = container.querySelector('.twitter-tweet a[href*="/status/"]');
+							if (tweetAnchor) {
+								const href = tweetAnchor.getAttribute('href');
+								// Extract the unique numeric Tweet ID directly from the URL link
+								const tweetIdMatch = href.match(/\/status\/(\d+)/);
+
+								if (tweetIdMatch && tweetIdMatch[1]) {
+									const tweetId = tweetIdMatch[1];
+									// Clear out the static blockquote string template entirely
+									container.innerHTML = '';
+									// Build a fresh isolated layout widget target directly via Twitter's API
+									tw.widgets.createTweet(tweetId, container, {
+										theme: 'light',
+										align: 'center'
+									}).catch(err => console.error("Twitter dynamic create failed:", err));
+								}
+							}
+						});
+					});
+				}
+
+				// Handle Facebook and TikTok widgets explicitly using element tracking indicators
+				embeds.forEach(function (container) {
+					if (window.FB) {
+						window.FB.XFBML.parse(container);
+					}
+					if (window.tiktok && window.tiktok.embed && container.querySelector('.tiktok-embed')) {
+						window.tiktok.embed.render(container);
+					}
+				});
+
+			}, 150);
+		});
+	</script>
+} *@
 

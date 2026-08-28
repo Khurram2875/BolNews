@@ -224,7 +224,7 @@ namespace BolNews.Web.Controllers
 
             var displayOrder = new[]
             {
-                "pakistan", "world-news", "business", "sports",
+                "pakistan", "world", "business", "sports",
                 "entertainment", "technology", "health", "lifestyle"
             };
 
@@ -306,7 +306,7 @@ namespace BolNews.Web.Controllers
                 var displayOrder = new[]
                 {
                     "pakistan",
-                    "world-news",
+                    "world",
                     "business",
                     "sports",
                     "entertainment",

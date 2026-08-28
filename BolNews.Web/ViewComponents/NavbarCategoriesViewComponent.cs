@@ -29,7 +29,7 @@ namespace BolNews.Web.ViewComponents
             var displayOrder = new[]
             {
                 "pakistan",
-                "world-news",
+                "world",
                 "sports",
                 "entertainment",
                 "business",

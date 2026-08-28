@@ -1,15 +1,15 @@
-@using BolNews.Web.Areas.Admin.ViewModels
+﻿@using BolNews.Web.Areas.Admin.ViewModels
 @model CategorySectionVM
 
 @{
     var categoryName = Model.CategoryName ?? ViewBag.CategorySlug;
 }
 
-<div class="bn-home-shell">
+<div class="bn-container">
     <div class="container" style="padding-top:16px;">
         <div class="bn-category-navigation">
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0 bn-category-breadcrumb">
+                <ol class="breadcrumb bn-category-breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="/">Home</a></li>
                     <li class="breadcrumb-item active" aria-current="page"><a href="/category/@Model.CategorySlug">@categoryName</a></li>
                 </ol>
@@ -90,12 +90,17 @@
 
             <aside class="col-lg-4">
                 <div style="position:sticky;top:70px;">
+                    <!-- Sidebar Ad — Top -->
+                    <div class="bn-ad-slot mb-4">
+                        <div id="Bolnews_Sidebar_Top_ATF" data-ad-slot="sidebar-top-atf"></div>
+                    </div>
                     <div class="bn-story-rail"><h2>Latest News</h2></div>
                     <div class="mb-4">
                         @await Component.InvokeAsync("LatestNews", new { count = 8 })
                     </div>
                     <div class="bn-story-rail"><h2>Trending</h2></div>
-                    @await Component.InvokeAsync("TrendingNews", new { type = Context.Request.Query["type"].ToString() })
+                        @await Component.InvokeAsync("TrendingNews", new { type = Context.Request.Query["type"].ToString() })
+                    
                 </div>
             </aside>
         </div>

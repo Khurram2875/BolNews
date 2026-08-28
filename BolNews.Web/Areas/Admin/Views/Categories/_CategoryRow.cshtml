@@ -1,31 +1,114 @@
 ﻿@using BolNews.Web.Areas.Admin.ViewModels
 @model CategoryTreeVM
 
-<tr>
-    <td>
-        @Html.Raw(new string('-', (int)ViewBag.Level * 3))
-        <i class="bi bi-arrow-return-right"><strong>@Model.Name</strong></i>
-    </td>
-    <td>@Model.Slug</td>
-    <td>@Model.MetaTitle</td>
-    <td>@Model.MetaDescription</td>
-    <td>
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning btn-sm me-1">Edit</a>
+@{
+    var level = ViewBag.Level is int currentLevel
+        ? currentLevel
+        : 0;
 
-        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display:inline">
-            <button class="btn btn-danger btn-sm"
+    var hasChildren = Model.Children != null &&
+                      Model.Children.Any();
+
+    var rowClass = level > 0
+        ? "category-row category-child-row"
+        : "category-row";
+
+    var paddingLeft = level * 30;
+}
+
+<tr class="@rowClass"
+    data-category-id="@Model.Id"
+    data-parent-id="@(Model.ParentCategoryId?.ToString() ?? "")"
+    data-category-name="@Model.Name"
+    style="font-size:medium; ">
+
+    <td>
+        <div class="d-flex align-items-center"
+             style="padding-left:@(paddingLeft)px;">
+
+            @if (hasChildren)
+            {
+                <button type="button"
+                        class="btn btn-sm btn-link category-toggle me-2 p-0"
+                        data-target="@Model.Id"
+                        aria-expanded="false"
+                        aria-label="Toggle @Model.Name">
+
+                    <i class="bi bi-chevron-right"></i>
+
+                </button>
+            }
+            else
+            {
+                <span class="me-2"
+                      style="width: 24px; display:inline-block;">
+                </span>
+            }
+
+            @if (level == 0)
+            {
+                <strong>@Model.Name</strong>
+            }
+            else
+            {
+                <span>@Model.Name</span>
+            }
+
+        </div>
+    </td>
+
+    <td>
+        @Model.Slug
+    </td>
+
+    <td>
+        @Model.MetaTitle
+    </td>
+
+    <td>
+        @Model.MetaDescription
+    </td>
+
+    <td>
+        <a asp-action="Edit"
+           asp-route-id="@Model.Id"
+           class="badge bg-warning btn-sm me-1">
+
+            <i class="bi bi-pencil"></i>
+            Edit
+
+        </a>
+
+        <form asp-action="Delete"
+              asp-route-id="@Model.Id"
+              method="post"
+              style="display:inline">
+
+            @Html.AntiForgeryToken()
+
+            <button type="submit"
+                    class="badge bg-danger"
                     onclick="return confirm('Delete this category?');">
+
+                <i class="bi bi-trash"></i>
                 Delete
+
             </button>
+
         </form>
     </td>
+
 </tr>
 
-@if (Model.Children != null && Model.Children.Any())
+
+@if (hasChildren)
 {
     foreach (var child in Model.Children)
     {
-        ViewBag.Level = (int)ViewBag.Level + 1;
+        ViewBag.Level = level + 1;
+
         @await Html.PartialAsync("_CategoryRow", child)
     }
+
+    ViewBag.Level = level;
 }
