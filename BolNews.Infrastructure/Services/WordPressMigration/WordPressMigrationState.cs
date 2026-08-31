@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace BolNews.Infrastructure.Services.WordPressMigration
 {
+    
+
     public class WordPressMigrationState
     {
         private readonly object _lock = new();
@@ -26,6 +28,8 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
 
         public int Repaired { get; private set; }
 
+        public int Imported { get; private set; }
+
         public int Skipped { get; private set; }
 
         public int Failed { get; private set; }
@@ -35,19 +39,24 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
             lock (_lock)
             {
                 if (IsRunning)
+                {
                     throw new InvalidOperationException(
                         "Another WordPress migration operation is already running.");
+                }
 
                 _cancellationTokenSource =
                     new CancellationTokenSource();
 
                 IsRunning = true;
                 Operation = operation;
+
                 StartTime = DateTime.Now;
                 FinishTime = null;
+
                 Status = "Running";
 
                 Total = 0;
+                Imported = 0;
                 Repaired = 0;
                 Skipped = 0;
                 Failed = 0;
@@ -61,24 +70,40 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
                 lock (_lock)
                 {
                     return _cancellationTokenSource?.Token
-                           ?? CancellationToken.None;
+                        ?? CancellationToken.None;
                 }
             }
         }
 
-        public bool AbortRequested
+        public void RequestAbort()
         {
-            get
+            lock (_lock)
             {
-                lock (_lock)
-                {
-                    return _cancellationTokenSource?.IsCancellationRequested
-                           ?? false;
-                }
+                if (!IsRunning)
+                    return;
+
+                Status = "Abort Requested";
+
+                _cancellationTokenSource?.Cancel();
             }
         }
 
-        public void UpdateResult(
+        public void UpdateImportProgress(
+            int total,
+            int imported,
+            int skipped,
+            int failed)
+        {
+            lock (_lock)
+            {
+                Total = total;
+                Imported = imported;
+                Skipped = skipped;
+                Failed = failed;
+            }
+        }
+
+        public void UpdateRepairProgress(
             int total,
             int repaired,
             int skipped,
@@ -95,6 +120,7 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
 
         public void Complete(
             int total,
+            int imported,
             int repaired,
             int skipped,
             int failed)
@@ -102,6 +128,7 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
             lock (_lock)
             {
                 Total = total;
+                Imported = imported;
                 Repaired = repaired;
                 Skipped = skipped;
                 Failed = failed;
@@ -110,24 +137,13 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
                 FinishTime = DateTime.Now;
                 Status = "Completed";
 
-                _cancellationTokenSource?.Dispose();
-                _cancellationTokenSource = null;
-            }
-        }
-
-        public void Abort()
-        {
-            lock (_lock)
-            {
-                if (!IsRunning)
-                    return;
-
-                _cancellationTokenSource?.Cancel();
+                DisposeToken();
             }
         }
 
         public void MarkAborted(
             int total,
+            int imported,
             int repaired,
             int skipped,
             int failed)
@@ -135,6 +151,7 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
             lock (_lock)
             {
                 Total = total;
+                Imported = imported;
                 Repaired = repaired;
                 Skipped = skipped;
                 Failed = failed;
@@ -143,13 +160,13 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
                 FinishTime = DateTime.Now;
                 Status = "Aborted";
 
-                _cancellationTokenSource?.Dispose();
-                _cancellationTokenSource = null;
+                DisposeToken();
             }
         }
 
         public void MarkFailed(
             int total,
+            int imported,
             int repaired,
             int skipped,
             int failed)
@@ -157,6 +174,7 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
             lock (_lock)
             {
                 Total = total;
+                Imported = imported;
                 Repaired = repaired;
                 Skipped = skipped;
                 Failed = failed;
@@ -165,9 +183,14 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
                 FinishTime = DateTime.Now;
                 Status = "Failed";
 
-                _cancellationTokenSource?.Dispose();
-                _cancellationTokenSource = null;
+                DisposeToken();
             }
+        }
+
+        private void DisposeToken()
+        {
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
         }
     }
 }

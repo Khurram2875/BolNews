@@ -17,9 +17,14 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly WordPressMigrationRepairService _repairService;
         private readonly ILogger<WordPressMigrationController> _logger;
         private readonly WordPressMigrationState _migrationState;
+        private readonly IWordPressMigrationQueue _migrationQueue;
+        
         public WordPressMigrationController(
-            IWordPressArticleReader reader, IWordPressAuthorResolver authorResolver, IWordPressCategoryResolver categoryResolver,
-    IWordPressReporterResolver reporterResolver, IWordPressArticleImportService importService, WordPressMigrationRepairService repairService, ILogger<WordPressMigrationController> logger, WordPressMigrationState migrationState)
+            IWordPressArticleReader reader, IWordPressAuthorResolver authorResolver, 
+            IWordPressCategoryResolver categoryResolver,IWordPressReporterResolver reporterResolver, 
+            IWordPressArticleImportService importService, WordPressMigrationRepairService repairService, 
+            ILogger<WordPressMigrationController> logger, WordPressMigrationState migrationState, 
+            IWordPressMigrationQueue migrationQueue)
         {
             _reader = reader;
             _authorResolver = authorResolver;
@@ -29,6 +34,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _repairService = repairService;
             _logger = logger;
             _migrationState = migrationState;
+            _migrationQueue = migrationQueue;
         }
 
         public async Task<IActionResult> Test()
@@ -130,64 +136,80 @@ namespace BolNews.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Import(
     DateTime fromDate,
     DateTime toDate,
-    int? take,
-    CancellationToken cancellationToken)
+    int? take)
         {
-            var userId =
+            if (fromDate >= toDate)
+            {
+                TempData["Error"] =
+                    "From Date must be earlier than To Date.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (_migrationState.IsRunning)
+            {
+                TempData["Error"] =
+                    "Another migration operation is already running.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            var currentUserId =
                 User.FindFirst(
                     System.Security.Claims.ClaimTypes.NameIdentifier)
                 ?.Value;
 
-            if (string.IsNullOrWhiteSpace(userId))
-                return Unauthorized();
-
-            if (fromDate >= toDate)
+            if (string.IsNullOrWhiteSpace(currentUserId))
             {
-                ViewBag.Error =
-                    "From Date must be earlier than To Date.";
+                TempData["Error"] =
+                    "Unable to determine the current user.";
 
-                return View("Index");
+                return RedirectToAction(nameof(Index));
             }
 
-            if (take.HasValue && take.Value <= 0)
+            try
             {
-                ViewBag.Error =
-                    "Take must be greater than zero.";
+                _migrationState.Start("Import");
 
-                return View("Index");
+                await _migrationQueue.QueueAsync(
+                    new WordPressMigrationJob(
+                        WordPressMigrationOperation.Import,
+                        fromDate,
+                        toDate,
+                        currentUserId,
+                        take));
+
+                TempData["Success"] =
+                    "WordPress import started in the background.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Unable to start WordPress import.");
+
+                TempData["Error"] =
+                    "Unable to start WordPress import.";
             }
 
-            var result =
-                await _importService.ImportAsync(
-                    fromDate,
-                    toDate,
-                    userId,
-                    take,
-                    cancellationToken);
-
-            ViewBag.Result = result;
-
-            return View("Index");
+            return RedirectToAction(nameof(Index));
         }
+
         [HttpGet]
         public IActionResult Index()
         {
-            ViewBag.MigrationState = _migrationState;
+            ViewBag.MigrationState =
+                _migrationState;
 
             return View();
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RepairFeaturedImages(DateTime fromDate, DateTime toDate)
+        public async Task<IActionResult> RepairFeaturedImages(
+      DateTime fromDate,
+      DateTime toDate)
         {
-            if (_migrationState.IsRunning)
-            {
-                TempData["Error"] =
-                    "Another migration operation is already running.";
-
-                return RedirectToAction(nameof(Index));
-            }
-
             if (fromDate >= toDate)
             {
                 TempData["Error"] =
@@ -196,64 +218,35 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            _migrationState.Start("Repair Featured Images");
-
-            try
+            if (_migrationState.IsRunning)
             {
-                var result =
-                    await _repairService.RepairFeaturedImagesAsync(
-                        fromDate,
-                        toDate,
-                        _migrationState.Token);
-
-                _migrationState.Complete(
-                    result.Total,
-                    result.Repaired,
-                    result.Skipped,
-                    result.Failed);
-
-                ViewBag.RepairResult = result;
-            }
-            catch (OperationCanceledException)
-            {
-                _migrationState.MarkAborted(
-                    0, 0, 0, 0);
-
                 TempData["Error"] =
-                    "Featured image processing was aborted.";
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "Featured image repair failed.");
-
-                _migrationState.MarkFailed(
-                    0, 0, 0, 1);
-
-                TempData["Error"] =
-                    "Featured image repair failed.";
+                    "Another migration operation is already running.";
 
                 return RedirectToAction(nameof(Index));
             }
 
-            return View("Index");
+            _migrationState.Start(
+                "Repair Featured Images");
+
+            await _migrationQueue.QueueAsync(
+                new WordPressMigrationJob(
+                    WordPressMigrationOperation.RepairFeaturedImages,
+                    fromDate,
+                    toDate));
+
+            TempData["Success"] =
+                "Featured image repair started in the background.";
+
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> NormalizeContent(DateTime fromDate,DateTime toDate)
+        public async Task<IActionResult> NormalizeContent(
+    DateTime fromDate,
+    DateTime toDate)
         {
-            if (_migrationState.IsRunning)
-            {
-                TempData["Error"] =
-                    "Another migration operation is already running.";
-
-                return RedirectToAction(nameof(Index));
-            }
-
             if (fromDate >= toDate)
             {
                 TempData["Error"] =
@@ -262,66 +255,35 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            _migrationState.Start("Normalize Content");
-
-            try
+            if (_migrationState.IsRunning)
             {
-                var result =
-                    await _repairService.NormalizeContentAsync(
-                        fromDate,
-                        toDate,
-                        _migrationState.Token);
-
-                _migrationState.Complete(
-                    result.Total,
-                    result.Repaired,
-                    result.Skipped,
-                    result.Failed);
-
-                ViewBag.RepairResult = result;
-            }
-            catch (OperationCanceledException)
-            {
-                _migrationState.MarkAborted(
-                    0, 0, 0, 0);
-
                 TempData["Error"] =
-                    "Content normalization was aborted.";
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "Content normalization failed.");
-
-                _migrationState.MarkFailed(
-                    0, 0, 0, 1);
-
-                TempData["Error"] =
-                    "Content normalization failed.";
+                    "Another migration operation is already running.";
 
                 return RedirectToAction(nameof(Index));
             }
 
-            return View("Index");
+            _migrationState.Start(
+                "Normalize Content");
+
+            await _migrationQueue.QueueAsync(
+                new WordPressMigrationJob(
+                    WordPressMigrationOperation.NormalizeContent,
+                    fromDate,
+                    toDate));
+
+            TempData["Success"] =
+                "Content normalization started in the background.";
+
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ProcessInlineMedia(
-    DateTime fromDate,
-    DateTime toDate)
+     DateTime fromDate,
+     DateTime toDate)
         {
-            if (_migrationState.IsRunning)
-            {
-                TempData["Error"] =
-                    "Another migration operation is already running.";
-
-                return RedirectToAction(nameof(Index));
-            }
-
             if (fromDate >= toDate)
             {
                 TempData["Error"] =
@@ -330,68 +292,70 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            _migrationState.Start("Process Inline Media");
-
-            try
+            if (_migrationState.IsRunning)
             {
-                var result =
-                    await _repairService.ProcessInlineMediaAsync(
-                        fromDate,
-                        toDate,
-                        _migrationState.Token);
-
-                _migrationState.Complete(
-                    result.Total,
-                    result.Repaired,
-                    result.Skipped,
-                    result.Failed);
-
-                ViewBag.RepairResult = result;
-            }
-            catch (OperationCanceledException)
-            {
-                _migrationState.MarkAborted(
-                    0, 0, 0, 0);
-
                 TempData["Error"] =
-                    "Inline media processing was aborted.";
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "Inline media processing failed.");
-
-                _migrationState.MarkFailed(
-                    0, 0, 0, 1);
-
-                TempData["Error"] =
-                    "Inline media processing failed.";
+                    "Another migration operation is already running.";
 
                 return RedirectToAction(nameof(Index));
             }
 
-            return View("Index");
+            _migrationState.Start(
+                "Process Inline Media");
+
+            await _migrationQueue.QueueAsync(
+                new WordPressMigrationJob(
+                    WordPressMigrationOperation.ProcessInlineMedia,
+                    fromDate,
+                    toDate));
+
+            TempData["Success"] =
+                "Inline media processing started in the background.";
+
+            return RedirectToAction(nameof(Index));
         }
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Abort()
         {
-            if (_migrationState.IsRunning)
+            if (!_migrationState.IsRunning)
             {
-                _logger.LogWarning(
-                    "WordPress migration abort requested. Operation={Operation}",
-                    _migrationState.Operation);
+                TempData["Error"] =
+                    "No migration operation is currently running.";
 
-                _migrationState.Abort();
-
-                TempData["Success"] =
-                    "Abort requested. The current operation will stop shortly.";
+                return RedirectToAction(nameof(Index));
             }
 
+            _logger.LogWarning(
+                "Abort requested. Operation={Operation}",
+                _migrationState.Operation);
+
+            _migrationState.RequestAbort();
+
+            TempData["Success"] =
+                "Abort requested. The operation will stop shortly.";
+
             return RedirectToAction(nameof(Index));
+        }
+        [HttpGet]
+        public IActionResult Status()
+        {
+            return Json(new
+            {
+                isRunning = _migrationState.IsRunning,
+                operation = _migrationState.Operation,
+                status = _migrationState.Status,
+
+                startTime = _migrationState.StartTime,
+                finishTime = _migrationState.FinishTime,
+
+                total = _migrationState.Total,
+                imported = _migrationState.Imported,
+                repaired = _migrationState.Repaired,
+                skipped = _migrationState.Skipped,
+                failed = _migrationState.Failed
+            });
         }
     }
 }

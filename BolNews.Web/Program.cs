@@ -51,6 +51,11 @@ builder.Services.AddSingleton<WordPressMediaSource>();
 builder.Services.AddSingleton<WordPressMigrationState>();
 
 builder.Services.AddScoped<WordPressMigrationRepairService>();
+builder.Services.AddSingleton<IWordPressMigrationQueue,
+    WordPressMigrationQueue>();
+
+builder.Services.AddHostedService<
+    WordPressMigrationBackgroundService>();
 builder.Services.AddHttpClient(
     "WordPressMedia",
     client =>
