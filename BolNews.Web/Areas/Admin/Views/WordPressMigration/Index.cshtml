@@ -1,0 +1,705 @@
+﻿@using BolNews.Application.DTOs
+@using BolNews.Infrastructure.Services.WordPressMigration
+
+@{
+    ViewData["Title"] = "WordPress Migration";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+
+    var result =
+        ViewBag.Result as WordPressImportResultDto;
+
+    var error =
+        ViewBag.Error as string;
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">WordPress Migration</h2>
+            <p class="text-muted mb-0">
+                Import published WordPress articles into BolNews CMS.
+            </p>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(error))
+    {
+        <div class="alert alert-danger">
+            @error
+        </div>
+    }
+
+    <!-- ========================================================= -->
+    <!-- MIGRATION SETTINGS -->
+    <!-- ========================================================= -->
+
+    <div class="card mb-4 shadow-sm">
+
+        <div class="card-header">
+            <strong>Migration Settings</strong>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-area="Admin"
+                  asp-controller="WordPressMigration"
+                  asp-action="Import"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div class="row">
+
+                    <!-- From Date -->
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            From Date
+                        </label>
+
+                        <input type="date"
+                               id="migrationFromDate"
+                               name="fromDate"
+                               class="form-control"
+                               required />
+
+                    </div>
+
+                    <!-- To Date -->
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            To Date
+                        </label>
+
+                        <input type="date"
+                               id="migrationToDate"
+                               name="toDate"
+                               class="form-control"
+                               required />
+
+                        <small class="text-muted">
+                            The end date is exclusive.
+                        </small>
+
+                    </div>
+
+                    <!-- Number of Articles -->
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            Number of Articles
+                        </label>
+
+                        <input type="number"
+                               name="take"
+                               class="form-control"
+                               min="1"
+                               placeholder="Leave empty for all" />
+
+                        <small class="text-muted">
+                            Use 1 for the first test.
+                        </small>
+
+                    </div>
+
+                </div>
+
+                <div class="mt-4">
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        <i class="bi bi-arrow-down-circle"></i>
+                        Start Import
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+    <!-- ========================================================= -->
+    <!-- MIGRATION Timers -->
+    <!-- ========================================================= -->
+    @{
+        var migrationState =
+        ViewBag.MigrationState as WordPressMigrationState;
+    }
+
+    @if (migrationState != null)
+    {
+        <div class="card mb-4 shadow-sm">
+
+            <div class="card-header">
+                <strong>Migration Processing Status</strong>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row text-center">
+
+                    <div class="col-md-3">
+                        <div class="rounded border p-3">
+                            <div class="text-muted small">
+                                Status
+                            </div>
+
+                            <strong class="@(migrationState.Status == "Running"
+                                                                ? "text-primary"
+                                                                : migrationState.Status == "Completed"
+                                                                    ? "text-success"
+                                                                    : migrationState.Status == "Aborted"
+                                                                        ? "text-warning"
+                                                                        : migrationState.Status == "Failed"
+                                                                            ? "text-danger"
+                                                                            : "text-muted")">
+
+                                @migrationState.Status
+
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="rounded border p-3">
+                            <div class="text-muted small">
+                                Operation
+                            </div>
+
+                            <strong>
+                                @(migrationState.Operation ?? "-")
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="rounded border p-3">
+                            <div class="text-muted small">
+                                Start Time
+                            </div>
+
+                            <strong>
+                                @(migrationState.StartTime?.ToString(
+                                                            "dd-MMM-yyyy hh:mm:ss tt") ?? "-")
+                                                                                          </strong>
+                                                                                      </div>
+                                                                                  </div>
+
+                    <div class="col-md-3">
+                        <div class="rounded border p-3">
+                            <div class="text-muted small">
+                                Finish Time
+                            </div>
+
+                            <strong>
+                                @(migrationState.FinishTime?.ToString(
+                                                            "dd-MMM-yyyy hh:mm:ss tt") ?? "-")
+                        </strong>
+                    </div>
+                </div>
+
+                </div>
+
+            @if (migrationState.IsRunning)
+                {
+                    <div class="alert alert-warning mb-3 mt-3">
+
+                        <i class="bi bi-hourglass-split"></i>
+
+                        <strong>
+                            @migrationState.Operation
+                        </strong>
+                        is currently processing.
+
+                        <div class="small mt-1">
+                            Start Time:
+                            @migrationState.StartTime?.ToString(
+                            "dd-MMM-yyyy hh:mm:ss tt")
+                </div>
+
+            </div>
+
+            <form asp-area="Admin"
+                  asp-controller="WordPressMigration"
+                  asp-action="Abort"
+                  method="post"
+                  onsubmit="return confirm(
+                          'Are you sure you want to abort the current operation?');">
+
+                @Html.AntiForgeryToken()
+
+                <button type="submit"
+                        class="btn btn-danger">
+
+                    <i class="bi bi-stop-circle"></i>
+                    Abort Processing
+
+                </button>
+
+            </form>
+                        }
+                else if (migrationState.Status == "Completed")
+                {
+                    <div class="alert alert-success mb-0 mt-3">
+
+                        <i class="bi bi-check-circle"></i>
+
+                        Processing completed successfully.
+
+                        @if (migrationState.StartTime.HasValue &&
+                                        migrationState.FinishTime.HasValue)
+                        {
+                            var duration =
+                            migrationState.FinishTime.Value -
+                            migrationState.StartTime.Value;
+
+                            <span>
+                                Duration:
+                                <strong>
+                                    @duration.ToString(@"hh\:mm\:ss")
+                                </strong>
+                            </span>
+                        }
+
+                    </div>
+                }
+                else if (migrationState.Status == "Aborted")
+                {
+                    <div class="alert alert-warning mb-0 mt-3">
+
+                        <i class="bi bi-stop-circle"></i>
+
+                        Processing was aborted.
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+    }
+
+
+
+    <!-- ========================================================= -->
+    <!-- MIGRATION RESULT -->
+    <!-- ========================================================= -->
+    @if (result != null)
+    {
+        <div class="card shadow-sm">
+
+            <div class="card-header">
+                <strong>Migration Result</strong>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row text-center">
+
+                    <div class="col-md-3">
+
+                        <div class="rounded border p-3">
+
+                            <h3>@result.Total</h3>
+
+                            <div class="text-muted">
+                                Total
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <div class="rounded border p-3">
+
+                            <h3>@result.Imported</h3>
+
+                            <div class="text-success">
+                                Imported
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <div class="rounded border p-3">
+
+                            <h3>@result.Skipped</h3>
+
+                            <div class="text-warning">
+                                Skipped
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <div class="rounded border p-3">
+
+                            <h3>@result.Failed</h3>
+
+                            <div class="text-danger">
+                                Failed
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                @if (result.Errors.Any())
+                {
+                    <div class="mt-4">
+
+                        <h5 class="text-danger">
+                            Import Errors
+                        </h5>
+
+                        <div class="alert alert-danger">
+
+                            <ul class="mb-0">
+
+                                @foreach (var item in result.Errors)
+                                {
+                                    <li>
+                                        @item
+                                    </li>
+                                }
+
+                            </ul>
+
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- MIGRATION REPAIR -->
+    <!-- ========================================================= -->
+
+    <div class="card mt-4 shadow-sm">
+
+        <div class="card-header">
+            <strong>Migration Repair</strong>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <!-- ================================================= -->
+                <!-- REPAIR FEATURED IMAGES -->
+                <!-- ================================================= -->
+
+                <div class="col-md-4">
+
+                    <form asp-area="Admin"
+                          asp-controller="WordPressMigration"
+                          asp-action="RepairFeaturedImages"
+                          method="post"
+                          class="repair-form">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="fromDate" />
+
+                        <input type="hidden"
+                               name="toDate" />
+
+                        <button type="submit"
+                                class="btn btn-outline-primary w-100">
+
+                            Repair Featured Images
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- NORMALIZE CONTENT -->
+                <!-- ================================================= -->
+
+                <div class="col-md-4">
+
+                    <form asp-area="Admin"
+                          asp-controller="WordPressMigration"
+                          asp-action="NormalizeContent"
+                          method="post"
+                          class="repair-form">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="fromDate" />
+
+                        <input type="hidden"
+                               name="toDate" />
+
+                        <button type="submit"
+                                class="btn btn-outline-warning w-100">
+
+                            Normalize Content
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- PROCESS INLINE MEDIA -->
+                <!-- ================================================= -->
+
+                <div class="col-md-4">
+
+                    <form asp-area="Admin"
+                          asp-controller="WordPressMigration"
+                          asp-action="ProcessInlineMedia"
+                          method="post"
+                          class="repair-form">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="fromDate" />
+
+                        <input type="hidden"
+                               name="toDate" />
+
+                        <button type="submit"
+                                class="btn btn-outline-success w-100">
+
+                            Process Inline Media
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- REPAIR RESULT -->
+    <!-- ========================================================= -->
+    @if (ViewBag.RepairResult is WordPressRepairResultDto repairResult)
+    {
+        <div class="card mt-4 shadow-sm">
+
+            <div class="card-header">
+
+                <strong>
+                    Migration Repair Result
+                </strong>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row text-center">
+
+                    <!-- Candidates -->
+
+                    <div class="col-md-3">
+
+                        <div class="rounded border p-3">
+
+                            <h3>
+                                @repairResult.Total
+                            </h3>
+
+                            <div class="text-muted">
+                                Candidates
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Repaired -->
+
+                    <div class="col-md-3">
+
+                        <div class="rounded border p-3">
+
+                            <h3>
+                                @repairResult.Repaired
+                            </h3>
+
+                            <div class="text-success">
+                                Repaired
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Skipped -->
+
+                    <div class="col-md-3">
+
+                        <div class="rounded border p-3">
+
+                            <h3>
+                                @repairResult.Skipped
+                            </h3>
+
+                            <div class="text-warning">
+                                Skipped
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Failed -->
+
+                    <div class="col-md-3">
+
+                        <div class="rounded border p-3">
+
+                            <h3>
+                                @repairResult.Failed
+                            </h3>
+
+                            <div class="text-danger">
+                                Failed
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Repair Errors -->
+                @if (repairResult.Errors.Any())
+                {
+                    <div class="alert alert-danger mt-4">
+
+                        <h5>
+                            Errors
+                        </h5>
+
+                        <ul class="mb-0">
+
+                            @foreach (var item in repairResult.Errors)
+                            {
+                                <li>
+                                    @item
+                                </li>
+                            }
+
+                        </ul>
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+    }
+
+</div>
+
+
+<!-- ============================================================= -->
+<!-- DATE SYNCHRONIZATION -->
+<!-- ============================================================= -->
+@section Scripts
+{
+    <script>
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                const repairForms =
+                    document.querySelectorAll(
+                        ".repair-form"
+                    );
+
+                repairForms.forEach(
+                    function (form) {
+
+                        form.addEventListener(
+                            "submit",
+                            function () {
+
+                                const fromDate =
+                                    document.querySelector(
+                                        "#migrationFromDate"
+                                    ).value;
+
+                                const toDate =
+                                    document.querySelector(
+                                        "#migrationToDate"
+                                    ).value;
+
+
+                                const fromDateInput =
+                                    form.querySelector(
+                                        '[name="fromDate"]'
+                                    );
+
+                                const toDateInput =
+                                    form.querySelector(
+                                        '[name="toDate"]'
+                                    );
+
+
+                                if (fromDateInput) {
+                                    fromDateInput.value =
+                                        fromDate;
+                                }
+
+
+                                if (toDateInput) {
+                                    toDateInput.value =
+                                        toDate;
+                                }
+
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    </script>
+}

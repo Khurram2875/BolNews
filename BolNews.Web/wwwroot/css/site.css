@@ -3698,7 +3698,51 @@ body,
  * Make sure a broken image doesn't display its
  * browser fallback/ALT text while we're handling it.
  */
-.bn-lazy-loading {
+/*.bn-lazy-loading {
     color: transparent !important;
     font-size: 0 !important;
+}*/
+.lazy-image {
+    filter: blur(10px);
+    transition: filter 0.3s, opacity 0.2s ease-in-out;
+}
+
+    .lazy-image.bn-lazy-loaded {
+        filter: blur(0);
+        opacity: 1;
+    }
+
+    .lazy-image.bn-lazy-loading {
+        visibility: hidden;
+        opacity: 0;
+    }
+
+.bn-lazy-image-container {
+    position: relative;
+}
+
+.bn-lazy-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 22px;
+    height: 22px;
+    margin-top: -11px;
+    margin-left: -11px;
+    border: 3px solid rgba(0, 0, 0, 0.15);
+    border-top-color: #c4161c;
+    border-radius: 50%;
+    animation: bn-lazy-spin 0.7s linear infinite;
+    z-index: 10;
+    pointer-events: none;
+}
+
+@keyframes bn-lazy-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }

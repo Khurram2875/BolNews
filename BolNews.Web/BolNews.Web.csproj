@@ -40,5 +40,8 @@
   <ItemGroup>
     <None Include="wwwroot\js\adminarea\adminareajs.js" />
   </ItemGroup>
-
+  <ItemGroup>
+    <!-- Excludes the folder contents from the publish output -->
+    <Content Update="wwwroot\uploads\**" CopyToPublishDirectory="Never" />
+  </ItemGroup>
 </Project>

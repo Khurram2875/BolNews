@@ -135,6 +135,17 @@ namespace BolNews.Persistence.Configurations
             builder.HasIndex(a => new 
             { a.Slug, a.IsDeleted })
             .HasDatabaseName("IX_Articles_Slug_IsDeleted");
+            
+            //wordpress data indexes with articles
+            builder.HasIndex(a => new 
+            { a.SourceSystem, a.SourceId })
+            .IsUnique();
+
+            builder.Property(a => a.SourceSystem)
+                .HasMaxLength(50);
+
+            builder.Property(a => a.SourceId)
+                .HasMaxLength(100);
         }
     }
 }

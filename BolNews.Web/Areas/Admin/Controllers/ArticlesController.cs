@@ -101,13 +101,6 @@ namespace BolNews.Web.Areas.Admin.Controllers
         // GET: Admin/Articles
         public async Task<IActionResult> Index(int page = 1, bool showDeleted = false)
         {
-            //var userId = _userManager.GetUserId(User);
-            //var roles = await _userManager.GetRolesAsync(await _userManager.GetUserAsync(User));
-
-            //var dtos = await _articleService.GetAllAsync(userId, roles);
-            //var viewModels = _mapper.Map<List<ArticleVM>>(dtos);
-            //return View(viewModels);
-
             if (page < 1) page = 1;
 
             var userId = _userManager.GetUserId(User);

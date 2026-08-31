@@ -1,28 +1,4 @@
-﻿//Original code
-//document.addEventListener("DOMContentLoaded", function () {
-//    const images = document.querySelectorAll(".lazy-image");
-
-//    const observer = new IntersectionObserver((entries, observer) => {
-//        entries.forEach(entry => {
-//            if (entry.isIntersecting) {
-//                const img = entry.target;
-
-//                img.src = img.dataset.src;
-
-//                if (img.dataset.srcset) {
-//                    img.srcset = img.dataset.srcset;
-//                }
-
-//                img.classList.add("loaded");
-//                observer.unobserve(img);
-//            }
-//        });
-//    });
-
-//    images.forEach(img => observer.observe(img));
-//});
-//Original code
-document.addEventListener("DOMContentLoaded", function () {
+﻿document.addEventListener("DOMContentLoaded", function () {
 
     /*
      * ============================================================
@@ -32,12 +8,10 @@ document.addEventListener("DOMContentLoaded", function () {
      * Supports:
      *
      * 1. Custom lazy images
-     *
      *    class="lazy-image"
      *    data-src="..."
      *
      * 2. Native lazy images
-     *
      *    loading="lazy"
      *
      * ============================================================
@@ -63,26 +37,19 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        /*
-         * Make parent the spinner positioning container.
-         */
         parent.classList.add(
             "bn-lazy-image-container"
         );
 
 
-        /*
-         * Don't create duplicate spinners.
-         */
-        let spinner =
-            parent.querySelector(
-                ".bn-lazy-spinner"
-            );
+        let spinner = parent.querySelector(
+            ".bn-lazy-spinner"
+        );
+
 
         if (!spinner) {
 
-            spinner =
-                document.createElement("span");
+            spinner = document.createElement("span");
 
             spinner.className =
                 "bn-lazy-spinner";
@@ -109,21 +76,35 @@ document.addEventListener("DOMContentLoaded", function () {
      */
     function imageLoaded(img, spinner) {
 
-        img.classList.remove(
-            "bn-lazy-loading"
+        /*
+         * Keep image hidden initially.
+         */
+        const showImage = function () {
+
+            img.classList.remove(
+                "bn-lazy-loading"
+            );
+
+            img.classList.add(
+                "bn-lazy-loaded"
+            );
+
+            if (spinner) {
+                spinner.remove();
+            }
+
+        };
+
+
+        /*
+         * Give the spinner enough time to be visible.
+         */
+        setTimeout(
+            showImage,
+            300
         );
-
-        img.classList.add(
-            "bn-lazy-loaded"
-        );
-
-
-        if (spinner) {
-            spinner.remove();
-        }
 
     }
-
 
     /*
      * ------------------------------------------------------------
@@ -132,13 +113,11 @@ document.addEventListener("DOMContentLoaded", function () {
      */
     function imageFailed(img, spinner) {
 
-        img.classList.remove(
-            "bn-lazy-loading"
-        );
-
-
         /*
-         * Hide the broken image and its ALT fallback.
+         * Keep the image hidden.
+         *
+         * This prevents the browser from showing:
+         * broken image icon + ALT text.
          */
         img.classList.add(
             "bn-lazy-loading"
@@ -146,16 +125,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         /*
-         * Keep the spinner visible.
-         *
-         * This prevents the ugly broken-image/ALT-text
-         * appearance visible in your screenshot.
+         * Keep spinner visible.
          */
         if (spinner) {
 
             spinner.style.display =
                 "block";
-
         }
 
     }
@@ -163,14 +138,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /*
      * ------------------------------------------------------------
-     * Prepare image
+     * Prepare custom lazy image
+     * ------------------------------------------------------------
+     *
+     * IMPORTANT:
+     *
+     * Do NOT check img.complete here.
+     *
+     * The current src is normally the placeholder image.
+     * The placeholder may already be loaded, but the real
+     * data-src image has NOT been loaded yet.
      * ------------------------------------------------------------
      */
-    function prepareImage(img) {
+    function prepareCustomLazyImage(img) {
 
-        /*
-         * Prevent duplicate initialization.
-         */
         if (
             img.dataset.lazyInitialized === "true"
         ) {
@@ -183,10 +164,48 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         /*
-         * Hide image immediately.
-         *
-         * This happens before we start loading
-         * the actual image.
+         * Hide the placeholder.
+         */
+        img.classList.add(
+            "bn-lazy-loading"
+        );
+
+
+        /*
+         * Show spinner.
+         */
+        const spinner =
+            createSpinner(img);
+
+
+        /*
+         * Store spinner reference.
+         */
+        img._bnLazySpinner =
+            spinner;
+    }
+
+
+    /*
+     * ------------------------------------------------------------
+     * Prepare native lazy image
+     * ------------------------------------------------------------
+     */
+    function prepareNativeLazyImage(img) {
+
+        if (
+            img.dataset.lazyInitialized === "true"
+        ) {
+            return;
+        }
+
+
+        img.dataset.lazyInitialized =
+            "true";
+
+
+        /*
+         * Hide actual image while it loads.
          */
         img.classList.add(
             "bn-lazy-loading"
@@ -234,21 +253,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         /*
-         * If browser already loaded the image.
+         * Native lazy image may already have
+         * been downloaded by the browser.
          */
-        if (img.complete) {
+        if (
+            img.complete &&
+            img.naturalWidth > 0
+        ) {
 
-            if (
-                img.naturalWidth > 0
-            ) {
-
-                imageLoaded(
-                    img,
-                    spinner
-                );
-
-            }
-
+            imageLoaded(
+                img,
+                spinner
+            );
         }
 
     }
@@ -256,12 +272,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /*
      * ------------------------------------------------------------
-     * Prepare all images immediately
+     * Prepare images
      * ------------------------------------------------------------
      */
     images.forEach(function (img) {
 
-        prepareImage(img);
+        /*
+         * Custom lazy image
+         */
+        if (
+            img.classList.contains(
+                "lazy-image"
+            ) &&
+            img.dataset.src
+        ) {
+
+            prepareCustomLazyImage(
+                img
+            );
+
+        }
+        else {
+
+            /*
+             * Native loading="lazy"
+             */
+            prepareNativeLazyImage(
+                img
+            );
+
+        }
 
     });
 
@@ -270,15 +310,7 @@ document.addEventListener("DOMContentLoaded", function () {
      * ------------------------------------------------------------
      * Intersection Observer
      * ------------------------------------------------------------
-     *
-     * Only custom .lazy-image images need us to assign
-     * data-src when they enter the viewport.
-     *
-     * Native loading="lazy" images are handled by the
-     * browser itself.
-     * ------------------------------------------------------------
      */
-
     const observer =
         new IntersectionObserver(
             function (entries, observer) {
@@ -295,7 +327,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                     /*
-                     * Custom lazy-image
+                     * Only custom lazy images
+                     * need IntersectionObserver
                      */
                     if (
                         img.classList.contains(
@@ -311,35 +344,67 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                         /*
+                         * Attach load/error handlers
+                         * BEFORE assigning src.
+                         *
+                         * This is important.
+                         */
+                        img.addEventListener(
+                            "load",
+                            function () {
+
+                                imageLoaded(
+                                    img,
+                                    img._bnLazySpinner
+                                );
+
+                            },
+                            { once: true }
+                        );
+
+
+                        img.addEventListener(
+                            "error",
+                            function () {
+
+                                imageFailed(
+                                    img,
+                                    img._bnLazySpinner
+                                );
+
+                            },
+                            { once: true }
+                        );
+
+
+                        /*
                          * Set srcset first.
                          */
                         if (srcset) {
 
                             img.srcset =
                                 srcset;
-
                         }
 
 
                         /*
-                         * Set actual source.
+                         * Set the REAL image source.
                          */
                         if (src) {
 
                             img.src =
                                 src;
-
                         }
 
+
+                        /*
+                         * Stop observing.
+                         */
+                        observer.unobserve(
+                            img
+                        );
+
                     }
-
-
-                    /*
-                     * Stop observing this image.
-                     */
-                    observer.unobserve(
-                        img
-                    );
 
                 });
 
@@ -355,9 +420,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /*
-     * Observe ONLY custom lazy images.
-     *
-     * Native loading="lazy" is controlled by browser.
+     * ------------------------------------------------------------
+     * Observe custom lazy images
+     * ------------------------------------------------------------
      */
     images.forEach(function (img) {
 

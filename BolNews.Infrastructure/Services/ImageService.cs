@@ -111,5 +111,38 @@ namespace BolNews.Infrastructure.Services
             await stream.CopyToAsync(output);
             return $"/uploads/media/{mediaId}/{safeName}";
         }
+        public async Task<string> SaveArticleContentImageAsync(Stream stream, string fileName, string rootPath)
+        {
+            var folderPath = Path.Combine(
+                rootPath,
+                "uploads",
+                "articles",
+                "content");
+
+            Directory.CreateDirectory(folderPath);
+
+            var extensionlessName =
+                Path.GetFileNameWithoutExtension(fileName);
+
+            var safeName =
+                $"{extensionlessName}-{Guid.NewGuid():N}.webp";
+
+            var filePath =
+                Path.Combine(folderPath, safeName);
+
+            stream.Position = 0;
+
+            using var image =
+                await Image.LoadAsync(stream);
+
+            await image.SaveAsync(
+                filePath,
+                new WebpEncoder
+                {
+                    Quality = 85
+                });
+
+            return $"/uploads/articles/content/{safeName}";
+        }
     }
 }

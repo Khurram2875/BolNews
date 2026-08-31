@@ -29,7 +29,7 @@ namespace BolNews.Persistence
             //var connectionString = "server=bolnewsdb.mysql.database.azure.com; port=3306; database=bolnewsdb; user=admin_user; password =Bol12345";
             ////local DB connection string
             //var connectionString = "server=192.168.75.129; port=3306; database=BolNewsDB; user=admin_user; password =Bol12345; " +
-              //          "Pooling=true; MinimumPoolSize=20; MaximumPoolSize=300; ConnectionTimeout=30; DefaultCommandTimeout=60;";
+                   //    "Pooling=true; MinimumPoolSize=20; MaximumPoolSize=300; ConnectionTimeout=30; DefaultCommandTimeout=60;";
             services.AddDbContextPool<AppDbContext>(options =>
             {
                 options.UseMySql(

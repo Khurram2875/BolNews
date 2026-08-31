@@ -22,5 +22,7 @@ namespace BolNews.Application.Interfaces
         SaveMediaImagesAsync(Stream stream, int mediaId, string rootPath);
 
         Task<string> SaveMediaFileAsync(Stream stream, string fileName, int mediaId, string rootPath);
+
+        Task<string> SaveArticleContentImageAsync(Stream stream, string fileName, string rootPath);
     }
 }

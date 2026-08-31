@@ -52,5 +52,9 @@ namespace BolNews.Application.Interfaces
         Task<List<Article>> SearchPublishedAsync(string search, int take = 20);
         Task<List<Article>> GetDeletedAsync();
         Task<Dictionary<int, List<Article>>> GetLatestArticlesForCategoriesAsync(IReadOnlyCollection<int> categoryIds, int count);
+        Task<Article?> GetBySourceAsync(string sourceSystem, string sourceId);
+        Task<Article?> FindBySourceAsync(string sourceSystem,string sourceId);
+        Task<List<Article>> GetWordPressArticlesWithMissingFeaturedImagesAsync();
+
     }
 }

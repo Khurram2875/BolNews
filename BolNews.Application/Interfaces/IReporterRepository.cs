@@ -7,6 +7,7 @@ namespace BolNews.Application.Interfaces
         Task<List<Reporter>> GetAllAsync();
 
         Task<Reporter?> FindByIdAsync(int id);
+        Task<Reporter?> FindBySlugAsync(string slug);
 
         Task AddAsync(Reporter reporter);
 

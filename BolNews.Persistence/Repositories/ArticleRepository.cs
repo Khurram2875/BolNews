@@ -835,5 +835,30 @@ namespace BolNews.Persistence.Repositories
                     g => g.Key,
                     g => g.Take(count * 3).ToList());
         }
+        public async Task<Article?> GetBySourceAsync(string sourceSystem, string sourceId)
+        {
+            return await _context.Articles
+                .FirstOrDefaultAsync(a =>
+                    a.SourceSystem == sourceSystem &&
+                    a.SourceId == sourceId);
+        }
+        public async Task<Article?> FindBySourceAsync(string sourceSystem, string sourceId)
+        {
+            return await _context.Articles
+                .FirstOrDefaultAsync(a =>
+                    a.SourceSystem == sourceSystem &&
+                    a.SourceId == sourceId &&
+                    !a.IsDeleted);
+        }
+        public async Task<List<Article>> GetWordPressArticlesWithMissingFeaturedImagesAsync()
+        {
+            return await _context.Articles
+                .Where(a =>
+                    a.SourceSystem == "WordPress" &&
+                    !a.IsDeleted &&
+                    string.IsNullOrEmpty(a.FeaturedImageThumb))
+                .OrderBy(a => a.Id)
+                .ToListAsync();
+        }
     }
 }

@@ -105,5 +105,8 @@ namespace BolNews.Domain.Entities
         public FeaturedImageMetadata? FeaturedImageMetadata { get; set; }
         //For linking of breaking news Ticker
         public virtual ICollection<BreakingNews> BreakingNews { get; set; } = new List<BreakingNews>();
+        //for tracking the source of the article, if it was imported from another system (WordPress, Drupal, etc.)
+        public string? SourceSystem { get; set; }
+        public string? SourceId { get; set; }
     }
 }

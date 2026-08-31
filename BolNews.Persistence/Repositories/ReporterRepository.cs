@@ -39,5 +39,12 @@ namespace BolNews.Persistence.Repositories
             _context.Reporters.Update(reporter);
             await _context.SaveChangesAsync();
         }
+        public async Task<Reporter?> FindBySlugAsync(string slug)
+        {
+            return await _context.Reporters
+                .FirstOrDefaultAsync(x =>
+                    x.Slug == slug &&
+                    !x.IsDeleted);
+        }
     }
 }
