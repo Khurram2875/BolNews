@@ -11,7 +11,8 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
         Import,
         RepairFeaturedImages,
         NormalizeContent,
-        ProcessInlineMedia
+        ProcessInlineMedia,
+        ProcessWordPressVideos
     }
 
     public sealed record WordPressMigrationJob(

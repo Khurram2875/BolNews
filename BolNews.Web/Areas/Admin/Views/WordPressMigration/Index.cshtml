@@ -25,7 +25,7 @@
 
         <div>
             <h2 class="mb-1">
-                WordPress Migration
+                WordPress Migration Ver - 2.0
             </h2>
 
             <p class="text-muted mb-0">
@@ -629,7 +629,7 @@
                 <!-- FEATURED IMAGES -->
                 <!-- ================================================= -->
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <form asp-area="Admin"
                           asp-controller="WordPressMigration"
@@ -663,7 +663,7 @@
                 <!-- CONTENT -->
                 <!-- ================================================= -->
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <form asp-area="Admin"
                           asp-controller="WordPressMigration"
@@ -697,7 +697,7 @@
                 <!-- INLINE MEDIA -->
                 <!-- ================================================= -->
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <form asp-area="Admin"
                           asp-controller="WordPressMigration"
@@ -724,6 +724,36 @@
 
                     </form>
 
+                </div>
+
+                <!-- ================================================= -->
+                <!-- INLine MP4 Videos -->
+                <!-- ================================================= -->
+                <div class="col-md-3">
+                    <form asp-area="Admin"
+                          asp-controller="WordPressMigration"
+                          asp-action="ProcessWordPressVideos"
+                          method="post"
+                          class="repair-form">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="fromDate" />
+
+                        <input type="hidden"
+                               name="toDate" />
+
+                        <button type="submit"
+                                class="btn btn-outline-danger w-100">
+
+                            <i class="bi bi-camera-video"></i>
+
+                            Process WordPress Videos
+
+                        </button>
+
+                    </form>
                 </div>
 
             </div>

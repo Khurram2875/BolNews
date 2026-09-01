@@ -27,6 +27,11 @@
             <li class="bn-menu-item"><a class="bn-menu-link @(parentIsActive ? "active" : "")" href="/category/@parent.Slug">@parent.Name</a></li>
         }
     }
-    <li class="bn-menu-item"><a href="#" class="bn-menu-link">VIDEOS</a></li>
-    <li class="bn-menu-item"><a href="https://www.bolnews.com/urdu" class="bn-menu-link">URDU</a></li>
+    <li class="bn-menu-item">
+        <a href="/category/videos"
+           class="bn-menu-link @(currentPath.StartsWith("/category/videos") ? "active" : "")">
+            VIDEOS
+        </a>
+    </li>
+    <li class="bn-menu-item"><a href="https://urdu.bolnews.com" class="bn-menu-link">URDU</a></li>
 </ul>

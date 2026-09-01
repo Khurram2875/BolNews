@@ -1,71 +1,258 @@
-@using BolNews.Application.DTOs
+﻿@using BolNews.Application.DTOs
 @using BolNews.Domain.Enums
 @model List<MediaAssetDto>
-@{ ViewData["Title"] = "Media Library"; Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml"; }
-<div class="d-flex justify-content-between align-items-center mb-3"><h2>Media Library</h2><a asp-action="Upload" class="btn btn-primary"><i class="bi bi-upload"></i> Upload media</a></div>
-<form method="get" class="row g-2 mb-4">
-	<div class="col-md-4">
-		<input name="query" value="@ViewBag.Query" class="form-control" placeholder="Caption, tag, or article" />
-	</div>
-	<div class="col-md-2">
-		<select name="type" class="form-select">
-			<option value="">All types
 
-			</option>
-				@foreach (var value in Enum.GetValues<MediaType>()) 
-				{	<option value="@value" selected="@(ViewBag.Type?.ToString() == value.ToString())">
-						@value
-					</option> 
-				}
-		</select>
-	</div>
+@{
+    ViewData["Title"] = "Media Library";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
 
-	<div class="col-md-2">
-			<input name="createdFrom" type="date" value="@ViewBag.CreatedFrom" class="form-control" />
-	</div>
-	
-	<div class="col-md-2">
-		<input name="createdTo" type="date" value="@ViewBag.CreatedTo" class="form-control" />
-	</div>
-	
-	<div class="col-md-2">
-		<button class="btn btn-outline-primary">Search</button>
-	</div>
-	
-</form>
-<div class="row row-cols-1 row-cols-md-6 g-6">
-	@foreach (var item in Model) 
-	{	<div class="col">
-			<div class="card h-80">
-				@if(item.MediaType == MediaType.Image) 
-				{ 
-					<img src="@item.MediumUrl" class="card-img-top" style="height:180px;object-fit:cover" />
-				} 
-				else 
-				{	<div class="p-5 text-center">
-						<i class="bi @(item.MediaType == MediaType.Audio ? "bi-music-note-beamed" : "bi-camera-video") fs-1"></i>
-					</div> 
-				}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Media Library</h2>
 
-				<div class="card-body">
-					<span class="badge bg-secondary">@item.MediaType</span>
-					<p style="font-size:smaller" class="mb-1 mt-2"><strong>Caption:</strong> @item.Caption</p>
-					<small style="font-size:small">
-						<strong>Tags:</strong>
-					@foreach (var name in item.Tags)
-					{
-						<span class="badge bg-secondary">@name.Name</span>
-					}
-					</small>
-					@* <small class="text-muted">@string.Join(", ", item.Tags.Select(x => x.Name))</small> *@
-					<br />
-					<small style="font-size:small" class="text-muted">@item.CreatedAt.ToLocalTime().ToString("dd-MMM-yyyy")</small>
-				</div>
-		
-				<div class="card-footer bg-white">
-					<a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit metadata</a>
-				</div>
-			</div>
-		 </div>
-	}
+    <a asp-action="Upload" class="btn btn-primary">
+        <i class="bi bi-upload"></i> Upload media
+    </a>
 </div>
+
+<form method="get" class="row g-2 mb-4">
+
+    <div class="col-md-4">
+        <input name="query"
+               value="@ViewBag.Query"
+               class="form-control"
+               placeholder="Caption, tag, or article" />
+    </div>
+
+    <div class="col-md-2">
+        <select name="type" class="form-select">
+
+            <option value="">All types</option>
+
+            @foreach (var value in Enum.GetValues<MediaType>())
+            {
+                <option value="@value"
+                        selected="@(ViewBag.Type?.ToString() == value.ToString())">
+                    @value
+                </option>
+            }
+
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <input name="createdFrom"
+               type="date"
+               value="@ViewBag.CreatedFrom"
+               class="form-control" />
+    </div>
+
+    <div class="col-md-2">
+        <input name="createdTo"
+               type="date"
+               value="@ViewBag.CreatedTo"
+               class="form-control" />
+    </div>
+
+    <div class="col-md-2">
+        <button class="btn btn-outline-primary">
+            Search
+        </button>
+    </div>
+
+</form>
+
+<div class="row row-cols-1 row-cols-md-6 g-6">
+
+    @foreach (var item in Model)
+    {
+        <div class="col">
+
+            <div class="card h-80">
+                @* <div style="font-size:11px;color:red;">
+                    ID: @item.Id<br />
+                    Type: @item.MediaType<br />
+                    URL: [@item.Url]<br />
+                    Thumbnail: [@item.ThumbnailUrl]
+                </div> *@
+                @if (item.MediaType == MediaType.Image)
+                {
+                    <img src="@item.MediumUrl"
+                         class="card-img-top"
+                         style="height:180px;object-fit:cover"
+                         alt="@item.AltText" />
+                }
+                else if (item.MediaType == MediaType.Video)
+                {
+                    @if (!string.IsNullOrWhiteSpace(item.ThumbnailUrl))
+                    {
+                        <button type="button"
+                                class="position-relative w-100 border-0 bg-transparent p-0"
+                                data-bs-toggle="modal"
+                                data-bs-target="#videoModal"
+                                data-video-url="@item.Url"
+                                data-video-title="@item.Caption">
+
+                            <img src="@item.ThumbnailUrl"
+                                 class="card-img-top"
+                                 style="height:180px;object-fit:cover"
+                                 alt="@item.Caption" />
+
+                            <span class="position-absolute top-50 start-50 translate-middle">
+                                <span class="d-flex align-items-center justify-content-center bg-dark rounded-circle bg-opacity-75"
+                                      style="width:55px;height:55px;">
+                                    <i class="bi bi-play-fill fs-2 text-white"></i>
+                                </span>
+                            </span>
+
+                        </button>
+                    }
+                    else
+                    {
+                        <div class="p-5 text-center"
+                             style="height:180px;">
+
+                            <i class="bi bi-camera-video fs-1"></i>
+
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="p-5 text-center"
+                         style="height:180px;">
+
+                        <i class="bi bi-music-note-beamed fs-1"></i>
+
+                    </div>
+                }
+                <div class="card-body">
+
+                    <span class="badge bg-secondary">
+                        @item.MediaType
+                    </span>
+
+                    <p style="font-size:smaller"
+                       class="mb-1 mt-2">
+
+                        <strong>Caption:</strong>
+                        @item.Caption
+
+                    </p>
+
+                    <small style="font-size:small">
+
+                        <strong>Tags:</strong>
+
+                        @foreach (var name in item.Tags)
+                        {
+                            <span class="badge bg-secondary">
+                                @name.Name
+                            </span>
+                        }
+
+                    </small>
+
+                    <br />
+
+                    <small style="font-size:small"
+                           class="text-muted">
+
+                        @item.CreatedAt.AddHours(5).ToString("dd-MMM-yyyy hh:mm")
+                        
+
+                    </small>
+
+                </div>
+
+                <div class="card-footer bg-white">
+
+                    <a asp-action="Edit"
+                       asp-route-id="@item.Id"
+                       class="btn btn-sm btn-outline-primary">
+                        Edit metadata
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+</div>
+
+
+<!-- Video Playback Modal -->
+<!-- Video Playback Modal -->
+<div class="modal fade"
+     id="videoModal"
+     tabindex="-1"
+     aria-labelledby="videoModalLabel"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title" id="videoModalLabel">
+                    Video
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+                </button>
+
+            </div>
+
+            <div class="modal-body p-0">
+
+                <video id="mediaVideo"
+                       class="w-100"
+                       controls
+                       preload="metadata">
+                </video>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const videoModal = document.getElementById("videoModal");
+        const mediaVideo = document.getElementById("mediaVideo");
+        const videoModalLabel = document.getElementById("videoModalLabel");
+
+        videoModal.addEventListener("show.bs.modal", function (event) {
+
+            const button = event.relatedTarget;
+
+            const videoUrl = button.getAttribute("data-video-url");
+            const videoTitle = button.getAttribute("data-video-title");
+
+            mediaVideo.src = videoUrl;
+            videoModalLabel.textContent = videoTitle || "Video";
+
+            mediaVideo.load();
+        });
+
+        videoModal.addEventListener("hidden.bs.modal", function () {
+
+            mediaVideo.pause();
+            mediaVideo.removeAttribute("src");
+            mediaVideo.load();
+
+        });
+
+    });
+</script>

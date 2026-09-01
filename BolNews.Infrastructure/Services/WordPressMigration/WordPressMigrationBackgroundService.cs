@@ -1,5 +1,7 @@
 ﻿using BolNews.Application.Interfaces;
+using BolNews.Infrastructure.Services.Video;
 using BolNews.Infrastructure.Services.WordPressMigration;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -18,17 +20,23 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
         private readonly WordPressMigrationState _state;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<WordPressMigrationBackgroundService> _logger;
+        
+        
+        private readonly IWebHostEnvironment _environment;
 
         public WordPressMigrationBackgroundService(
             IWordPressMigrationQueue queue,
             WordPressMigrationState state,
             IServiceScopeFactory scopeFactory,
-            ILogger<WordPressMigrationBackgroundService> logger)
+            ILogger<WordPressMigrationBackgroundService> logger,
+              IWebHostEnvironment environment)
         {
             _queue = queue;
             _state = state;
             _scopeFactory = scopeFactory;
             _logger = logger;
+            
+            _environment = environment;
         }
 
         protected override async Task ExecuteAsync(
@@ -118,6 +126,14 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
 
                         break;
 
+                    case WordPressMigrationOperation.ProcessWordPressVideos:
+
+                        await ProcessWordPressVideosAsync(
+                            scope,
+                            job,
+                            cancellationToken);
+
+                        break;
                     default:
 
                         throw new InvalidOperationException(
@@ -241,6 +257,30 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
                 await repairService.ProcessInlineMediaAsync(
                     job.FromDate,
                     job.ToDate,
+                    cancellationToken);
+
+            _state.Complete(
+                result.Total,
+                0,
+                result.Repaired,
+                result.Skipped,
+                result.Failed);
+        }
+        private async Task ProcessWordPressVideosAsync(
+    IServiceScope scope,
+    WordPressMigrationJob job,
+    CancellationToken cancellationToken)
+        {
+            var repairService =
+                scope.ServiceProvider
+                    .GetRequiredService<
+                        WordPressMigrationRepairService>();
+
+            var result =
+                await repairService.ProcessWordPressVideosAsync(
+                    job.FromDate,
+                    job.ToDate,
+                    job.CurrentUserId!,
                     cancellationToken);
 
             _state.Complete(

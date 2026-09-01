@@ -1,5 +1,6 @@
 using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
+using BolNews.Infrastructure.Services.Video;
 using BolNews.Infrastructure.Services.WordPressMigration;
 using BolNews.Persistence;
 using BolNews.Persistence.Identity;
@@ -56,6 +57,9 @@ builder.Services.AddSingleton<IWordPressMigrationQueue,
 
 builder.Services.AddHostedService<
     WordPressMigrationBackgroundService>();
+builder.Services.AddSingleton<
+    IVideoThumbnailService,
+    FfmpegVideoThumbnailService>();
 builder.Services.AddHttpClient(
     "WordPressMedia",
     client =>

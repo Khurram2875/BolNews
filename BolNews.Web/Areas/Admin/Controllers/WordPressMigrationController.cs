@@ -357,5 +357,58 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 failed = _migrationState.Failed
             });
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult>
+    ProcessWordPressVideos(
+        DateTime fromDate,
+        DateTime toDate)
+        {
+            if (fromDate >= toDate)
+            {
+                TempData["Error"] =
+                    "From Date must be earlier than To Date.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (_migrationState.IsRunning)
+            {
+                TempData["Error"] =
+                    "Another migration operation is already running.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            var currentUserId =
+                User.FindFirst(
+                    System.Security.Claims.ClaimTypes.NameIdentifier)
+                ?.Value;
+
+            if (string.IsNullOrWhiteSpace(
+                    currentUserId))
+            {
+                TempData["Error"] =
+                    "Unable to determine the current user.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            _migrationState.Start(
+                "Process WordPress Videos");
+
+            await _migrationQueue.QueueAsync(
+                new WordPressMigrationJob(
+                    WordPressMigrationOperation.ProcessWordPressVideos,
+                    fromDate,
+                    toDate,
+                    currentUserId));
+
+            TempData["Success"] =
+                "WordPress video processing started.";
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

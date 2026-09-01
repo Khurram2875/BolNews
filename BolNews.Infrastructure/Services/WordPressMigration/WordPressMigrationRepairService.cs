@@ -1,6 +1,9 @@
 ﻿using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
+using BolNews.Application.Services;
 using BolNews.Domain.Entities;
+using BolNews.Domain.Enums;
+using BolNews.Infrastructure.Services.Video;
 using HtmlAgilityPack;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
@@ -24,6 +27,8 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
         private readonly IWebHostEnvironment _environment;
         private readonly ILogger<WordPressMigrationRepairService> _logger;
         private readonly WordPressMediaSource _mediaSource;
+        private readonly IMediaLibraryService _mediaLibraryService;
+        private readonly IVideoThumbnailService _videoThumbnailService;
 
         public WordPressMigrationRepairService(
             IWordPressArticleReader reader,
@@ -32,7 +37,7 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
             IHttpClientFactory httpClientFactory,
             IWebHostEnvironment environment,
             ILogger<WordPressMigrationRepairService> logger,
-            WordPressMediaSource mediaSource)
+            WordPressMediaSource mediaSource, IMediaLibraryService mediaLibraryService, IVideoThumbnailService videoThumbnailService)
         {
             _reader = reader;
             _articleRepository = articleRepository;
@@ -41,6 +46,9 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
             _environment = environment;
             _logger = logger;
             _mediaSource = mediaSource;
+            _mediaLibraryService = mediaLibraryService;
+            _videoThumbnailService = videoThumbnailService;
+
         }
 
         // ============================================================
@@ -1321,6 +1329,253 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
             };
 
             return builder.Uri.ToString();
+        }
+        public async Task<WordPressRepairResultDto>
+    ProcessWordPressVideosAsync(
+        DateTime fromDate,
+        DateTime toDate,
+        string currentUserId,
+        CancellationToken cancellationToken = default)
+        {
+            var result =
+                new WordPressRepairResultDto();
+
+            var wordpressArticles =
+                await _reader.GetArticlesAsync(
+                    fromDate,
+                    toDate,
+                    cancellationToken);
+
+            var cmsArticles =
+                await _articleRepository
+                    .GetWordPressArticlesWithMissingFeaturedImagesAsync();
+
+            var wordpressLookup =
+                cmsArticles
+                    .Where(x =>
+                        !string.IsNullOrWhiteSpace(x.SourceId))
+                    .ToDictionary(
+                        x => x.SourceId!,
+                        x => x);
+
+            foreach (var wp in wordpressArticles)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (string.IsNullOrWhiteSpace(
+                        wp.PostContent))
+                {
+                    continue;
+                }
+
+                if (!wordpressLookup.TryGetValue(
+                        wp.WordPressPostId.ToString(),
+                        out var article))
+                {
+                    continue;
+                }
+
+                var videoUrls =
+                    ExtractLocalMp4Urls(
+                        wp.PostContent);
+
+                if (videoUrls.Count == 0)
+                    continue;
+
+                result.Total += videoUrls.Count;
+
+                foreach (var videoUrl in videoUrls)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    try
+                    {
+                        var mediaUrl =
+                            await MigrateSingleWordPressVideoAsync(
+                                article,
+                                videoUrl,
+                                currentUserId,
+                                cancellationToken);
+
+                        article.Content =
+                            article.Content.Replace(
+                                videoUrl,
+                                mediaUrl,
+                                StringComparison.OrdinalIgnoreCase);
+
+                        await _articleRepository.UpdateAsync(
+                            article);
+
+                        result.Repaired++;
+                    }
+                    catch (Exception ex)
+                    {
+                        result.Failed++;
+
+                        result.Errors.Add(
+                            $"Article {article.Id} / " +
+                            $"WP {wp.WordPressPostId}: " +
+                            $"Video migration failed. " +
+                            $"URL={videoUrl}. " +
+                            $"Error={ex.Message}");
+
+                        _logger.LogError(
+                            ex,
+                            "WordPress video migration failed. " +
+                            "ArticleId={ArticleId}, URL={Url}",
+                            article.Id,
+                            videoUrl);
+                    }
+                }
+            }
+
+            return result;
+        }
+        private static List<string> ExtractLocalMp4Urls(
+    string html)
+        {
+            var results =
+                new HashSet<string>(
+                    StringComparer.OrdinalIgnoreCase);
+
+            var pattern =
+                @"(?i)(?:https?:\/\/[^""'\s<>]+|\/[^""'\s<>]+)"
+                + @"\.mp4(?:\?[^""'\s<>]*)?";
+
+            foreach (Match match in
+                Regex.Matches(html, pattern))
+            {
+                var url =
+                    match.Value;
+
+                if (url.Contains(
+                        "/wp-content/uploads/",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    results.Add(url);
+                }
+            }
+
+            return results.ToList();
+        }
+        private async Task<string>
+    MigrateSingleWordPressVideoAsync(
+        Article article,
+        string videoUrl,
+        string currentUserId,
+        CancellationToken cancellationToken)
+        {
+            var normalizedUrl =
+                NormalizeWordPressImageUrl(videoUrl);
+
+            await using var sourceStream =
+                await _mediaSource.OpenAsync(
+                    normalizedUrl,
+                    cancellationToken);
+
+            await using var memoryStream =
+                new MemoryStream();
+
+            await sourceStream.CopyToAsync(
+                memoryStream,
+                cancellationToken);
+
+            memoryStream.Position = 0;
+
+            var originalFileName =
+                Path.GetFileName(
+                    new Uri(normalizedUrl)
+                        .AbsolutePath);
+
+            if (string.IsNullOrWhiteSpace(originalFileName))
+            {
+                originalFileName =
+                    $"video-{Guid.NewGuid():N}.mp4";
+            }
+
+            // ------------------------------------------------------------
+            // Create MediaAsset first.
+            // ------------------------------------------------------------
+
+            var mediaId =
+                await _mediaLibraryService.CreateAsync(
+                    new MediaAssetDto
+                    {
+                        MediaType = MediaType.Video,
+                        OriginalFileName = originalFileName,
+                        AltText = originalFileName
+                    },
+                    currentUserId);
+
+            var mediaDirectory =
+                Path.Combine(
+                    _environment.WebRootPath,
+                    "uploads",
+                    "media",
+                    mediaId.ToString());
+
+            Directory.CreateDirectory(
+                mediaDirectory);
+
+            var videoFilePath =
+                Path.Combine(
+                    mediaDirectory,
+                    "original.mp4");
+
+            var thumbnailFilePath =
+                Path.Combine(
+                    mediaDirectory,
+                    $"video-{mediaId}.jpg");
+
+            // ------------------------------------------------------------
+            // Save MP4.
+            // ------------------------------------------------------------
+
+            memoryStream.Position = 0;
+
+            await using (var fileStream =
+                new FileStream(
+                    videoFilePath,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None,
+                    1024 * 64,
+                    useAsync: true))
+            {
+                await memoryStream.CopyToAsync(
+                    fileStream,
+                    cancellationToken);
+            }
+
+            // ------------------------------------------------------------
+            // Generate thumbnail with FFmpeg.
+            // ------------------------------------------------------------
+
+            await _videoThumbnailService
+                .GenerateThumbnailAsync(
+                    videoFilePath,
+                    thumbnailFilePath,
+                    cancellationToken);
+
+            var videoUrlPath =
+                $"/uploads/media/{mediaId}/original.mp4";
+
+            var thumbnailUrlPath =
+                $"/uploads/media/{mediaId}/video-{mediaId}.jpg";
+
+            // ------------------------------------------------------------
+            // Update MediaAsset storage.
+            // ------------------------------------------------------------
+
+            await _mediaLibraryService.SetStorageAsync(
+                mediaId,
+                videoUrlPath,
+                thumbnailUrlPath,
+                null,
+                null,
+                currentUserId);
+
+            return videoUrlPath;
         }
         private sealed class FeaturedImageRepairItem
         {
