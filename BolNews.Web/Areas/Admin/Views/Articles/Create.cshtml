@@ -249,10 +249,25 @@
 				<label class="form-label">Featured Image</label>
 				<input asp-for="FeaturedMediaId" type="hidden" />
 				<button type="button" class="btn btn-outline-primary btn-sm mb-2" data-media-picker="featured">Choose from Media Library</button>
-				<input type="file" asp-for="ImageFile" class="form-control" />
+				<input type="file" asp-for="ImageFile" class="form-control" onchange="previewFile(event)" />
 				<span asp-validation-for="ImageFile" class="text-danger"></span>
 			</div>
+			<div class="form-group mb-3">
+				<label>Current Image</label><br />
 
+				@if (!string.IsNullOrEmpty(Model.FeaturedImageLarge))
+				{
+					<img id="previewImage"
+						 src="@Model.FeaturedImageLarge"
+						 style="width:120px; height:120px; object-fit:cover; border-radius:50%;" />
+				}
+				else
+				{
+					<img id="previewImage"
+						 src="/images/default-user.png"
+						 style="width:120px; height:120px; border-radius:50%;" />
+				}
+			</div>
 			<div class="row">
 				<div class="col-md-6 mb-3">
 					<label asp-for="FeaturedImageAltText" class="form-label">Featured Image Alt Text</label>

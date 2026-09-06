@@ -44,6 +44,27 @@ namespace BolNews.Persistence.Repositories
                 .ThenBy(x => x.Id)
                 .ToListAsync();
 
+        public async Task<List<EditorialPlacement>> GetActivePlacementsWithArticlesAsync(string placementKey, int take)
+        {
+            IQueryable<EditorialPlacement> query = ActivePlacements(placementKey)
+                .AsNoTracking()
+                .Include(x => x.Article)
+                    .ThenInclude(x => x.Category)
+                .Where(x => x.Article.IsPublished && !x.Article.IsDeleted)
+                .OrderBy(x => x.SortOrder)
+                .ThenBy(x => x.Id);
+
+            if (take > 0)
+            {
+                query = query.Take(take);
+            }
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<int> CountActivePlacementsAsync(string placementKey)
+            => await ActivePlacements(placementKey).CountAsync();
+
         public Task AddAsync(EditorialPlacement placement)
         {
             _context.EditorialPlacements.Add(placement);

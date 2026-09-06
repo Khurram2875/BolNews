@@ -28,7 +28,8 @@ namespace BolNews.Web
          opt => opt.MapFrom(src => src.Reporter != null ? src.Reporter.SourceName : null))
      .ForMember(dest => dest.CategoryId,
          opt => opt.MapFrom(src => src.Category.ParentCategoryId));
-
+            // NEW: lightweight Article Index mapping
+            CreateMap<ArticleListDto, ArticleVM>();
             CreateMap<Article, PublicArticleVM>()
      .ForMember(dest => dest.AuthorName, opt => opt.MapFrom(src => src.Author.Name))
      .ForMember(dest => dest.AuthorSlug, opt => opt.MapFrom(src => src.Author.Slug))

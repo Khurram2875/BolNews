@@ -1,5 +1,9 @@
 ﻿User-agent: *
 Disallow:
 
-Sitemap: https://localhost:7017/sitemap.xml
-Sitemap: https://localhost:7017/news-sitemap.xml
+Sitemap: https://bolnews.com/sitemap.xml
+Sitemap: https://bolnews.com/news-sitemap.xml
+Sitemap: http://bolnews.com/sitemap-articles.xml
+Sitemap: http://bolnews.com/sitemap-categories.xml
+Sitemap: http://bolnews.com/sitemap-tags.xml
+Sitemap: http://bolnews.com/sitemap-authors.xml

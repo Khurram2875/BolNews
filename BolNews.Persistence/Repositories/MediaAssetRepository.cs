@@ -28,4 +28,15 @@ public class MediaAssetRepository(AppDbContext context) : IMediaAssetRepository
         article.FeaturedMediaId = media.Id; article.FeaturedImageXl = media.Url; article.FeaturedImageThumb = media.ThumbnailUrl; article.FeaturedImageMedium = media.MediumUrl; article.FeaturedImageLarge = media.LargeUrl; article.UpdatedAt = DateTime.UtcNow; article.UpdatedBy = currentUserId;
         await context.SaveChangesAsync();
     }
+    public async Task DeleteAsync(int id)
+    {
+        var asset = await context.MediaAssets.FindAsync(id);
+
+        if (asset == null)
+            return;
+
+        context.MediaAssets.Remove(asset);
+
+        await context.SaveChangesAsync();
+    }
 }

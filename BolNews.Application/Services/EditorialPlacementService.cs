@@ -28,10 +28,14 @@ namespace BolNews.Application.Services
             => _placementRepository.GetActivePlacementsWithArticlesAsync(EditorialPlacementKeys.HomepageSecondaryStory);
 
         public Task<List<EditorialPlacement>> GetPinnedLatestStoriesAsync()
-            => _placementRepository.GetActivePlacementsWithArticlesAsync(EditorialPlacementKeys.HomepageLatestStory);
+            => _placementRepository.GetActivePlacementsWithArticlesAsync(
+                EditorialPlacementKeys.HomepageLatestStory,
+                EditorialPlacementKeys.HomepageLatestStoryLimit);
 
         public Task<List<EditorialPlacement>> GetPinnedFeaturedStoriesAsync()
-            => _placementRepository.GetActivePlacementsWithArticlesAsync(EditorialPlacementKeys.HomepageFeaturedStory);
+            => _placementRepository.GetActivePlacementsWithArticlesAsync(
+                EditorialPlacementKeys.HomepageFeaturedStory,
+                EditorialPlacementKeys.HomepageFeaturedStoryLimit);
 
 
         public async Task PinTopStoryAsync(int articleId, string currentUserId, IList<string> roles)
@@ -125,7 +129,9 @@ namespace BolNews.Application.Services
                 return;
             }
 
-            var sortOrder = await _placementRepository.GetMaxSortOrderAsync(placementKey) + 1;
+            await EnsurePlacementLimitAsync(placementKey);
+
+            var sortOrder = await GetNewPlacementSortOrderAsync(placementKey);
 
             await _placementRepository.AddAsync(new EditorialPlacement
             {
@@ -209,6 +215,23 @@ namespace BolNews.Application.Services
             }
         }
 
+        private async Task<int> GetNewPlacementSortOrderAsync(string placementKey)
+        {
+            if (placementKey is EditorialPlacementKeys.HomepageLatestStory or EditorialPlacementKeys.HomepageFeaturedStory)
+            {
+                var placements = await _placementRepository.GetActivePlacementsAsync(placementKey);
+
+                foreach (var placement in placements)
+                {
+                    placement.SortOrder++;
+                }
+
+                return 1;
+            }
+
+            return await _placementRepository.GetMaxSortOrderAsync(placementKey) + 1;
+        }
+
 
         private async Task EnsurePublishedArticleExists(int articleId)
         {
@@ -225,6 +248,31 @@ namespace BolNews.Application.Services
             if (!roles.Contains(Roles.Admin) && !roles.Contains(Roles.Editor) && !roles.Contains(Roles.SubEditor))
             {
                 throw new UnauthorizedAccessException("Only Editors and Admins can manage homepage story placement.");
+            }
+        }
+
+        private async Task EnsurePlacementLimitAsync(string placementKey)
+        {
+            var limit = placementKey switch
+            {
+                EditorialPlacementKeys.HomepageLatestStory => EditorialPlacementKeys.HomepageLatestStoryLimit,
+                EditorialPlacementKeys.HomepageFeaturedStory => EditorialPlacementKeys.HomepageFeaturedStoryLimit,
+                _ => 0
+            };
+
+            if (limit <= 0)
+            {
+                return;
+            }
+
+            var currentCount = await _placementRepository.CountActivePlacementsAsync(placementKey);
+            if (currentCount >= limit)
+            {
+                var placementName = placementKey == EditorialPlacementKeys.HomepageLatestStory
+                    ? "Latest stories"
+                    : "Featured stories";
+
+                throw new InvalidOperationException($"{placementName} pinning is limited to {limit} articles.");
             }
         }
 

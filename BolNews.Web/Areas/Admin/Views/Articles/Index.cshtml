@@ -16,6 +16,8 @@
 	ViewBag.LatestPlacementByArticleId as Dictionary<int, int> ?? new Dictionary<int, int>();
 	var featuredPlacementByArticleId =
 		ViewBag.FeaturedPlacementByArticleId as Dictionary<int, int> ?? new Dictionary<int, int>();
+	var latestPlacementLimitReached = latestPlacementByArticleId.Count >= EditorialPlacementKeys.HomepageLatestStoryLimit;
+	var featuredPlacementLimitReached = featuredPlacementByArticleId.Count >= EditorialPlacementKeys.HomepageFeaturedStoryLimit;
 }
 
 <h2 class="mb-4">Articles</h2>
@@ -90,7 +92,9 @@
 				FeaturedPlacementByArticleId = featuredPlacementByArticleId,
 				ReturnUrl = returnUrl,
 				CanManageHomepagePlacement = canManageHomepagePlacement,
-				CanViewRevisionHistory = canViewRevisionHistory
+				CanViewRevisionHistory = canViewRevisionHistory,
+				LatestPlacementLimitReached = latestPlacementLimitReached,
+				FeaturedPlacementLimitReached = featuredPlacementLimitReached
 			}).ToList();
 		}
 

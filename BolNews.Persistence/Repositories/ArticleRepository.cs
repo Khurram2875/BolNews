@@ -860,5 +860,156 @@ namespace BolNews.Persistence.Repositories
                 .OrderBy(a => a.Id)
                 .ToListAsync();
         }
+        public async Task<(List<ArticleListDto> Articles, int TotalCount)> GetPagedAsync(
+    string? authorUserId,
+    int page,
+    int pageSize)
+        {
+            if (page < 1)
+                page = 1;
+
+            if (pageSize <= 0)
+                pageSize = 10;
+
+            var query = _context.Articles
+                .AsNoTracking()
+                .Where(a => !a.IsDeleted);
+
+            // Authors can only see their own articles.
+            // Admin, Editor and SubEditor pass null and can see all articles.
+            if (!string.IsNullOrWhiteSpace(authorUserId))
+            {
+                query = query.Where(a =>
+                    a.Author != null &&
+                    a.Author.UserId == authorUserId);
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var articles = await query
+                .OrderByDescending(a => a.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(a => new ArticleListDto
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    Slug = a.Slug,
+
+                    FeaturedImageThumb = a.FeaturedImageThumb,
+
+                    CategoryId = a.CategoryId,
+                    CategoryName = a.Category != null
+                        ? a.Category.Name
+                        : null,
+                    CategorySlug = a.Category != null
+                        ? a.Category.Slug
+                        : null,
+
+                    AuthorId = a.AuthorId,
+                    AuthorName = a.Author != null &&
+                                 a.Author.User != null
+                        ? a.Author.User.FullName
+                        : null,
+
+                    ReporterId = a.ReporterId,
+                    ReporterName = a.Reporter != null
+                        ? a.Reporter.Name
+                        : null,
+
+                    IsPublished = a.IsPublished,
+                    PublishedAt = a.PublishedAt,
+
+                    WorkflowStatus = a.WorkflowStatus,
+
+                    ReviewerName = a.ReviewerUser != null
+                        ? a.ReviewerUser.FullName
+                        : null,
+
+                    FactCheckerName = a.FactCheckerUser != null
+                        ? a.FactCheckerUser.FullName
+                        : null,
+
+                    IsEditorsPick = a.IsEditorsPick,
+                    EditorialPriority = a.EditorialPriority,
+                    IsFactChecked = a.IsFactChecked,
+
+                    CreatedAt = a.CreatedAt
+                })
+                .ToListAsync();
+
+            return (articles, totalCount);
+        }
+        public async Task<(List<ArticleListDto> Articles, int TotalCount)> GetDeletedPagedAsync(
+    int page,
+    int pageSize)
+        {
+            if (page < 1)
+                page = 1;
+
+            if (pageSize <= 0)
+                pageSize = 10;
+
+            var query = _context.Articles
+                .IgnoreQueryFilters()
+                .Where(a => a.IsDeleted);
+
+            var totalCount = await query.CountAsync();
+
+            var articles = await query
+                .AsNoTracking()
+                .OrderByDescending(a => a.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(a => new ArticleListDto
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    Slug = a.Slug,
+
+                    FeaturedImageThumb = a.FeaturedImageThumb,
+
+                    CategoryId = a.CategoryId,
+                    CategoryName = a.Category != null
+                        ? a.Category.Name
+                        : null,
+                    CategorySlug = a.Category != null
+                        ? a.Category.Slug
+                        : null,
+
+                    AuthorId = a.AuthorId,
+                    AuthorName = a.Author != null &&
+                                 a.Author.User != null
+                        ? a.Author.User.FullName
+                        : null,
+
+                    ReporterId = a.ReporterId,
+                    ReporterName = a.Reporter != null
+                        ? a.Reporter.Name
+                        : null,
+
+                    IsPublished = a.IsPublished,
+                    PublishedAt = a.PublishedAt,
+
+                    WorkflowStatus = a.WorkflowStatus,
+
+                    ReviewerName = a.ReviewerUser != null
+                        ? a.ReviewerUser.FullName
+                        : null,
+
+                    FactCheckerName = a.FactCheckerUser != null
+                        ? a.FactCheckerUser.FullName
+                        : null,
+
+                    IsEditorsPick = a.IsEditorsPick,
+                    EditorialPriority = a.EditorialPriority,
+                    IsFactChecked = a.IsFactChecked,
+
+                    CreatedAt = a.CreatedAt
+                })
+                .ToListAsync();
+
+            return (articles, totalCount);
+        }
     }
 }

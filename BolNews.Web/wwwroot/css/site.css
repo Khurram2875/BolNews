@@ -961,7 +961,7 @@ body.nav-fixed {
 .bn-popular-card__time {
     margin-top: auto;
     font-size: 0.78rem;
-    color: #6c757d;
+    color: #000000;
 }
 
 /* Responsive collapse for small screens */
@@ -2638,7 +2638,7 @@ body.nav-fixed {
     }
     .bn-latest-item span small {
         display: block;
-        color: #6c757d;
+        color: #000000;
         font-size: 0.65rem;
         margin-top: 4px;
     }
@@ -3746,3 +3746,4 @@ body,
         transform: rotate(360deg);
     }
 }
+

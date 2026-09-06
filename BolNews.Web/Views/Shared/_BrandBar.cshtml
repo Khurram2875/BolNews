@@ -7,7 +7,7 @@
             <!-- Left -->
             <div class="col-lg-3 col-md-3">
                 <div class="bn-brand-date">
-                    @DateTime.Now.ToString("ddd, dd-MMMM-yyyy")
+                    @DateTime.Now.ToString("dddd, MMMM d, yyyy")
                 </div>
             </div>
 
@@ -30,7 +30,7 @@
         <!-- Mobile layout: date on top, logo, then Watch Live — all centered -->
         <div class="d-flex d-md-none flex-column align-items-center text-center">
             <div class="bn-brand-date mb-2">
-                @DateTime.Now.ToString("ddd, dd-MMMM-yyyy")
+                @DateTime.Now.ToString("dddd, MMMM d, yyyy")
             </div>
 
             <a asp-controller="Home" asp-action="Index" class="bn-brand-logo mb-2">

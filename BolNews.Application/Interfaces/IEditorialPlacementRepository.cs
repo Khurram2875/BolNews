@@ -9,6 +9,8 @@ namespace BolNews.Application.Interfaces
         Task<EditorialPlacement?> GetActivePlacementByIdAsync(int placementId);
         Task<List<EditorialPlacement>> GetActivePlacementsAsync(string placementKey);
         Task<List<EditorialPlacement>> GetActivePlacementsWithArticlesAsync(string placementKey);
+        Task<List<EditorialPlacement>> GetActivePlacementsWithArticlesAsync(string placementKey, int take);
+        Task<int> CountActivePlacementsAsync(string placementKey);
         Task AddAsync(EditorialPlacement placement);
         Task SoftDeleteAsync(EditorialPlacement placement, string currentUserId);
         Task SoftDeleteByPlacementAsync(string placementKey, string currentUserId);

@@ -6,5 +6,8 @@ namespace BolNews.Domain.Common
         public const string HomepageSecondaryStory = "HomepageSecondaryStory";
         public const string HomepageLatestStory = "HomepageLatestStory";
         public const string HomepageFeaturedStory = "HomepageFeaturedStory";
+
+        public const int HomepageLatestStoryLimit = 14;
+        public const int HomepageFeaturedStoryLimit = 10;
     }
 }

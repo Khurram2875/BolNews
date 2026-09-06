@@ -70,7 +70,7 @@ else
                     <button type="submit" class="badge bg-light border-success text-success border">Unpin Latest</button>
                 </form>
             }
-            else if (Model.PinnedTopStoryArticleId != article.Id)
+            else if (Model.PinnedTopStoryArticleId != article.Id && !Model.LatestPlacementLimitReached)
             {
                 <form asp-area="Admin" asp-controller="EditorialPlacements" asp-action="PinLatestStory" method="post" class="d-inline">
                     @Html.AntiForgeryToken()
@@ -89,7 +89,7 @@ else
                     <button type="submit" class="badge bg-light border-warning text-warning border">Unpin Featured</button>
                 </form>
             }
-            else if (Model.PinnedTopStoryArticleId != article.Id)
+            else if (Model.PinnedTopStoryArticleId != article.Id && !Model.FeaturedPlacementLimitReached)
             {
                 <form asp-area="Admin" asp-controller="EditorialPlacements" asp-action="PinFeaturedStory" method="post" class="d-inline">
                     @Html.AntiForgeryToken()

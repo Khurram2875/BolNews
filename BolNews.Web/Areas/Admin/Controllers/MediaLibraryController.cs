@@ -193,6 +193,243 @@ public class MediaLibraryController(
         return RedirectToAction(nameof(Index));
     }
 
+
+    //Large File chunk upload handling for videos
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UploadVideoChunk(
+    IFormFile chunk,
+    string uploadId,
+    int chunkIndex)
+    {
+        if (chunk == null || chunk.Length == 0)
+            return BadRequest("Empty chunk.");
+
+        if (string.IsNullOrWhiteSpace(uploadId))
+            return BadRequest("Invalid upload ID.");
+
+        if (chunkIndex < 0)
+            return BadRequest("Invalid chunk index.");
+
+        var tempRoot =
+            Path.Combine(
+                environment.WebRootPath,
+                "uploads",
+                "media",
+                "temp",
+                uploadId);
+
+        Directory.CreateDirectory(tempRoot);
+
+        var chunkPath =
+            Path.Combine(
+                tempRoot,
+                $"chunk-{chunkIndex:D6}");
+
+        await using var input =
+            chunk.OpenReadStream();
+
+        await using var output =
+            new FileStream(
+                chunkPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None,
+                1024 * 64,
+                useAsync: true);
+
+        await input.CopyToAsync(output);
+
+        return Ok();
+    }
+    // Finalize the video upload after all chunks are uploaded (Completion)
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CompleteVideoUpload(
+    MediaAssetDto model,
+    string uploadId,
+    int totalChunks,
+    string fileName,
+    IFormFile? videoThumbnail)
+    {
+        if (string.IsNullOrWhiteSpace(uploadId))
+            return BadRequest("Invalid upload ID.");
+
+        if (totalChunks <= 0)
+            return BadRequest("Invalid chunk count.");
+
+        var userId =
+            userManager.GetUserId(User)!;
+
+        var tempRoot =
+            Path.Combine(
+                environment.WebRootPath,
+                "uploads",
+                "media",
+                "temp",
+                uploadId);
+
+        if (!Directory.Exists(tempRoot))
+            return BadRequest("Upload session not found.");
+
+        var safeFileName =
+            Path.GetFileName(fileName);
+
+        if (string.IsNullOrWhiteSpace(safeFileName))
+            safeFileName = "video.mp4";
+
+        if (!safeFileName.EndsWith(
+                ".mp4",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(
+                "Only MP4 videos are supported.");
+        }
+
+        var assembledPath =
+            Path.Combine(
+                tempRoot,
+                "assembled.mp4");
+
+        try
+        {
+            // Assemble all chunks.
+            await using (var output =
+                new FileStream(
+                    assembledPath,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None,
+                    1024 * 64,
+                    useAsync: true))
+            {
+                for (var i = 0; i < totalChunks; i++)
+                {
+                    var chunkPath =
+                        Path.Combine(
+                            tempRoot,
+                            $"chunk-{i:D6}");
+
+                    if (!System.IO.File.Exists(chunkPath))
+                    {
+                        return BadRequest(
+                            $"Missing chunk {i}.");
+                    }
+
+                    await using (
+                        var input = new FileStream(
+                            chunkPath,
+                            FileMode.Open,
+                            FileAccess.Read,
+                            FileShare.Read,
+                            1024 * 64,
+                            useAsync: true))
+                    {
+                        await input.CopyToAsync(output);
+                    }
+                }
+            }
+
+            // Create MediaAsset.
+            model.MediaType = MediaType.Video;
+            model.Url = "/uploads/media/pending";
+            model.OriginalFileName = safeFileName;
+
+            // Validate thumbnail before creating the MediaAsset
+            if (videoThumbnail != null &&
+                videoThumbnail.Length > 0)
+            {
+                if (!videoThumbnail.ContentType.Equals(
+                        "image/jpeg",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    return BadRequest(
+                        "Invalid video thumbnail.");
+                }
+            }
+
+            var id =
+            await mediaLibrary.CreateAsync(
+            model,
+            userId);
+
+            await using (var videoStream =
+                new FileStream(
+                    assembledPath,
+                    FileMode.Open,
+                    FileAccess.Read,
+                    FileShare.Read,
+                    1024 * 64,
+                    useAsync: true))
+            {
+                var videoUrl =
+                    await imageService.SaveMediaFileAsync(
+                        videoStream,
+                        safeFileName,
+                        id,
+                        environment.WebRootPath);
+
+                string? thumbnailUrl = null;
+
+                if (videoThumbnail != null &&
+                    videoThumbnail.Length > 0)
+                {
+                    await using var thumbnailStream =
+                        videoThumbnail.OpenReadStream();
+
+                    thumbnailUrl =
+                        await imageService.SaveMediaFileAsync(
+                            thumbnailStream,
+                            $"video-{id}.jpg",
+                            id,
+                            environment.WebRootPath);
+                }
+
+                await mediaLibrary.SetStorageAsync(
+                    id,
+                    videoUrl,
+                    thumbnailUrl,
+                    null,
+                    null,
+                    userId);
+            }
+
+            // Remove temporary upload directory.
+            try
+            {
+                Directory.Delete(
+                    tempRoot,
+                    recursive: true);
+            }
+            catch (IOException)
+            {
+                // Temporary upload cleanup failed.
+                // The completed media is already safely stored.
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Temporary upload cleanup failed.
+                // The completed media is already safely stored.
+            }
+
+            // Public Videos page changed.
+            cacheService.Remove("public_videos");
+
+            return Ok(new
+            {
+                success = true,
+                mediaId = id
+            });
+        }
+        catch
+        {
+            // Keep temporary files for now if something fails.
+            // This makes troubleshooting easier.
+            throw;
+        }
+    }
+
     public async Task<IActionResult> Edit(int id)
     {
         var model =

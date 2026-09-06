@@ -10,4 +10,5 @@ public interface IMediaAssetRepository
     Task<List<MediaAsset>> SearchAsync(string? query, MediaType? type, DateTime? createdFrom, DateTime? createdTo, int? articleId);
     Task UpdateAsync(MediaAsset asset);
     Task AssignAsFeaturedAsync(int articleId, int mediaAssetId, string currentUserId);
+    Task DeleteAsync(int id);
 }

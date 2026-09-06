@@ -101,58 +101,95 @@ namespace BolNews.Web.Areas.Admin.Controllers
         // GET: Admin/Articles
         public async Task<IActionResult> Index(int page = 1, bool showDeleted = false)
         {
-            if (page < 1) page = 1;
+            if (page < 1)
+                page = 1;
 
-            var userId = _userManager.GetUserId(User);
+            const int pageSize = 10;
+
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
-            var roles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
+
+            if (user == null)
+                return Challenge();
+
+            var roles = await _userManager.GetRolesAsync(user);
+
             var isAdmin = roles.Contains(Roles.Admin);
 
-            // Only Admins can view the deleted list — everyone else silently falls back to active articles
+            // Only Admin can view deleted articles.
             showDeleted = showDeleted && isAdmin;
 
-            // 1. Fetch all matching business objects/DTOs for this user's permission layer
-            var dtos =  showDeleted
-                ? await _articleService.GetDeletedAsync()
-                : await _articleService.GetAllAsync(user.Id, roles);
+            List<ArticleListDto> dtos;
+            int totalRecords;
 
-            // 2. Setup pagination layout parameters
-            const int pageSize = 10; // Number of records displayed per page
-            int totalRecords = dtos.Count();
+            if (showDeleted)
+            {
+                var result = await _articleService.GetDeletedPagedAsync(
+                    page,
+                    pageSize);
 
-            // 3. Slice the data server-side
-            var pagedDtos = dtos
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+                dtos = result.Articles;
+                totalRecords = result.TotalCount;
+            }
+            else
+            {
+                var result = await _articleService.GetPagedAsync(
+                    user.Id,
+                    roles,
+                    page,
+                    pageSize);
 
-            // 4. Map only the sliced subset to your ViewModels array
-            var viewModels = _mapper.Map<List<ArticleVM>>(pagedDtos);
+                dtos = result.Articles;
+                totalRecords = result.TotalCount;
+            }
 
-            // 5. Populate tracking metrics into ViewBag flags
+            // ArticleListDto -> ArticleVM
+            var viewModels = _mapper.Map<List<ArticleVM>>(dtos);
+
+            var totalPages = (int)Math.Ceiling(
+                (double)totalRecords / pageSize);
+
             ViewBag.CurrentPage = page;
             ViewBag.PageSize = pageSize;
-            ViewBag.TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+            ViewBag.TotalPages = totalPages;
             ViewBag.HasPreviousPage = page > 1;
-            ViewBag.HasNextPage = page < ViewBag.TotalPages;
+            ViewBag.HasNextPage = page < totalPages;
             ViewBag.ShowingDeleted = showDeleted;
             ViewBag.CanViewDeleted = isAdmin;
 
-            if (roles.Contains(Roles.Admin) || roles.Contains(Roles.Editor) || roles.Contains(Roles.SubEditor))
+            // Editorial placement information is still needed by the Index view.
+            if (roles.Contains(Roles.Admin) ||
+                roles.Contains(Roles.Editor) ||
+                roles.Contains(Roles.SubEditor))
             {
-                var topStory = await _editorialPlacementService.GetPinnedTopStoryAsync();
-                var secondaryStories = await _editorialPlacementService.GetPinnedSecondaryStoriesAsync();
-                var latestStories = await _editorialPlacementService.GetPinnedLatestStoriesAsync();
-                var featuredStories = await _editorialPlacementService.GetPinnedFeaturedStoriesAsync();
+                var topStory =
+                    await _editorialPlacementService.GetPinnedTopStoryAsync();
 
-                ViewBag.PinnedTopStoryArticleId = topStory?.ArticleId;
-                ViewBag.SecondaryPlacementByArticleId = secondaryStories
-                    .ToDictionary(x => x.ArticleId, x => x.Id);
-                ViewBag.LatestPlacementByArticleId = latestStories
-                    .ToDictionary(x => x.ArticleId, x => x.Id);
-                ViewBag.FeaturedPlacementByArticleId = featuredStories
-                    .ToDictionary(x => x.ArticleId, x => x.Id);
+                var secondaryStories =
+                    await _editorialPlacementService.GetPinnedSecondaryStoriesAsync();
+
+                var latestStories =
+                    await _editorialPlacementService.GetPinnedLatestStoriesAsync();
+
+                var featuredStories =
+                    await _editorialPlacementService.GetPinnedFeaturedStoriesAsync();
+
+                ViewBag.PinnedTopStoryArticleId =
+                    topStory?.ArticleId;
+
+                ViewBag.SecondaryPlacementByArticleId =
+                    secondaryStories.ToDictionary(
+                        x => x.ArticleId,
+                        x => x.Id);
+
+                ViewBag.LatestPlacementByArticleId =
+                    latestStories.ToDictionary(
+                        x => x.ArticleId,
+                        x => x.Id);
+
+                ViewBag.FeaturedPlacementByArticleId =
+                    featuredStories.ToDictionary(
+                        x => x.ArticleId,
+                        x => x.Id);
             }
 
             return View(viewModels);

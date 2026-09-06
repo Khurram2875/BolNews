@@ -11,6 +11,8 @@
             public string ReturnUrl { get; set; } = "";
             public bool CanManageHomepagePlacement { get; set; }
             public bool CanViewRevisionHistory { get; set; }
+            public bool LatestPlacementLimitReached { get; set; }
+            public bool FeaturedPlacementLimitReached { get; set; }
         }
     
 }

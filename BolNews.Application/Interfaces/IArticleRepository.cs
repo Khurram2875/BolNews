@@ -55,6 +55,14 @@ namespace BolNews.Application.Interfaces
         Task<Article?> GetBySourceAsync(string sourceSystem, string sourceId);
         Task<Article?> FindBySourceAsync(string sourceSystem,string sourceId);
         Task<List<Article>> GetWordPressArticlesWithMissingFeaturedImagesAsync();
+        Task<(List<ArticleListDto> Articles, int TotalCount)> GetPagedAsync(
+    string? authorUserId,
+    int page,
+    int pageSize);
+
+        Task<(List<ArticleListDto> Articles, int TotalCount)> GetDeletedPagedAsync(
+            int page,
+            int pageSize);
 
     }
 }

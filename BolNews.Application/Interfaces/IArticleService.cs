@@ -60,5 +60,14 @@ namespace BolNews.Application.Interfaces
         Task<List<Article>> SearchArticlesAsync(string search, int take = 20);
         Task<List<Article>> GetLatestArticlesForCategoriesAsync(List<int> categoryIds, int count);
         Task<List<ArticleDto>> GetDeletedAsync();
+        Task<(List<ArticleListDto> Articles, int TotalCount)> GetPagedAsync(
+    string userId,
+    IList<string> roles,
+    int page,
+    int pageSize);
+
+        Task<(List<ArticleListDto> Articles, int TotalCount)> GetDeletedPagedAsync(
+            int page,
+            int pageSize);
     }
 }
