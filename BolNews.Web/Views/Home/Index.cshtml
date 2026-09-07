@@ -105,9 +105,7 @@
                             </a>
                         }
                     </div>
-                    <div class="bn-ad-slot mt-4">
-                        <div id="Bolnews_Sidebar_Bottom_BTF" data-ad-slot="sidebar-bottom-btf"></div>
-                    </div>
+                    
                 </aside>
             }
 
@@ -227,7 +225,9 @@
 
                         </div>
                     }
-                   
+                    <div class="bn-ad-slot mt-4">
+                        <div id="Bolnews_Sidebar_Bottom_BTF" data-ad-slot="sidebar-bottom-btf"></div>
+                    </div>
 
                 </aside>
             }
@@ -294,8 +294,9 @@
 @* <div class="container mt-4">
     @await Component.InvokeAsync("SmartTrending", new { count = 6 })
 </div> *@
-<div class="bn-ad-code-block bn-ad-slot-incontent" aria-label="Advertisement">
-    <div id="Bolnews_Bottom_BTF"></div>
+<div class="bn-ad-code-block bn-ad-slot-incontent"
+     aria-label="Advertisement">
+    <div id="Bolnews_Incontent_Lazy"></div>
 </div>
 
 

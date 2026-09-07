@@ -861,9 +861,11 @@ namespace BolNews.Persistence.Repositories
                 .ToListAsync();
         }
         public async Task<(List<ArticleListDto> Articles, int TotalCount)> GetPagedAsync(
-    string? authorUserId,
-    int page,
-    int pageSize)
+            string? authorUserId,
+            int page,
+            int pageSize,
+            string? search = null,
+            int? authorId = null)
         {
             if (page < 1)
                 page = 1;
@@ -875,13 +877,29 @@ namespace BolNews.Persistence.Repositories
                 .AsNoTracking()
                 .Where(a => !a.IsDeleted);
 
-            // Authors can only see their own articles.
-            // Admin, Editor and SubEditor pass null and can see all articles.
+            // Author-level access restriction.
+            // Admin / Editor / SubEditor pass null and can see all articles.
             if (!string.IsNullOrWhiteSpace(authorUserId))
             {
                 query = query.Where(a =>
                     a.Author != null &&
                     a.Author.UserId == authorUserId);
+            }
+
+            // Search by article title.
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+
+                query = query.Where(a =>
+                    EF.Functions.Like(a.Title, $"%{search}%"));
+            }
+
+            // Filter by Article Author / SubEditor Author profile.
+            if (authorId.HasValue)
+            {
+                query = query.Where(a =>
+                    a.AuthorId == authorId.Value);
             }
 
             var totalCount = await query.CountAsync();
@@ -907,9 +925,8 @@ namespace BolNews.Persistence.Repositories
                         : null,
 
                     AuthorId = a.AuthorId,
-                    AuthorName = a.Author != null &&
-                                 a.Author.User != null
-                        ? a.Author.User.FullName
+                    AuthorName = a.Author != null
+                        ? a.Author.Name
                         : null,
 
                     ReporterId = a.ReporterId,

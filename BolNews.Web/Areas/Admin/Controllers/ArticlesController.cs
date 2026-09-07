@@ -99,7 +99,9 @@ namespace BolNews.Web.Areas.Admin.Controllers
         }
 
         // GET: Admin/Articles
-        public async Task<IActionResult> Index(int page = 1, bool showDeleted = false)
+       
+        public async Task<IActionResult> Index(int page = 1, bool showDeleted = false, string? search = null,
+                                                int? authorId = null)
         {
             if (page < 1)
                 page = 1;
@@ -115,6 +117,13 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             var isAdmin = roles.Contains(Roles.Admin);
 
+            // Load authors for the filter dropdown.
+            var authors = await _authorService.GetAllAsync();
+
+            ViewBag.Authors = authors
+                .OrderBy(a => a.Name)
+                .ToList();
+
             // Only Admin can view deleted articles.
             showDeleted = showDeleted && isAdmin;
 
@@ -123,6 +132,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             if (showDeleted)
             {
+                // Keep the existing deleted-articles flow.
                 var result = await _articleService.GetDeletedPagedAsync(
                     page,
                     pageSize);
@@ -132,11 +142,14 @@ namespace BolNews.Web.Areas.Admin.Controllers
             }
             else
             {
+                // Apply search and author filters to normal articles.
                 var result = await _articleService.GetPagedAsync(
                     user.Id,
                     roles,
                     page,
-                    pageSize);
+                    pageSize,
+                    search,
+                    authorId);
 
                 dtos = result.Articles;
                 totalRecords = result.TotalCount;
@@ -155,6 +168,10 @@ namespace BolNews.Web.Areas.Admin.Controllers
             ViewBag.HasNextPage = page < totalPages;
             ViewBag.ShowingDeleted = showDeleted;
             ViewBag.CanViewDeleted = isAdmin;
+
+            // Preserve filter values for the Razor view.
+            ViewBag.Search = search;
+            ViewBag.AuthorId = authorId;
 
             // Editorial placement information is still needed by the Index view.
             if (roles.Contains(Roles.Admin) ||
@@ -194,6 +211,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             return View(viewModels);
         }
+
+
 
         public async Task<IActionResult> Revisions(int id)
         {

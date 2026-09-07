@@ -923,27 +923,34 @@ namespace BolNews.Application.Services
                 IsDeleted = a.IsDeleted
             }).ToList();
         }
-        public async Task<(List<ArticleListDto> Articles, int TotalCount)> GetPagedAsync(
-    string userId,
-    IList<string> roles,
-    int page,
-    int pageSize)
+        public async Task<(List<ArticleListDto> Articles, int TotalCount)> GetPagedAsync(string userId, IList<string> roles, int page, int pageSize, string? search = null, int? authorId = null)
         {
-            var isEditorialRole =
-                roles.Contains(Roles.Admin) ||
-                roles.Contains(Roles.Editor) ||
-                roles.Contains(Roles.SubEditor);
-
             // Admin, Editor and SubEditor can see all articles.
-            // Author is restricted to articles belonging to their user account.
-            var authorUserId = isEditorialRole
-                ? null
-                : userId;
+            if (IsAdmin(roles) ||
+                IsEditor(roles) ||
+                IsSubEditor(roles))
+            {
+                return await _repo.GetPagedAsync(
+                    null,
+                    page,
+                    pageSize,
+                    search,
+                    authorId);
+            }
 
-            return await _repo.GetPagedAsync(
-                authorUserId,
-                page,
-                pageSize);
+            // Authors can only see their own articles.
+            if (IsAuthor(roles))
+            {
+                return await _repo.GetPagedAsync(
+                    userId,
+                    page,
+                    pageSize,
+                    search,
+                    authorId);
+            }
+
+            // Unknown / unauthorized role.
+            return (new List<ArticleListDto>(), 0);
         }
         public async Task<(List<ArticleListDto> Articles, int TotalCount)> GetDeletedPagedAsync(
     int page,

@@ -44,8 +44,12 @@
                             <span>@featured.TimeAgo</span>
                         </div>
                     </a>
-                }
 
+                }
+                <div class="bn-ad-code-block bn-ad-slot-incontent my-4"
+                     aria-label="Advertisement">
+                    <div id="Bolnews_Incontent_Lazy"></div>
+                </div>
                 @if (Model.Articles.Any())
                 {
                     <div class="row g-3 mt-1">
@@ -101,6 +105,10 @@
                     </div>
                     <div class="bn-story-rail"><h2>Trending</h2></div>
                         @await Component.InvokeAsync("TrendingNews", new { type = Context.Request.Query["type"].ToString() })
+                    <div class="bn-ad-slot mt-4">
+                        <div id="Bolnews_Sidebar_Bottom_BTF"
+                             data-ad-slot="sidebar-bottom-btf"></div>
+                    </div>
                     
                 </div>
             </aside>

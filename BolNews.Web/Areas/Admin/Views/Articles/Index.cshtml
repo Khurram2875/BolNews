@@ -81,6 +81,60 @@
 				</div>
 			}
 	</div>
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <form asp-action="Index" method="get">
+                <input type="hidden"
+                       name="showDeleted"
+                       value="@ViewBag.ShowingDeleted" />
+
+                <div class="row g-3">
+
+                    <div class="col-md-5">
+                        <label class="form-label">Search by Title</label>
+                        <input type="text"
+                               name="search"
+                               value="@ViewBag.Search"
+                               class="form-control"
+                               placeholder="Search article title..." />
+                    </div>
+
+                    <div class="col-md-5">
+                        <label class="form-label">Author / SubEditor</label>
+                        <select name="authorId"
+                                class="form-select">
+
+                            <option value="">All Authors</option>
+
+                            @foreach (var author in ViewBag.Authors)
+                            {
+                                <option value="@author.Id"
+                                        selected="@(ViewBag.AuthorId != null &&
+                                                                                        (int)ViewBag.AuthorId == author.Id)">
+                                @author.Name
+                            </option>
+                                                        }
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end gap-2">
+                        <button type="submit"
+                                class="btn btn-primary">
+                            <i class="bi bi-search"></i>
+                            Search
+                        </button>
+
+                        <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+                            Clear
+                        </a>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
 	<div class="card-body p-0">
 		@{
 			var rowContexts = Model.Select(article => new ArticleRowContext
@@ -186,7 +240,12 @@
                     @if (ViewBag.HasPreviousPage)
                     {
                         <a class="page-link"
-                           href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1 })">
+                           href="@Url.Action("Index", new 
+                           { page = ViewBag.CurrentPage - 1,
+                            search = ViewBag.Search,
+                            authorId = ViewBag.AuthorId,
+                            showDeleted = ViewBag.ShowingDeleted
+                           })">
                             &laquo; Previous
                         </a>
                     }
@@ -215,7 +274,12 @@
                 {
                     <li class="page-item">
                         <a class="page-link"
-                           href="@Url.Action("Index", new { page = 1 })">
+                           href="@Url.Action("Index", new 
+                           {page = 1,
+                            search = ViewBag.Search,
+                            authorId = ViewBag.AuthorId,
+                            showDeleted = ViewBag.ShowingDeleted
+                           })">
                             1
                         </a>
                     </li>
@@ -255,7 +319,12 @@
 
                     <li class="page-item">
                         <a class="page-link"
-                           href="@Url.Action("Index", new { page = totalPages })">
+                           href="@Url.Action("Index", new 
+                           {page = totalPages,
+                            search = ViewBag.Search,
+                            authorId = ViewBag.AuthorId,
+                            showDeleted = ViewBag.ShowingDeleted
+                           })">
                             @totalPages
                         </a>
                     </li>
