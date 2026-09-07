@@ -21,11 +21,22 @@
 
     @{
         var canonicalRaw = ViewBag.CanonicalUrl as string;
-        var canonicalUrl = string.IsNullOrWhiteSpace(canonicalRaw)
-            ? $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}{Context.Request.QueryString}"
-            : (Uri.TryCreate(canonicalRaw, UriKind.Absolute, out var absoluteCanonical)
-                ? absoluteCanonical.ToString()
-                : $"{Context.Request.Scheme}://{Context.Request.Host}{canonicalRaw}");
+        string canonicalUrl;
+
+        if (string.IsNullOrWhiteSpace(canonicalRaw))
+        {
+            canonicalUrl = $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}{Context.Request.QueryString}";
+        }
+        else if (Uri.TryCreate(canonicalRaw, UriKind.Absolute, out var absoluteCanonical)
+        && (absoluteCanonical.Scheme == Uri.UriSchemeHttp || absoluteCanonical.Scheme == Uri.UriSchemeHttps))
+        {
+            canonicalUrl = absoluteCanonical.ToString();
+        }
+        else
+        {
+            var path = canonicalRaw.StartsWith("/") ? canonicalRaw : $"/{canonicalRaw}";
+            canonicalUrl = $"{Context.Request.Scheme}://{Context.Request.Host}{path}";
+        }
 
         var ogType = ViewBag.OgType as string ?? "website";
     }
@@ -38,6 +49,8 @@
         <meta name="keywords" content="@ViewBag.MetaKeywords" />
     }
     <link rel="canonical" href="@canonicalUrl" />
+    <link rel="alternate" hreflang="en" href="@canonicalUrl" />
+    <link rel="alternate" hreflang="x-default" href="@canonicalUrl" />
 
     <!-- Open Graph -->
     <meta property="og:title" content="@(ViewBag.MetaTitle ?? "")" />

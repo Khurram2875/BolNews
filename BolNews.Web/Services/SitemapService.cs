@@ -112,7 +112,7 @@ namespace BolNews.Web.Services
 
                     var urls = categories.Select(c =>
                         new XElement(ns + "url",
-                            new XElement(ns + "loc", $"{baseUrl}/{c.Slug}"),
+                            new XElement(ns + "loc", $"{baseUrl}/category/{c.Slug}"),
                             new XElement(ns + "changefreq", "daily"),
                             new XElement(ns + "priority", "0.8")
                         )

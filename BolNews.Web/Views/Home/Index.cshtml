@@ -5,7 +5,7 @@
 
 @{
 
-    ViewData["Title"] = "Home";
+    // ViewData["Title"] = "Home";
     var secondaryStories = Model.SecondaryStories ?? new List<PublicArticleVM>();
 
     var pinnedSecondaryCount = Math.Min(Model.PinnedSecondaryStoryCount, secondaryStories.Count);
@@ -79,7 +79,7 @@
         }
     }
 }
-
+<h1 class="visually-hidden">Bol News – Pakistan Breaking News, Politics, Business, Sports & Entertainment</h1>
 <div style="padding-top:20px" class="bn-container">
     @if (Model.TopStory != null)
     {

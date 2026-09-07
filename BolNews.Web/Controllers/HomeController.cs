@@ -164,6 +164,8 @@ namespace BolNews.Web.Controllers
             }
 
             ViewBag.Type = type;
+            ViewBag.MetaTitle = "Bol News – Pakistan Breaking News, Politics, Business, Sports & Entertainment";
+            ViewBag.MetaDescription = "Bol News delivers breaking news, in-depth analysis and live coverage from Pakistan and around the world — politics, business, sports, entertainment and technology.";
             return View(vm);
         }
 
@@ -414,6 +416,24 @@ namespace BolNews.Web.Controllers
         {
             ViewData["InformationPage"] = page;
             return View("Information");
+        }
+        [Route("/error/{code:int}")]
+        public IActionResult StatusCodeError(int code)
+        {
+            Response.StatusCode = code; // ensure the response still reports the correct code
+
+            var vm = new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                StatusCode = code
+            };
+
+            return code switch
+            {
+                404 => View("NotFound", vm),
+                403 => View("Forbidden", vm),
+                _ => View("Error", vm)
+            };
         }
     }
 }

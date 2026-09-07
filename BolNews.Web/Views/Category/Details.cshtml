@@ -29,13 +29,14 @@
     <div class="container" style="padding-top:32px;padding-bottom:48px;">
         <div class="row g-4">
             <main class="col-lg-8">
+                <h1 class="visually-hidden">@categoryName</h1>
                 @if (Model.FeaturedArticle is { } featured)
                 {
                     <a href="/@featured.CategorySlug/@featured.Slug" class="bn-category-featured track-click d-block" data-article-id="@featured.Id">
                         <img src="@featured.FeaturedImageLarge" alt="@featured.Title" loading="eager" />
                         <div class="bn-category-featured-body">
                             <div class="bn-category-label">Latest in @categoryName</div>
-                            <h1>@featured.Title</h1>
+                            <h2>@featured.Title</h2>
                             @if (!string.IsNullOrWhiteSpace(featured.Summary))
                             {
                                 <p>@featured.Summary</p>
@@ -120,6 +121,15 @@
     .bn-category-featured-body { padding:12px 10px 0; }
     .bn-category-label { color:#C4161C; font-family:var(--bn-font-ui); font-size:12px; font-weight:700; text-transform:uppercase; }
     .bn-category-featured h1 { color:#C4161C; font-family:var(--bn-font-body); font-size:22px; font-weight:600; line-height:32px; margin:6px 0; }
+
+    .bn-category-featured h2 {
+        color: #C4161C;
+        font-family: var(--bn-font-body);
+        font-size: 22px;
+        font-weight: 600;
+        line-height: 32px;
+        margin: 6px 0;
+    }
     .bn-category-featured p { color:#000; font-family:var(--bn-font-body); font-size:14px; line-height:22px; margin:0 0 8px; }
     .bn-category-featured span, .bn-category-card span { color:var(--bn-text-muted); font-family:var(--bn-font-ui); font-size:11px; }
     .bn-category-card { color:inherit; text-decoration:none; border:1px solid rgba(0,0,0,.08); border-radius:3px; box-shadow:0 0 5px rgba(0,0,0,.15); padding:7px; transition:box-shadow .2s ease; }

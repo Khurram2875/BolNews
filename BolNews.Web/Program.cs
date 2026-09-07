@@ -13,6 +13,7 @@ using BolNews.Web.Hubs;
 using BolNews.Web.Interfaces;
 using BolNews.Web.Middleware;
 using BolNews.Web.Services;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Azure.SignalR;
 
@@ -107,17 +108,25 @@ if (args.Length > 0 &&
     return;
 }
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor
+                      | ForwardedHeaders.XForwardedProto
+                      | ForwardedHeaders.XForwardedHost
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
+    app.UseStatusCodePagesWithReExecute("/error/{0}");
     app.UseHsts();
 }
-
 app.UseHttpsRedirection();
 app.UseResponseCompression();
 app.UseStaticFiles();
+
+
 app.UseRouting();
 app.UseSession();
 app.UseMiddleware<SecurityHeadersMiddleware>();

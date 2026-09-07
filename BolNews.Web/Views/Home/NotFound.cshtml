@@ -1,0 +1,15 @@
+﻿<div class="container py-5 text-center">
+    <h1>Page not found</h1>
+    <p>
+        The page you're looking for doesn't exist or may have been moved.
+    </p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+        Return Home
+    </a>
+    <div class="mt-4">
+        <a asp-controller="Category" asp-action="Details" asp-route-categorySlug="pakistan">Pakistan</a> ·
+        <a asp-controller="Category" asp-action="Details" asp-route-categorySlug="world">World</a> ·
+        <a asp-controller="Category" asp-action="Details" asp-route-categorySlug="sports">Sports</a> ·
+        <a asp-controller="Category" asp-action="Details" asp-route-categorySlug="entertainment">Entertainment</a>
+    </div>
+</div>

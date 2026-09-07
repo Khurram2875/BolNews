@@ -3,7 +3,7 @@ Disallow:
 
 Sitemap: https://bolnews.com/sitemap.xml
 Sitemap: https://bolnews.com/news-sitemap.xml
-Sitemap: http://bolnews.com/sitemap-articles.xml
-Sitemap: http://bolnews.com/sitemap-categories.xml
-Sitemap: http://bolnews.com/sitemap-tags.xml
-Sitemap: http://bolnews.com/sitemap-authors.xml
+Sitemap: https://bolnews.com/sitemap-articles.xml
+Sitemap: https://bolnews.com/sitemap-categories.xml
+Sitemap: https://bolnews.com/sitemap-tags.xml
+Sitemap: https://bolnews.com/sitemap-authors.xml
