@@ -466,7 +466,7 @@ namespace BolNews.Application.Services
             await _repo.GetCategoryArticlesAsync(categorySlug, skip, take);
         public async Task<List<Article>> GetByTagSlugAsync(string tagSlug, int page = 1, int pageSize = 20) => await _repo.GetByTagSlugAsync(tagSlug, page, pageSize);
 
-        public async Task<List<Article>> GetRelatedArticlesAsync(int categoryId, int excludeId, List<int> tagIds, int count = 5)
+        public async Task<List<Article>> GetRelatedArticlesAsync(int categoryId, int excludeId, List<int> tagIds, int count = 12)
         {
             string key = $"related_{categoryId}_{excludeId}";
 

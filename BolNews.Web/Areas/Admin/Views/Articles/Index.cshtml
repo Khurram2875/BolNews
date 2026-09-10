@@ -18,6 +18,16 @@
 		ViewBag.FeaturedPlacementByArticleId as Dictionary<int, int> ?? new Dictionary<int, int>();
 	var latestPlacementLimitReached = latestPlacementByArticleId.Count >= EditorialPlacementKeys.HomepageLatestStoryLimit;
 	var featuredPlacementLimitReached = featuredPlacementByArticleId.Count >= EditorialPlacementKeys.HomepageFeaturedStoryLimit;
+
+    var routeValues = new Dictionary<string, object?>
+    {
+        ["search"] = ViewBag.Search,
+        ["authorId"] = ViewBag.AuthorId,
+        ["showDeleted"] = ViewBag.ShowingDeleted
+    };
+
+    Func<int, Dictionary<string, object?>> pageLink = p =>
+        new Dictionary<string, object?>(routeValues) { ["page"] = p };
 }
 
 <h2 class="mb-4">Articles</h2>
@@ -53,10 +63,10 @@
 	}
 </div>
 
-<div class="card shadow-sm">
-	<div class="card-header bg-primary text-white">
-		<h5 class="mb-0">Article List</h5>
-		@if (ViewBag.CanViewDeleted == true)
+    <div class="card shadow-sm">
+	    <div class="card-header bg-primary text-white">
+		    <h5 class="mb-0">Article List</h5>
+		    @if (ViewBag.CanViewDeleted == true)
 			{
 				
 					@if (ViewBag.ShowingDeleted == true)
@@ -80,28 +90,28 @@
 					Showing soft-deleted articles. These are hidden from the public site and the normal article list.
 				</div>
 			}
-	</div>
-    <div class="card mb-3 shadow-sm">
-        <div class="card-body">
-            <form asp-action="Index" method="get">
-                <input type="hidden"
+	    </div>
+        <div class="card mb-3 shadow-sm">
+            <div class="card-body">
+                <form asp-action="Index" method="get">
+                    <input type="hidden"
                        name="showDeleted"
                        value="@ViewBag.ShowingDeleted" />
 
-                <div class="row g-3">
+                    <div class="row g-3">
 
-                    <div class="col-md-5">
-                        <label class="form-label">Search by Title</label>
-                        <input type="text"
+                        <div class="col-md-5">
+                            <label class="form-label">Search by Title</label>
+                            <input type="text"
                                name="search"
                                value="@ViewBag.Search"
                                class="form-control"
                                placeholder="Search article title..." />
-                    </div>
+                        </div>
 
-                    <div class="col-md-5">
-                        <label class="form-label">Author / SubEditor</label>
-                        <select name="authorId"
+                        <div class="col-md-5">
+                            <label class="form-label">Author / SubEditor</label>
+                            <select name="authorId"
                                 class="form-select">
 
                             <option value="">All Authors</option>
@@ -115,26 +125,27 @@
                             </option>
                                                         }
 
-                        </select>
-                    </div>
+                            </select>
+                        </div>
 
-                    <div class="col-md-2 d-flex align-items-end gap-2">
-                        <button type="submit"
+                        <div class="col-md-2 d-flex align-items-end gap-2">
+                            <button type="submit"
                                 class="btn btn-primary">
-                            <i class="bi bi-search"></i>
-                            Search
-                        </button>
+                                <i class="bi bi-search"></i>
+                                Search
+                            </button>
 
-                        <a asp-action="Index"
-                           class="btn btn-outline-secondary">
-                            Clear
-                        </a>
+                            <a asp-action="Index"
+                               class="btn btn-outline-secondary">
+                                Clear
+                            </a>
+                        </div>
+
                     </div>
-
-                </div>
-            </form>
-        </div>
+                </form>
+            </div>
     </div>
+
 	<div class="card-body p-0">
 		@{
 			var rowContexts = Model.Select(article => new ArticleRowContext
@@ -192,19 +203,19 @@
 					}
 				</tbody>
 			</table>
-		</div>
+	    </div>
 
 		<!-- Mobile card list -->
 		<div class="d-md-none">
 			@foreach (var ctx in rowContexts)
 			{
-				var article = ctx.Article;
+			    var article = ctx.Article;
 				<div class="border-bottom p-3">
 					<div class="d-flex gap-3">
 						@if (!string.IsNullOrEmpty(article.FeaturedImageThumb))
 						{
 							<img class="lazy-image flex-shrink-0"
-								 src="/images/placeholder.png"
+							     src="/images/placeholder.png"
 								 data-src="@($"{article.FeaturedImageThumb}?v=@{article.Id}")"
 								 style="width:64px; height:64px; object-fit:cover; border-radius:4px;" />
 						}
@@ -213,17 +224,19 @@
 							<img src="/images/default-news.png" style="width:64px; height:64px; object-fit:cover; border-radius:4px;" />
 						}
 						<div class="flex-grow-1 min-width-0">
-							<div class="fw-semibold">@article.Title</div>
-							<div class="small text-muted">@article.AuthorName &middot; @article.CategoryName</div>
-							<div class="mt-1">@await Html.PartialAsync("_ArticleStatusBadges", ctx)</div>
+							    <div class="fw-semibold">@article.Title</div>
+							    <div class="small text-muted">@article.AuthorName &middot; @article.CategoryName</div>
+							    <div class="mt-1">@await Html.PartialAsync("_ArticleStatusBadges", ctx)</div>
 						</div>
 					</div>
-					<div class="mt-2">@await Html.PartialAsync("_ArticleActions", ctx)</div>
+					    <div class="mt-2">@await Html.PartialAsync("_ArticleActions", ctx)</div>
 				</div>
-			}
-		</div>
-		@if (ViewBag.TotalPages > 1)
-{
+		    }   
+	    </div>
+    </div>
+    
+    @if (ViewBag.TotalPages > 1)
+    {
     <div class="card-footer d-flex align-items-center justify-content-between bg-light border-top py-3">
 
         <div class="text-muted small">
@@ -299,7 +312,12 @@
                     <li class="page-item @(i == currentPage ? "active" : "")">
 
                         <a class="page-link"
-                           href="@Url.Action("Index", new { page = i })">
+                           href="@Url.Action("Index", new
+                           { page = i,
+                             search = ViewBag.Search,
+                             authorId = ViewBag.AuthorId,
+                             showDeleted = ViewBag.ShowingDeleted
+                           })">
                             @i
                         </a>
 
@@ -337,7 +355,12 @@
                     @if (ViewBag.HasNextPage)
                     {
                         <a class="page-link"
-                           href="@Url.Action("Index", new { page = currentPage + 1 })">
+                           href="@Url.Action("Index", new
+                           { page = currentPage + 1,
+                             search = ViewBag.Search,
+                             authorId = ViewBag.AuthorId,
+                             showDeleted = ViewBag.ShowingDeleted
+                           })">
                             Next &raquo;
                         </a>
                     }

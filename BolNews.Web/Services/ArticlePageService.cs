@@ -113,7 +113,7 @@ namespace BolNews.Web.Services
                     article.CategoryId,
                     article.Id,
                     tagIds,
-                    5);
+                    12);
 
             // ---------------------------------------------------------
             // 5. Build VM + SEO
