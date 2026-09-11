@@ -36,6 +36,7 @@ namespace BolNews.Persistence.Context
         public DbSet<MediaAsset> MediaAssets { get; set; }
         public DbSet<MediaAssetTag> MediaAssetTags { get; set; }
         public DbSet<BreakingNews> BreakingNews => Set<BreakingNews>();
+        public DbSet<EditorialCategoryConfiguration> EditorialCategoryConfigurations { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -120,6 +121,42 @@ namespace BolNews.Persistence.Context
                 .HasForeignKey(a => a.ReporterId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            //EditorialaCategoryConfiguration ↔ Category (1:M)
+            modelBuilder.Entity<EditorialCategoryConfiguration>(entity =>
+            {
+                entity.ToTable("EditorialCategoryConfigurations");
+
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.PlacementType)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(x => x.SortOrder)
+                    .IsRequired();
+
+                entity.Property(x => x.IsActive)
+                    .IsRequired();
+
+                entity.HasOne(x => x.Category)
+                    .WithMany()
+                    .HasForeignKey(x => x.CategoryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(x => new
+                {
+                    x.PlacementType,
+                    x.IsActive,
+                    x.SortOrder
+                });
+
+                entity.HasIndex(x => new
+                {
+                    x.PlacementType,
+                    x.CategoryId
+                })
+                .IsUnique();
+            });
 
         }
         

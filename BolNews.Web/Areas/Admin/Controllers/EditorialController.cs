@@ -21,13 +21,21 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IOperationalAnalyticsService _analyticsService;
         private readonly ICacheService _cacheService;
+        private readonly IEditorialCategoryConfigurationService _editorialCategoryConfigurationService;
+        private readonly ICategoryService _categoryService;
 
-        public EditorialController(IArticleService articleService, UserManager<ApplicationUser> userManager, IOperationalAnalyticsService analyticsService, ICacheService cacheService)
+        public EditorialController(IArticleService articleService, UserManager<ApplicationUser> userManager, 
+            IOperationalAnalyticsService analyticsService, ICacheService cacheService,
+            IEditorialCategoryConfigurationService editorialCategoryConfigurationService,
+            ICategoryService categoryService)
         {
             _articleService = articleService;
             _userManager = userManager;
             _analyticsService = analyticsService;
             _cacheService = cacheService;
+            _editorialCategoryConfigurationService = editorialCategoryConfigurationService;
+            _categoryService = categoryService;
+
         }
 
         public async Task<IActionResult> Index(string filter = "all")
@@ -103,10 +111,72 @@ namespace BolNews.Web.Areas.Admin.Controllers
             ViewBag.CurrentFilter = filter;
             return View(vm);
         }
+       
+
+        [HttpGet]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Editor)]
+        public async Task<IActionResult> CategoryConfiguration()
+        {
+            var categories = await _categoryService.GetAllAsync();
+
+            var configurations =
+                await _editorialCategoryConfigurationService.GetAllAsync();
+
+            ViewBag.Categories = categories
+                .Where(x => !x.IsDeleted)
+                .OrderBy(x => x.Name)
+                .ToList();
+
+            ViewBag.CategoryConfigurations = configurations;
+
+            return View();
+        }
         [HttpPost]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Editor)]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveCategoryConfiguration(string placementType,List<int> categoryIds)
+        {
+            if (string.IsNullOrWhiteSpace(placementType))
+            {
+                TempData["Error"] =
+                    "Placement type is required.";
+
+                return RedirectToAction(
+                    nameof(CategoryConfiguration));
+            }
+
+            var allowedPlacementTypes = new[]
+            {
+                EditorialPlacementKeys.HomepageTopStory,
+                EditorialPlacementKeys.HomepageSecondaryStory,
+                EditorialPlacementKeys.HomepageFeaturedStory
+            };
+
+            if (!allowedPlacementTypes.Contains(placementType))
+            {
+                TempData["Error"] =
+                    "Invalid placement type.";
+
+                return RedirectToAction(
+                    nameof(CategoryConfiguration));
+            }
+
+            await _editorialCategoryConfigurationService.SaveAsync(
+                placementType,
+                categoryIds ?? new List<int>());
+
+            BolNews.Application.Common.CacheServiceExtensions.InvalidateHomePage(
+    _cacheService);
+
+            TempData["Success"] =
+                "Homepage category configuration saved successfully.";
+
+            return RedirectToAction(
+                nameof(CategoryConfiguration));
+        }
+
         public async Task<IActionResult> Transition(int articleId, ArticleWorkflowStatus targetStatus, string? reason = null, DateTime? scheduledPublishAt = null,
-    DateTime? embargoUntil = null)
+                DateTime? embargoUntil = null)
         {
             var user = await _userManager.GetUserAsync(User);
             var roles = await _userManager.GetRolesAsync(user);

@@ -24,12 +24,12 @@ namespace BolNews.Persistence
             IConfiguration configuration)
         {
             ////Get the connection string from configuration
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            //var connectionString = configuration.GetConnectionString("DefaultConnection");
             //Get the connection string from Azure
             //var connectionString = "server=bolnewsdb.mysql.database.azure.com; port=3306; database=bolnewsdb; user=admin_user; password =Bol12345";
             ////local DB connection string
-            //var connectionString = "server=10.3.12.210; port=3306; database=BolNewsDB; user=admin_user; password =Bol12345; " +
-                      // "Pooling=true; MinimumPoolSize=20; MaximumPoolSize=300; ConnectionTimeout=30; DefaultCommandTimeout=60;";
+            var connectionString = "server=10.3.12.210; port=3306; database=BolNewsDB; user=admin_user; password =Bol12345; " +
+                       "Pooling=true; MinimumPoolSize=20; MaximumPoolSize=300; ConnectionTimeout=30; DefaultCommandTimeout=60;";
             services.AddDbContextPool<AppDbContext>(options =>
             {
                 options.UseMySql(
@@ -77,6 +77,8 @@ namespace BolNews.Persistence
             });
             services.AddScoped<IArticleRepository, ArticleRepository>();
             services.AddScoped<IEditorialPlacementRepository, EditorialPlacementRepository>();
+            services.AddScoped<IEditorialCategoryConfigurationRepository, EditorialCategoryConfigurationRepository>();
+            services.AddScoped<IEditorialCategoryConfigurationService, EditorialCategoryConfigurationService>();
             services.AddScoped<ITagRepository, TagRepository>();
             // Add the correct using directive for IMediaAssetRepository and MediaAssetRepository
             
@@ -109,6 +111,7 @@ namespace BolNews.Persistence
                 sp => sp.GetRequiredService<ArticleEngagementQueue>());
 
             services.AddHostedService<ArticleEngagementWorker>();
+            
 
             return services;
         }

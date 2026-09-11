@@ -4,78 +4,204 @@
 @model HomePageVM
 
 @{
-
     // ViewData["Title"] = "Home";
-    var secondaryStories = Model.SecondaryStories ?? new List<PublicArticleVM>();
 
-    var pinnedSecondaryCount = Math.Min(Model.PinnedSecondaryStoryCount, secondaryStories.Count);
-    var pinnedSecondaryStories = secondaryStories.Take(pinnedSecondaryCount).ToList();
-    var unpinnedSecondaryStories = secondaryStories.Skip(pinnedSecondaryCount).ToList();
+    // ============================================================
+    // SECONDARY STORIES
+    // ============================================================
 
-    var topStorySlotCount = Math.Min(2, pinnedSecondaryStories.Count);
-    var remainingTopStories = pinnedSecondaryStories.Take(2)
-        .Concat(unpinnedSecondaryStories.Take(2 - topStorySlotCount))
-        .ToList();
+    var secondaryStories =
+        Model.SecondaryStories
+        ?? new List<PublicArticleVM>();
 
-    // ── Latest: editorial pins first, then the organic chronological pool ──
-    var pinnedLatest = Model.PinnedLatestStories ?? new List<PublicArticleVM>();
-    var latestSlotsRemaining = Math.Max(0, 14 - pinnedLatest.Count);
+    var pinnedSecondaryCount =
+        Math.Min(
+            Model.PinnedSecondaryStoryCount,
+            secondaryStories.Count);
 
-    var organicLatestPool = pinnedSecondaryStories.Skip(2)
-        .Concat(unpinnedSecondaryStories.Skip(2 - topStorySlotCount));
+    var pinnedSecondaryStories =
+        secondaryStories
+            .Take(pinnedSecondaryCount)
+            .ToList();
 
-    var latestStories = pinnedLatest
-        .Concat(organicLatestPool.Take(latestSlotsRemaining))
-        .ToList();
+    var unpinnedSecondaryStories =
+        secondaryStories
+            .Skip(pinnedSecondaryCount)
+            .ToList();
 
-    // ── Featured: editorial pins first, then priority-category fallback ──
-    var pinnedFeatured = Model.PinnedFeaturedStories ?? new List<PublicArticleVM>();
-    var featuredSlotsRemaining = Math.Max(0, 10 - pinnedFeatured.Count);
 
-    var priorityCategorySlugs = new[] { "sports", "cricket", "entertainment", "lifestyle", "business", "technology" };
+    // ============================================================
+    // TOP STORY SUPPORTING STORIES
+    // ============================================================
 
-    var usedIds = new HashSet<int>();
-    if (Model.TopStory != null) usedIds.Add(Model.TopStory.Id);
-    foreach (var s in remainingTopStories) usedIds.Add(s.Id);
-    foreach (var s in latestStories) usedIds.Add(s.Id);
-    foreach (var s in pinnedFeatured) usedIds.Add(s.Id);
+    var topStorySlotCount =
+        Math.Min(
+            2,
+            pinnedSecondaryStories.Count);
 
-    var organicFeatured = secondaryStories
+    var remainingTopStories =
+        pinnedSecondaryStories
+            .Take(2)
+            .Concat(
+                unpinnedSecondaryStories
+                    .Take(2 - topStorySlotCount))
+            .ToList();
+
+
+    // ============================================================
+    // LATEST STORIES
+    // ------------------------------------------------------------
+    // Editorial pins first, followed by the organic Secondary pool.
+    // ============================================================
+
+    var pinnedLatest =
+        Model.PinnedLatestStories
+        ?? new List<PublicArticleVM>();
+
+    var latestSlotsRemaining =
+        Math.Max(
+            0,
+            14 - pinnedLatest.Count);
+
+    var organicLatestPool =
+        pinnedSecondaryStories
+            .Skip(2)
+            .Concat(
+                unpinnedSecondaryStories
+                    .Skip(2 - topStorySlotCount));
+
+    var latestStories =
+        pinnedLatest
+            .Concat(
+                organicLatestPool
+                    .Take(latestSlotsRemaining))
+            .ToList();
+
+
+    // ============================================================
+    // FEATURED STORIES
+    // ------------------------------------------------------------
+    // Category selection is now handled completely by
+    // HomeController through Editorial Control configuration.
+    //
+    // Razor is responsible only for:
+    //   1. Respecting pinned Featured stories.
+    //   2. Avoiding duplicate articles.
+    //   3. Filling the remaining Featured slots.
+    //
+    // There is NO hardcoded category priority here.
+    // ============================================================
+
+    var pinnedFeatured =
+        Model.PinnedFeaturedStories
+        ?? new List<PublicArticleVM>();
+
+    var featuredSlotsRemaining =
+        Math.Max(
+            0,
+            10 - pinnedFeatured.Count);
+
+
+    // Track articles already displayed in other homepage
+    // editorial areas so the same article isn't repeated.
+    var usedIds =
+        new HashSet<int>();
+
+    if (Model.TopStory != null)
+    {
+        usedIds.Add(Model.TopStory.Id);
+    }
+
+    foreach (var story in remainingTopStories)
+    {
+        usedIds.Add(story.Id);
+    }
+
+    foreach (var story in latestStories)
+    {
+        usedIds.Add(story.Id);
+    }
+
+    foreach (var story in pinnedFeatured)
+    {
+        usedIds.Add(story.Id);
+    }
+
+
+    // HomeController has already selected the Featured candidates
+    // using Editorial Control category configuration.
+    //
+    // Razor only removes duplicates and fills the remaining slots.
+    var organicFeatured =
+        (Model.FeaturedStories
+            ?? new List<PublicArticleVM>())
         .Where(a => !usedIds.Contains(a.Id))
-        .OrderBy(a =>
-        {
-            var idx = Array.IndexOf(priorityCategorySlugs, a.CategorySlug?.ToLowerInvariant());
-            return idx == -1 ? int.MaxValue : idx;
-        })
-        .ThenByDescending(a => a.PublishedAt)
         .Take(featuredSlotsRemaining)
         .ToList();
 
-    var featuredStories = pinnedFeatured.Concat(organicFeatured).ToList();
 
-    var secondaryCards = secondaryStories.Skip(10).Take(12).ToList();
+    var featuredStories =
+        pinnedFeatured
+            .Concat(organicFeatured)
+            .ToList();
+
+
+    // ============================================================
+    // LEGACY SECONDARY CARD COLLECTION
+    // ------------------------------------------------------------
+    // Kept because the old carousel markup below still references it.
+    // The markup itself is currently commented out.
+    // ============================================================
+
+    var secondaryCards =
+        secondaryStories
+            .Skip(10)
+            .Take(12)
+            .ToList();
+
+
+    // ============================================================
+    // SHOWS IMAGE CAROUSEL
+    // ============================================================
 
     string relativePath = "/images/shows/";
 
-    // 2. Map to the absolute physical path on the server
-    string folderPath = System.IO.Path.Combine(WebHostEnvironment.WebRootPath, "images", "shows");
+    string folderPath =
+        System.IO.Path.Combine(
+            WebHostEnvironment.WebRootPath,
+            "images",
+            "shows");
 
-    List<string> imagePaths = new List<string>();
+    List<string> imagePaths =
+        new List<string>();
 
-    // 3. Check if folder exists and read all image files (.webp, .jpg, .png)
     if (Directory.Exists(folderPath))
     {
-        var files = Directory.GetFiles(folderPath, "*.*")
-        .Where(s => s.EndsWith(".webp", StringComparison.OrdinalIgnoreCase) ||
-        s.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
-        s.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
-        .ToList();
+        var files =
+            Directory.GetFiles(
+                folderPath,
+                "*.*")
+            .Where(s =>
+                s.EndsWith(
+                    ".webp",
+                    StringComparison.OrdinalIgnoreCase)
+                ||
+                s.EndsWith(
+                    ".jpg",
+                    StringComparison.OrdinalIgnoreCase)
+                ||
+                s.EndsWith(
+                    ".png",
+                    StringComparison.OrdinalIgnoreCase))
+            .ToList();
 
         foreach (var filePath in files)
         {
-            // Convert physical server path to web relative path
-            string fileName = System.IO.Path.GetFileName(filePath);
-            imagePaths.Add(relativePath + fileName);
+            string fileName =
+                System.IO.Path.GetFileName(filePath);
+
+            imagePaths.Add(
+                relativePath + fileName);
         }
     }
 }
@@ -234,66 +360,7 @@
         </section>
     }
 </div>
-    @* @if (secondaryCards.Any())
-    {
-        var cardChunks = secondaryCards.Chunk(4).ToList();
-
-        <div id="multiCardCarousel" class="carousel slide bn-home-carousel" data-bs-ride="carousel" data-bs-interval="false">
-            <div class="carousel-inner">
-                @for (int i = 0; i < cardChunks.Count; i++)
-                {
-                    var chunk = cardChunks[i];
-
-                    <div class="carousel-item @(i == 0 ? "active" : "")">
-                        <div class="row g-3">
-                            @foreach (var item in chunk)
-                            {
-                                <div class="col-9 col-sm-6 col-md-6 col-lg-3">
-                                    <a href="/@item.CategorySlug/@item.Slug"
-                                       class="bn-card track-click d-block h-100 text-decoration-none"
-                                       data-article-id="@item.Id">
-
-                                        <div class="bn-card-img">
-                                            <img class="lazy-image d-block w-100"
-                                                 src="/images/placeholder.png"
-                                                 data-src="@item.FeaturedImageThumb"
-                                                 alt="@item.Title"
-                                                 loading="lazy" />
-                                        </div>
-
-                                        <div class="bn-card-body">
-                                            <div class="bn-card-tag">@item.CategoryName</div>
-                                            <h3 class="bn-card-title">@item.Title</h3>
-                                            <div class="bn-card-meta">
-                                                <span>@item.AuthorName</span>
-                                                <span class="bn-card-meta-dot"></span>
-                                                <span>@item.TimeAgo</span>
-                                            </div>
-                                        </div>
-
-                                    </a>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                }
-            </div>
-
-            <button class="carousel-control-prev" type="button" data-bs-target="#multiCardCarousel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon bg-dark rounded-circle p-3" aria-hidden="true"></span>
-                <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#multiCardCarousel" data-bs-slide="next">
-                <span class="carousel-control-next-icon bg-dark rounded-circle p-3" aria-hidden="true"></span>
-                <span class="visually-hidden">Next</span>
-            </button>
-        </div>
-    }
-</div> *@
-
-@* <div class="container mt-4">
-    @await Component.InvokeAsync("SmartTrending", new { count = 6 })
-</div> *@
+    
 <div class="bn-ad-code-block bn-ad-slot-incontent"
      aria-label="Advertisement">
     <div id="Bolnews_Incontent_Lazy"></div>

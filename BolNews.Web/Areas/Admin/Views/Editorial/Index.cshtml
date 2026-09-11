@@ -21,6 +21,7 @@
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
     var editorialUsers = ViewBag.EditorialUsers as List<ApplicationUser> ?? new();
     var currentFilter = ViewBag.CurrentFilter?.ToString()?.ToLower() ?? "all";
+    
 }
 @if (TempData["Error"] != null)
 {
@@ -71,7 +72,16 @@
                                   : "btn-outline-primary")">
                 Unassigned
             </a>
-
+            @if (User.IsInRole("Admin") || User.IsInRole("Editor"))
+            {
+                <a asp-area="Admin"
+                   asp-controller="Editorial"
+                   asp-action="CategoryConfiguration"
+                   class="btn btn-outline-primary">
+                    <i class="bi bi-sliders"></i>
+                    Homepage Category Configuration
+                </a>
+            }
         </div>
     </div>
 

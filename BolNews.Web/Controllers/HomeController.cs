@@ -1,11 +1,12 @@
-﻿using System.Diagnostics;
-using AutoMapper;
+﻿using AutoMapper;
 using BolNews.Application.Common;
 using BolNews.Application.Interfaces;
+using BolNews.Domain.Common;
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using System.Diagnostics;
 
 namespace BolNews.Web.Controllers
 {
@@ -18,9 +19,10 @@ namespace BolNews.Web.Controllers
         private readonly IEditorialPlacementService _editorialPlacementService;
         private static readonly SemaphoreSlim _homeCacheLock = new(1, 1);
         private readonly IMemoryCache _cache;
+        private readonly IEditorialCategoryConfigurationService _editorialCategoryConfigurationService;
         // Add this field to the HomeController class
         private static CancellationTokenSource ResetToken = new CancellationTokenSource();
-        public HomeController(ILogger<HomeController> logger, ICategoryService categoryService, IArticleService articleService, IMapper mapper, IMemoryCache cache, IEditorialPlacementService editorialPlacementService)
+        public HomeController(ILogger<HomeController> logger, ICategoryService categoryService, IArticleService articleService, IMapper mapper, IMemoryCache cache, IEditorialPlacementService editorialPlacementService, IEditorialCategoryConfigurationService editorialCategoryConfigurationService)
         {
             _logger = logger;
             _categoryService = categoryService;
@@ -28,7 +30,7 @@ namespace BolNews.Web.Controllers
             _mapper = mapper;
             _cache = cache;
             _editorialPlacementService = editorialPlacementService;
-            
+            _editorialCategoryConfigurationService = editorialCategoryConfigurationService;
         }
         /// <summary>
         /// /old index method, kept for reference. The new Index1 method is used for the actual homepage rendering.
@@ -173,91 +175,467 @@ namespace BolNews.Web.Controllers
         {
             var model = new HomePageVM();
 
-            var pinnedTop = await _editorialPlacementService.GetPinnedTopStoryAsync();
-            var topStory = pinnedTop != null
-                ? _mapper.Map<PublicArticleVM>(pinnedTop.Article)
-                : _mapper.Map<PublicArticleVM>(await _articleService.GetTopStoryAsync());
+            // ============================================================
+            // 1. LOAD EDITORIAL CATEGORY CONFIGURATION
+            // ------------------------------------------------------------
+            // Load the complete configuration once.
+            //
+            // GetAllAsync() is cached by the service for 30 minutes, so
+            // this does not result in a database query on every homepage
+            // rebuild.
+            //
+            // The same configuration dictionary is then reused for
+            // Top Story, Secondary Stories and Featured Stories.
+            // ============================================================
+
+            var categoryConfigurations =
+                await _editorialCategoryConfigurationService
+                    .GetAllAsync();
+
+            List<int> GetConfiguredCategoryIds(string placementType)
+            {
+                return categoryConfigurations.TryGetValue(
+                    placementType,
+                    out var configurations)
+                    ? configurations
+                        .Where(x => x.IsActive)
+                        .OrderBy(x => x.SortOrder)
+                        .Select(x => x.CategoryId)
+                        .Distinct()
+                        .ToList()
+                    : new List<int>();
+            }
+
+
+            // ============================================================
+            // 2. TOP STORY
+            // ------------------------------------------------------------
+            // Editorially pinned Top Story always has priority.
+            //
+            // If no story is pinned:
+            //   - Use categories configured for Top Story.
+            //   - If configured categories contain no published article,
+            //     fall back to the previous GetTopStoryAsync() behaviour.
+            //   - If no categories are configured, also preserve the
+            //     previous behaviour.
+            // ============================================================
+
+            var pinnedTop =
+                await _editorialPlacementService
+                    .GetPinnedTopStoryAsync();
+
+            PublicArticleVM? topStory;
+
+            if (pinnedTop != null)
+            {
+                // Pinned editorial story always wins.
+                topStory =
+                    _mapper.Map<PublicArticleVM>(
+                        pinnedTop.Article);
+            }
+            else
+            {
+                var topStoryCategoryIds =
+                    GetConfiguredCategoryIds(
+                        EditorialPlacementKeys.HomepageTopStory);
+
+                if (topStoryCategoryIds.Count > 0)
+                {
+                    // Query all configured categories in one database query.
+                    var configuredTopStories =
+                        await _articleService
+                            .GetLatestArticlesForCategoriesAsync(
+                                topStoryCategoryIds,
+                                1);
+
+                    if (configuredTopStories.Count > 0)
+                    {
+                        topStory =
+                            _mapper.Map<PublicArticleVM>(
+                                configuredTopStories[0]);
+                    }
+                    else
+                    {
+                        // Configuration exists, but currently there is no
+                        // published article in those categories.
+                        //
+                        // Preserve the previous homepage behaviour.
+                        topStory =
+                            _mapper.Map<PublicArticleVM>(
+                                await _articleService
+                                    .GetTopStoryAsync());
+                    }
+                }
+                else
+                {
+                    // No category configuration exists yet.
+                    //
+                    // Preserve the previous homepage behaviour.
+                    topStory =
+                        _mapper.Map<PublicArticleVM>(
+                            await _articleService
+                                .GetTopStoryAsync());
+                }
+            }
 
             model.TopStory = topStory;
 
-            var secondaryRaw = await _articleService.GetSecondaryStoriesAsync(50);
-            var secondaryAll = _mapper.Map<List<PublicArticleVM>>(secondaryRaw);
 
-            var pinnedSecondaryPlacements = await _editorialPlacementService.GetPinnedSecondaryStoriesAsync();
-            var pinnedLatestPlacements = await _editorialPlacementService.GetPinnedLatestStoriesAsync();
-            var pinnedFeaturedPlacements = await _editorialPlacementService.GetPinnedFeaturedStoriesAsync();
+            // ============================================================
+            // 3. SECONDARY STORIES
+            // ------------------------------------------------------------
+            // If categories are configured in Editorial Control:
+            //     use only those categories for organic Secondary Stories.
+            //
+            // If no categories are configured:
+            //     preserve GetSecondaryStoriesAsync(50).
+            //
+            // Pinned Secondary Stories are handled separately below.
+            // ============================================================
 
-            var pinnedSecondary = pinnedSecondaryPlacements.OrderBy(p => p.SortOrder)
-                .Select(p => _mapper.Map<PublicArticleVM>(p.Article)).ToList();
-            var pinnedLatest = pinnedLatestPlacements.OrderBy(p => p.SortOrder)
-                .Select(p => _mapper.Map<PublicArticleVM>(p.Article)).ToList();
-            var pinnedFeatured = pinnedFeaturedPlacements.OrderBy(p => p.SortOrder)
-                .Select(p => _mapper.Map<PublicArticleVM>(p.Article)).ToList();
+            var secondaryCategoryIds =
+                GetConfiguredCategoryIds(
+                    EditorialPlacementKeys.HomepageSecondaryStory);
 
-            var pinnedIds = new HashSet<int>(
-                pinnedSecondary.Select(a => a.Id)
-                    .Concat(pinnedLatest.Select(a => a.Id))
-                    .Concat(pinnedFeatured.Select(a => a.Id)));
-            if (topStory != null) pinnedIds.Add(topStory.Id);
+            List<PublicArticleVM> secondaryAll;
 
-            var organicPool = secondaryAll.Where(a => !pinnedIds.Contains(a.Id)).ToList();
-
-            model.SecondaryStories = pinnedSecondary.Concat(organicPool).ToList();
-            model.PinnedSecondaryStoryCount = pinnedSecondary.Count;
-            model.PinnedLatestStories = pinnedLatest;
-            model.PinnedFeaturedStories = pinnedFeatured;
-
-            //── Category sections(unchanged from before) ───────────────────
-            var categories = await _categoryService.GetParentCategoriesWithChildrenAsync();
-
-            var categoryIdMap = categories.ToDictionary(
-                c => c.Id,
-                c =>
-                {
-                    var ids = new List<int> { c.Id };
-                    if (c.SubCategories != null)
-                        ids.AddRange(c.SubCategories.Select(s => s.Id));
-                    return ids;
-                }
-            );
-
-            var allCategoryIds = categoryIdMap.Values.SelectMany(ids => ids).Distinct().ToList();
-            var articlesDict = await _articleService.GetArticlesForCategoriesAsync(allCategoryIds, 5);
-
-            var displayOrder = new[]
+            if (secondaryCategoryIds.Count > 0)
             {
-                "pakistan", "world", "business", "sports",
-                "entertainment", "technology", "health", "lifestyle"
-            };
+                // One database query for all configured category IDs.
+                var configuredSecondary =
+                    await _articleService
+                        .GetLatestArticlesForCategoriesAsync(
+                            secondaryCategoryIds,
+                            50);
 
-            var orderedCategories = displayOrder
-                .Select(slug => categories.FirstOrDefault(c =>
-                    string.Equals(c.Slug, slug, StringComparison.OrdinalIgnoreCase)))
-                .Where(c => c != null)
-                .ToList();
-
-            foreach (var category in orderedCategories)
+                secondaryAll =
+                    _mapper.Map<List<PublicArticleVM>>(
+                        configuredSecondary);
+            }
+            else
             {
-                var relevantIds = categoryIdMap[category.Id];
-                var mergedArticles = relevantIds
-                    .Where(id => articlesDict.ContainsKey(id))
-                    .SelectMany(id => articlesDict[id])
-                    .OrderByDescending(a => a.PublishedAt)
-                    .Take(5)
+                // No configuration yet.
+                //
+                // Preserve existing behaviour.
+                var secondaryRaw =
+                    await _articleService
+                        .GetSecondaryStoriesAsync(50);
+
+                secondaryAll =
+                    _mapper.Map<List<PublicArticleVM>>(
+                        secondaryRaw);
+            }
+
+
+            // ============================================================
+            // 4. LOAD PINNED EDITORIAL STORIES
+            // ------------------------------------------------------------
+            // Pinned stories remain completely independent of category
+            // configuration.
+            //
+            // Existing editorial pinning behaviour is preserved.
+            // ============================================================
+
+            var pinnedSecondaryPlacements =
+                await _editorialPlacementService
+                    .GetPinnedSecondaryStoriesAsync();
+
+            var pinnedLatestPlacements =
+                await _editorialPlacementService
+                    .GetPinnedLatestStoriesAsync();
+
+            var pinnedFeaturedPlacements =
+                await _editorialPlacementService
+                    .GetPinnedFeaturedStoriesAsync();
+
+
+            var pinnedSecondary =
+                pinnedSecondaryPlacements
+                    .OrderBy(p => p.SortOrder)
+                    .Select(p =>
+                        _mapper.Map<PublicArticleVM>(
+                            p.Article))
                     .ToList();
 
-                if (!mergedArticles.Any())
-                    continue;
+            var pinnedLatest =
+                pinnedLatestPlacements
+                    .OrderBy(p => p.SortOrder)
+                    .Select(p =>
+                        _mapper.Map<PublicArticleVM>(
+                            p.Article))
+                    .ToList();
 
-                model.CategorySections.Add(new CategorySectionVM
-                {
-                    CategoryName = category.Name,
-                    CategorySlug = category.Slug,
-                    Articles = _mapper.Map<List<PublicArticleVM>>(mergedArticles)
-                });
+            var pinnedFeatured =
+                pinnedFeaturedPlacements
+                    .OrderBy(p => p.SortOrder)
+                    .Select(p =>
+                        _mapper.Map<PublicArticleVM>(
+                            p.Article))
+                    .ToList();
 
-                
+
+            // ============================================================
+            // 5. BUILD USED ARTICLE SET
+            // ------------------------------------------------------------
+            // Pinned articles must not be selected again as organic stories.
+            //
+            // Top Story is also excluded from organic selections.
+            // ============================================================
+
+            var pinnedIds =
+                new HashSet<int>(
+                    pinnedSecondary
+                        .Select(a => a.Id)
+                        .Concat(
+                            pinnedLatest.Select(a => a.Id))
+                        .Concat(
+                            pinnedFeatured.Select(a => a.Id)));
+
+            if (topStory != null)
+            {
+                pinnedIds.Add(topStory.Id);
             }
+
+
+            // ============================================================
+            // 6. BUILD SECONDARY STORIES
+            // ------------------------------------------------------------
+            // Pinned Secondary Stories appear first.
+            //
+            // Organic Secondary Stories come from the configured categories
+            // and exclude articles already used by pinned editorial areas.
+            // ============================================================
+
+            var organicSecondary =
+                secondaryAll
+                    .Where(a => !pinnedIds.Contains(a.Id))
+                    .ToList();
+
+            model.SecondaryStories =
+                pinnedSecondary
+                    .Concat(organicSecondary)
+                    .ToList();
+
+            model.PinnedSecondaryStoryCount =
+                pinnedSecondary.Count;
+
+            model.PinnedLatestStories =
+                pinnedLatest;
+
+            model.PinnedFeaturedStories =
+                pinnedFeatured;
+
+
+            // ============================================================
+            // 7. FEATURED STORIES
+            // ------------------------------------------------------------
+            // Organic Featured Stories now come from categories configured
+            // in Editorial Control.
+            //
+            // The old hardcoded priorityCategorySlugs[] logic is completely
+            // removed from the Razor view.
+            //
+            // Pinned Featured Stories remain independent and retain priority.
+            // ============================================================
+
+            var featuredCategoryIds =
+                GetConfiguredCategoryIds(
+                    EditorialPlacementKeys.HomepageFeaturedStory);
+
+            List<PublicArticleVM> configuredFeaturedPool;
+
+            if (featuredCategoryIds.Count > 0)
+            {
+                // One database query for all configured Featured categories.
+                var configuredFeatured =
+                    await _articleService
+                        .GetLatestArticlesForCategoriesAsync(
+                            featuredCategoryIds,
+                            50);
+
+                configuredFeaturedPool =
+                    _mapper.Map<List<PublicArticleVM>>(
+                        configuredFeatured);
+            }
+            else
+            {
+                // No Featured category configuration yet.
+                //
+                // Preserve the previous general article pool behaviour.
+                configuredFeaturedPool =
+                    secondaryAll;
+            }
+
+
+            // ------------------------------------------------------------
+            // IMPORTANT:
+            //
+            // Keep a reasonably large candidate pool here rather than
+            // immediately taking only 10.
+            //
+            // The Razor view still removes articles that are already being
+            // displayed in Top/Latest areas. Keeping 50 candidates gives
+            // the view enough articles to fill the Featured slots after
+            // duplicate filtering.
+            // ------------------------------------------------------------
+
+            var organicFeatured =
+                configuredFeaturedPool
+                    .Where(a => !pinnedIds.Contains(a.Id))
+                    .ToList();
+
+
+            // Pinned Featured Stories remain available separately.
+            //
+            // The Razor view combines:
+            //
+            //     pinnedFeatured + organicFeatured
+            //
+            // while applying its existing duplicate/slot logic.
+            model.FeaturedStories =
+                organicFeatured;
+
+
+            // ============================================================
+            // 8. HOMEPAGE CATEGORY SECTIONS
+            // ------------------------------------------------------------
+            // INTENTIONALLY UNCHANGED.
+            //
+            // Editorial Control configuration for:
+            //
+            //     Top Story
+            //     Secondary Stories
+            //     Featured Stories
+            //
+            // is completely separate from the lower homepage category
+            // section ordering.
+            //
+            // Therefore the existing displayOrder remains unchanged.
+            // ============================================================
+
+            var categories =
+                await _categoryService
+                    .GetParentCategoriesWithChildrenAsync();
+
+
+            // Build:
+            //
+            // Parent Category ID
+            //        ↓
+            // [Parent ID + Subcategory IDs]
+            //
+            var categoryIdMap =
+                categories.ToDictionary(
+                    c => c.Id,
+                    c =>
+                    {
+                        var ids =
+                            new List<int>
+                            {
+                        c.Id
+                            };
+
+                        if (c.SubCategories != null)
+                        {
+                            ids.AddRange(
+                                c.SubCategories.Select(
+                                    s => s.Id));
+                        }
+
+                        return ids;
+                    });
+
+
+            // Fetch articles for all category/subcategory IDs
+            // in one database call.
+            var allCategoryIds =
+                categoryIdMap.Values
+                    .SelectMany(ids => ids)
+                    .Distinct()
+                    .ToList();
+
+            var articlesDict =
+                await _articleService
+                    .GetArticlesForCategoriesAsync(
+                        allCategoryIds,
+                        5);
+
+
+            // This ordering is ONLY for the lower homepage category
+            // sections.
+            //
+            // It is NOT related to Editorial Control configuration.
+            var displayOrder = new[]
+            {
+                "pakistan",
+                "world",
+                "business",
+                "sports",
+                "entertainment",
+                "technology",
+                "health",
+                "lifestyle"
+            };
+
+
+            var orderedCategories =
+                displayOrder
+                    .Select(slug =>
+                        categories.FirstOrDefault(c =>
+                            string.Equals(
+                                c.Slug,
+                                slug,
+                                StringComparison.OrdinalIgnoreCase)))
+                    .Where(c => c != null)
+                    .ToList();
+
+
+            // Build each homepage category section.
+            foreach (var category in orderedCategories)
+            {
+                // Include parent category and its subcategories.
+                var relevantIds =
+                    categoryIdMap[category.Id];
+
+                // Merge articles from parent/subcategories,
+                // newest first, keeping five.
+                var mergedArticles =
+                    relevantIds
+                        .Where(id =>
+                            articlesDict.ContainsKey(id))
+                        .SelectMany(id =>
+                            articlesDict[id])
+                        .OrderByDescending(a =>
+                            a.PublishedAt)
+                        .Take(5)
+                        .ToList();
+
+                // Do not display empty sections.
+                if (!mergedArticles.Any())
+                {
+                    continue;
+                }
+
+                model.CategorySections.Add(
+                    new CategorySectionVM
+                    {
+                        CategoryName =
+                            category.Name,
+
+                        CategorySlug =
+                            category.Slug,
+
+                        Articles =
+                            _mapper.Map<List<PublicArticleVM>>(
+                                mergedArticles)
+                    });
+            }
+
+
+            // ============================================================
+            // 9. RETURN COMPLETE HOMEPAGE MODEL
+            // ============================================================
+
             return model;
         }
 
@@ -435,5 +813,6 @@ namespace BolNews.Web.Controllers
                 _ => View("Error", vm)
             };
         }
+        
     }
 }

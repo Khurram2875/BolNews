@@ -8,7 +8,7 @@
         public List<PublicArticleVM> PinnedLatestStories { get; set; } = new();
         public List<PublicArticleVM> PinnedFeaturedStories { get; set; } = new();
         public int PinnedSecondaryStoryCount { get; set; }
-
+        public List<PublicArticleVM> FeaturedStories { get; set; }    = new();
         public List<CategorySectionVM> CategorySections { get; set; } = new();
         public string? BaseUrl { get; set; }
     }
