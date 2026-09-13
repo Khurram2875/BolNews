@@ -190,11 +190,10 @@ namespace BolNews.Web.Services
                 CacheKeys.Sitemap + "_tags",
                 async () =>
                 {
-                    var tags = await _tagService.GetAllAsync();
                     var baseUrl = _urlService.GetBaseUrl();
                     XNamespace ns = "http://www.sitemaps.org/schemas/sitemap/0.9";
-
                     var publishedTags = await _tagService.GetPublishedTagsAsync();
+
                     var tagUrls = publishedTags.Select(tag =>
                         new XElement(ns + "url",
                             new XElement(ns + "loc", $"{baseUrl}/tag/{tag.Slug}"),
