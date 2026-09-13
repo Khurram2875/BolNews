@@ -125,9 +125,9 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseResponseCompression();
 app.UseStaticFiles();
-app.UseMiddleware<TrailingSlashRedirectMiddleware>();
 
 app.UseRouting();
+app.UseMiddleware<TrailingSlashRedirectMiddleware>();
 app.UseSession();
 app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseAuthentication();
