@@ -10,6 +10,7 @@ namespace BolNews.Application.Interfaces
         Task<List<Tag>> GetArticleTagsAsync(int articleId);
         Task<List<Tag>> GetFeaturedImageTagsAsync(int articleId);
         Task<FeaturedImageMetadata?> GetFeaturedImageMetadataAsync(int articleId);
+        Task<List<Tag>> GetTagsWithPublishedArticlesAsync();
         Task AddTagsAsync(IEnumerable<Tag> tags);
         Task ReplaceArticleTagsAsync(int articleId, IReadOnlyCollection<Tag> tags, string currentUserId);
         Task ReplaceFeaturedImageTagsAsync(
