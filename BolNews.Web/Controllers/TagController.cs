@@ -33,6 +33,18 @@ namespace BolNews.Web.Controllers
                 return NotFound();
             }
 
+            // Invalid pagination should never produce a separate indexable URL.
+            if (page < 1)
+            {
+                return RedirectToRoutePermanent("tagDetails", new { slug });
+            }
+
+            // /tag/{slug}?page=1 is a duplicate of the clean tag URL.
+            if (page == 1 && Request.Query.ContainsKey("page"))
+            {
+                return RedirectToRoutePermanent("tagDetails", new { slug });
+            }
+
             var tag = await _tagService.GetBySlugAsync(slug);
             if (tag == null)
             {
