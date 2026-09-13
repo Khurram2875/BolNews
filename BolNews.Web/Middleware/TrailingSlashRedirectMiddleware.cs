@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Controllers;
 
 namespace BolNews.Web.Middleware;
 
@@ -23,7 +24,7 @@ public sealed class TrailingSlashRedirectMiddleware
             && !HasFileExtension(path)
             && !IsExcludedPath(path))
         {
-            var canonicalPath = path.TrimEnd('/');
+            var canonicalPath = GetCanonicalPath(context, path);
             var location = canonicalPath + request.QueryString;
 
             context.Response.StatusCode = StatusCodes.Status301MovedPermanently;
@@ -33,6 +34,43 @@ public sealed class TrailingSlashRedirectMiddleware
 
         await _next(context);
     }
+
+    private static string GetCanonicalPath(HttpContext context, string path)
+    {
+        var actionDescriptor = context.GetEndpoint()?
+            .Metadata.GetMetadata<ControllerActionDescriptor>();
+
+        if (actionDescriptor?.ControllerName.Equals("Article", StringComparison.OrdinalIgnoreCase) == true
+            && actionDescriptor.ActionName.Equals("LegacyDetails", StringComparison.OrdinalIgnoreCase))
+        {
+            var categorySlug = GetRouteValue(context, "categorySlug");
+            var slug = GetRouteValue(context, "slug");
+
+            if (!string.IsNullOrWhiteSpace(categorySlug)
+                && !string.IsNullOrWhiteSpace(slug))
+            {
+                return $"/{categorySlug}/{slug}";
+            }
+        }
+
+        if (actionDescriptor?.ControllerName.Equals("Category", StringComparison.OrdinalIgnoreCase) == true
+            && actionDescriptor.ActionName.Equals("LegacyDetails", StringComparison.OrdinalIgnoreCase))
+        {
+            var categorySlug = GetRouteValue(context, "categorySlug");
+
+            if (!string.IsNullOrWhiteSpace(categorySlug))
+            {
+                return $"/category/{categorySlug}";
+            }
+        }
+
+        return path.TrimEnd('/');
+    }
+
+    private static string? GetRouteValue(HttpContext context, string key)
+        => context.Request.RouteValues.TryGetValue(key, out var value)
+            ? Convert.ToString(value)
+            : null;
 
     private static bool HasFileExtension(string path)
     {
