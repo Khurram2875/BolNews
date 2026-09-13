@@ -52,6 +52,15 @@ namespace BolNews.Persistence.Repositories
                     .ThenInclude(x => x.Tag)
                 .FirstOrDefaultAsync(x => x.ArticleId == articleId);
 
+        public async Task<List<Tag>> GetTagsWithPublishedArticlesAsync()
+            => await _context.Tags
+                .AsNoTracking()
+                .Include(x => x.ArticleTags)
+                    .ThenInclude(x => x.Article)
+                .Where(x => x.ArticleTags.Any(at => at.Article.IsPublished))
+                .OrderBy(x => x.Name)
+                .ToListAsync();
+
         public Task AddTagsAsync(IEnumerable<Tag> tags)
         {
             _context.Tags.AddRange(tags);
