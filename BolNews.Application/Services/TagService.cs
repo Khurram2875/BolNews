@@ -40,6 +40,19 @@ namespace BolNews.Application.Services
         public async Task<List<TagDto>> GetAllAsync()
             => (await _tagRepository.GetAllAsync()).Select(Map).ToList();
 
+        public async Task<List<PublishedTagSitemapDto>> GetPublishedTagsAsync()
+            => (await _tagRepository.GetTagsWithPublishedArticlesAsync())
+                .Select(tag => new PublishedTagSitemapDto
+                {
+                    Slug = tag.Slug,
+                    LastModified = tag.ArticleTags
+                        .Where(at => at.Article.IsPublished)
+                        .Select(at => at.Article.UpdatedAt ?? at.Article.PublishedAt ?? at.Article.CreatedAt)
+                        .DefaultIfEmpty(tag.CreatedAt)
+                        .Max()
+                })
+                .ToList();
+
         public async Task<TagDto?> GetBySlugAsync(string slug)
         {
             var tag = await _tagRepository.GetBySlugAsync(slug);
