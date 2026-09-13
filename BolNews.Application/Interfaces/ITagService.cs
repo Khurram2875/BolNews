@@ -7,6 +7,7 @@ namespace BolNews.Application.Interfaces
         string NormalizeName(string value);
         IReadOnlyList<string> ParseTagInput(string? input);
         Task<List<TagDto>> GetAllAsync();
+        Task<List<PublishedTagSitemapDto>> GetPublishedTagsAsync();
         Task<TagDto?> GetBySlugAsync(string slug);
         Task<List<TagDto>> GetArticleTagsAsync(int articleId);
         Task<List<TagDto>> GetFeaturedImageTagsAsync(int articleId);
