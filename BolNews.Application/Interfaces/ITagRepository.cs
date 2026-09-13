@@ -1,3 +1,4 @@
+using BolNews.Application.DTOs;
 using BolNews.Domain.Entities;
 
 namespace BolNews.Application.Interfaces
@@ -10,7 +11,7 @@ namespace BolNews.Application.Interfaces
         Task<List<Tag>> GetArticleTagsAsync(int articleId);
         Task<List<Tag>> GetFeaturedImageTagsAsync(int articleId);
         Task<FeaturedImageMetadata?> GetFeaturedImageMetadataAsync(int articleId);
-        Task<List<Tag>> GetTagsWithPublishedArticlesAsync();
+        Task<List<PublishedTagSitemapDto>> GetPublishedTagsForSitemapAsync();
         Task AddTagsAsync(IEnumerable<Tag> tags);
         Task ReplaceArticleTagsAsync(int articleId, IReadOnlyCollection<Tag> tags, string currentUserId);
         Task ReplaceFeaturedImageTagsAsync(
