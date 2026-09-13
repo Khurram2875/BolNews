@@ -17,7 +17,7 @@
     }
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta name="robots" content="@(ViewBag.Robots ?? "index,follow,max-image-preview:large")" />
 
     @{
         var canonicalRaw = ViewBag.CanonicalUrl as string;
@@ -25,7 +25,8 @@
 
         if (string.IsNullOrWhiteSpace(canonicalRaw))
         {
-            canonicalUrl = $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}{Context.Request.QueryString}";
+            // Do not include arbitrary query parameters in fallback canonicals.
+            canonicalUrl = $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}";
         }
         else if (Uri.TryCreate(canonicalRaw, UriKind.Absolute, out var absoluteCanonical)
         && (absoluteCanonical.Scheme == Uri.UriSchemeHttp || absoluteCanonical.Scheme == Uri.UriSchemeHttps))
@@ -90,7 +91,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Include Font Awesome 6 in your <head> section -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Belleza&family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Belleza&family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500&display=swap"
           rel="stylesheet">
 
     @{
