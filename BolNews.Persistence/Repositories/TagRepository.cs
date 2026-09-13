@@ -1,3 +1,4 @@
+using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
 using BolNews.Domain.Entities;
 using BolNews.Persistence.Context;
@@ -52,13 +53,17 @@ namespace BolNews.Persistence.Repositories
                     .ThenInclude(x => x.Tag)
                 .FirstOrDefaultAsync(x => x.ArticleId == articleId);
 
-        public async Task<List<Tag>> GetTagsWithPublishedArticlesAsync()
-            => await _context.Tags
+        public async Task<List<PublishedTagSitemapDto>> GetPublishedTagsForSitemapAsync()
+            => await _context.ArticleTags
                 .AsNoTracking()
-                .Include(x => x.ArticleTags)
-                    .ThenInclude(x => x.Article)
-                .Where(x => x.ArticleTags.Any(at => at.Article.IsPublished))
-                .OrderBy(x => x.Name)
+                .Where(at => at.Article.IsPublished)
+                .GroupBy(at => new { at.TagId, at.Tag.Slug })
+                .Select(g => new PublishedTagSitemapDto
+                {
+                    Slug = g.Key.Slug,
+                    LastModified = g.Max(at => at.Article.UpdatedAt ?? at.Article.PublishedAt ?? at.Article.CreatedAt)
+                })
+                .OrderBy(x => x.Slug)
                 .ToListAsync();
 
         public Task AddTagsAsync(IEnumerable<Tag> tags)
