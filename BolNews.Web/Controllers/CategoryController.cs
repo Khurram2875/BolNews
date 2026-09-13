@@ -55,6 +55,10 @@ namespace BolNews.Web.Controllers
             if (page < 1)
                 return RedirectToRoutePermanent("categoryListing", new { categorySlug });
 
+            // /category/{slug}?page=1 is a duplicate of the clean category URL.
+            if (page == 1 && Request.Query.ContainsKey("page"))
+                return RedirectToRoutePermanent("categoryListing", new { categorySlug });
+
             if (string.Equals(categorySlug, "latest-news", StringComparison.OrdinalIgnoreCase))
                 return await LatestNewsVirtualCategory(page);
 
@@ -257,66 +261,3 @@ namespace BolNews.Web.Controllers
             const int pageSize = 15;
             const string virtualSlug = "videos";
             const string virtualName = "Videos";
-
-            var allVideos = await _cacheService.GetOrCreateAsync(
-                "public_videos",
-                async () => await _mediaLibraryService.SearchAsync(
-                    query: null,
-                    type: MediaType.Video,
-                    createdFrom: null,
-                    createdTo: null,
-                    articleId: null),
-                5
-            );
-
-            var pageVideos = allVideos
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize + 1)
-                .ToList();
-
-            if (page > 1 && !pageVideos.Any())
-                return NotFound();
-
-            var videos = pageVideos
-                .Take(pageSize)
-                .ToList();
-
-            var vm = new Areas.Admin.ViewModels.VideoSectionVM
-            {
-                Videos = videos,
-                Page = page,
-                HasNextPage = pageVideos.Count > pageSize,
-                PageTitle = virtualName
-            };
-
-            ViewBag.CategoryDescription =
-                "Watch the latest videos from BOL News.";
-
-            ViewBag.OgImage =
-                videos.FirstOrDefault()?.ThumbnailUrl;
-
-            ViewBag.MetaTitle =
-                $"{virtualName} | BOL News";
-
-            ViewBag.MetaDescription =
-                "Watch the latest videos from BOL News.";
-
-            ViewBag.CanonicalUrl = page == 1
-                ? $"/category/{virtualSlug}"
-                : $"/category/{virtualSlug}?page={page}";
-
-            ViewBag.OgType = "website";
-
-            ViewBag.CategoryName = virtualName;
-            ViewBag.CategorySlug = virtualSlug;
-
-            ViewBag.PageSize = pageSize;
-            ViewBag.Page = page;
-            ViewBag.HasNextPage = vm.HasNextPage;
-
-            return View(
-                "~/Views/Video/Index.cshtml",
-                vm);
-        }
-    }
-}
