@@ -22,10 +22,43 @@ public static class EndpointRouteBuilderExtensions
             defaults: new { controller = "Search", action = "Index" }
         );
 
+        // Sitemap endpoints must be explicitly mapped through conventional routing.
+        // These endpoints are XML resources, not MVC page routes, and must not fall
+        // through to category/article/default routing.
         endpoints.MapControllerRoute(
-            name: "sitemap",
+            name: "sitemapIndex",
             pattern: "sitemap.xml",
             defaults: new { controller = "Sitemap", action = "Index" }
+        );
+
+        endpoints.MapControllerRoute(
+            name: "sitemapArticles",
+            pattern: "sitemap-articles.xml",
+            defaults: new { controller = "Sitemap", action = "Articles" }
+        );
+
+        endpoints.MapControllerRoute(
+            name: "sitemapCategories",
+            pattern: "sitemap-categories.xml",
+            defaults: new { controller = "Sitemap", action = "Categories" }
+        );
+
+        endpoints.MapControllerRoute(
+            name: "newsSitemap",
+            pattern: "news-sitemap.xml",
+            defaults: new { controller = "Sitemap", action = "NewsSitemap" }
+        );
+
+        endpoints.MapControllerRoute(
+            name: "sitemapAuthors",
+            pattern: "sitemap-authors.xml",
+            defaults: new { controller = "Sitemap", action = "AuthorSitemap" }
+        );
+
+        endpoints.MapControllerRoute(
+            name: "sitemapTags",
+            pattern: "sitemap-tags.xml",
+            defaults: new { controller = "Sitemap", action = "TagSitemap" }
         );
 
         endpoints.MapControllerRoute(
