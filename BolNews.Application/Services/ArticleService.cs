@@ -232,7 +232,6 @@ namespace BolNews.Application.Services
         public async Task UpdateAsync(ArticleDto dto, string currentUserId, IList<string> roles, string? changeReason = null)
         {
             var article = await _repo.FindByIdAsync(dto.Id);
-            //if (article == null) return;
             if (article == null)
                 throw new InvalidOperationException(
                     $"Article with id {dto.Id} was not found.");
@@ -265,22 +264,16 @@ namespace BolNews.Application.Services
             article.UpdatedAt = DateTime.UtcNow;
             article.UpdatedBy = currentUserId;
 
-            
-
             ApplyEditorialControls(article, dto, roles);
-            // AUTHOR SUBMISSION WORKFLOW
             if (IsAuthor(roles) && dto.SubmitForReview)
             {
                 article.WorkflowStatus = ArticleWorkflowStatus.Submitted;
                 article.WorkflowComment = null;
-
-                // SLA lifecycle reset (new submission cycle)
                 article.SubmittedAt = DateTime.UtcNow;
                 article.ReviewStartedAt = null;
                 article.FactCheckStartedAt = null;
                 article.ApprovedAt = null;
 
-                // notify assigned reviewer if already assigned
                 if (!string.IsNullOrWhiteSpace(article.ReviewerUserId))
                 {
                     await _notificationService.NotifyAsync(
@@ -292,7 +285,6 @@ namespace BolNews.Application.Services
             }
             await _articleScoringService.CalculateScoresAsync(article);
 
-            
             try
             {
                 await _repo.UpdateAsync(article);
@@ -314,7 +306,6 @@ namespace BolNews.Application.Services
                 throw new InvalidOperationException(
                     "This article was modified by another user. Please reload and try again.");
             }
-
         }
 
         public async Task DeleteAsync(int id, string deletedByUserId, string? reason = null)
@@ -322,8 +313,6 @@ namespace BolNews.Application.Services
             var article = await _repo.FindByIdAsync(id);
             if (article == null) return;
 
-            // Snapshot the article's state at the moment of deletion — reuses the same
-            // revision history already surfaced via the "Changes" link in the article list.
             await _articleRevisionService.CreateSnapshotAsync(
                 article,
                 deletedByUserId,
@@ -461,6 +450,19 @@ namespace BolNews.Application.Services
         {
             return await _repo.GetPublicArticleBySlugAsync(slug);
         }
+
+        public async Task<Article?> GetPublishedBySourceAsync(string sourceSystem, string sourceId)
+        {
+            if (string.IsNullOrWhiteSpace(sourceSystem) || string.IsNullOrWhiteSpace(sourceId))
+                return null;
+
+            var article = await _repo.FindBySourceAsync(sourceSystem, sourceId);
+
+            return article is { IsPublished: true, IsDeleted: false }
+                ? article
+                : null;
+        }
+
         public async Task<List<Article>> GetByCategorySlugAsync(string categorySlug, int page) => await _repo.GetByCategorySlugAsync(categorySlug, page, 10);
         public async Task<List<Article>> GetCategoryArticlesAsync(string categorySlug, int skip, int take) =>
             await _repo.GetCategoryArticlesAsync(categorySlug, skip, take);
@@ -573,41 +575,6 @@ namespace BolNews.Application.Services
         public async Task<List<Article>> SearchAsync(string q, int page, int pageSize) => await _repo.SearchAsync(q.Trim(), page, pageSize);
         public async Task IncrementViewCountAsync(int articleId) => await _repo.IncrementViewCountAsync(articleId);
 
-        //public async Task<Dictionary<int, List<Article>>> GetArticlesForCategoriesAsync(List<int> categoryIds, int count)
-        //{
-        //    if (categoryIds == null ||
-        //        categoryIds.Count == 0 ||
-        //        count <= 0)
-        //    {
-        //        return new Dictionary<int, List<Article>>();
-        //    }
-
-        //    var ids = categoryIds
-        //        .Where(id => id > 0)
-        //        .Distinct()
-        //        .ToList();
-
-        //    if (ids.Count == 0)
-        //        return new Dictionary<int, List<Article>>();
-
-        //    var articles = await _repo.GetForCategoriesAsync(ids, count);
-
-        //    var result = ids.ToDictionary(
-        //        id => id,
-        //        _ => new List<Article>());
-
-        //    foreach (var article in articles)
-        //    {
-        //        if (!result.TryGetValue(article.CategoryId, out var list))
-        //            continue;
-
-        //        if (list.Count < count)
-        //            list.Add(article);
-        //    }
-
-        //    return result;
-        //}
-
         public async Task<Dictionary<int, List<Article>>> GetArticlesForCategoriesAsync(List<int> categoryIds, int count)
         {
             return await _repo.GetLatestArticlesForCategoriesAsync(
@@ -661,7 +628,6 @@ namespace BolNews.Application.Services
                 return true;
             }
 
-            
             if (roles.Contains(Roles.Author))
             {
                 return article.Author?.UserId == userId &&
@@ -883,8 +849,6 @@ namespace BolNews.Application.Services
         }
         public async Task<List<Article>> GetLatestArticlesForCategoriesAsync(List<int> categoryIds, int count)
         {
-            // GetForCategoriesAsync already returns published articles for these
-            // category ids, ordered by PublishedAt descending (see GetArticlesForCategoriesAsync above)
             var articles = await _repo.GetForCategoriesAsync(categoryIds, count);
             return articles.Take(count).ToList();
         }
@@ -925,7 +889,6 @@ namespace BolNews.Application.Services
         }
         public async Task<(List<ArticleListDto> Articles, int TotalCount)> GetPagedAsync(string userId, IList<string> roles, int page, int pageSize, string? search = null, int? authorId = null)
         {
-            // Admin, Editor and SubEditor can see all articles.
             if (IsAdmin(roles) ||
                 IsEditor(roles) ||
                 IsSubEditor(roles))
@@ -938,7 +901,6 @@ namespace BolNews.Application.Services
                     authorId);
             }
 
-            // Authors can only see their own articles.
             if (IsAuthor(roles))
             {
                 return await _repo.GetPagedAsync(
@@ -949,7 +911,6 @@ namespace BolNews.Application.Services
                     authorId);
             }
 
-            // Unknown / unauthorized role.
             return (new List<ArticleListDto>(), 0);
         }
         public async Task<(List<ArticleListDto> Articles, int TotalCount)> GetDeletedPagedAsync(
