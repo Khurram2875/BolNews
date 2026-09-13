@@ -499,6 +499,7 @@ namespace BolNews.Web.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
+            ViewBag.Robots = "noindex,nofollow";
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
         public async Task<IActionResult> GetTrending(string type = "today")
@@ -520,6 +521,7 @@ namespace BolNews.Web.Controllers
         public IActionResult StatusCodeError(int code)
         {
             Response.StatusCode = code;
+            ViewBag.Robots = "noindex,nofollow";
 
             var vm = new ErrorViewModel
             {
