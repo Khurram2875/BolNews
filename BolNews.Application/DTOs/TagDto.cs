@@ -8,4 +8,11 @@ namespace BolNews.Application.DTOs
 
         public string Slug { get; set; } = string.Empty;
     }
+
+    public class PublishedTagSitemapDto
+    {
+        public string Slug { get; set; } = string.Empty;
+
+        public DateTime LastModified { get; set; }
+    }
 }
