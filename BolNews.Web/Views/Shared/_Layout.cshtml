@@ -47,11 +47,15 @@
             : !string.IsNullOrWhiteSpace(metaTitle)
                 ? metaTitle
                 : "Bol News - Latest News, Politics, Sports and Entertainment";
+        var metaDescription = ViewBag.MetaDescription as string;
+        var pageDescription = !string.IsNullOrWhiteSpace(metaDescription)
+            ? metaDescription
+            : "Latest news from Bol News";
     }
     <!-- SEO -->
     
     <title>@pageTitle</title>
-    <meta name="description" content="@(ViewBag.MetaDescription ?? "Latest news from Bol News")" />
+    <meta name="description" content="@pageDescription" />
     @if (!string.IsNullOrWhiteSpace(ViewBag.MetaKeywords as string))
     {
         <meta name="keywords" content="@ViewBag.MetaKeywords" />
@@ -61,9 +65,9 @@
     <link rel="alternate" hreflang="x-default" href="@canonicalUrl" />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="@(ViewBag.MetaTitle ?? "")" />
-    <meta property="og:description" content="@(ViewBag.MetaDescription ?? "")" />
-    <meta property="og:author" content="@(ViewBag.Author ??"")"/>
+    <meta property="og:title" content="@pageTitle" />
+    <meta property="og:description" content="@pageDescription" />
+    <meta property="og:author" content="@(ViewBag.Author ?? "")"/>
     <meta property="og:source" content="@(ViewBag.Source ?? "")" />
     <meta property="og:type" content="@ogType" />
     <meta property="og:url" content="@canonicalUrl" />
@@ -80,8 +84,8 @@
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="@(ViewBag.MetaTitle ?? "")" />
-    <meta name="twitter:description" content="@(ViewBag.MetaDescription ?? "")" />
+    <meta name="twitter:title" content="@pageTitle" />
+    <meta name="twitter:description" content="@pageDescription" />
     <meta name="twitter:image" content="@ogImage" />
     @if (!string.IsNullOrWhiteSpace(ViewBag.MetaKeywords as string))
     {
