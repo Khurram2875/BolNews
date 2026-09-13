@@ -26,6 +26,9 @@ namespace BolNews.Web.Controllers
                 page = 1;
             }
 
+            // Internal search result pages should not be indexed.
+            ViewBag.Robots = "noindex,follow";
+
             if (string.IsNullOrWhiteSpace(q))
             {
                 ViewBag.Query = "";
