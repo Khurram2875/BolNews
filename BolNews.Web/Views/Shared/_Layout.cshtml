@@ -52,14 +52,16 @@
             ? metaDescription
             : "Latest news from Bol News";
     }
+
     <!-- SEO -->
-    
     <title>@pageTitle</title>
     <meta name="description" content="@pageDescription" />
+
     @if (!string.IsNullOrWhiteSpace(ViewBag.MetaKeywords as string))
     {
         <meta name="keywords" content="@ViewBag.MetaKeywords" />
     }
+
     <link rel="canonical" href="@canonicalUrl" />
     <link rel="alternate" hreflang="en" href="@canonicalUrl" />
     <link rel="alternate" hreflang="x-default" href="@canonicalUrl" />
@@ -67,13 +69,14 @@
     <!-- Open Graph -->
     <meta property="og:title" content="@pageTitle" />
     <meta property="og:description" content="@pageDescription" />
-    <meta property="og:author" content="@(ViewBag.Author ?? "")"/>
+    <meta property="og:author" content="@(ViewBag.Author ?? "")" />
     <meta property="og:source" content="@(ViewBag.Source ?? "")" />
     <meta property="og:type" content="@ogType" />
     <meta property="og:url" content="@canonicalUrl" />
     <meta property="og:image" content="@ogImage" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="675" />
+
     @if (ViewBag.ArticleTags is IEnumerable<BolNews.Application.DTOs.TagDto> articleTags)
     {
         foreach (var tag in articleTags)
@@ -87,6 +90,7 @@
     <meta name="twitter:title" content="@pageTitle" />
     <meta name="twitter:description" content="@pageDescription" />
     <meta name="twitter:image" content="@ogImage" />
+
     @if (!string.IsNullOrWhiteSpace(ViewBag.MetaKeywords as string))
     {
         <meta name="twitter:label1" content="Tags" />
@@ -99,3 +103,115 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BolNews.Web.styles.css" asp-append-version="true" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Include Font Awesome 6 in your <head> section -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Belleza&family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600&display=swap"
+          rel="stylesheet">
+
+    @{
+        var baseUrl = UrlService.GetBaseUrl();
+        var orgSchema = SeoService.BuildOrganizationSchema(baseUrl);
+        var webSiteSchema = SeoService.BuildWebSiteSchema(baseUrl);
+    }
+
+    @if (ViewBag.Page is int page)
+    {
+        var basePath = Context.Request.Path;
+        var query = Context.Request.Query;
+
+        var queryString = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(query.ToString())
+            .Where(q => q.Key.ToLower() != "page")
+            .SelectMany(q => q.Value, (k, v) => $"{k.Key}={v}");
+
+        var baseQuery = string.Join("&", queryString);
+
+        string BuildUrl(int targetPage)
+        {
+            var pagePart = targetPage > 1 ? $"page={targetPage}" : "";
+            var fullQuery = string.Join("&", new[] { baseQuery, pagePart }
+                .Where(x => !string.IsNullOrEmpty(x)));
+            return string.IsNullOrEmpty(fullQuery)
+                ? basePath
+                : $"{basePath}?{fullQuery}";
+        }
+
+        if (page > 1)
+        {
+            <link rel="prev" href="@BuildUrl(page - 1)" />
+        }
+
+        if (ViewBag.HasNextPage == true)
+        {
+            <link rel="next" href="@BuildUrl(page + 1)" />
+        }
+    }
+
+    <!-- Ads -->
+    <script type="application/ld+json">@Html.Raw(orgSchema)</script>
+    <script type="application/ld+json">@Html.Raw(webSiteSchema)</script>
+
+    <!-- Theme init: apply saved theme before paint to avoid flash -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('bolnews-theme');
+                if (t && ['default','dark','editorial','bold'].includes(t)) {
+                    document.documentElement.setAttribute('data-theme', t);
+                }
+            } catch (e) {}
+        })();
+    </script>
+</head>
+<body>
+
+    <partial name="_Header" />
+
+    @* Sample ad placement: top leaderboard immediately after header, before homepage/content. *@
+    <div class="bn-ad-code-block bn-ad-code-block--top" aria-label="Advertisement">
+        <div id="Bolnews_Top_Leaderboard_ATF" data-ad-slot="top-leaderboard-atf"></div>
+    </div>
+
+    <main class="bn-main">
+        @RenderBody()
+    </main>
+
+    @* Sample ad placement: bottom BTF immediately before footer. *@
+    <div class="bn-ad-code-block bn-ad-code-block--bottom" aria-label="Advertisement">
+        <div id="Bolnews_Bottom_BTF" data-ad-slot="bottom-btf"></div>
+    </div>
+
+    <partial name="_Footer" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/lazyload.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        // ── Theme switcher ──────────────────────────────────────
+        function bnSetTheme(name, btn) {
+            document.documentElement.setAttribute('data-theme', name);
+            document.querySelectorAll('.bn-theme-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            try { localStorage.setItem('bolnews-theme', name); } catch (e) {}
+        }
+
+        // Mark correct button active on load
+        (function () {
+            try {
+                var saved = localStorage.getItem('bolnews-theme') || 'default';
+                var btn = document.querySelector('.bn-theme-btn[data-t="' + saved + '"]');
+                if (btn) {
+                    document.querySelectorAll('.bn-theme-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                }
+            } catch (e) {}
+        })();
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
