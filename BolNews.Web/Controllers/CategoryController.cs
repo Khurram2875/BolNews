@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using BolNews.Application.Common;
 using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
@@ -10,7 +10,6 @@ using BolNews.Web.SEO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
-
 
 namespace BolNews.Web.Controllers
 {
@@ -112,9 +111,7 @@ namespace BolNews.Web.Controllers
             var featuredVm = _mapper.Map<PublicArticleVM>(featuredArticle);
 
             var baseUrl = _urlService.GetBaseUrl();
-            // ✅ SEO FROM DATABASE
             ViewBag.CategoryDescription = category.Description;
-
             ViewBag.OgImage = featuredVm.FeaturedImageXl;
 
             ViewBag.MetaTitle = string.IsNullOrWhiteSpace(category.MetaTitle)
@@ -132,12 +129,8 @@ namespace BolNews.Web.Controllers
 
             ViewBag.CategoryName = category.Name;
             ViewBag.CategorySlug = category.Slug;
-
-
             ViewBag.PageSize = pageSize;
-            //ViewBag.HasNextPage = articles.Count == pageSize;
-            ViewBag.Page = page; // 🔥 you missed this earlier
-
+            ViewBag.Page = page;
 
             var vm2 = new CategorySectionVM
             {
@@ -147,16 +140,17 @@ namespace BolNews.Web.Controllers
                 CategoryName = category.Name,
                 CategorySlug = category.Slug,
                 MetaTitle = string.IsNullOrWhiteSpace(category.MetaTitle)
-                            ? category.Name
-                            : category.MetaTitle,
+                    ? category.Name
+                    : category.MetaTitle,
                 MetaDescription = string.IsNullOrWhiteSpace(category.MetaDescription)
                     ? $"Latest news in {category.Name}"
                     : category.MetaDescription,
                 BaseUrl = baseUrl,
-                Page = page,                       // ✅
+                Page = page,
                 HasNextPage = articles.Count > pageSize
             };
             ViewBag.HasNextPage = vm2.HasNextPage;
+
             vm2.CategorySchemaJson = await _cacheService.GetOrCreateAsync(
                     $"category_schema_{categorySlug}_{page}",
                     async () => _seoService.BuildCategorySchema(
@@ -176,6 +170,7 @@ namespace BolNews.Web.Controllers
 
             return View(vm2);
         }
+
         private async Task<IActionResult> LatestNewsVirtualCategory(int page)
         {
             if (page < 1)
@@ -196,7 +191,6 @@ namespace BolNews.Web.Controllers
                 .Select(c => c.Id)
                 .ToList();
 
-            // Fetch a capped merged pool, then paginate in-memory
             var pooled = await _cacheService.GetOrCreateAsync(
                 $"latest_news_pool_{(pageSize * 5) + 1}",
                 async () => await _articleService.GetLatestArticlesForCategoriesAsync(categoryIds, (pageSize * 5) + 1),
@@ -249,6 +243,7 @@ namespace BolNews.Web.Controllers
 
             return View("Details", vm2);
         }
+
         private async Task<IActionResult> VideosVirtualCategory(int page)
         {
             if (page < 1)
@@ -261,3 +256,66 @@ namespace BolNews.Web.Controllers
             const int pageSize = 15;
             const string virtualSlug = "videos";
             const string virtualName = "Videos";
+
+            var allVideos = await _cacheService.GetOrCreateAsync(
+                "public_videos",
+                async () => await _mediaLibraryService.SearchAsync(
+                    query: null,
+                    type: MediaType.Video,
+                    createdFrom: null,
+                    createdTo: null,
+                    articleId: null),
+                5
+            );
+
+            var pageVideos = allVideos
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize + 1)
+                .ToList();
+
+            if (page > 1 && !pageVideos.Any())
+                return NotFound();
+
+            var videos = pageVideos
+                .Take(pageSize)
+                .ToList();
+
+            var vm = new Areas.Admin.ViewModels.VideoSectionVM
+            {
+                Videos = videos,
+                Page = page,
+                HasNextPage = pageVideos.Count > pageSize,
+                PageTitle = virtualName
+            };
+
+            ViewBag.CategoryDescription =
+                "Watch the latest videos from BOL News.";
+
+            ViewBag.OgImage =
+                videos.FirstOrDefault()?.ThumbnailUrl;
+
+            ViewBag.MetaTitle =
+                $"{virtualName} | BOL News";
+
+            ViewBag.MetaDescription =
+                "Watch the latest videos from BOL News.";
+
+            ViewBag.CanonicalUrl = page == 1
+                ? $"/category/{virtualSlug}"
+                : $"/category/{virtualSlug}?page={page}";
+
+            ViewBag.OgType = "website";
+
+            ViewBag.CategoryName = virtualName;
+            ViewBag.CategorySlug = virtualSlug;
+
+            ViewBag.PageSize = pageSize;
+            ViewBag.Page = page;
+            ViewBag.HasNextPage = vm.HasNextPage;
+
+            return View(
+                "~/Views/Video/Index.cshtml",
+                vm);
+        }
+    }
+}
