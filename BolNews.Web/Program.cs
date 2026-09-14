@@ -1,6 +1,7 @@
 using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
 using BolNews.Domain.Entities;
+using BolNews.Infrastructure.Services;
 using BolNews.Infrastructure.Services.Video;
 using BolNews.Infrastructure.Services.WordPressMigration;
 using BolNews.Persistence;
@@ -73,6 +74,11 @@ builder.Services.AddHttpClient(
             "BolNews-CMS-WordPress-Migration/1.0");
     });
 builder.Services.AddScoped<IWordPressArticleImportService, WordPressArticleImportService>();
+
+builder.Services.Configure<EmailOptions>(
+    builder.Configuration.GetSection("Email"));
+
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 
 builder.Services.AddScoped<
     IWordPressReporterResolver,
