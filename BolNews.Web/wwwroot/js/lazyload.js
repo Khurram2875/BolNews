@@ -97,11 +97,15 @@
 
 
         /*
-         * Give the spinner enough time to be visible.
+         * Do not add an artificial visual delay after the browser
+         * has finished loading the image. The previous 300ms delay
+         * made already-loaded images appear slower than necessary.
+         * A zero-delay task preserves the existing load lifecycle
+         * while allowing the current event to finish cleanly.
          */
         setTimeout(
             showImage,
-            300
+            0
         );
 
     }
