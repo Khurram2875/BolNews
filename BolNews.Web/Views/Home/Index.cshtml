@@ -223,7 +223,10 @@
                                data-article-id="@item.Id">
                                 <img src="@(item.FeaturedImageThumb ?? item.FeaturedImageMedium ?? "/images/placeholder.png")"
                                      alt="@(item.FeaturedImageAltText ?? item.Title)"
-                                     loading="lazy" />
+                                     width="112"
+                                     height="84"
+                                     loading="lazy"
+                                     decoding="async" />
                                 <span>
                                     <strong>@item.Title</strong>
                                     <small>@item.TimeAgo</small>
@@ -243,6 +246,8 @@
                     <div class="bn-card__image-wrap">
                         <img src="@(Model.TopStory.FeaturedImageLarge ?? Model.TopStory.FeaturedImageMedium ?? Model.TopStory.FeaturedImageThumb ?? "/images/placeholder.png")"
                              alt="@(Model.TopStory.FeaturedImageAltText ?? Model.TopStory.Title)"
+                             width="1200"
+                             height="675"
                              loading="eager"
                              fetchpriority="high"
                              decoding="async" />
@@ -268,7 +273,10 @@
                                 <div class="bn-card__image-wrap">
                                     <img src="@(story.FeaturedImageMedium ?? story.FeaturedImageThumb ?? "/images/placeholder.png")"
                                          alt="@(story.FeaturedImageAltText ?? story.Title)"
-                                         loading="lazy" />
+                                         width="450"
+                                         height="253"
+                                         loading="lazy"
+                                         decoding="async" />
                                 </div>
                                 <div class="bn-card__body">
                                     <h4>@story.Title</h4>
@@ -301,7 +309,10 @@
                                data-article-id="@item.Id">
                                 <img src="@(item.FeaturedImageThumb ?? item.FeaturedImageMedium ?? "/images/placeholder.png")"
                                      alt="@(item.FeaturedImageAltText ?? item.Title)"
-                                     loading="lazy" />
+                                     width="112"
+                                     height="84"
+                                     loading="lazy"
+                                     decoding="async" />
                                 <span>
                                     <strong>@item.Title</strong>
                                     <small>@item.TimeAgo</small>
@@ -335,6 +346,8 @@
                                         <img loading="lazy"
                                              decoding="async"
                                              src="@imagePaths[i]"
+                                             width="280"
+                                             height="280"
                                              class="d-block w-100 bn-carousel-img"
                                              alt="News image @(i + 1)" />
                                     </div>
@@ -392,7 +405,10 @@
                                      src="/images/placeholder.png"
                                      data-src="@item.FeaturedImageThumb"
                                      alt="@item.Title"
-                                     loading="lazy" />
+                                     width="118"
+                                     height="100"
+                                     loading="lazy"
+                                     decoding="async" />
                                 <span>
                                     <strong>@item.Title</strong>
                                     <small>@item.TimeAgo</small>
