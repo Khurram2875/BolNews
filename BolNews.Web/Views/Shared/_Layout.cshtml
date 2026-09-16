@@ -147,7 +147,7 @@
         }
     }
 
-    <!-- Ads -->
+    <!-- Structured data -->
     <script type="application/ld+json">@Html.Raw(orgSchema)</script>
     <script type="application/ld+json">@Html.Raw(webSiteSchema)</script>
 
@@ -183,12 +183,12 @@
 
     <partial name="_Footer" />
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/lazyload.js" asp-append-version="true"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    @* jQuery is retained globally because existing site/admin components depend on it.
+       Deferred execution removes it from the HTML parser's critical path. *@
+    <script src="~/lib/jquery/dist/jquery.min.js" defer></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="~/js/lazyload.js" asp-append-version="true" defer></script>
+    <script src="~/js/site.js" asp-append-version="true" defer></script>
 
     <script>
         // ── Theme switcher ──────────────────────────────────────
