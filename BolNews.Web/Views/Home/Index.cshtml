@@ -243,7 +243,9 @@
                     <div class="bn-card__image-wrap">
                         <img src="@(Model.TopStory.FeaturedImageLarge ?? Model.TopStory.FeaturedImageMedium ?? Model.TopStory.FeaturedImageThumb ?? "/images/placeholder.png")"
                              alt="@(Model.TopStory.FeaturedImageAltText ?? Model.TopStory.Title)"
-                             loading="eager" />
+                             loading="eager"
+                             fetchpriority="high"
+                             decoding="async" />
                     </div>
                     <div class="bn-card__body">
                         <h3>@Model.TopStory.Title</h3>
