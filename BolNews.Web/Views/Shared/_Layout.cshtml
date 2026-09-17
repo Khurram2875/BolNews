@@ -25,7 +25,6 @@
 
         if (string.IsNullOrWhiteSpace(canonicalRaw))
         {
-            // Do not include arbitrary query parameters in fallback canonicals.
             canonicalUrl = $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}";
         }
         else if (Uri.TryCreate(canonicalRaw, UriKind.Absolute, out var absoluteCanonical)
@@ -104,10 +103,12 @@
     <link rel="stylesheet" href="~/BolNews.Web.styles.css" asp-append-version="true" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Include Font Awesome 6 in your <head> section -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Belleza&family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600&display=swap"
           rel="stylesheet">
+
+    @await RenderSectionAsync("Styles", required: false)
 
     @{
         var baseUrl = UrlService.GetBaseUrl();
@@ -147,8 +148,8 @@
         }
     }
 
-    <!-- Ads  -->
-    <script src="https://avads.live/s/av-bolnews.js"></script> 
+    <!-- Ads -->
+    <script src="https://avads.live/s/av-bolnews.js"></script>
     <!-- Ads -->
     <script type="application/ld+json">@Html.Raw(orgSchema)</script>
     <script type="application/ld+json">@Html.Raw(webSiteSchema)</script>
@@ -186,33 +187,10 @@
     <partial name="_Footer" />
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/lazyload.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
-    <script>
-        // ── Theme switcher ──────────────────────────────────────
-        function bnSetTheme(name, btn) {
-            document.documentElement.setAttribute('data-theme', name);
-            document.querySelectorAll('.bn-theme-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            try { localStorage.setItem('bolnews-theme', name); } catch (e) {}
-        }
-
-        // Mark correct button active on load
-        (function () {
-            try {
-                var saved = localStorage.getItem('bolnews-theme') || 'default';
-                var btn = document.querySelector('.bn-theme-btn[data-t="' + saved + '"]');
-                if (btn) {
-                    document.querySelectorAll('.bn-theme-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                }
-            } catch (e) {}
-        })();
-    </script>
+    <script src="~/js/theme.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
