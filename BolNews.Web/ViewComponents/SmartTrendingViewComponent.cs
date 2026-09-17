@@ -1,4 +1,5 @@
-﻿using BolNews.Application.Interfaces;
+﻿using BolNews.Application.DTOs;
+using BolNews.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -29,7 +30,7 @@ namespace BolNews.Web.ViewComponents
                     return await _articleService.GetTopRankedPublishedAsync(count);
                 });
 
-            return View(articles ?? Enumerable.Empty<BolNews.Domain.Entities.Article>());
+            return View(articles ?? Enumerable.Empty<ArticleDto>());
         }
     }
 }
