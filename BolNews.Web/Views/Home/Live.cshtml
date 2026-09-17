@@ -2,6 +2,10 @@
     ViewData["Title"] = "Bol News Live";
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/live.css" asp-append-version="true" />
+}
+
 <div class="site grid-container hfeed container" id="page">
     <div class="site-content" id="content">
         <div class="bn-home-shell">
@@ -17,23 +21,6 @@
             <div>
                 <div class="e-con-inner">
                     <div class="elementor-shortcode">
-                        <style>
-                            .gy-live-wrapper { width: 100%; background: #000; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
-                            .gy-live-thumbnail { position: relative; cursor: pointer; }
-                            .gy-live-thumbnail img { width: 100%; display: block; }
-                            .gy-live-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg, transparent 40%, rgba(200,0,0,0.9)); color: #fff; font-size: 24px; font-weight: bold; padding: 16px; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
-                            .gy-live-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 56px; background: rgba(204,0,0,0.9); border-radius: 14px; transition: transform 0.2s ease, background-color 0.2s ease; }
-                            .gy-live-thumbnail:hover .gy-live-play-btn { transform: translate(-50%, -50%) scale(1.1); background: rgb(255,0,0); }
-                            .gy-live-play-btn::before { content: ''; position: absolute; left: 33px; top: 15px; border-left: 20px solid #fff; border-top: 13px solid transparent; border-bottom: 13px solid transparent; }
-                            .gy-live-player { display: none; position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background: #000; }
-                            .gy-live-player iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; object-fit: contain; background: #000; }
-                            @@media (max-width: 768px) {
-                                .gy-live-overlay { font-size: 18px; padding: 10px; }
-                                .gy-live-play-btn { width: 66px; height: 46px; }
-                                .gy-live-play-btn::before { left: 28px; top: 12px; border-left: 15px solid #fff; border-top: 11px solid transparent; border-bottom: 11px solid transparent; }
-                            }
-                        </style>
-
                         <div class="gy-live-wrapper">
                             <div class="gy-live-thumbnail" id="gy-live-thumb">
                                 <img decoding="async" src="https://img.youtube.com/vi/M8DGZa5xX5A/maxresdefault.jpg" alt="Watch Live Stream">
@@ -50,18 +37,13 @@
                                 </iframe>
                             </div>
                         </div>
-
-                        <script>
-                            document.getElementById('gy-live-thumb').addEventListener('click', function () {
-                                this.style.display = 'none';
-                                var videoUrl = "https://www.youtube.com/embed/9N6SWn1BQpA?si=OenP3TYNCWNSIv57&autoplay=1&rel=0&modestbranding=1";
-                                document.getElementById('gy-live-iframe').setAttribute('src', videoUrl);
-                                document.getElementById('gy-live-player').style.display = 'block';
-                            });
-                        </script>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/pages/live.js" asp-append-version="true"></script>
+}
