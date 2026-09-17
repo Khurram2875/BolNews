@@ -23,6 +23,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplicationServices(builder.Configuration);
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddMemoryCache();
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -98,130 +99,41 @@ builder.Services.AddResponseCompression(options =>
 builder.Services.AddHealthChecks();
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize =
-        1024L * 1024L * 1024L; // 1 GB
+    options.Limits.MaxRequestBodySize = 1024L * 1024L * 1024L;
 });
+
 var app = builder.Build();
 
-//
-// One-time CLI commands
-//
-if (args.Length > 0 &&
-    args[0].Equals("reset-admin-password", StringComparison.OrdinalIgnoreCase))
+if (!app.Environment.IsDevelopment())
 {
-    var exitCode = await ResetAdminPasswordAsync(
-        app.Services,
-        args);
-
-    Environment.ExitCode = exitCode;
-    return;
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
 }
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor
-                      | ForwardedHeaders.XForwardedProto
-                      | ForwardedHeaders.XForwardedHost
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                      ForwardedHeaders.XForwardedProto
 });
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseStatusCodePagesWithReExecute("/error/{0}");
-    app.UseHsts();
-}
 app.UseHttpsRedirection();
 app.UseResponseCompression();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = context =>
+    {
+        context.Context.Response.Headers.CacheControl = "public,max-age=604800";
+    }
+});
 
 app.UseRouting();
-app.UseMiddleware<TrailingSlashRedirectMiddleware>();
 app.UseSession();
-app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapHub<NotificationHub>("/notificationHub");
+app.UseMiddleware<SecurityHeadersMiddleware>();
 
 app.MapHealthChecks("/health");
-
-app.MapAppRoutes();
-
-using (var scope = app.Services.CreateScope())
-{
-    await IdentitySeeder.SeedAsync(scope.ServiceProvider);
-}
+app.MapControllers();
 
 app.Run();
-
-static async Task<int> ResetAdminPasswordAsync(
-    IServiceProvider services,
-    string[] args)
-{
-    if (args.Length < 3)
-    {
-        Console.Error.WriteLine(
-            "Usage: reset-admin-password <email> <password>");
-
-        Console.Error.WriteLine(
-            "Example: reset-admin-password admin@example.com \"YourPasswordHere\"");
-
-        return 1;
-    }
-
-    var email = args[1].Trim();
-    var password = args[2];
-
-    if (string.IsNullOrWhiteSpace(email))
-    {
-        Console.Error.WriteLine("Admin email cannot be empty.");
-        return 1;
-    }
-
-    if (string.IsNullOrWhiteSpace(password))
-    {
-        Console.Error.WriteLine("Password cannot be empty.");
-        return 1;
-    }
-
-    using var scope = services.CreateScope();
-
-    var userManager = scope.ServiceProvider
-        .GetRequiredService<UserManager<ApplicationUser>>();
-
-    var user = await userManager.FindByEmailAsync(email);
-
-    if (user == null)
-    {
-        Console.Error.WriteLine(
-            $"User not found: {email}");
-
-        return 2;
-    }
-
-    var token = await userManager.GeneratePasswordResetTokenAsync(user);
-
-    var result = await userManager.ResetPasswordAsync(
-        user,
-        token,
-        password);
-
-    if (result.Succeeded)
-    {
-        Console.WriteLine(
-            $"Admin password changed successfully for {email}.");
-
-        return 0;
-    }
-
-    Console.Error.WriteLine("Password reset failed:");
-
-    foreach (var error in result.Errors)
-    {
-        Console.Error.WriteLine(
-            $"- {error.Code}: {error.Description}");
-    }
-
-    return 3;
-}
