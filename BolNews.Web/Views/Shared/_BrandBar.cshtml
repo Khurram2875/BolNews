@@ -20,7 +20,7 @@
 
             <!-- Right -->
             <div class="col-lg-3 col-md-3 text-end">
-                <a href="/home/live" class="bn-watch-live">
+                <a href="/live" class="bn-watch-live">
                     Watch Live
                 </a>
             </div>
@@ -40,6 +40,9 @@
             <a href="/home/live" class="bn-watch-live">
                 Watch Live
             </a>
+        </div>
+        <div class="d-block d-md-none">
+            @await Component.InvokeAsync("FuelPrice")
         </div>
 
     </div>

@@ -41,6 +41,11 @@
             <i class="bi bi-megaphone me-2"></i> Breaking News
         </a>
     </li>
+    <li class="nav-item">
+        <a class="nav-link @IsActive("Fuel Prices")" asp-area="Admin" asp-controller="FuelPrices" asp-action="Index">
+            <i class="bi bi-megaphone me-2"></i>Update Fuel Prices
+        </a>
+    </li>
     @if (User.IsInRole("Admin") || User.IsInRole("Editor"))
     {
         <li class="nav-item">

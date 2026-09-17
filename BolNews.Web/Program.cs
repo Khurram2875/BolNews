@@ -75,6 +75,9 @@ builder.Services.AddHttpClient(
     });
 builder.Services.AddScoped<IWordPressArticleImportService, WordPressArticleImportService>();
 
+
+builder.Services.AddScoped<IFuelPriceService, FuelPriceService>();
+
 builder.Services.Configure<EmailOptions>(
     builder.Configuration.GetSection("Email"));
 

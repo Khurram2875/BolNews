@@ -44,4 +44,10 @@
     <!-- Excludes the folder contents from the publish output -->
     <Content Update="wwwroot\uploads\**" CopyToPublishDirectory="Never" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Update="Config\fuel-prices.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
 </Project>

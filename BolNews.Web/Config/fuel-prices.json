@@ -1,0 +1,11 @@
+{
+  "EffectiveDate": "2026-09-15T00:00:00",
+  "Petrol": {
+    "Price": 380.24,
+    "Change": -4.42
+  },
+  "Diesel": {
+    "Price": 409.42,
+    "Change": -6.10
+  }
+}

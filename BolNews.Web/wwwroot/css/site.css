@@ -898,11 +898,14 @@ body.nav-fixed {
         display: block;
     }
 
-/* 2-Column Grid Layout for 6 Cards */
 .bn-popular-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
+    /* Option A: If you want to limit card widths, cap column width at e.g. 250px */
+    /* grid-template-columns: repeat(2, minmax(0, 250px)); */
+    grid-template-columns: repeat(2, minmax(0, 300px));
+    /*grid-template-columns: repeat(2, 1fr);*/
+    gap: 12px; /* Reduced gap from 15px */
+    justify-content: center; /* Center grid if column width is capped */
 }
 
 /* Individual Card Styling */
@@ -912,7 +915,7 @@ body.nav-fixed {
     text-decoration: none;
     background: #fff;
     border: 1px solid #e2e8f0;
-    border-radius: 12px;
+    border-radius: 8px; /* Reduced border radius from 12px for smaller scale */
     overflow: hidden;
     box-shadow: 0 2px 6px rgba(0,0,0,0.04);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -925,7 +928,8 @@ body.nav-fixed {
 /* Image Container & Styling */
 .bn-popular-card__img {
     width: 100%;
-    aspect-ratio: 16 / 10;
+    /* Changing ratio from 16/10 to 16/9 or 2/1 creates a shorter image */
+    aspect-ratio: 16 / 9;
     overflow: hidden;
     background-color: #f5f5f5;
 }
@@ -938,29 +942,29 @@ body.nav-fixed {
 
 /* Card Body & Text Alignment */
 .bn-popular-card__body {
-    padding: 14px 12px;
+    padding: 6px 8px; /* Reduced padding from 14px 12px */
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    flex-grow: 1;
+    /*flex-grow: 1;*/
 }
 
     .bn-popular-card__body h3 {
-        color: #b81c1c; /* Crimson Red matching the image */
-        font-size: 0.95rem;
+        color: #b81c1c;
+        font-size: 0.80rem; /* Reduced font size from 0.95rem */
         font-weight: 700;
-        line-height: 1.35;
-        margin: 0 0 10px 0;
+        line-height: 1.2; /* Reduced line-height from 1.35 */
+        margin: 0 0 4px 0; /* Reduced bottom margin from 10px */
         display: -webkit-box;
-        -webkit-line-clamp: 3;
+        -webkit-line-clamp: 2; /* Clamp to 2 lines instead of 3 to save vertical space */
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
 
 .bn-popular-card__time {
     margin-top: auto;
-    font-size: 0.78rem;
+    font-size: 0.70rem; /* Reduced from 0.78rem */
     color: #000000;
 }
 
@@ -3479,7 +3483,7 @@ body,
 }
 
 .bn-popular-grid {
-    gap: 18px 20px;
+    gap: 22px 40px;
 }
 
 .bn-popular-card {
@@ -3866,3 +3870,249 @@ body,
 .bn-rec-card:hover .bn-rec-title {
     color: #000000; /* was underline — text now turns black on hover instead */
 }
+/* ── Fuel Price Widget ───────────────────────────── */
+.fuel-price-widget {
+    width: 100%;
+    box-sizing: border-box;
+    background: #f1f1f1;
+    padding: 24px 22px 22px;
+    margin-bottom: 25px;
+    overflow: hidden;
+}
+
+.fuel-price-header {
+    text-align: center;
+    margin-bottom: 26px;
+}
+
+.fuel-price-title {
+    color: #050505;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 0.98;
+    letter-spacing: 0.8px;
+}
+.fuel-price-title1 {
+    color: #050505;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: 1.2px;
+}
+
+.fuel-price-date {
+    color: #111;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.15;
+    margin-top: 2px;
+}
+
+.fuel-price-item {
+    margin-top: 22px;
+}
+
+.fuel-price-label {
+    display: block;
+    color: #c90000;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.fuel-price-line {
+    height: 2px;
+    background: #111;
+    width: calc(100% - 80px);
+    margin-left: 75px;
+    margin-top: -2px;
+}
+
+.fuel-price-values {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 7px;
+}
+
+.fuel-price-change {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.fuel-price-arrow {
+    flex: 0 0 auto;
+    font-size: 20px;
+    line-height: 1;
+    margin-right: 7px;
+}
+.fuel-price-arrow-up {
+    color: #c90000;
+}
+
+.fuel-price-arrow-down {
+    color: #198754;
+}
+.fuel-price-change-value {
+    color: #050505;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.fuel-price-currency {
+    flex: 0 0 auto;
+    color: #111;
+    font-size: 12px;
+    font-weight: 500;
+    margin-left: 12px;
+}
+
+.fuel-price-amount {
+    flex: 0 0 auto;
+    background: #c90000;
+    color: #fff;
+    border-radius: 10px;
+    padding: 9px 13px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   Mobile
+   ========================================================= */
+
+@media (max-width: 767.98px) {
+
+    .fuel-price-widget {
+        padding: 20px 14px 18px;
+        margin-bottom: 18px;
+    }
+
+    .fuel-price-header {
+        margin-bottom: 24px;
+    }
+
+    .fuel-price-title {
+        font-size: 22px;
+        letter-spacing:1.2px;
+        line-height: 0.98;
+    }
+    .fuel-price-title1 {
+        font-size: 20px;
+        line-height: 0.98;
+    }
+    .fuel-price-date {
+        font-size: 19px;
+        margin-top: 6px;
+    }
+
+    .fuel-price-item {
+        margin-top: 23px;
+    }
+
+    .fuel-price-label {
+        font-size: 27px;
+    }
+
+    .fuel-price-line {
+        width: calc(100% - 95px);
+        margin-left: 95px;
+    }
+
+    .fuel-price-values {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 5px;
+        margin-top: 7px;
+    }
+
+    .fuel-price-arrow {
+        font-size: 20px;
+        margin-right: 5px;
+    }
+    .fuel-price-arrow-up {
+        color: #c90000;
+    }
+
+    .fuel-price-arrow-down {
+        color: #198754;
+    }
+    .fuel-price-change-value {
+        font-size: 31px;
+        letter-spacing: -0.5px;
+    }
+
+    .fuel-price-currency {
+        font-size: 17px;
+        margin-left: 7px;
+    }
+
+    .fuel-price-amount {
+        font-size: 17px;
+        padding: 8px 9px;
+        border-radius: 7px;
+    }
+}
+
+
+/* =========================================================
+   Very Small Screens
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+    .fuel-price-widget {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .fuel-price-title {
+        font-size: 23px;
+    }
+
+    .fuel-price-date {
+        font-size: 18px;
+    }
+
+    .fuel-price-label {
+        font-size: 24px;
+    }
+
+    .fuel-price-line {
+        width: calc(100% - 88px);
+        margin-left: 88px;
+    }
+
+    .fuel-price-values {
+        gap: 4px;
+    }
+
+    .fuel-price-arrow {
+        font-size: 18px;
+        margin-right: 4px;
+    }
+
+    .fuel-price-change-value {
+        font-size: 27px;
+    }
+
+    .fuel-price-currency {
+        font-size: 15px;
+        margin-left: 5px;
+    }
+
+    .fuel-price-amount {
+        font-size: 15px;
+        padding: 7px 7px;
+    }
+}
+/* ── Fuel Price Widget ───────────────────────────── */

@@ -361,7 +361,7 @@ namespace BolNews.Persistence.Migrations
 
                     b.HasIndex("ArticleId");
 
-                    b.ToTable("ArticleAnalytics");
+                    b.ToTable("ArticleAnalytics", (string)null);
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.ArticleDiscussionComment", b =>
@@ -396,7 +396,7 @@ namespace BolNews.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ArticleDiscussionComments");
+                    b.ToTable("ArticleDiscussionComments", (string)null);
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.ArticleRevision", b =>
@@ -489,7 +489,7 @@ namespace BolNews.Persistence.Migrations
                     b.HasIndex("ArticleId", "RevisionNumber")
                         .IsUnique();
 
-                    b.ToTable("ArticleRevisions");
+                    b.ToTable("ArticleRevisions", (string)null);
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.ArticleTag", b =>
@@ -745,7 +745,8 @@ namespace BolNews.Persistence.Migrations
                     b.HasIndex("PlacementType", "CategoryId")
                         .IsUnique();
 
-                    b.HasIndex("PlacementType", "IsActive", "SortOrder");
+                    b.HasIndex("PlacementType", "IsActive", "SortOrder")
+                        .HasDatabaseName("IX_ECC_Placement_Active_Order");
 
                     b.ToTable("EditorialCategoryConfigurations", (string)null);
                 });
@@ -991,7 +992,7 @@ namespace BolNews.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.Reporter", b =>
@@ -1034,7 +1035,7 @@ namespace BolNews.Persistence.Migrations
 
                     b.HasIndex("Slug");
 
-                    b.ToTable("Reporters");
+                    b.ToTable("Reporters", (string)null);
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.Tag", b =>

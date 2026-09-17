@@ -480,6 +480,8 @@ namespace BolNews.Web.Controllers
 
         [HttpGet("/terms-of-service")]
         public IActionResult TermsOfService() => Information("terms-of-service");
+
+        [Route("live")]
         public IActionResult Live()
         {
             return View();

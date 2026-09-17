@@ -633,12 +633,13 @@ namespace BolNews.Persistence.Repositories
         {
             if (count <= 0)
                 return new List<Article>();
-
+            var cutoffTime = DateTime.UtcNow.AddHours(-48);
             return await _context.Articles
                 .AsNoTracking()
                 .Where(a =>
                     a.IsDeleted == false &&
-                    a.IsPublished == true)
+                    a.IsPublished == true &&
+                    a.PublishedAt >= cutoffTime)
                 .OrderByDescending(a => a.OverallScore)
                 .ThenByDescending(a => a.PublishedAt)
                 .Take(count)

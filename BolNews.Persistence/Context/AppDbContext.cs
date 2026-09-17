@@ -37,6 +37,7 @@ namespace BolNews.Persistence.Context
         public DbSet<MediaAssetTag> MediaAssetTags { get; set; }
         public DbSet<BreakingNews> BreakingNews => Set<BreakingNews>();
         public DbSet<EditorialCategoryConfiguration> EditorialCategoryConfigurations { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -148,7 +149,8 @@ namespace BolNews.Persistence.Context
                     x.PlacementType,
                     x.IsActive,
                     x.SortOrder
-                });
+                })
+                .HasDatabaseName("IX_ECC_Placement_Active_Order");
 
                 entity.HasIndex(x => new
                 {

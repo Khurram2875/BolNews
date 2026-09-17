@@ -55,7 +55,7 @@ namespace BolNews.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_EditorialCategoryConfigurations_PlacementType_IsActive_SortO~",
+                name: "IX_ECC_Placement_Active_Order",
                 table: "EditorialCategoryConfigurations",
                 columns: new[] { "PlacementType", "IsActive", "SortOrder" });
         }
