@@ -5,7 +5,6 @@ using BolNews.Domain.Enums;
 using BolNews.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;
 
 namespace BolNews.Persistence.Repositories
 {
@@ -37,12 +36,9 @@ namespace BolNews.Persistence.Repositories
             return await _context.Articles
             .Include(a => a.Author)
                 .ThenInclude(a => a.User)
-
             .Include(a => a.Category)
             .Include(a => a.Reporter)
-
             .Include(a => a.ReviewerUser)
-
             .Include(a => a.FactCheckerUser)
             .Include(a => a.ArticleTags)
                 .ThenInclude(a => a.Tag)
@@ -50,11 +46,9 @@ namespace BolNews.Persistence.Repositories
                 .ThenInclude(a => a.FeaturedImageTags)
                     .ThenInclude(a => a.Tag)
             .Include(a => a.FeaturedMedia)
-
             .Include(a => a.DiscussionComments
                 .Where(c => !c.IsDeleted))
                     .ThenInclude(c => c.User)
-
             .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
         }
 
@@ -100,53 +94,29 @@ namespace BolNews.Persistence.Repositories
                     Id = a.Id,
                     Title = a.Title,
                     Slug = a.Slug,
-
                     MetaTitle = a.MetaTitle,
                     MetaDescription = a.MetaDescription,
-
                     Summary = a.Summary,
                     Content = a.Content,
-
                     FeaturedImageThumb = a.FeaturedImageThumb,
                     FeaturedImageMedium = a.FeaturedImageMedium,
                     FeaturedImageLarge = a.FeaturedImageLarge,
                     FeaturedImageXl = a.FeaturedImageXl,
-
                     PublishedAt = a.PublishedAt,
                     UpdatedAt = a.UpdatedAt,
-
                     CategoryId = a.CategoryId,
                     CategoryName = a.Category.Name,
                     CategorySlug = a.Category.Slug,
-
                     AuthorId = a.AuthorId,
                     AuthorName = a.Author.Name,
                     AuthorSlug = a.Author.Slug,
                     AuthorImage = a.Author.ProfileImageUrl ?? string.Empty,
-
                     ReporterId = a.ReporterId,
-                    ReporterName = a.Reporter != null
-                        ? a.Reporter.Name
-                        : null,
-                    ReporterSourceName = a.Reporter != null
-                        ? a.Reporter.SourceName
-                        : null,
-
-                    FeaturedImageAltText =
-                        a.FeaturedImageMetadata != null
-                            ? a.FeaturedImageMetadata.AltText
-                            : null,
-
-                    FeaturedImageCaption =
-                        a.FeaturedImageMetadata != null
-                            ? a.FeaturedImageMetadata.Caption
-                            : null,
-
-                    FeaturedImageCredit =
-                        a.FeaturedImageMetadata != null
-                            ? a.FeaturedImageMetadata.Credit
-                            : null,
-
+                    ReporterName = a.Reporter != null ? a.Reporter.Name : null,
+                    ReporterSourceName = a.Reporter != null ? a.Reporter.SourceName : null,
+                    FeaturedImageAltText = a.FeaturedImageMetadata != null ? a.FeaturedImageMetadata.AltText : null,
+                    FeaturedImageCaption = a.FeaturedImageMetadata != null ? a.FeaturedImageMetadata.Caption : null,
+                    FeaturedImageCredit = a.FeaturedImageMetadata != null ? a.FeaturedImageMetadata.Credit : null,
                     ArticleTags = a.ArticleTags
                         .Where(at => at.Tag != null)
                         .Select(at => new TagDto
@@ -157,35 +127,28 @@ namespace BolNews.Persistence.Repositories
                         })
                         .OrderBy(t => t.Name)
                         .ToList(),
-
-                    ArticleTagIds = a.ArticleTags
-                        .Select(at => at.TagId)
-                        .ToList(),
-
-                    FeaturedImageTags =
-                        a.FeaturedImageMetadata != null
-                            ? a.FeaturedImageMetadata.FeaturedImageTags
-                                .Where(ft => ft.Tag != null)
-                                .Select(ft => new TagDto
-                                {
-                                    Id = ft.Tag.Id,
-                                    Name = ft.Tag.Name,
-                                    Slug = ft.Tag.Slug
-                                })
-                                .OrderBy(t => t.Name)
-                                .ToList()
-                            : new List<TagDto>()
+                    ArticleTagIds = a.ArticleTags.Select(at => at.TagId).ToList(),
+                    FeaturedImageTags = a.FeaturedImageMetadata != null
+                        ? a.FeaturedImageMetadata.FeaturedImageTags
+                            .Where(ft => ft.Tag != null)
+                            .Select(ft => new TagDto
+                            {
+                                Id = ft.Tag.Id,
+                                Name = ft.Tag.Name,
+                                Slug = ft.Tag.Slug
+                            })
+                            .OrderBy(t => t.Name)
+                            .ToList()
+                        : new List<TagDto>()
                 });
 
             return await query.FirstOrDefaultAsync();
         }
 
-
         public async Task<List<Article>> GetAllAsync()
         {
             var result = await _context.Articles
-                .Include(a => a.Author)
-                    .ThenInclude(a => a.User)
+                .Include(a => a.Author).ThenInclude(a => a.User)
                 .Include(a => a.Category)
                 .Include(a => a.Reporter)
                 .Include(a => a.ReviewerUser)
@@ -193,435 +156,151 @@ namespace BolNews.Persistence.Repositories
                 .Where(a => !a.IsDeleted)
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();
-
             return result;
         }
 
-
         public async Task<List<Article>> GetByAuthorIdAsync(int authorId, int page, int pageSize)
-        => await _context.Articles
-            .AsNoTracking()
-            .Include(a => a.Category)
-            .Where(a =>
-                a.AuthorId == authorId &&
-                a.IsPublished &&
-                !a.IsDeleted)
-            .OrderByDescending(a => a.PublishedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+            => await _context.Articles.AsNoTracking().Include(a => a.Category)
+                .Where(a => a.AuthorId == authorId && a.IsPublished && !a.IsDeleted)
+                .OrderByDescending(a => a.PublishedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
-        public async Task<List<Article>> GetByCategorySlugAsync(
-            string categorySlug,
-            int page,
-            int pageSize)
+        public async Task<List<Article>> GetByCategorySlugAsync(string categorySlug, int page, int pageSize)
         {
-            if (page < 1)
-                page = 1;
-
-            if (pageSize <= 0)
-                pageSize = 20;
-
-            return await _context.Articles
-                .AsNoTracking()
-                .Where(a =>
-                    a.Category.Slug == categorySlug &&
-                    a.IsPublished == true &&
-                    a.IsDeleted == false)
-                .Include(a => a.Author)
-                .Include(a => a.Category)
-                .Include(a => a.Reporter)
-                .OrderByDescending(a => a.PublishedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            if (page < 1) page = 1;
+            if (pageSize <= 0) pageSize = 20;
+            return await _context.Articles.AsNoTracking()
+                .Where(a => a.Category.Slug == categorySlug && a.IsPublished == true && a.IsDeleted == false)
+                .Include(a => a.Author).Include(a => a.Category).Include(a => a.Reporter)
+                .OrderByDescending(a => a.PublishedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         }
 
-        public async Task<List<Article>> GetCategoryArticlesAsync(
-            string categorySlug,
-            int skip,
-            int take)
+        public async Task<List<Article>> GetCategoryArticlesAsync(string categorySlug, int skip, int take)
         {
-            if (skip < 0)
-                skip = 0;
-
-            if (take <= 0)
-                take = 20;
-
-            return await _context.Articles
-                .AsNoTracking()
-                .Where(a =>
-                    a.Category.Slug == categorySlug &&
-                    a.IsPublished &&
-                    !a.IsDeleted)
-                .Include(a => a.Author)
-                .Include(a => a.Category)
-                .Include(a => a.Reporter)
-                .OrderByDescending(a => a.PublishedAt)
-                .Skip(skip)
-                .Take(take)
-                .ToListAsync();
+            if (skip < 0) skip = 0;
+            if (take <= 0) take = 20;
+            return await _context.Articles.AsNoTracking()
+                .Where(a => a.Category.Slug == categorySlug && a.IsPublished && !a.IsDeleted)
+                .Include(a => a.Author).Include(a => a.Category).Include(a => a.Reporter)
+                .OrderByDescending(a => a.PublishedAt).Skip(skip).Take(take).ToListAsync();
         }
 
         public async Task<List<Article>> GetByTagSlugAsync(string tagSlug, int page, int pageSize)
-            => await _context.Articles
-                .AsNoTracking()
-                .Where(a => a.IsPublished == true &&
-                            a.IsDeleted == false &&
-                            a.ArticleTags.Any(at => at.Tag.Slug == tagSlug))
-                .Include(a => a.Author)
-                .Include(a => a.Reporter)
-                .Include(a => a.Category)
-                .Include(a => a.ArticleTags)
-                    .ThenInclude(at => at.Tag)
-                .OrderByDescending(a => a.PublishedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            => await _context.Articles.AsNoTracking()
+                .Where(a => a.IsPublished == true && a.IsDeleted == false && a.ArticleTags.Any(at => at.Tag.Slug == tagSlug))
+                .Include(a => a.Author).Include(a => a.Reporter).Include(a => a.Category)
+                .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
+                .OrderByDescending(a => a.PublishedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
         public async Task<List<Article>> GetPublishedAsync(int count)
         {
-            if (count <= 0)
-                return new List<Article>();
-
-            return await _context.Articles
-                .AsNoTracking()
-                .Where(a =>
-                    a.IsPublished == true &&
-                    a.IsDeleted == false)
-                .OrderByDescending(a => a.PublishedAt)
-                .Take(count)
-                .Include(a => a.Category)
-                .Include(a => a.Author)
-                .Include(a => a.Reporter)
-                .ToListAsync();
+            if (count <= 0) return new List<Article>();
+            return await _context.Articles.AsNoTracking()
+                .Where(a => a.IsPublished == true && a.IsDeleted == false)
+                .OrderByDescending(a => a.PublishedAt).Take(count)
+                .Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter).ToListAsync();
         }
 
         public async Task<Article?> GetLatestPublishedAsync(IReadOnlyCollection<int>? excludedArticleIds = null)
-            => await LatestPublishedQuery(excludedArticleIds)
-                .FirstOrDefaultAsync();
+            => await LatestPublishedQuery(excludedArticleIds).FirstOrDefaultAsync();
 
         public async Task<List<Article>> GetLatestPublishedAsync(int count, IReadOnlyCollection<int>? excludedArticleIds = null)
-            => await LatestPublishedQuery(excludedArticleIds)
-                .Take(count)
-                .ToListAsync();
+            => await LatestPublishedQuery(excludedArticleIds).Take(count).ToListAsync();
 
         public async Task<List<Article>> GetByCategoryIdAsync(int categoryId, int count)
         {
-            if (count <= 0)
-                return new List<Article>();
-
-            return await _context.Articles
-                .AsNoTracking()
-                .Where(a =>
-                    a.CategoryId == categoryId &&
-                    a.IsPublished == true &&
-                    a.IsDeleted == false)
-                .OrderByDescending(a => a.PublishedAt)
-                .Take(count)
-                .Include(a => a.Category)
-                .Include(a => a.Author)
-                .Include(a => a.Reporter)
-                .ToListAsync();
+            if (count <= 0) return new List<Article>();
+            return await _context.Articles.AsNoTracking()
+                .Where(a => a.CategoryId == categoryId && a.IsPublished == true && a.IsDeleted == false)
+                .OrderByDescending(a => a.PublishedAt).Take(count)
+                .Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter).ToListAsync();
         }
-        //updated GetRelatedArticlesAsync method to improve performance and reduce memory usage
-        public async Task<List<Article>> GetRelatedArticlesAsync(
-    int articleId,
-    int categoryId,
-    IReadOnlyCollection<int> tagIds,
-    int count)
+
+        public async Task<List<Article>> GetRelatedArticlesAsync(int articleId, int categoryId, IReadOnlyCollection<int> tagIds, int count)
         {
-            if (count <= 0)
-                return new List<Article>();
-
-            var validTagIds = tagIds?
-                .Where(id => id > 0)
-                .Distinct()
-                .ToArray()
-                ?? Array.Empty<int>();
-
-            var query = _context.Articles
-                .AsNoTracking()
-                .Where(a =>
-                    a.Id != articleId &&
-                    a.IsPublished &&
-                    !a.IsDeleted &&
-                    (
-                        a.CategoryId == categoryId ||
-                        (
-                            validTagIds.Length > 0 &&
-                            a.ArticleTags.Any(at =>
-                                validTagIds.Contains(at.TagId))
-                        )
-                    ));
-
+            if (count <= 0) return new List<Article>();
+            var validTagIds = tagIds?.Where(id => id > 0).Distinct().ToArray() ?? Array.Empty<int>();
+            var query = _context.Articles.AsNoTracking().Where(a =>
+                a.Id != articleId && a.IsPublished && !a.IsDeleted &&
+                (a.CategoryId == categoryId || (validTagIds.Length > 0 && a.ArticleTags.Any(at => validTagIds.Contains(at.TagId)))));
             if (validTagIds.Length > 0)
-            {
-                query = query
-                    .OrderByDescending(a =>
-                        a.ArticleTags.Count(at =>
-                            validTagIds.Contains(at.TagId)))
-                    .ThenByDescending(a =>
-                        a.CategoryId == categoryId)
-                    .ThenByDescending(a => a.OverallScore)
-                    .ThenByDescending(a => a.PublishedAt);
-            }
+                query = query.OrderByDescending(a => a.ArticleTags.Count(at => validTagIds.Contains(at.TagId))).ThenByDescending(a => a.CategoryId == categoryId).ThenByDescending(a => a.OverallScore).ThenByDescending(a => a.PublishedAt);
             else
-            {
-                query = query
-                    .OrderByDescending(a =>
-                        a.CategoryId == categoryId)
-                    .ThenByDescending(a => a.OverallScore)
-                    .ThenByDescending(a => a.PublishedAt);
-            }
-
-            return await query
-                .Take(count)
-                .Include(a => a.Category)
-                .Include(a => a.Author)
-                .Include(a => a.Reporter)
-                .AsSplitQuery()
-                .ToListAsync();
+                query = query.OrderByDescending(a => a.CategoryId == categoryId).ThenByDescending(a => a.OverallScore).ThenByDescending(a => a.PublishedAt);
+            return await query.Take(count).Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter).AsSplitQuery().ToListAsync();
         }
-        //orignal code for GetRelatedArticlesAsync method
-        //    public async Task<List<Article>> GetRelatedArticlesAsync(
-        //int articleId,
-        //int categoryId,
-        //IReadOnlyCollection<int> tagIds,
-        //int count)
-        //    {
-        //        if (count <= 0)
-        //            return new List<Article>();
-
-        //        var validTagIds = tagIds?
-        //            .Where(id => id > 0)
-        //            .Distinct()
-        //            .ToArray()
-        //            ?? Array.Empty<int>();
-
-        //        var query = _context.Articles
-        //            .AsNoTracking()
-        //            .Where(a =>
-        //                a.Id != articleId &&
-        //                a.IsPublished &&
-        //                !a.IsDeleted &&
-        //                (
-        //                    a.CategoryId == categoryId ||
-        //                    (
-        //                        validTagIds.Length > 0 &&
-        //                        a.ArticleTags.Any(at =>
-        //                            validTagIds.Contains(at.TagId))
-        //                    )
-        //                ));
-
-        //        if (validTagIds.Length > 0)
-        //        {
-        //            query = query
-        //                .OrderByDescending(a =>
-        //                    a.ArticleTags.Count(at =>
-        //                        validTagIds.Contains(at.TagId)))
-        //                .ThenByDescending(a =>
-        //                    a.CategoryId == categoryId)
-        //                .ThenByDescending(a => a.OverallScore)
-        //                .ThenByDescending(a => a.PublishedAt);
-        //        }
-        //        else
-        //        {
-        //            query = query
-        //                .OrderByDescending(a =>
-        //                    a.CategoryId == categoryId)
-        //                .ThenByDescending(a => a.OverallScore)
-        //                .ThenByDescending(a => a.PublishedAt);
-        //        }
-
-        //        return await query
-        //            .Take(count)
-        //            .Include(a => a.Category)
-        //            .Include(a => a.Author)
-        //            .Include(a => a.Reporter)
-        //            .Include(a => a.ArticleTags)
-        //                .ThenInclude(at => at.Tag)
-        //            .ToListAsync();
-        //    }
 
         public async Task<List<Article>> GetForCategoriesAsync(List<int> categoryIds, int count)
         {
-            if (categoryIds == null ||
-                categoryIds.Count == 0 ||
-                count <= 0)
-            {
-                return new List<Article>();
-            }
-
-            return await _context.Articles
-                .AsNoTracking()
-                .Where(a =>
-                    categoryIds.Contains(a.CategoryId) &&
-                    a.IsPublished == true &&
-                    a.IsDeleted == false)
-                .OrderByDescending(a => a.PublishedAt)
-                .Take(count)
-                .Include(a => a.Category)
-                .Include(a => a.Author)
-                .Include(a => a.Reporter)
-                .ToListAsync();
+            if (categoryIds == null || categoryIds.Count == 0 || count <= 0) return new List<Article>();
+            return await _context.Articles.AsNoTracking()
+                .Where(a => categoryIds.Contains(a.CategoryId) && a.IsPublished == true && a.IsDeleted == false)
+                .OrderByDescending(a => a.PublishedAt).Take(count)
+                .Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter).ToListAsync();
         }
 
         public async Task<List<Article>> GetPublishedSinceAsync(DateTime fromDate, int limit)
         {
-            if (limit <= 0)
-                return new List<Article>();
-
-            return await _context.Articles
-                .AsNoTracking()
-                .Where(a =>
-                    a.PublishedAt >= fromDate &&
-                    a.IsPublished == true &&
-                    a.IsDeleted == false)
-                .Include(a => a.Category)
-                .Include(a => a.Author)
-                .Include(a => a.Reporter)
-                .OrderByDescending(a => a.PublishedAt)
-                .Take(limit)
-                .ToListAsync();
+            if (limit <= 0) return new List<Article>();
+            return await _context.Articles.AsNoTracking()
+                .Where(a => a.PublishedAt >= fromDate && a.IsPublished == true && a.IsDeleted == false)
+                .Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter)
+                .OrderByDescending(a => a.PublishedAt).Take(limit).ToListAsync();
         }
 
         public async Task<List<Article>> SearchAsync(string term, int page, int pageSize)
         {
-            if (string.IsNullOrWhiteSpace(term))
-                return new List<Article>();
-
+            if (string.IsNullOrWhiteSpace(term)) return new List<Article>();
             term = term.Trim();
-
-            if (page < 1)
-                page = 1;
-
-            if (pageSize <= 0)
-                pageSize = 20;
-
-            return await _context.Articles
-                .AsNoTracking()
-                .Where(a =>
-                    a.IsPublished &&
-                    !a.IsDeleted &&
-                    (
-                        EF.Functions.Like(a.Title, $"%{term}%") ||
-                        EF.Functions.Like(a.Content, $"%{term}%") ||
-                        a.ArticleTags.Any(at =>
-                            EF.Functions.Like(at.Tag.Name, $"%{term}%")) ||
-                        (
-                            a.FeaturedImageMetadata != null &&
-                            (
-                                EF.Functions.Like(
-                                    a.FeaturedImageMetadata.AltText ?? "",
-                                    $"%{term}%") ||
-
-                                EF.Functions.Like(
-                                    a.FeaturedImageMetadata.Caption ?? "",
-                                    $"%{term}%") ||
-
-                                a.FeaturedImageMetadata.FeaturedImageTags.Any(
-                                    fit => EF.Functions.Like(
-                                        fit.Tag.Name,
-                                        $"%{term}%"))
-                            )
-                        )
-                    ))
-                .Include(a => a.Category)
-                .Include(a => a.Author)
-                .Include(a => a.ArticleTags)
-                    .ThenInclude(at => at.Tag)
-                .Include(a => a.FeaturedImageMetadata)
-                    .ThenInclude(fim => fim.FeaturedImageTags)
-                        .ThenInclude(fit => fit.Tag)
-                .OrderByDescending(a => a.PublishedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            if (page < 1) page = 1;
+            if (pageSize <= 0) pageSize = 20;
+            return await _context.Articles.AsNoTracking().Where(a => a.IsPublished && !a.IsDeleted &&
+                (EF.Functions.Like(a.Title, $"%{term}%") || EF.Functions.Like(a.Content, $"%{term}%") ||
+                 a.ArticleTags.Any(at => EF.Functions.Like(at.Tag.Name, $"%{term}%")) ||
+                 (a.FeaturedImageMetadata != null &&
+                  (EF.Functions.Like(a.FeaturedImageMetadata.AltText ?? "", $"%{term}%") ||
+                   EF.Functions.Like(a.FeaturedImageMetadata.Caption ?? "", $"%{term}%") ||
+                   a.FeaturedImageMetadata.FeaturedImageTags.Any(fit => EF.Functions.Like(fit.Tag.Name, $"%{term}%"))))))
+                .Include(a => a.Category).Include(a => a.Author)
+                .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
+                .Include(a => a.FeaturedImageMetadata).ThenInclude(fim => fim.FeaturedImageTags).ThenInclude(fit => fit.Tag)
+                .OrderByDescending(a => a.PublishedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         }
 
         public async Task<List<Article>> GetTrendingCandidatesAsync(DateTime fromDate, int candidateLimit)
-            => await _context.Articles.AsNoTracking()
-                .Include(a => a.Category)
-                .Include(a => a.Author)
-                .Include(a => a.Reporter)
+            => await _context.Articles.AsNoTracking().Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter)
                 .Where(a => a.IsPublished == true && a.IsDeleted == false && a.PublishedAt >= fromDate)
-                .OrderByDescending(a => a.ViewCount)
-                .Take(candidateLimit)
-                .ToListAsync();
+                .OrderByDescending(a => a.ViewCount).Take(candidateLimit).ToListAsync();
 
         public async Task<List<Article>> GetTopByViewCountAsync(int count)
-            => await _context.Articles.AsNoTracking()
-                .Include(a => a.Category)
-                .Include(a => a.Author)
-                .Include(a => a.Reporter)
-                .Where(a => a.IsDeleted == false && a.IsPublished == true)
-                .OrderByDescending(a => a.ViewCount)
-                .Take(count)
-                .ToListAsync();
+            => await _context.Articles.AsNoTracking().Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter)
+                .Where(a => a.IsDeleted == false && a.IsPublished == true).OrderByDescending(a => a.ViewCount).Take(count).ToListAsync();
 
         public async Task<List<Article>> GetLowPerformingAsync(DateTime since, int maxViews, int limit)
-            => await _context.Articles.AsNoTracking()
-                .Include(a => a.Category)
-                .Include(a => a.Author)
-                .Include(a => a.Reporter)
-                .Where(a => a.PublishedAt >= since && a.ViewCount < maxViews)
-                .OrderByDescending(a => a.PublishedAt)
-                .Take(limit)
-                .ToListAsync();
+            => await _context.Articles.AsNoTracking().Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter)
+                .Where(a => a.PublishedAt >= since && a.ViewCount < maxViews).OrderByDescending(a => a.PublishedAt).Take(limit).ToListAsync();
 
-        public async Task<int> CountAsync()
-            => await _context.Articles.CountAsync(a => !a.IsDeleted);
-
-        public async Task<int> CountPublishedSinceAsync(DateTime since)
-            => await _context.Articles.CountAsync(a => a.PublishedAt >= since && !a.IsDeleted);
+        public async Task<int> CountAsync() => await _context.Articles.CountAsync(a => !a.IsDeleted);
+        public async Task<int> CountPublishedSinceAsync(DateTime since) => await _context.Articles.CountAsync(a => a.PublishedAt >= since && !a.IsDeleted);
 
         public async Task<List<(DateTime Date, int Count)>> CountPerDayAsync(DateTime fromDate)
         {
-            var data = await _context.Articles.AsNoTracking()
-                .Where(a => a.PublishedAt >= fromDate && !a.IsDeleted)
-                .GroupBy(a => a.PublishedAt!.Value.Date)
-                .Select(g => new { Date = g.Key, Count = g.Count() })
-                .OrderBy(x => x.Date)
-                .ToListAsync();
+            var data = await _context.Articles.AsNoTracking().Where(a => a.PublishedAt >= fromDate && !a.IsDeleted)
+                .GroupBy(a => a.PublishedAt!.Value.Date).Select(g => new { Date = g.Key, Count = g.Count() }).OrderBy(x => x.Date).ToListAsync();
             return data.Select(x => (x.Date, x.Count)).ToList();
         }
 
         public async Task<List<CategoryPerformanceDto>> GetCategoryPerformanceAsync(DateTime fromDate)
-            => await _context.Articles
-                .Where(a => a.PublishedAt >= fromDate && a.IsDeleted == false && a.IsPublished == true)
-                .Include(a => a.Category)
-                .GroupBy(a => a.Category.Name)
-                .Select(g => new CategoryPerformanceDto
-                {
-                    CategoryName = g.Key,
-                    ArticleCount = g.Count(),
-                    TotalViews = g.Sum(a => a.ViewCount),
-                    AvgViewsPerArticle = g.Average(a => a.ViewCount)
-                })
-                .OrderByDescending(x => x.TotalViews)
-                .ToListAsync();
+            => await _context.Articles.Where(a => a.PublishedAt >= fromDate && a.IsDeleted == false && a.IsPublished == true)
+                .Include(a => a.Category).GroupBy(a => a.Category.Name).Select(g => new CategoryPerformanceDto
+                { CategoryName = g.Key, ArticleCount = g.Count(), TotalViews = g.Sum(a => a.ViewCount), AvgViewsPerArticle = g.Average(a => a.ViewCount) }).OrderByDescending(x => x.TotalViews).ToListAsync();
 
         public async Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(DateTime fromDate)
-            => await _context.Articles.AsNoTracking()
-                .Where(a => a.PublishedAt >= fromDate && a.IsDeleted == false && a.IsPublished == true)
-                .Include(a => a.Author)
-                .GroupBy(a => a.Author.Name)
-                .Select(g => new EditorPerformanceDto
-                {
-                    AuthorName = g.Key,
-                    ArticleCount = g.Count(),
-                    TotalViews = g.Sum(a => a.ViewCount),
-                    AvgViewsPerArticle = g.Average(a => a.ViewCount)
-                })
-                .OrderByDescending(x => x.TotalViews)
-                .ToListAsync();
+            => await _context.Articles.AsNoTracking().Where(a => a.PublishedAt >= fromDate && a.IsDeleted == false && a.IsPublished == true)
+                .Include(a => a.Author).GroupBy(a => a.Author.Name).Select(g => new EditorPerformanceDto
+                { AuthorName = g.Key, ArticleCount = g.Count(), TotalViews = g.Sum(a => a.ViewCount), AvgViewsPerArticle = g.Average(a => a.ViewCount) }).OrderByDescending(x => x.TotalViews).ToListAsync();
 
         public async Task IncrementViewCountAsync(int articleId)
-            => await _context.Articles
-                .Where(a => a.Id == articleId)
-                .ExecuteUpdateAsync(s =>
-                    s.SetProperty(a => a.ViewCount, a => a.ViewCount + 1));
+            => await _context.Articles.Where(a => a.Id == articleId).ExecuteUpdateAsync(s => s.SetProperty(a => a.ViewCount, a => a.ViewCount + 1));
 
         public async Task BulkUpdateAsync(IEnumerable<Article> articles)
         {
@@ -631,402 +310,120 @@ namespace BolNews.Persistence.Repositories
 
         public async Task<List<Article>> GetTopRankedPublishedAsync(int count)
         {
-            if (count <= 0)
-                return new List<Article>();
+            if (count <= 0) return new List<Article>();
             var cutoffTime = DateTime.UtcNow.AddHours(-48);
-            return await _context.Articles
-                .AsNoTracking()
-                .Where(a =>
-                    a.IsDeleted == false &&
-                    a.IsPublished == true &&
-                    a.PublishedAt >= cutoffTime)
-                .OrderByDescending(a => a.OverallScore)
-                .ThenByDescending(a => a.PublishedAt)
-                .Take(count)
-                .Include(a => a.Author)
-                    .ThenInclude(a => a.User)
-                .Include(a => a.Category)
-                .Include(a => a.Reporter)
-                .ToListAsync();
+            return await _context.Articles.AsNoTracking()
+                .Where(a => a.IsDeleted == false && a.IsPublished == true && a.PublishedAt >= cutoffTime)
+                .OrderByDescending(a => a.OverallScore).ThenByDescending(a => a.PublishedAt).Take(count)
+                .Include(a => a.Author).ThenInclude(a => a.User).Include(a => a.Category).Include(a => a.Reporter).ToListAsync();
         }
 
         public async Task<List<Article>> GetTopRankedByCategoryAsync(int categoryId, int count)
         {
-            if (count <= 0)
-                return new List<Article>();
-
-            return await _context.Articles
-                .AsNoTracking()
-                .Where(a =>
-                    a.IsDeleted == false &&
-                    a.IsPublished == true &&
-                    a.CategoryId == categoryId)
-                .OrderByDescending(a => a.OverallScore)
-                .ThenByDescending(a => a.PublishedAt)
-                .Take(count)
-                .Include(a => a.Author)
-                    .ThenInclude(a => a.User)
-                .Include(a => a.Category)
-                .Include(a => a.Reporter)
-                .ToListAsync();
+            if (count <= 0) return new List<Article>();
+            return await _context.Articles.AsNoTracking()
+                .Where(a => a.IsDeleted == false && a.IsPublished == true && a.CategoryId == categoryId)
+                .OrderByDescending(a => a.OverallScore).ThenByDescending(a => a.PublishedAt).Take(count)
+                .Include(a => a.Author).ThenInclude(a => a.User).Include(a => a.Category).Include(a => a.Reporter).ToListAsync();
         }
+
         public async Task<List<Article>> GetByWorkflowStatusAsync(ArticleWorkflowStatus status)
-        {
-            return await _context.Articles.AsNoTracking()
-                .Include(a => a.Author)
-                    .ThenInclude(a => a.User)
-                .Include(a => a.Category)
-                .Include(a => a.Reporter)
-                .Where(a =>
-                    !a.IsDeleted &&
-                    a.WorkflowStatus == status)
-                .OrderByDescending(a => a.CreatedAt)
-                .ToListAsync();
-        }
+            => await _context.Articles.AsNoTracking().Include(a => a.Author).ThenInclude(a => a.User).Include(a => a.Category).Include(a => a.Reporter)
+                .Where(a => !a.IsDeleted && a.WorkflowStatus == status).OrderByDescending(a => a.CreatedAt).ToListAsync();
+
         public async Task<List<Article>> GetEditorialQueueAsync(params ArticleWorkflowStatus[] statuses)
-        {
-            return await _context.Articles.AsNoTracking()
-             .Include(a => a.Author)
-             .ThenInclude(a => a.User)
-             .Include(a => a.Category)
-             .Include(a => a.Reporter)
-             .Include(a => a.ReviewerUser)
-             .Include(a => a.FactCheckerUser)
-             .Where(a =>
-                 !a.IsDeleted &&
-                 statuses.Contains(a.WorkflowStatus))
-             .OrderByDescending(a => a.CreatedAt)
-             .ToListAsync();
-        }
+            => await _context.Articles.AsNoTracking().Include(a => a.Author).ThenInclude(a => a.User).Include(a => a.Category).Include(a => a.Reporter).Include(a => a.ReviewerUser).Include(a => a.FactCheckerUser)
+                .Where(a => !a.IsDeleted && statuses.Contains(a.WorkflowStatus)).OrderByDescending(a => a.CreatedAt).ToListAsync();
+
         public async Task<List<Article>> GetActiveWorkflowArticlesAsync()
-        {
-            return await _context.Articles
-                .Include(a => a.Author)
-                    .ThenInclude(a => a.User)
-
-                .Include(a => a.Category)
-                .Include(a => a.Reporter)
-
-                .Where(a =>
-                    a.WorkflowStatus == ArticleWorkflowStatus.Submitted ||
-                    a.WorkflowStatus == ArticleWorkflowStatus.UnderReview ||
-                    a.WorkflowStatus == ArticleWorkflowStatus.FactCheckPending ||
-                    a.WorkflowStatus == ArticleWorkflowStatus.Approved)
+            => await _context.Articles.Include(a => a.Author).ThenInclude(a => a.User).Include(a => a.Category).Include(a => a.Reporter)
+                .Where(a => a.WorkflowStatus == ArticleWorkflowStatus.Submitted || a.WorkflowStatus == ArticleWorkflowStatus.UnderReview || a.WorkflowStatus == ArticleWorkflowStatus.FactCheckPending || a.WorkflowStatus == ArticleWorkflowStatus.Approved)
                 .ToListAsync();
-        }
-        public async Task SaveChangesAsync()
-        {
-            await _context.SaveChangesAsync();
-        }
+
+        public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
+
         public async Task<List<Article>> GetDueScheduledArticlesAsync(DateTime utcNow)
-        {
-
-            return await _context.Articles
-                .Include(a => a.Author)
-                    .ThenInclude(a => a.User)
-                .Include(a => a.Category)
-                .Include(a => a.Reporter)
-                .Where(a =>
-                    !a.IsDeleted &&
-                    !a.IsPublished &&
-                    a.WorkflowStatus == ArticleWorkflowStatus.Approved &&
-                    (
-                        (a.ScheduledPublishAt.HasValue &&
-                         a.ScheduledPublishAt <= utcNow)
-                        ||
-                        (a.EmbargoUntil.HasValue &&
-                         a.EmbargoUntil <= utcNow)
-                    ))
+            => await _context.Articles.Include(a => a.Author).ThenInclude(a => a.User).Include(a => a.Category).Include(a => a.Reporter)
+                .Where(a => !a.IsDeleted && !a.IsPublished && a.WorkflowStatus == ArticleWorkflowStatus.Approved &&
+                    ((a.ScheduledPublishAt.HasValue && a.ScheduledPublishAt <= utcNow) || (a.EmbargoUntil.HasValue && a.EmbargoUntil <= utcNow)))
                 .ToListAsync();
-        }
 
         private IQueryable<Article> LatestPublishedQuery(IReadOnlyCollection<int>? excludedArticleIds)
         {
-            var excludedCategories = new[]
-            {"Lifestyle", "Health"};
-
-            var query = _context.Articles
-                .AsNoTracking()
-                .Where(a =>
-                    a.IsPublished == true &&
-                    a.IsDeleted == false &&
-                    !excludedCategories.Contains(a.Category.Name));
-
+            var excludedCategories = new[] { "Lifestyle", "Health" };
+            var query = _context.Articles.AsNoTracking().Where(a => a.IsPublished == true && a.IsDeleted == false && !excludedCategories.Contains(a.Category.Name));
             if (excludedArticleIds is { Count: > 0 })
             {
-                var excludedIds = excludedArticleIds
-                    .Where(id => id > 0)
-                    .Distinct()
-                    .ToArray();
-
-                if (excludedIds.Length > 0)
-                {
-                    query = query.Where(a => !excludedIds.Contains(a.Id));
-                }
+                var excludedIds = excludedArticleIds.Where(id => id > 0).Distinct().ToArray();
+                if (excludedIds.Length > 0) query = query.Where(a => !excludedIds.Contains(a.Id));
             }
-
-            return query
-                .Include(a => a.Category)
-                .Include(a => a.Author)
-                .Include(a => a.Reporter)
-                .OrderByDescending(a => a.PublishedAt);
+            return query.Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter).OrderByDescending(a => a.PublishedAt);
         }
 
         public async Task<List<Article>> SearchPublishedAsync(string search, int take = 20)
-        {
-            return await _context.Articles
-                .Where(a =>
-                    a.WorkflowStatus == ArticleWorkflowStatus.Published &&
-                    a.Title.Contains(search))
-                .OrderByDescending(a => a.PublishedAt)
-                .Take(take)
-                .ToListAsync();
-        }
+            => await _context.Articles.Where(a => a.WorkflowStatus == ArticleWorkflowStatus.Published && a.Title.Contains(search)).OrderByDescending(a => a.PublishedAt).Take(take).ToListAsync();
+
         public async Task<List<Article>> GetDeletedAsync()
+            => await _context.Articles.IgnoreQueryFilters().Where(x => x.IsDeleted).Include(a => a.Author).ThenInclude(a => a.User).Include(a => a.Category).Include(a => a.Reporter).Include(a => a.ReviewerUser).Include(a => a.FactCheckerUser).OrderByDescending(a => a.UpdatedAt).ToListAsync();
+
+        public async Task<Dictionary<int, List<Article>>> GetLatestArticlesForCategoriesAsync(IReadOnlyCollection<int> categoryIds, int count)
         {
-            var result = await _context.Articles
-             .IgnoreQueryFilters()
-             .Where(x => x.IsDeleted)
-             .Include(a => a.Author)
-                 .ThenInclude(a => a.User)
-             .Include(a => a.Category)
-             .Include(a => a.Reporter)
-             .Include(a => a.ReviewerUser)
-             .Include(a => a.FactCheckerUser)
-             .OrderByDescending(a => a.UpdatedAt)
-             .ToListAsync();
-
-            return result;
-        }
-        public async Task<Dictionary<int, List<Article>>> GetLatestArticlesForCategoriesAsync(
-     IReadOnlyCollection<int> categoryIds,
-     int count)
-        {
-            if (categoryIds == null || categoryIds.Count == 0 || count <= 0)
-                return new Dictionary<int, List<Article>>();
-
-            var ids = categoryIds
-                .Where(id => id > 0)
-                .Distinct()
-                .ToArray();
-
-            if (ids.Length == 0)
-                return new Dictionary<int, List<Article>>();
-
-            var query = _context.Articles
-                .AsNoTracking()
-                .Where(a =>
-                    ids.Contains(a.CategoryId) &&
-                    a.IsPublished &&
-                    !a.IsDeleted)
-                .Include(a => a.Category)
-                .Include(a => a.Author)
-                .Include(a => a.Reporter)
-                .OrderByDescending(a => a.PublishedAt);
-
-            Console.WriteLine("========== CATEGORY ARTICLES SQL ==========");
-            Console.WriteLine(query.ToQueryString());
-            Console.WriteLine("==========================================");
-
+            if (categoryIds == null || categoryIds.Count == 0 || count <= 0) return new Dictionary<int, List<Article>>();
+            var ids = categoryIds.Where(id => id > 0).Distinct().ToArray();
+            if (ids.Length == 0) return new Dictionary<int, List<Article>>();
+            var query = _context.Articles.AsNoTracking().Where(a => ids.Contains(a.CategoryId) && a.IsPublished && !a.IsDeleted)
+                .Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter).OrderByDescending(a => a.PublishedAt);
             var articles = await query.ToListAsync();
-
-            return articles
-                .GroupBy(a => a.CategoryId)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Take(count * 3).ToList());
+            return articles.GroupBy(a => a.CategoryId).ToDictionary(g => g.Key, g => g.Take(count * 3).ToList());
         }
+
         public async Task<Article?> GetBySourceAsync(string sourceSystem, string sourceId)
-        {
-            return await _context.Articles
-                .FirstOrDefaultAsync(a =>
-                    a.SourceSystem == sourceSystem &&
-                    a.SourceId == sourceId);
-        }
+            => await _context.Articles.FirstOrDefaultAsync(a => a.SourceSystem == sourceSystem && a.SourceId == sourceId);
+
         public async Task<Article?> FindBySourceAsync(string sourceSystem, string sourceId)
-        {
-            return await _context.Articles
-                .FirstOrDefaultAsync(a =>
-                    a.SourceSystem == sourceSystem &&
-                    a.SourceId == sourceId &&
-                    !a.IsDeleted);
-        }
+            => await _context.Articles.FirstOrDefaultAsync(a => a.SourceSystem == sourceSystem && a.SourceId == sourceId && !a.IsDeleted);
+
         public async Task<List<Article>> GetWordPressArticlesWithMissingFeaturedImagesAsync()
+            => await _context.Articles.Where(a => a.SourceSystem == "WordPress" && !a.IsDeleted && string.IsNullOrEmpty(a.FeaturedImageThumb)).OrderBy(a => a.Id).ToListAsync();
+
+        public async Task<(List<ArticleListDto> Articles, int TotalCount)> GetPagedAsync(string? authorUserId, int page, int pageSize, string? search = null, int? authorId = null)
         {
-            return await _context.Articles
-                .Where(a =>
-                    a.SourceSystem == "WordPress" &&
-                    !a.IsDeleted &&
-                    string.IsNullOrEmpty(a.FeaturedImageThumb))
-                .OrderBy(a => a.Id)
-                .ToListAsync();
-        }
-        public async Task<(List<ArticleListDto> Articles, int TotalCount)> GetPagedAsync(
-            string? authorUserId,
-            int page,
-            int pageSize,
-            string? search = null,
-            int? authorId = null)
-        {
-            if (page < 1)
-                page = 1;
-
-            if (pageSize <= 0)
-                pageSize = 10;
-
-            var query = _context.Articles
-                .AsNoTracking()
-                .Where(a => !a.IsDeleted);
-
-            // Author-level access restriction.
-            // Admin / Editor / SubEditor pass null and can see all articles.
-            if (!string.IsNullOrWhiteSpace(authorUserId))
-            {
-                query = query.Where(a =>
-                    a.Author != null &&
-                    a.Author.UserId == authorUserId);
-            }
-
-            // Search by article title.
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                search = search.Trim();
-
-                query = query.Where(a =>
-                    EF.Functions.Like(a.Title, $"%{search}%"));
-            }
-
-            // Filter by Article Author / SubEditor Author profile.
-            if (authorId.HasValue)
-            {
-                query = query.Where(a =>
-                    a.AuthorId == authorId.Value);
-            }
-
+            if (page < 1) page = 1;
+            if (pageSize <= 0) pageSize = 10;
+            var query = _context.Articles.AsNoTracking().Where(a => !a.IsDeleted);
+            if (!string.IsNullOrWhiteSpace(authorUserId)) query = query.Where(a => a.Author != null && a.Author.UserId == authorUserId);
+            if (!string.IsNullOrWhiteSpace(search)) { search = search.Trim(); query = query.Where(a => EF.Functions.Like(a.Title, $"%{search}%")); }
+            if (authorId.HasValue) query = query.Where(a => a.AuthorId == authorId.Value);
             var totalCount = await query.CountAsync();
-
-            var articles = await query
-                .OrderByDescending(a => a.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(a => new ArticleListDto
-                {
-                    Id = a.Id,
-                    Title = a.Title,
-                    Slug = a.Slug,
-
-                    FeaturedImageThumb = a.FeaturedImageThumb,
-
-                    CategoryId = a.CategoryId,
-                    CategoryName = a.Category != null
-                        ? a.Category.Name
-                        : null,
-                    CategorySlug = a.Category != null
-                        ? a.Category.Slug
-                        : null,
-
-                    AuthorId = a.AuthorId,
-                    AuthorName = a.Author != null
-                        ? a.Author.Name
-                        : null,
-
-                    ReporterId = a.ReporterId,
-                    ReporterName = a.Reporter != null
-                        ? a.Reporter.Name
-                        : null,
-
-                    IsPublished = a.IsPublished,
-                    PublishedAt = a.PublishedAt,
-
-                    WorkflowStatus = a.WorkflowStatus,
-
-                    ReviewerName = a.ReviewerUser != null
-                        ? a.ReviewerUser.FullName
-                        : null,
-
-                    FactCheckerName = a.FactCheckerUser != null
-                        ? a.FactCheckerUser.FullName
-                        : null,
-
-                    IsEditorsPick = a.IsEditorsPick,
-                    EditorialPriority = a.EditorialPriority,
-                    IsFactChecked = a.IsFactChecked,
-
-                    CreatedAt = a.CreatedAt
-                })
-                .ToListAsync();
-
+            var articles = await query.OrderByDescending(a => a.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).Select(a => new ArticleListDto
+            {
+                Id = a.Id, Title = a.Title, Slug = a.Slug, FeaturedImageThumb = a.FeaturedImageThumb,
+                CategoryId = a.CategoryId, CategoryName = a.Category != null ? a.Category.Name : null, CategorySlug = a.Category != null ? a.Category.Slug : null,
+                AuthorId = a.AuthorId, AuthorName = a.Author != null ? a.Author.Name : null,
+                ReporterId = a.ReporterId, ReporterName = a.Reporter != null ? a.Reporter.Name : null,
+                IsPublished = a.IsPublished, PublishedAt = a.PublishedAt, WorkflowStatus = a.WorkflowStatus,
+                ReviewerName = a.ReviewerUser != null ? a.ReviewerUser.FullName : null, FactCheckerName = a.FactCheckerUser != null ? a.FactCheckerUser.FullName : null,
+                IsEditorsPick = a.IsEditorsPick, EditorialPriority = a.EditorialPriority, IsFactChecked = a.IsFactChecked, CreatedAt = a.CreatedAt
+            }).ToListAsync();
             return (articles, totalCount);
         }
-        public async Task<(List<ArticleListDto> Articles, int TotalCount)> GetDeletedPagedAsync(
-    int page,
-    int pageSize)
+
+        public async Task<(List<ArticleListDto> Articles, int TotalCount)> GetDeletedPagedAsync(int page, int pageSize)
         {
-            if (page < 1)
-                page = 1;
-
-            if (pageSize <= 0)
-                pageSize = 10;
-
-            var query = _context.Articles
-                .IgnoreQueryFilters()
-                .Where(a => a.IsDeleted);
-
+            if (page < 1) page = 1;
+            if (pageSize <= 0) pageSize = 10;
+            var query = _context.Articles.IgnoreQueryFilters().Where(a => a.IsDeleted);
             var totalCount = await query.CountAsync();
-
-            var articles = await query
-                .AsNoTracking()
-                .OrderByDescending(a => a.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(a => new ArticleListDto
-                {
-                    Id = a.Id,
-                    Title = a.Title,
-                    Slug = a.Slug,
-
-                    FeaturedImageThumb = a.FeaturedImageThumb,
-
-                    CategoryId = a.CategoryId,
-                    CategoryName = a.Category != null
-                        ? a.Category.Name
-                        : null,
-                    CategorySlug = a.Category != null
-                        ? a.Category.Slug
-                        : null,
-
-                    AuthorId = a.AuthorId,
-                    AuthorName = a.Author != null &&
-                                 a.Author.User != null
-                        ? a.Author.User.FullName
-                        : null,
-
-                    ReporterId = a.ReporterId,
-                    ReporterName = a.Reporter != null
-                        ? a.Reporter.Name
-                        : null,
-
-                    IsPublished = a.IsPublished,
-                    PublishedAt = a.PublishedAt,
-
-                    WorkflowStatus = a.WorkflowStatus,
-
-                    ReviewerName = a.ReviewerUser != null
-                        ? a.ReviewerUser.FullName
-                        : null,
-
-                    FactCheckerName = a.FactCheckerUser != null
-                        ? a.FactCheckerUser.FullName
-                        : null,
-
-                    IsEditorsPick = a.IsEditorsPick,
-                    EditorialPriority = a.EditorialPriority,
-                    IsFactChecked = a.IsFactChecked,
-
-                    CreatedAt = a.CreatedAt
-                })
-                .ToListAsync();
-
+            var articles = await query.AsNoTracking().OrderByDescending(a => a.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).Select(a => new ArticleListDto
+            {
+                Id = a.Id, Title = a.Title, Slug = a.Slug, FeaturedImageThumb = a.FeaturedImageThumb,
+                CategoryId = a.CategoryId, CategoryName = a.Category != null ? a.Category.Name : null, CategorySlug = a.Category != null ? a.Category.Slug : null,
+                AuthorId = a.AuthorId, AuthorName = a.Author != null && a.Author.User != null ? a.Author.User.FullName : null,
+                ReporterId = a.ReporterId, ReporterName = a.Reporter != null ? a.Reporter.Name : null,
+                IsPublished = a.IsPublished, PublishedAt = a.PublishedAt, WorkflowStatus = a.WorkflowStatus,
+                ReviewerName = a.ReviewerUser != null ? a.ReviewerUser.FullName : null, FactCheckerName = a.FactCheckerUser != null ? a.FactCheckerUser.FullName : null,
+                IsEditorsPick = a.IsEditorsPick, EditorialPriority = a.EditorialPriority, IsFactChecked = a.IsFactChecked, CreatedAt = a.CreatedAt
+            }).ToListAsync();
             return (articles, totalCount);
         }
     }
