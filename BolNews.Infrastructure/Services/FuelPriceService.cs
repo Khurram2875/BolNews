@@ -3,21 +3,16 @@ using BolNews.Application.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace BolNews.Infrastructure.Services
 {
-
     public class FuelPriceService : IFuelPriceService
     {
+        private const string CacheKey = "fuel-price-settings";
         private readonly IWebHostEnvironment _environment;
         private readonly ILogger<FuelPriceService> _logger;
+        private readonly IMemoryCache _cache;
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
@@ -27,10 +22,12 @@ namespace BolNews.Infrastructure.Services
 
         public FuelPriceService(
             IWebHostEnvironment environment,
-            ILogger<FuelPriceService> logger)
+            ILogger<FuelPriceService> logger,
+            IMemoryCache cache)
         {
             _environment = environment;
             _logger = logger;
+            _cache = cache;
         }
 
         private string GetFilePath()
@@ -44,6 +41,12 @@ namespace BolNews.Infrastructure.Services
         public async Task<FuelPriceSettingsDto> GetFuelPricesAsync(
             CancellationToken cancellationToken = default)
         {
+            if (_cache.TryGetValue(CacheKey, out FuelPriceSettingsDto? cached)
+                && cached is not null)
+            {
+                return cached;
+            }
+
             var filePath = GetFilePath();
 
             if (!File.Exists(filePath))
@@ -60,19 +63,18 @@ namespace BolNews.Infrastructure.Services
 
             try
             {
-                await using var stream =
-                    File.OpenRead(filePath);
+                await using var stream = File.OpenRead(filePath);
 
-                var settings =
-                    await JsonSerializer.DeserializeAsync<FuelPriceSettingsDto>(
-                        stream,
-                        JsonOptions,
-                        cancellationToken);
+                var settings = await JsonSerializer.DeserializeAsync<FuelPriceSettingsDto>(
+                    stream,
+                    JsonOptions,
+                    cancellationToken) ?? new FuelPriceSettingsDto
+                    {
+                        EffectiveDate = DateTime.Today
+                    };
 
-                return settings ?? new FuelPriceSettingsDto
-                {
-                    EffectiveDate = DateTime.Today
-                };
+                _cache.Set(CacheKey, settings);
+                return settings;
             }
             catch (Exception ex)
             {
@@ -98,8 +100,7 @@ namespace BolNews.Infrastructure.Services
 
             var tempFilePath = filePath + ".tmp";
 
-            await using (var stream =
-                File.Create(tempFilePath))
+            await using (var stream = File.Create(tempFilePath))
             {
                 await JsonSerializer.SerializeAsync(
                     stream,
@@ -112,6 +113,8 @@ namespace BolNews.Infrastructure.Services
                 tempFilePath,
                 filePath,
                 overwrite: true);
+
+            _cache.Set(CacheKey, settings);
         }
     }
 }
