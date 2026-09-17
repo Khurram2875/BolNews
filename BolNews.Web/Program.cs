@@ -134,6 +134,7 @@ app.UseAuthorization();
 app.UseMiddleware<SecurityHeadersMiddleware>();
 
 app.MapHealthChecks("/health");
+app.MapAppRoutes();
 app.MapControllers();
 
 app.Run();
