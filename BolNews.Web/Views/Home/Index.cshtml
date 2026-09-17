@@ -3,6 +3,10 @@
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment WebHostEnvironment
 @model HomePageVM
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/home.css" asp-append-version="true" />
+}
+
 @{
     // ViewData["Title"] = "Home";
 
