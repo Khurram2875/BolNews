@@ -6,214 +6,80 @@
 @{
     // ViewData["Title"] = "Home";
 
-    // ============================================================
-    // SECONDARY STORIES
-    // ============================================================
+    var secondaryStories = Model.SecondaryStories ?? new List<PublicArticleVM>();
+    var pinnedSecondaryCount = Math.Min(Model.PinnedSecondaryStoryCount, secondaryStories.Count);
+    var pinnedSecondaryStories = secondaryStories.Take(pinnedSecondaryCount).ToList();
+    var unpinnedSecondaryStories = secondaryStories.Skip(pinnedSecondaryCount).ToList();
 
-    var secondaryStories =
-        Model.SecondaryStories
-        ?? new List<PublicArticleVM>();
+    var topStorySlotCount = Math.Min(2, pinnedSecondaryStories.Count);
+    var remainingTopStories = pinnedSecondaryStories.Take(2)
+        .Concat(unpinnedSecondaryStories.Take(2 - topStorySlotCount))
+        .ToList();
 
-    var pinnedSecondaryCount =
-        Math.Min(
-            Model.PinnedSecondaryStoryCount,
-            secondaryStories.Count);
+    var pinnedLatest = Model.PinnedLatestStories ?? new List<PublicArticleVM>();
+    var latestSlotsRemaining = Math.Max(0, 14 - pinnedLatest.Count);
+    var organicLatestPool = pinnedSecondaryStories.Skip(2)
+        .Concat(unpinnedSecondaryStories.Skip(2 - topStorySlotCount));
+    var latestStories = pinnedLatest.Concat(organicLatestPool.Take(latestSlotsRemaining)).ToList();
 
-    var pinnedSecondaryStories =
-        secondaryStories
-            .Take(pinnedSecondaryCount)
-            .ToList();
+    var pinnedFeatured = Model.PinnedFeaturedStories ?? new List<PublicArticleVM>();
+    var featuredSlotsRemaining = Math.Max(0, 10 - pinnedFeatured.Count);
 
-    var unpinnedSecondaryStories =
-        secondaryStories
-            .Skip(pinnedSecondaryCount)
-            .ToList();
-
-
-    // ============================================================
-    // TOP STORY SUPPORTING STORIES
-    // ============================================================
-
-    var topStorySlotCount =
-        Math.Min(
-            2,
-            pinnedSecondaryStories.Count);
-
-    var remainingTopStories =
-        pinnedSecondaryStories
-            .Take(2)
-            .Concat(
-                unpinnedSecondaryStories
-                    .Take(2 - topStorySlotCount))
-            .ToList();
-
-
-    // ============================================================
-    // LATEST STORIES
-    // ------------------------------------------------------------
-    // Editorial pins first, followed by the organic Secondary pool.
-    // ============================================================
-
-    var pinnedLatest =
-        Model.PinnedLatestStories
-        ?? new List<PublicArticleVM>();
-
-    var latestSlotsRemaining =
-        Math.Max(
-            0,
-            14 - pinnedLatest.Count);
-
-    var organicLatestPool =
-        pinnedSecondaryStories
-            .Skip(2)
-            .Concat(
-                unpinnedSecondaryStories
-                    .Skip(2 - topStorySlotCount));
-
-    var latestStories =
-        pinnedLatest
-            .Concat(
-                organicLatestPool
-                    .Take(latestSlotsRemaining))
-            .ToList();
-
-
-    // ============================================================
-    // FEATURED STORIES
-    // ------------------------------------------------------------
-    // Category selection is now handled completely by
-    // HomeController through Editorial Control configuration.
-    //
-    // Razor is responsible only for:
-    //   1. Respecting pinned Featured stories.
-    //   2. Avoiding duplicate articles.
-    //   3. Filling the remaining Featured slots.
-    //
-    // There is NO hardcoded category priority here.
-    // ============================================================
-
-    var pinnedFeatured =
-        Model.PinnedFeaturedStories
-        ?? new List<PublicArticleVM>();
-
-    var featuredSlotsRemaining =
-        Math.Max(
-            0,
-            10 - pinnedFeatured.Count);
-
-
-    // Track articles already displayed in other homepage
-    // editorial areas so the same article isn't repeated.
-    var usedIds =
-        new HashSet<int>();
-
+    var usedIds = new HashSet<int>();
     if (Model.TopStory != null)
     {
         usedIds.Add(Model.TopStory.Id);
     }
-
     foreach (var story in remainingTopStories)
     {
         usedIds.Add(story.Id);
     }
-
     foreach (var story in latestStories)
     {
         usedIds.Add(story.Id);
     }
-
     foreach (var story in pinnedFeatured)
     {
         usedIds.Add(story.Id);
     }
 
-
-    // HomeController has already selected the Featured candidates
-    // using Editorial Control category configuration.
-    //
-    // Razor only removes duplicates and fills the remaining slots.
-    var organicFeatured =
-        (Model.FeaturedStories
-            ?? new List<PublicArticleVM>())
+    var organicFeatured = (Model.FeaturedStories ?? new List<PublicArticleVM>())
         .Where(a => !usedIds.Contains(a.Id))
         .Take(featuredSlotsRemaining)
         .ToList();
 
+    var featuredStories = pinnedFeatured.Concat(organicFeatured).ToList();
 
-    var featuredStories =
-        pinnedFeatured
-            .Concat(organicFeatured)
-            .ToList();
-
-
-    // ============================================================
-    // LEGACY SECONDARY CARD COLLECTION
-    // ------------------------------------------------------------
-    // Kept because the old carousel markup below still references it.
-    // The markup itself is currently commented out.
-    // ============================================================
-
-    var secondaryCards =
-        secondaryStories
-            .Skip(10)
-            .Take(12)
-            .ToList();
-
-
-    // ============================================================
-    // SHOWS IMAGE CAROUSEL
-    // ============================================================
+    var secondaryCards = secondaryStories.Skip(10).Take(12).ToList();
 
     string relativePath = "/images/shows/";
-
-    string folderPath =
-        System.IO.Path.Combine(
-            WebHostEnvironment.WebRootPath,
-            "images",
-            "shows");
-
-    List<string> imagePaths =
-        new List<string>();
+    string folderPath = System.IO.Path.Combine(WebHostEnvironment.WebRootPath, "images", "shows");
+    List<string> imagePaths = new List<string>();
 
     if (Directory.Exists(folderPath))
     {
-        var files =
-            Directory.GetFiles(
-                folderPath,
-                "*.*")
-            .Where(s =>
-                s.EndsWith(
-                    ".webp",
-                    StringComparison.OrdinalIgnoreCase)
-                ||
-                s.EndsWith(
-                    ".jpg",
-                    StringComparison.OrdinalIgnoreCase)
-                ||
-                s.EndsWith(
-                    ".png",
-                    StringComparison.OrdinalIgnoreCase))
+        var files = Directory.GetFiles(folderPath, "*.*")
+            .Where(s => s.EndsWith(".webp", StringComparison.OrdinalIgnoreCase)
+                || s.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+                || s.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         foreach (var filePath in files)
         {
-            string fileName =
-                System.IO.Path.GetFileName(filePath);
-
-            imagePaths.Add(
-                relativePath + fileName);
+            string fileName = System.IO.Path.GetFileName(filePath);
+            imagePaths.Add(relativePath + fileName);
         }
     }
 }
+
 <h1 class="visually-hidden">Bol News – Pakistan Breaking News, Politics, Business, Sports & Entertainment</h1>
-<div style="padding-top:20px" class="bn-container">
+<div class="bn-container bn-container--home">
     @if (Model.TopStory != null)
     {
         <section class="bn-home-hero bn-home-hero--three" aria-label="Top stories">
             @if (latestStories.Any())
             {
                 <aside class="bn-story-rail" aria-label="Latest">
-                    
                     <h2>Latest</h2>
                     <div class="bn-latest-list">
                         @foreach (var item in latestStories)
@@ -223,7 +89,10 @@
                                data-article-id="@item.Id">
                                 <img src="@(item.FeaturedImageThumb ?? item.FeaturedImageMedium ?? "/images/placeholder.png")"
                                      alt="@(item.FeaturedImageAltText ?? item.Title)"
-                                     loading="lazy" />
+                                     width="112"
+                                     height="84"
+                                     loading="lazy"
+                                     decoding="async" />
                                 <span>
                                     <strong>@item.Title</strong>
                                     <small>@item.TimeAgo</small>
@@ -231,7 +100,6 @@
                             </a>
                         }
                     </div>
-                    
                 </aside>
             }
 
@@ -241,9 +109,15 @@
                    class="bn-card bn-card--featured track-click"
                    data-article-id="@Model.TopStory.Id">
                     <div class="bn-card__image-wrap">
-                        <img src="@(Model.TopStory.FeaturedImageLarge ?? Model.TopStory.FeaturedImageMedium ?? Model.TopStory.FeaturedImageThumb ?? "/images/placeholder.png")"
+                        <img src="@(Model.TopStory.FeaturedImageXl ?? Model.TopStory.FeaturedImageLarge ?? Model.TopStory.FeaturedImageMedium ?? Model.TopStory.FeaturedImageThumb ?? "/images/placeholder.png")"
+                             srcset="@(Model.TopStory.FeaturedImageMedium != null ? Model.TopStory.FeaturedImageMedium + " 400w, " : "")@(Model.TopStory.FeaturedImageLarge != null ? Model.TopStory.FeaturedImageLarge + " 800w, " : "")@(Model.TopStory.FeaturedImageXl != null ? Model.TopStory.FeaturedImageXl + " 1200w" : "")"
+                             sizes="(max-width: 767px) 100vw, (max-width: 1199px) 55vw, 800px"
                              alt="@(Model.TopStory.FeaturedImageAltText ?? Model.TopStory.Title)"
-                             loading="eager" />
+                             width="1200"
+                             height="675"
+                             loading="eager"
+                             fetchpriority="high"
+                             decoding="async" />
                     </div>
                     <div class="bn-card__body">
                         <h3>@Model.TopStory.Title</h3>
@@ -253,8 +127,7 @@
                         }
                     </div>
                 </a>
-                <hr  />
-                <!-- Secondary Stories Grid -->
+                <hr />
                 @if (remainingTopStories != null && remainingTopStories.Any())
                 {
                     <div class="bn-remainingtop-grid">
@@ -265,8 +138,13 @@
                                data-article-id="@story.Id">
                                 <div class="bn-card__image-wrap">
                                     <img src="@(story.FeaturedImageMedium ?? story.FeaturedImageThumb ?? "/images/placeholder.png")"
+                                         srcset="@(story.FeaturedImageMedium != null ? story.FeaturedImageMedium + " 400w, " : "")@(story.FeaturedImageLarge != null ? story.FeaturedImageLarge + " 800w" : "")"
+                                         sizes="(max-width: 767px) 100vw, 450px"
                                          alt="@(story.FeaturedImageAltText ?? story.Title)"
-                                         loading="lazy" />
+                                         width="450"
+                                         height="253"
+                                         loading="lazy"
+                                         decoding="async" />
                                 </div>
                                 <div class="bn-card__body">
                                     <h4>@story.Title</h4>
@@ -279,7 +157,7 @@
                         }
                     </div>
                 }
-               
+
                 @await Component.InvokeAsync("SmartTrending", new { count = 6 })
             </article>
 
@@ -294,7 +172,6 @@
                     </div>
                     <h2>Featured</h2>
                     <div class="bn-latest-list">
-
                         @foreach (var item in featuredStories)
                         {
                             <a href="/@item.CategorySlug/@item.Slug"
@@ -302,7 +179,10 @@
                                data-article-id="@item.Id">
                                 <img src="@(item.FeaturedImageThumb ?? item.FeaturedImageMedium ?? "/images/placeholder.png")"
                                      alt="@(item.FeaturedImageAltText ?? item.Title)"
-                                     loading="lazy" />
+                                     width="112"
+                                     height="84"
+                                     loading="lazy"
+                                     decoding="async" />
                                 <span>
                                     <strong>@item.Title</strong>
                                     <small>@item.TimeAgo</small>
@@ -314,8 +194,6 @@
                     @if (imagePaths.Any())
                     {
                         <div id="folderImageCarousel" class="carousel slide" data-bs-ride="carousel">
-
-                            <!-- Indicators (Dots) -->
                             <div class="carousel-indicators">
                                 @for (int i = 0; i < imagePaths.Count; i++)
                                 {
@@ -328,7 +206,6 @@
                                 }
                             </div>
 
-                            <!-- Dynamic Carousel Slides -->
                             <div class="carousel-inner rounded">
                                 @for (int i = 0; i < imagePaths.Count; i++)
                                 {
@@ -336,13 +213,14 @@
                                         <img loading="lazy"
                                              decoding="async"
                                              src="@imagePaths[i]"
+                                             width="280"
+                                             height="280"
                                              class="d-block w-100 bn-carousel-img"
                                              alt="News image @(i + 1)" />
                                     </div>
                                 }
                             </div>
 
-                            <!-- Controls -->
                             <button class="carousel-control-prev" type="button" data-bs-target="#folderImageCarousel" data-bs-slide="prev">
                                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                                 <span class="visually-hidden">Previous</span>
@@ -351,24 +229,20 @@
                                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
                                 <span class="visually-hidden">Next</span>
                             </button>
-
                         </div>
                     }
                     <div class="bn-ad-slot mt-4">
                         <div id="Bolnews_Sidebar_Bottom_BTF" data-ad-slot="sidebar-bottom-btf"></div>
                     </div>
-
                 </aside>
             }
         </section>
     }
 </div>
-    
-<div class="bn-ad-code-block bn-ad-slot-incontent"
-     aria-label="Advertisement">
+
+<div class="bn-ad-code-block bn-ad-slot-incontent" aria-label="Advertisement">
     <div id="Bolnews_Incontent_Lazy"></div>
 </div>
-
 
 @if (Model.CategorySections.Count > 2)
 {
@@ -377,7 +251,6 @@
             @foreach (var cat in Model.CategorySections)
             {
                 <section class="bn-category-column" aria-labelledby="category-@cat.CategorySlug">
-
                     <header class="bn-category-heading">
                         <h2 id="category-@cat.CategorySlug">@cat.CategoryName</h2>
                         <a href="/category/@cat.CategorySlug">More</a>
@@ -393,7 +266,10 @@
                                      src="/images/placeholder.png"
                                      data-src="@item.FeaturedImageThumb"
                                      alt="@item.Title"
-                                     loading="lazy" />
+                                     width="118"
+                                     height="100"
+                                     loading="lazy"
+                                     decoding="async" />
                                 <span>
                                     <strong>@item.Title</strong>
                                     <small>@item.TimeAgo</small>
@@ -401,7 +277,6 @@
                             </a>
                         }
                     </div>
-
                 </section>
             }
         </div>
