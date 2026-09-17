@@ -4,10 +4,10 @@
 
     <div class="fuel-price-header">
         <div class="fuel-price-title">
-            UPDATED 
+            UPDATED
         </div>
         <div class="fuel-price-title1">
-           FUEL PRICE
+            FUEL PRICE
         </div>
 
         @if (Model.EffectiveDate != DateTime.MinValue)
@@ -19,97 +19,63 @@
     </div>
 
     <div class="fuel-price-item">
-
-        <div class="fuel-price-label">
-            PETROL
-        </div>
-
+        <div class="fuel-price-label">PETROL</div>
         <div class="fuel-price-line"></div>
 
         <div class="fuel-price-values">
-
             <div class="fuel-price-change">
-
-                @if (Model.DieselChange > 0)
+                @if (Model.PetrolChange > 0)
                 {
                     <span class="fuel-price-arrow fuel-price-arrow-up">▲</span>
-                    <span class="fuel-price-change-value">
-                        +@Model.PetrolChange.ToString("0.00")
-                    </span>
+                    <span class="fuel-price-change-value">+@Model.PetrolChange.ToString("0.00")</span>
                 }
                 else if (Model.PetrolChange < 0)
                 {
                     <span class="fuel-price-arrow fuel-price-arrow-down">▼</span>
-                    <span class="fuel-price-change-value">
-                        @Model.PetrolChange.ToString("0.00")
-                    </span>
+                    <span class="fuel-price-change-value">@Model.PetrolChange.ToString("0.00")</span>
                 }
                 else
                 {
-                    <span class="fuel-price-change-value">
-                        0.00
-                    </span>
+                    <span class="fuel-price-change-value">0.00</span>
                 }
 
-                <span class="fuel-price-currency">
-                    PKR
-                </span>
-
+                <span class="fuel-price-currency">PKR</span>
             </div>
 
             <div class="fuel-price-amount">
                 Rs. @Model.PetrolPrice.ToString("0.00")/ltr
             </div>
-
         </div>
-
     </div>
 
     <div class="fuel-price-item">
-
-        <div class="fuel-price-label">
-            DIESEL
-        </div>
-
+        <div class="fuel-price-label">DIESEL</div>
         <div class="fuel-price-line"></div>
 
         <div class="fuel-price-values">
-
             <div class="fuel-price-change">
-
                 @if (Model.DieselChange > 0)
                 {
                     <span class="fuel-price-arrow fuel-price-arrow-up">▲</span>
-                    <span class="fuel-price-change-value">
-                        +@Model.DieselChange.ToString("0.00")
-                    </span>
+                    <span class="fuel-price-change-value">+@Model.DieselChange.ToString("0.00")</span>
                 }
                 else if (Model.DieselChange < 0)
                 {
                     <span class="fuel-price-arrow fuel-price-arrow-down">▼</span>
-                    <span class="fuel-price-change-value">
-                        @Model.DieselChange.ToString("0.00")
-                    </span>
+                    <span class="fuel-price-change-value">@Model.DieselChange.ToString("0.00")</span>
                 }
                 else
                 {
-                    <span class="fuel-price-change-value">
-                        0.00
-                    </span>
+                    <span class="fuel-price-change-value">0.00</span>
                 }
 
-                <span class="fuel-price-currency">
-                    PKR
-                </span>
-
+                <span class="fuel-price-currency">PKR</span>
             </div>
 
             <div class="fuel-price-amount">
                 Rs. @Model.DieselPrice.ToString("0.00")/ltr
             </div>
-
         </div>
-
     </div>
 
 </div>
