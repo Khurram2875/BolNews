@@ -44,8 +44,11 @@ namespace BolNews.Application.Interfaces
         Task<List<Article>> GetTopArticlesAsync(int count = 10);
         Task<List<Article>> GetLowPerformingArticlesAsync();
         Task<List<(DateTime date, int count)>> GetArticlesPerDayAsync(int days = 7);
+        Task<List<(DateTime date, int count)>> GetArticlesPerDayAsync(DateTime fromDate, DateTime toDate);
         Task<List<CategoryPerformanceDto>> GetCategoryPerformanceAsync(int days = 7);
+        Task<List<CategoryPerformanceDto>> GetCategoryPerformanceAsync(DateTime fromDate, DateTime toDate);
         Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(int days = 7);
+        Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(DateTime fromDate, DateTime toDate);
         Task<bool> CanEditAsync(int articleId, string userId, IList<string> roles);
         Task<bool> CanDeleteAsync(int articleId, string userId, IList<string> roles);
         Task<List<Article>> GetByAuthorAsync(int authorId, int page = 1, int pageSize = 20);
