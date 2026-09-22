@@ -31,9 +31,22 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _articleScoringService = articleScoringService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(DateTime? fromDate = null, DateTime? toDate = null)
         {
-            var vm = new DashboardVM();
+            var today = DateTime.UtcNow.Date;
+            var selectedToDate = (toDate ?? today).Date;
+            var selectedFromDate = (fromDate ?? selectedToDate.AddDays(-6)).Date;
+
+            if (selectedFromDate > selectedToDate)
+            {
+                (selectedFromDate, selectedToDate) = (selectedToDate, selectedFromDate);
+            }
+
+            var vm = new DashboardVM
+            {
+                FromDate = selectedFromDate,
+                ToDate = selectedToDate
+            };
 
             // 🔢 Stats
             vm.TotalArticles = await _articleService.GetTotalArticlesAsync();
@@ -55,7 +68,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             vm.LowPerformingArticles = _mapper.Map<List<PublicArticleVM>>(low);
 
             // 📈 Articles per day
-            var stats = await _articleService.GetArticlesPerDayAsync(7);
+            var stats = await _articleService.GetArticlesPerDayAsync(selectedFromDate, selectedToDate);
 
             vm.Dates = stats.Select(x => x.date.ToString("MMM dd")).ToList();
             vm.ArticlesPerDay = stats.Select(x => x.count).ToList();
@@ -64,7 +77,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             vm.TopArticleTitles = vm.TopArticles.Select(a => a.Title).Take(5).ToList();
             vm.TopArticleViews = top.Take(5).Select(a => a.ViewCount).ToList();
 
-            var categoryStats = await _articleService.GetCategoryPerformanceAsync(7);
+            var categoryStats = await _articleService.GetCategoryPerformanceAsync(selectedFromDate, selectedToDate);
 
             var lowCtrArticles = await _analyticsService.GetLowCTRArticlesAsync();
             ViewBag.LowCTRArticles = lowCtrArticles;
@@ -76,7 +89,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             vm.CategoryViews = categoryStats.Select(c => c.TotalViews).ToList();
             vm.CategoryAvgViews = categoryStats.Select(c => c.AvgViewsPerArticle).ToList();
 
-            var editorStats = await _articleService.GetEditorPerformanceAsync(7);
+            var editorStats = await _articleService.GetEditorPerformanceAsync(selectedFromDate, selectedToDate);
 
             vm.EditorPerformance = editorStats;
 
