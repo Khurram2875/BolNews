@@ -275,6 +275,27 @@ namespace BolNews.Persistence.Repositories
             => await _context.Articles.AsNoTracking().Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter)
                 .Where(a => a.IsDeleted == false && a.IsPublished == true).OrderByDescending(a => a.ViewCount).Take(count).ToListAsync();
 
+        public async Task<List<Article>> GetTopByViewCountAsync(DateTime fromDate, DateTime toDate, int count)
+        {
+            if (count <= 0)
+                return new List<Article>();
+
+            var endExclusive = toDate.Date.AddDays(1);
+
+            return await _context.Articles
+                .AsNoTracking()
+                .Include(a => a.Category)
+                .Include(a => a.Author)
+                .Include(a => a.Reporter)
+                .Where(a => a.IsDeleted == false &&
+                            a.IsPublished == true &&
+                            a.PublishedAt >= fromDate.Date &&
+                            a.PublishedAt < endExclusive)
+                .OrderByDescending(a => a.ViewCount)
+                .Take(count)
+                .ToListAsync();
+        }
+
         public async Task<List<Article>> GetLowPerformingAsync(DateTime since, int maxViews, int limit)
             => await _context.Articles.AsNoTracking().Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter)
                 .Where(a => a.PublishedAt >= since && a.ViewCount < maxViews).OrderByDescending(a => a.PublishedAt).Take(limit).ToListAsync();
