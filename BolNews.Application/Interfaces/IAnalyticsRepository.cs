@@ -14,7 +14,9 @@ namespace BolNews.Application.Interfaces
         Task<int> IncrementClickAsync(int articleId, DateTime date);
         Task<List<ArticleAnalytics>> GetByArticleIdAsync(int articleId);
         Task<List<ArticleAnalytics>> GetRecentWithArticlesAsync(DateTime since);
+        Task<List<ArticleAnalytics>> GetRecentWithArticlesAsync(DateTime fromDate, DateTime toDate);
         Task<List<int>> GetLowCtrArticleIdsAsync(int minImpressions, double maxCtrThreshold);
+        Task<List<int>> GetLowCtrArticleIdsAsync(DateTime fromDate, DateTime toDate, int minImpressions, double maxCtrThreshold);
         Task<List<Article>> GetArticlesByIdsAsync(List<int> ids);
         
     }
