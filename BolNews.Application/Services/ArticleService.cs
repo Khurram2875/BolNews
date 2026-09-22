@@ -609,6 +609,9 @@ namespace BolNews.Application.Services
         public async Task<int> GetTotalArticlesAsync() => await _repo.CountAsync();
         public async Task<int> GetTodayArticlesCountAsync() => await _repo.CountPublishedSinceAsync(DateTime.UtcNow.Date);
         public async Task<List<Article>> GetTopArticlesAsync(int n) => await _repo.GetTopByViewCountAsync(n);
+
+        public async Task<List<Article>> GetTopArticlesAsync(DateTime fromDate, DateTime toDate, int count = 10)
+            => await _repo.GetTopByViewCountAsync(fromDate.Date, toDate.Date, count);
         public async Task<List<Article>> GetLowPerformingArticlesAsync() => await _repo.GetLowPerformingAsync(DateTime.UtcNow.AddDays(-2), 50, 10);
         public async Task<List<(DateTime date, int count)>> GetArticlesPerDayAsync(int days = 7)
             => await GetArticlesPerDayAsync(DateTime.UtcNow.Date.AddDays(-(days - 1)), DateTime.UtcNow.Date);
