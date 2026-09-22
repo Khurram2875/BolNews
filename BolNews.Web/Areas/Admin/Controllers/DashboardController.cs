@@ -76,6 +76,11 @@ namespace BolNews.Web.Areas.Admin.Controllers
             // 🔥 Top articles chart
             vm.TopArticleTitles = vm.TopArticles.Select(a => a.Title).Take(5).ToList();
             vm.TopArticleViews = top.Take(5).Select(a => a.ViewCount).ToList();
+            vm.TopArticleUrls = top.Take(5)
+                .Select(a => a.Category != null && !string.IsNullOrWhiteSpace(a.Category.Slug) && !string.IsNullOrWhiteSpace(a.Slug)
+                    ? $"/news/{a.Category.Slug}/{a.Slug}"
+                    : string.Empty)
+                .ToList();
 
             var categoryStats = await _articleService.GetCategoryPerformanceAsync(selectedFromDate, selectedToDate);
 
