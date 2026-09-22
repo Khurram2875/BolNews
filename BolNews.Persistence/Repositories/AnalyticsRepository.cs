@@ -77,6 +77,19 @@ namespace BolNews.Persistence.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<ArticleAnalytics>> GetRecentWithArticlesAsync(
+            DateTime fromDate,
+            DateTime toDate)
+        {
+            var endExclusive = toDate.Date.AddDays(1);
+
+            return await _context.ArticleAnalytics
+                .AsNoTracking()
+                .Where(x => x.Date >= fromDate.Date && x.Date < endExclusive)
+                .Include(x => x.Article)
+                .ToListAsync();
+        }
+
         public async Task<List<int>> GetLowCtrArticleIdsAsync(
             int minImpressions,
             double maxCtrThreshold)
@@ -98,6 +111,32 @@ namespace BolNews.Persistence.Repositories
             return data
                 .Select(x => x.ArticleId)
                 .ToList();
+        }
+
+        public async Task<List<int>> GetLowCtrArticleIdsAsync(
+            DateTime fromDate,
+            DateTime toDate,
+            int minImpressions,
+            double maxCtrThreshold)
+        {
+            var endExclusive = toDate.Date.AddDays(1);
+
+            var data = await _context.ArticleAnalytics
+                .AsNoTracking()
+                .Where(a => a.Date >= fromDate.Date && a.Date < endExclusive)
+                .GroupBy(a => a.ArticleId)
+                .Select(g => new
+                {
+                    ArticleId = g.Key,
+                    Impressions = g.Sum(x => x.Impressions),
+                    Clicks = g.Sum(x => x.Clicks)
+                })
+                .Where(x =>
+                    x.Impressions > minImpressions &&
+                    (double)x.Clicks / x.Impressions < maxCtrThreshold)
+                .ToListAsync();
+
+            return data.Select(x => x.ArticleId).ToList();
         }
 
         public async Task<List<Article>> GetArticlesByIdsAsync(
