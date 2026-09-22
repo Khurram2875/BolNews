@@ -275,7 +275,8 @@
     });
 
     // 3. Top Articles (Horizontal Bar Chart)
-       const ctxTop = document.getElementById('topArticlesChart').getContext('2d');
+    const topArticleUrls = @Html.Raw(Json.Serialize(Model.TopArticleUrls));
+    const ctxTop = document.getElementById('topArticlesChart').getContext('2d');
     new Chart(ctxTop, {
         type: 'bar',
         data: {
@@ -300,6 +301,18 @@
             },
             plugins: {
                 legend: { display: false }
+            },
+            onClick: function (event, elements) {
+                if (!elements.length) {
+                    return;
+                }
+
+                const articleIndex = elements[0].index;
+                const articleUrl = topArticleUrls[articleIndex];
+
+                if (articleUrl) {
+                    window.open(articleUrl, '_blank', 'noopener,noreferrer');
+                }
             },
             scales: {
                 x: {
