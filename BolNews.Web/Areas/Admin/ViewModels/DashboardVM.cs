@@ -20,6 +20,7 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         public List<int> ArticlesPerDay { get; set; }
         public List<string> TopArticleTitles { get; set; }
         public List<int> TopArticleViews { get; set; }
+        public List<string> TopArticleUrls { get; set; }
         public List<CategoryPerformanceDto> CategoryPerformance { get; set; }
         public List<string> CategoryNames { get; set; }
         public List<int> CategoryViews { get; set; }
