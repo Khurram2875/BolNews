@@ -247,6 +247,22 @@ namespace BolNews.Persistence.Repositories
                 .OrderByDescending(a => a.PublishedAt).Take(limit).ToListAsync();
         }
 
+        public async Task<List<Article>> GetPublishedBetweenAsync(DateTime fromDate, DateTime toDate, int limit)
+        {
+            if (limit <= 0) return new List<Article>();
+            var endExclusive = toDate.Date.AddDays(1);
+
+            return await _context.Articles.AsNoTracking()
+                .Where(a => a.PublishedAt >= fromDate.Date &&
+                            a.PublishedAt < endExclusive &&
+                            a.IsPublished &&
+                            !a.IsDeleted)
+                .Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter)
+                .OrderByDescending(a => a.PublishedAt)
+                .Take(limit)
+                .ToListAsync();
+        }
+
         public async Task<List<Article>> SearchAsync(string term, int page, int pageSize)
         {
             if (string.IsNullOrWhiteSpace(term)) return new List<Article>();
@@ -298,10 +314,38 @@ namespace BolNews.Persistence.Repositories
 
         public async Task<List<Article>> GetLowPerformingAsync(DateTime since, int maxViews, int limit)
             => await _context.Articles.AsNoTracking().Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter)
-                .Where(a => a.PublishedAt >= since && a.ViewCount < maxViews).OrderByDescending(a => a.PublishedAt).Take(limit).ToListAsync();
+                .Where(a => a.PublishedAt >= since && a.ViewCount < maxViews && a.IsPublished && !a.IsDeleted)
+                .OrderByDescending(a => a.PublishedAt).Take(limit).ToListAsync();
+
+        public async Task<List<Article>> GetLowPerformingAsync(DateTime fromDate, DateTime toDate, int maxViews, int limit)
+        {
+            if (limit <= 0) return new List<Article>();
+            var endExclusive = toDate.Date.AddDays(1);
+
+            return await _context.Articles.AsNoTracking()
+                .Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter)
+                .Where(a => a.PublishedAt >= fromDate.Date &&
+                            a.PublishedAt < endExclusive &&
+                            a.IsPublished &&
+                            !a.IsDeleted &&
+                            a.ViewCount < maxViews)
+                .OrderByDescending(a => a.PublishedAt)
+                .Take(limit)
+                .ToListAsync();
+        }
 
         public async Task<int> CountAsync() => await _context.Articles.CountAsync(a => !a.IsDeleted);
         public async Task<int> CountPublishedSinceAsync(DateTime since) => await _context.Articles.CountAsync(a => a.PublishedAt >= since && !a.IsDeleted);
+
+        public async Task<int> CountPublishedBetweenAsync(DateTime fromDate, DateTime toDate)
+        {
+            var endExclusive = toDate.Date.AddDays(1);
+            return await _context.Articles.CountAsync(a =>
+                a.PublishedAt >= fromDate.Date &&
+                a.PublishedAt < endExclusive &&
+                a.IsPublished &&
+                !a.IsDeleted);
+        }
 
         public async Task<List<(DateTime Date, int Count)>> CountPerDayAsync(DateTime fromDate, DateTime toDate)
         {
