@@ -14,7 +14,9 @@ namespace BolNews.Application.Interfaces
         Task TrackClickAsync(int articleId);
         Task<double> GetCTRAsync(int articleId);
         Task<List<Article>> GetLowCTRArticlesAsync();
+        Task<List<Article>> GetLowCTRArticlesAsync(DateTime fromDate, DateTime toDate);
         Task<DashboardDto> GetDashboardAsync();
+        Task<DashboardDto> GetDashboardAsync(DateTime fromDate, DateTime toDate);
         Task<int> GetTotalImpressionsAsync(int articleId);
         Task<int> GetTotalClicksAsync(int articleId);
     }
