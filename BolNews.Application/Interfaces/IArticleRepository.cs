@@ -39,6 +39,7 @@ namespace BolNews.Application.Interfaces
         Task<List<Article>> GetLowPerformingAsync(DateTime since, int maxViews, int limit);
         Task<List<Article>> GetLowPerformingAsync(DateTime fromDate, DateTime toDate, int maxViews, int limit);
         Task<int> CountAsync();
+        Task<int> CountPublishedAsync();
         Task<int> CountPublishedSinceAsync(DateTime since);
         Task<int> CountPublishedBetweenAsync(DateTime fromDate, DateTime toDate);
         Task<List<(DateTime Date, int Count)>> CountPerDayAsync(DateTime fromDate, DateTime toDate);
