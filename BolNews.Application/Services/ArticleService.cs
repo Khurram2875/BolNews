@@ -610,9 +610,23 @@ namespace BolNews.Application.Services
         public async Task<int> GetTodayArticlesCountAsync() => await _repo.CountPublishedSinceAsync(DateTime.UtcNow.Date);
         public async Task<List<Article>> GetTopArticlesAsync(int n) => await _repo.GetTopByViewCountAsync(n);
         public async Task<List<Article>> GetLowPerformingArticlesAsync() => await _repo.GetLowPerformingAsync(DateTime.UtcNow.AddDays(-2), 50, 10);
-        public async Task<List<(DateTime date, int count)>> GetArticlesPerDayAsync(int days = 7) => await _repo.CountPerDayAsync(DateTime.UtcNow.Date.AddDays(-days));
-        public async Task<List<CategoryPerformanceDto>> GetCategoryPerformanceAsync(int days = 7) => await _repo.GetCategoryPerformanceAsync(DateTime.UtcNow.AddDays(-days));
-        public async Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(int days = 7) => await _repo.GetEditorPerformanceAsync(DateTime.UtcNow.AddDays(-days));
+        public async Task<List<(DateTime date, int count)>> GetArticlesPerDayAsync(int days = 7)
+            => await GetArticlesPerDayAsync(DateTime.UtcNow.Date.AddDays(-(days - 1)), DateTime.UtcNow.Date);
+
+        public async Task<List<(DateTime date, int count)>> GetArticlesPerDayAsync(DateTime fromDate, DateTime toDate)
+            => await _repo.CountPerDayAsync(fromDate.Date, toDate.Date);
+
+        public async Task<List<CategoryPerformanceDto>> GetCategoryPerformanceAsync(int days = 7)
+            => await GetCategoryPerformanceAsync(DateTime.UtcNow.Date.AddDays(-(days - 1)), DateTime.UtcNow.Date);
+
+        public async Task<List<CategoryPerformanceDto>> GetCategoryPerformanceAsync(DateTime fromDate, DateTime toDate)
+            => await _repo.GetCategoryPerformanceAsync(fromDate.Date, toDate.Date);
+
+        public async Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(int days = 7)
+            => await GetEditorPerformanceAsync(DateTime.UtcNow.Date.AddDays(-(days - 1)), DateTime.UtcNow.Date);
+
+        public async Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(DateTime fromDate, DateTime toDate)
+            => await _repo.GetEditorPerformanceAsync(fromDate.Date, toDate.Date);
 
         public async Task<bool> CanEditAsync(int articleId, string userId, IList<string> roles)
         {
