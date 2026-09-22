@@ -34,6 +34,7 @@ namespace BolNews.Application.Interfaces
         Task<List<Article>> SearchAsync(string term, int page, int pageSize);
         Task<List<Article>> GetTrendingCandidatesAsync(DateTime fromDate, int candidateLimit);
         Task<List<Article>> GetTopByViewCountAsync(int count);
+        Task<List<Article>> GetTopByViewCountAsync(DateTime fromDate, DateTime toDate, int count);
         Task<List<Article>> GetLowPerformingAsync(DateTime since, int maxViews, int limit);
         Task<int> CountAsync();
         Task<int> CountPublishedSinceAsync(DateTime since);
