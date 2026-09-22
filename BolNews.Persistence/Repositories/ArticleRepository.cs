@@ -282,22 +282,65 @@ namespace BolNews.Persistence.Repositories
         public async Task<int> CountAsync() => await _context.Articles.CountAsync(a => !a.IsDeleted);
         public async Task<int> CountPublishedSinceAsync(DateTime since) => await _context.Articles.CountAsync(a => a.PublishedAt >= since && !a.IsDeleted);
 
-        public async Task<List<(DateTime Date, int Count)>> CountPerDayAsync(DateTime fromDate)
+        public async Task<List<(DateTime Date, int Count)>> CountPerDayAsync(DateTime fromDate, DateTime toDate)
         {
-            var data = await _context.Articles.AsNoTracking().Where(a => a.PublishedAt >= fromDate && !a.IsDeleted)
-                .GroupBy(a => a.PublishedAt!.Value.Date).Select(g => new { Date = g.Key, Count = g.Count() }).OrderBy(x => x.Date).ToListAsync();
+            var endExclusive = toDate.Date.AddDays(1);
+
+            var data = await _context.Articles.AsNoTracking()
+                .Where(a => a.PublishedAt >= fromDate.Date &&
+                            a.PublishedAt < endExclusive &&
+                            !a.IsDeleted)
+                .GroupBy(a => a.PublishedAt!.Value.Date)
+                .Select(g => new { Date = g.Key, Count = g.Count() })
+                .OrderBy(x => x.Date)
+                .ToListAsync();
+
             return data.Select(x => (x.Date, x.Count)).ToList();
         }
 
-        public async Task<List<CategoryPerformanceDto>> GetCategoryPerformanceAsync(DateTime fromDate)
-            => await _context.Articles.Where(a => a.PublishedAt >= fromDate && a.IsDeleted == false && a.IsPublished == true)
-                .Include(a => a.Category).GroupBy(a => a.Category.Name).Select(g => new CategoryPerformanceDto
-                { CategoryName = g.Key, ArticleCount = g.Count(), TotalViews = g.Sum(a => a.ViewCount), AvgViewsPerArticle = g.Average(a => a.ViewCount) }).OrderByDescending(x => x.TotalViews).ToListAsync();
+        public async Task<List<CategoryPerformanceDto>> GetCategoryPerformanceAsync(DateTime fromDate, DateTime toDate)
+        {
+            var endExclusive = toDate.Date.AddDays(1);
 
-        public async Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(DateTime fromDate)
-            => await _context.Articles.AsNoTracking().Where(a => a.PublishedAt >= fromDate && a.IsDeleted == false && a.IsPublished == true)
-                .Include(a => a.Author).GroupBy(a => a.Author.Name).Select(g => new EditorPerformanceDto
-                { AuthorName = g.Key, ArticleCount = g.Count(), TotalViews = g.Sum(a => a.ViewCount), AvgViewsPerArticle = g.Average(a => a.ViewCount) }).OrderByDescending(x => x.TotalViews).ToListAsync();
+            return await _context.Articles
+                .AsNoTracking()
+                .Where(a => a.PublishedAt >= fromDate.Date &&
+                            a.PublishedAt < endExclusive &&
+                            a.IsDeleted == false &&
+                            a.IsPublished == true)
+                .GroupBy(a => a.Category.Name)
+                .Select(g => new CategoryPerformanceDto
+                {
+                    CategoryName = g.Key,
+                    ArticleCount = g.Count(),
+                    TotalViews = g.Sum(a => a.ViewCount),
+                    AvgViewsPerArticle = g.Average(a => a.ViewCount)
+                })
+                .OrderByDescending(x => x.TotalViews)
+                .ToListAsync();
+        }
+
+        public async Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(DateTime fromDate, DateTime toDate)
+        {
+            var endExclusive = toDate.Date.AddDays(1);
+
+            return await _context.Articles
+                .AsNoTracking()
+                .Where(a => a.PublishedAt >= fromDate.Date &&
+                            a.PublishedAt < endExclusive &&
+                            a.IsDeleted == false &&
+                            a.IsPublished == true)
+                .GroupBy(a => a.Author.Name)
+                .Select(g => new EditorPerformanceDto
+                {
+                    AuthorName = g.Key,
+                    ArticleCount = g.Count(),
+                    TotalViews = g.Sum(a => a.ViewCount),
+                    AvgViewsPerArticle = g.Average(a => a.ViewCount)
+                })
+                .OrderByDescending(x => x.TotalViews)
+                .ToListAsync();
+        }
 
         public async Task IncrementViewCountAsync(int articleId)
             => await _context.Articles.Where(a => a.Id == articleId).ExecuteUpdateAsync(s => s.SetProperty(a => a.ViewCount, a => a.ViewCount + 1));
