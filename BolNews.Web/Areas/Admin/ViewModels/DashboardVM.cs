@@ -8,6 +8,7 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         public DateTime FromDate { get; set; }
         public DateTime ToDate { get; set; }
         public int TotalArticles { get; set; }
+        public int TotalPublishedArticles { get; set; }
         public int ArticlesToday { get; set; }
         public List<PublicArticleVM> TopArticles { get; set; }
         public List<PublicArticleVM> RecentArticles { get; set; }
