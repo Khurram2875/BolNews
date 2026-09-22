@@ -614,6 +614,9 @@ namespace BolNews.Application.Services
 
         public async Task<int> GetTotalArticlesAsync() => await _repo.CountAsync();
 
+        public async Task<int> GetTotalPublishedArticlesAsync()
+            => await _repo.CountPublishedAsync();
+
         public async Task<int> GetTotalArticlesAsync(DateTime fromDate, DateTime toDate)
             => await _repo.CountPublishedBetweenAsync(fromDate.Date, toDate.Date);
 
