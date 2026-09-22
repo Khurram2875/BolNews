@@ -4,25 +4,28 @@
 @model IEnumerable<BolNews.Web.Areas.Admin.ViewModels.ArticleVM>
 
 @{
-	ViewData["Title"] = "Articles";
-	Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
-	var canManageHomepagePlacement = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Editor) || User.IsInRole(Roles.SubEditor);
-	var canViewRevisionHistory = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Editor) || User.IsInRole(Roles.SubEditor);
-	int? pinnedTopStoryArticleId = ViewBag.PinnedTopStoryArticleId as int?;
-	var secondaryPlacementByArticleId =
-		ViewBag.SecondaryPlacementByArticleId as Dictionary<int, int> ?? new Dictionary<int, int>();
-	var returnUrl = Context.Request.Path + Context.Request.QueryString;
-	var latestPlacementByArticleId =
-	ViewBag.LatestPlacementByArticleId as Dictionary<int, int> ?? new Dictionary<int, int>();
-	var featuredPlacementByArticleId =
-		ViewBag.FeaturedPlacementByArticleId as Dictionary<int, int> ?? new Dictionary<int, int>();
-	var latestPlacementLimitReached = latestPlacementByArticleId.Count >= EditorialPlacementKeys.HomepageLatestStoryLimit;
-	var featuredPlacementLimitReached = featuredPlacementByArticleId.Count >= EditorialPlacementKeys.HomepageFeaturedStoryLimit;
+    ViewData["Title"] = "Articles";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var canManageHomepagePlacement = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Editor) || User.IsInRole(Roles.SubEditor);
+    var canViewRevisionHistory = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Editor) || User.IsInRole(Roles.SubEditor);
+    int? pinnedTopStoryArticleId = ViewBag.PinnedTopStoryArticleId as int?;
+    var secondaryPlacementByArticleId =
+        ViewBag.SecondaryPlacementByArticleId as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+    var latestPlacementByArticleId =
+    ViewBag.LatestPlacementByArticleId as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var featuredPlacementByArticleId =
+        ViewBag.FeaturedPlacementByArticleId as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var latestPlacementLimitReached = latestPlacementByArticleId.Count >= EditorialPlacementKeys.HomepageLatestStoryLimit;
+    var featuredPlacementLimitReached = featuredPlacementByArticleId.Count >= EditorialPlacementKeys.HomepageFeaturedStoryLimit;
 
     var routeValues = new Dictionary<string, object?>
     {
         ["search"] = ViewBag.Search,
         ["authorId"] = ViewBag.AuthorId,
+        ["categoryId"]=ViewBag.CategoryId,
+        ["publishedDate"] = ViewBag.PublishedDate,
+        ["toDate"]=ViewBag.ToDate,
         ["showDeleted"] = ViewBag.ShowingDeleted
     };
 
@@ -33,85 +36,85 @@
 <h2 class="mb-4">Articles</h2>
 @if (TempData["Error"] != null)
 {
-	<div class="alert alert-danger alert-dismissible fade show">
-		@TempData["Error"]
-		<button type="button"
-				class="btn-close"
-				data-bs-dismiss="alert">
-		</button>
-	</div>
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+    </div>
 }
 @if (TempData["Success"] != null)
 {
-	<div class="alert alert-success alert-dismissible fade show">
-		@TempData["Success"]
-		<button type="button"
-				class="btn-close"
-				data-bs-dismiss="alert">
-		</button>
-	</div>
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+    </div>
 }
 <div class="mb-3">
-	<a asp-action="Create" class="btn btn-primary">
-		<i class="bi bi-plus-circle"></i> Create New Article
-	</a>
-	@if (canManageHomepagePlacement)
-	{
-		<a asp-area="Admin" asp-controller="EditorialPlacements" asp-action="Index" class="btn btn-outline-dark ms-2">
-			<i class="bi bi-pin-angle"></i> Homepage Placement
-		</a>
-	}
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Create New Article
+    </a>
+    @if (canManageHomepagePlacement)
+    {
+        <a asp-area="Admin" asp-controller="EditorialPlacements" asp-action="Index" class="btn btn-outline-dark ms-2">
+            <i class="bi bi-pin-angle"></i> Homepage Placement
+        </a>
+    }
 </div>
 
-    <div class="card shadow-sm">
-	    <div class="card-header bg-primary text-white">
-		    <h5 class="mb-0">Article List</h5>
-		    @if (ViewBag.CanViewDeleted == true)
-			{
-				
-					@if (ViewBag.ShowingDeleted == true)
-					{
-					<a asp-action="Index" class="badge bg-warning text-dark" style="text-decoration:none">
-							<i class="bi bi-arrow-left"></i> Back to Active Articles
-						</a>
-					}
-					else
-					{
-						<a asp-action="Index" asp-route-showDeleted="true" class="badge bg-danger text-light" style="text-decoration:none">
-							<i class="bi bi-trash"></i> View Deleted Articles
-						</a>
-					}
-				
-			}
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Article List</h5>
+        @if (ViewBag.CanViewDeleted == true)
+        {
 
-			@if (ViewBag.ShowingDeleted == true)
-			{
-				<div class="alert alert-secondary">
-					Showing soft-deleted articles. These are hidden from the public site and the normal article list.
-				</div>
-			}
-	    </div>
-        <div class="card mb-3 shadow-sm">
-            <div class="card-body">
-                <form asp-action="Index" method="get">
-                    <input type="hidden"
+            @if (ViewBag.ShowingDeleted == true)
+            {
+                <a asp-action="Index" class="badge bg-warning text-dark" style="text-decoration:none">
+                    <i class="bi bi-arrow-left"></i> Back to Active Articles
+                </a>
+            }
+            else
+            {
+                <a asp-action="Index" asp-route-showDeleted="true" class="badge bg-danger text-light" style="text-decoration:none">
+                    <i class="bi bi-trash"></i> View Deleted Articles
+                </a>
+            }
+
+        }
+
+        @if (ViewBag.ShowingDeleted == true)
+        {
+            <div class="alert alert-secondary">
+                Showing soft-deleted articles. These are hidden from the public site and the normal article list.
+            </div>
+        }
+    </div>
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <form asp-action="Index" method="get">
+                <input type="hidden"
                        name="showDeleted"
                        value="@ViewBag.ShowingDeleted" />
 
-                    <div class="row g-3">
+                <div class="article_search_bar row g-3">
 
-                        <div class="col-md-5">
-                            <label class="form-label">Search by Title</label>
-                            <input type="text"
+                    <div class="col-md-4" >
+                        <label class="form-label">Search by Title</label>
+                        <input type="text"
                                name="search"
                                value="@ViewBag.Search"
                                class="form-control"
                                placeholder="Search article title..." />
-                        </div>
+                    </div>
 
-                        <div class="col-md-5">
-                            <label class="form-label">Author / SubEditor</label>
-                            <select name="authorId"
+                    <div class="col-md-2">
+                        <label class="form-label">Author / SubEditor</label>
+                        <select name="authorId"
                                 class="form-select">
 
                             <option value="">All Authors</option>
@@ -120,264 +123,265 @@
                             {
                                 <option value="@author.Id"
                                         selected="@(ViewBag.AuthorId != null &&
-                                                                                        (int)ViewBag.AuthorId == author.Id)">
+                                       (int)ViewBag.AuthorId == author.Id)">
                                 @author.Name
                             </option>
                                                         }
 
-                            </select>
-                        </div>
-
-                        <div class="col-md-2 d-flex align-items-end gap-2">
-                            <button type="submit"
-                                class="btn btn-primary">
-                                <i class="bi bi-search"></i>
-                                Search
-                            </button>
-
-                            <a asp-action="Index"
-                               class="btn btn-outline-secondary">
-                                Clear
-                            </a>
-                        </div>
-
+                        </select>
                     </div>
-                </form>
-            </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Category</label>
+                        <select name="categoryId"
+                                class="form-select">
+
+                            <option value="">All Categories</option>
+
+                            @foreach (var category in ViewBag.Categories)
+                            {
+                                <option value="@category.Id"
+                                        selected="@(ViewBag.CategoryId != null &&   
+                                            (int)ViewBag.CategoryId == category.Id)">
+                                @category.Name
+                            </option>
+                                                        }
+
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">From:</label>
+                        <input type="date"
+                               name="publishedDate"
+                               value="@ViewBag.PublishedDate"
+                               class="form-control" />
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">To:</label>
+                        <input type="date"
+                               name="toDate"
+                               value="@ViewBag.ToDate"
+                               class="form-control" />
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end gap-2">
+                        <button type="submit"
+                                class="btn btn-sm btn-primary">
+                            <i class="bi bi-search"></i>
+                            Search
+                        </button>
+
+                        <a asp-action="Index"
+                           class="btn btn-sm btn-outline-secondary" style="font-size:small">
+                            Clear Search
+                        </a>
+                    </div>
+
+                </div>
+            </form>
+        </div>
     </div>
 
-	<div class="card-body p-0">
-		@{
-			var rowContexts = Model.Select(article => new ArticleRowContext
-			{
-				Article = article,
-				PinnedTopStoryArticleId = pinnedTopStoryArticleId,
-				SecondaryPlacementByArticleId = secondaryPlacementByArticleId,
-				LatestPlacementByArticleId = latestPlacementByArticleId,
-				FeaturedPlacementByArticleId = featuredPlacementByArticleId,
-				ReturnUrl = returnUrl,
-				CanManageHomepagePlacement = canManageHomepagePlacement,
-				CanViewRevisionHistory = canViewRevisionHistory,
-				LatestPlacementLimitReached = latestPlacementLimitReached,
-				FeaturedPlacementLimitReached = featuredPlacementLimitReached
-			}).ToList();
-		}
+    <div class="card-body p-0">
+        @{
+            var rowContexts = Model.Select(article => new ArticleRowContext
+            {
+                Article = article,
+                PinnedTopStoryArticleId = pinnedTopStoryArticleId,
+                SecondaryPlacementByArticleId = secondaryPlacementByArticleId,
+                LatestPlacementByArticleId = latestPlacementByArticleId,
+                FeaturedPlacementByArticleId = featuredPlacementByArticleId,
+                ReturnUrl = returnUrl,
+                CanManageHomepagePlacement = canManageHomepagePlacement,
+                CanViewRevisionHistory = canViewRevisionHistory,
+                LatestPlacementLimitReached = latestPlacementLimitReached,
+                FeaturedPlacementLimitReached = featuredPlacementLimitReached
+            }).ToList();
+        }
 
-		<!-- Desktop / tablet table -->
-		<div class="table-responsive d-none d-md-block">
-			<table class="table-striped table-hover table-sm mb-0 table align-middle" style="font-size:smaller">
-				<thead class="table-dark">
-					<tr>
-						<th>Thumbnail</th>
-						<th>Title</th>
-						<th>Author</th>
-						<th>Category</th>
-						<th>Status</th>
-						<th class="text-center">Actions</th>
-					</tr>
-				</thead>
-				<tbody>
-					@foreach (var ctx in rowContexts)
-					{
-						var article = ctx.Article;
-						<tr>
-							<td>
-								@if (!string.IsNullOrEmpty(article.FeaturedImageThumb))
-								{
-									<img class="lazy-image"
-										 src="/images/placeholder.png"
-										 data-src="@($"{article.FeaturedImageThumb}?v=@{article.Id}")"
-										 style="width:50px; height:50px; object-fit:cover;" />
-								}
-								else
-								{
-									<img src="/images/default-news.png" style="width:50px; height:50px; object-fit:cover;" />
-								}
-							</td>
-							<td>@article.Title</td>
-							<td>@article.AuthorName</td>
-							<td>@article.CategoryName</td>
-							<td>@await Html.PartialAsync("_ArticleStatusBadges", ctx)</td>
-							<td class="text-center">@await Html.PartialAsync("_ArticleActions", ctx)</td>
-						</tr>
-					}
-				</tbody>
-			</table>
-	    </div>
-
-		<!-- Mobile card list -->
-		<div class="d-md-none">
-			@foreach (var ctx in rowContexts)
-			{
-			    var article = ctx.Article;
-				<div class="border-bottom p-3">
-					<div class="d-flex gap-3">
-						@if (!string.IsNullOrEmpty(article.FeaturedImageThumb))
-						{
-							<img class="lazy-image flex-shrink-0"
-							     src="/images/placeholder.png"
-								 data-src="@($"{article.FeaturedImageThumb}?v=@{article.Id}")"
-								 style="width:64px; height:64px; object-fit:cover; border-radius:4px;" />
-						}
-						else
-						{
-							<img src="/images/default-news.png" style="width:64px; height:64px; object-fit:cover; border-radius:4px;" />
-						}
-						<div class="flex-grow-1 min-width-0">
-							    <div class="fw-semibold">@article.Title</div>
-							    <div class="small text-muted">@article.AuthorName &middot; @article.CategoryName</div>
-							    <div class="mt-1">@await Html.PartialAsync("_ArticleStatusBadges", ctx)</div>
-						</div>
-					</div>
-					    <div class="mt-2">@await Html.PartialAsync("_ArticleActions", ctx)</div>
-				</div>
-		    }   
-	    </div>
-    </div>
-    
-    @if (ViewBag.TotalPages > 1)
-    {
-    <div class="card-footer d-flex align-items-center justify-content-between bg-light border-top py-3">
-
-        <div class="text-muted small">
-            Showing page <strong>@ViewBag.CurrentPage</strong>
-            of <strong>@ViewBag.TotalPages</strong>
+        <!-- Desktop / tablet table -->
+        <div class="table-responsive d-none d-md-block">
+            <table class="table-striped table-hover table-sm mb-0 table align-middle" style="font-size:smaller">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Thumbnail</th>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ctx in rowContexts)
+                    {
+                        var article = ctx.Article;
+                        <tr>
+                            <td>
+                                @if (!string.IsNullOrEmpty(article.FeaturedImageThumb))
+                                {
+                                    <img class="lazy-image"
+                                         src="/images/placeholder.png"
+                                         data-src="@($"{article.FeaturedImageThumb}?v=@{article.Id}")"
+                                         style="width:50px; height:50px; object-fit:cover;" />
+                                }
+                                else
+                                {
+                                    <img src="/images/default-news.png" style="width:50px; height:50px; object-fit:cover;" />
+                                }
+                            </td>
+                            <td>@article.Title</td>
+                            <td>@article.AuthorName</td>
+                            <td>@article.CategoryName</td>
+                            <td>@await Html.PartialAsync("_ArticleStatusBadges", ctx)</td>
+                            <td class="text-center">@await Html.PartialAsync("_ArticleActions", ctx)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
 
-        <nav aria-label="Article administration navigation">
-            <ul class="pagination pagination-sm mb-0">
-
-                <!-- Previous -->
-                <li class="page-item @(ViewBag.HasPreviousPage ? "" : "disabled")">
-
-                    @if (ViewBag.HasPreviousPage)
-                    {
-                        <a class="page-link"
-                           href="@Url.Action("Index", new 
-                           { page = ViewBag.CurrentPage - 1,
-                            search = ViewBag.Search,
-                            authorId = ViewBag.AuthorId,
-                            showDeleted = ViewBag.ShowingDeleted
-                           })">
-                            &laquo; Previous
-                        </a>
-                    }
-                    else
-                    {
-                        <span class="page-link">
-                            &laquo; Previous
-                        </span>
-                    }
-
-                </li>
-
-
-                @{
-                    int currentPage = ViewBag.CurrentPage;
-                    int totalPages = ViewBag.TotalPages;
-
-                    // Number of page buttons around the current page
-                    int startPage = Math.Max(1, currentPage - 2);
-                    int endPage = Math.Min(totalPages, currentPage + 2);
-                }
-
-
-                <!-- First page -->
-                @if (startPage > 1)
-                {
-                    <li class="page-item">
-                        <a class="page-link"
-                           href="@Url.Action("Index", new 
-                           {page = 1,
-                            search = ViewBag.Search,
-                            authorId = ViewBag.AuthorId,
-                            showDeleted = ViewBag.ShowingDeleted
-                           })">
-                            1
-                        </a>
-                    </li>
-
-                    @if (startPage > 2)
-                    {
-                        <li class="page-item disabled">
-                            <span class="page-link">...</span>
-                        </li>
-                    }
-                }
-
-
-                <!-- Current page window -->
-                @for (int i = startPage; i <= endPage; i++)
-                {
-                    <li class="page-item @(i == currentPage ? "active" : "")">
-
-                        <a class="page-link"
-                           href="@Url.Action("Index", new
-                           { page = i,
-                             search = ViewBag.Search,
-                             authorId = ViewBag.AuthorId,
-                             showDeleted = ViewBag.ShowingDeleted
-                           })">
-                            @i
-                        </a>
-
-                    </li>
-                }
-
-
-                <!-- Last page -->
-                @if (endPage < totalPages)
-                {
-                    @if (endPage < totalPages - 1)
-                    {
-                        <li class="page-item disabled">
-                            <span class="page-link">...</span>
-                        </li>
-                    }
-
-                    <li class="page-item">
-                        <a class="page-link"
-                           href="@Url.Action("Index", new 
-                           {page = totalPages,
-                            search = ViewBag.Search,
-                            authorId = ViewBag.AuthorId,
-                            showDeleted = ViewBag.ShowingDeleted
-                           })">
-                            @totalPages
-                        </a>
-                    </li>
-                }
-
-
-                <!-- Next -->
-                <li class="page-item @(ViewBag.HasNextPage ? "" : "disabled")">
-
-                    @if (ViewBag.HasNextPage)
-                    {
-                        <a class="page-link"
-                           href="@Url.Action("Index", new
-                           { page = currentPage + 1,
-                             search = ViewBag.Search,
-                             authorId = ViewBag.AuthorId,
-                             showDeleted = ViewBag.ShowingDeleted
-                           })">
-                            Next &raquo;
-                        </a>
-                    }
-                    else
-                    {
-                        <span class="page-link">
-                            Next &raquo;
-                        </span>
-                    }
-
-                </li>
-
-            </ul>
-        </nav>
-
+        <!-- Mobile card list -->
+        <div class="d-md-none">
+            @foreach (var ctx in rowContexts)
+            {
+                var article = ctx.Article;
+                <div class="border-bottom p-3">
+                    <div class="d-flex gap-3">
+                        @if (!string.IsNullOrEmpty(article.FeaturedImageThumb))
+                        {
+                            <img class="lazy-image flex-shrink-0"
+                                 src="/images/placeholder.png"
+                                 data-src="@($"{article.FeaturedImageThumb}?v=@{article.Id}")"
+                                 style="width:64px; height:64px; object-fit:cover; border-radius:4px;" />
+                        }
+                        else
+                        {
+                            <img src="/images/default-news.png" style="width:64px; height:64px; object-fit:cover; border-radius:4px;" />
+                        }
+                        <div class="flex-grow-1 min-width-0">
+                            <div class="fw-semibold">@article.Title</div>
+                            <div class="small text-muted">@article.AuthorName &middot; @article.CategoryName</div>
+                            <div class="mt-1">@await Html.PartialAsync("_ArticleStatusBadges", ctx)</div>
+                        </div>
+                    </div>
+                    <div class="mt-2">@await Html.PartialAsync("_ArticleActions", ctx)</div>
+                </div>
+            }
+        </div>
     </div>
-}
+
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="card-footer d-flex align-items-center justify-content-between bg-light border-top py-3">
+
+            <div class="text-muted small">
+                Showing page <strong>@ViewBag.CurrentPage</strong>
+                of <strong>@ViewBag.TotalPages</strong>
+            </div>
+
+            <nav aria-label="Article administration navigation">
+                <ul class="pagination pagination-sm mb-0">
+
+                    <!-- Previous -->
+                    <li class="page-item @(ViewBag.HasPreviousPage ? "" : "disabled")">
+
+                        @if (ViewBag.HasPreviousPage)
+                        {
+                            <a class="page-link" href="@Url.Action("Index", pageLink((int)ViewBag.CurrentPage - 1))">
+                                &laquo; Previous
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="page-link">
+                                &laquo; Previous
+                            </span>
+                        }
+
+                    </li>
+
+
+                    @{
+                        int currentPage = ViewBag.CurrentPage;
+                        int totalPages = ViewBag.TotalPages;
+
+                        // Number of page buttons around the current page
+                        int startPage = Math.Max(1, currentPage - 2);
+                        int endPage = Math.Min(totalPages, currentPage + 2);
+                    }
+
+
+                    <!-- First page -->
+                    @if (startPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", pageLink(1))">
+                                1
+                            </a>
+                        </li>
+
+                        @if (startPage > 2)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+                    }
+
+
+                    <!-- Current page window -->
+                    @for (int i = startPage; i <= endPage; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+
+                            <a class="page-link" href="@Url.Action("Index", pageLink(i))">
+                                @i
+                            </a>
+
+                        </li>
+                    }
+
+
+                    <!-- Last page -->
+                    @if (endPage < totalPages)
+                    {
+                        @if (endPage < totalPages - 1)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", pageLink(totalPages))">
+                                @totalPages
+                            </a>
+                        </li>
+                    }
+
+
+                    <!-- Next -->
+                    <li class="page-item @(ViewBag.HasNextPage ? "" : "disabled")">
+
+                        @if (ViewBag.HasNextPage)
+                        {
+                            <a class="page-link" href="@Url.Action("Index", pageLink(currentPage + 1))">
+                                Next &raquo;
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="page-link">
+                                Next &raquo;
+                            </span>
+                        }
+
+                    </li>
+
+                </ul>
+            </nav>
+
+        </div>
+    }
 </div>
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -430,4 +434,5 @@
             }
         });
     });
+    
 </script>

@@ -1,2 +1,10 @@
 ﻿body {
 }
+/* ── Article Search Bar ───────────────────────────── */
+/* Option 1: Increased Specificity (Recommended) */
+.article_search_bar .form-label,
+.article_search_bar .form-control,
+.article_search_bar .form-select,
+.article_search_bar button {
+    font-size: small;
+}

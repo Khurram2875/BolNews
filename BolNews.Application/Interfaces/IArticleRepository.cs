@@ -60,7 +60,10 @@ namespace BolNews.Application.Interfaces
             int page,
             int pageSize,
             string? search = null,
-            int? authorId = null);
+            int? authorId = null,
+            int? categoryId = null,
+            DateTime? publishedDate = null,
+            DateTime? toDate=null);
 
         Task<(List<ArticleListDto> Articles, int TotalCount)> GetDeletedPagedAsync(
             int page,

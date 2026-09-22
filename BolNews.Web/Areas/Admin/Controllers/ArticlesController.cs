@@ -101,7 +101,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
         // GET: Admin/Articles
        
         public async Task<IActionResult> Index(int page = 1, bool showDeleted = false, string? search = null,
-                                                int? authorId = null)
+                                                int? authorId = null, int? categoryId=null, DateTime? publishedDate=null, DateTime? toDate=null)
         {
             if (page < 1)
                 page = 1;
@@ -119,8 +119,12 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             // Load authors for the filter dropdown.
             var authors = await _authorService.GetAllAsync();
-
+            var categories = await _categoryService.GetAllAsync();
             ViewBag.Authors = authors
+                .OrderBy(a => a.Name)
+                .ToList();
+
+            ViewBag.Categories = categories
                 .OrderBy(a => a.Name)
                 .ToList();
 
@@ -149,7 +153,10 @@ namespace BolNews.Web.Areas.Admin.Controllers
                     page,
                     pageSize,
                     search,
-                    authorId);
+                    authorId,
+                    categoryId,
+                    publishedDate,
+                    toDate);
 
                 dtos = result.Articles;
                 totalRecords = result.TotalCount;
@@ -172,6 +179,9 @@ namespace BolNews.Web.Areas.Admin.Controllers
             // Preserve filter values for the Razor view.
             ViewBag.Search = search;
             ViewBag.AuthorId = authorId;
+            ViewBag.PublishedDate = publishedDate?.ToString("yyyy-MM-dd");
+            ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
+            ViewBag.CategoryId = categoryId;
 
             // Editorial placement information is still needed by the Index view.
             if (roles.Contains(Roles.Admin) ||

@@ -887,7 +887,7 @@ namespace BolNews.Application.Services
                 IsDeleted = a.IsDeleted
             }).ToList();
         }
-        public async Task<(List<ArticleListDto> Articles, int TotalCount)> GetPagedAsync(string userId, IList<string> roles, int page, int pageSize, string? search = null, int? authorId = null)
+        public async Task<(List<ArticleListDto> Articles, int TotalCount)> GetPagedAsync(string userId, IList<string> roles, int page, int pageSize, string? search = null, int? authorId = null, int? categoryId = null, DateTime? publishedDate = null, DateTime? toDate=null)
         {
             if (IsAdmin(roles) ||
                 IsEditor(roles) ||
@@ -898,7 +898,10 @@ namespace BolNews.Application.Services
                     page,
                     pageSize,
                     search,
-                    authorId);
+                    authorId,
+                    categoryId,
+                    publishedDate,
+                    toDate);
             }
 
             if (IsAuthor(roles))
@@ -908,7 +911,10 @@ namespace BolNews.Application.Services
                     page,
                     pageSize,
                     search,
-                    authorId);
+                    authorId,
+                    categoryId,
+                    publishedDate,
+                    toDate);
             }
 
             return (new List<ArticleListDto>(), 0);
