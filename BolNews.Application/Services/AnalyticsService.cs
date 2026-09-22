@@ -51,11 +51,36 @@ namespace BolNews.Application.Services
             return await _repo.GetArticlesByIdsAsync(ids);
         }
 
+        public async Task<List<Article>> GetLowCTRArticlesAsync(DateTime fromDate, DateTime toDate)
+        {
+            var ids = await _repo.GetLowCtrArticleIdsAsync(
+                fromDate.Date,
+                toDate.Date,
+                minImpressions: 100,
+                maxCtrThreshold: 0.02);
+
+            if (ids.Count == 0)
+                return new List<Article>();
+
+            return await _repo.GetArticlesByIdsAsync(ids);
+        }
+
         public async Task<DashboardDto> GetDashboardAsync()
         {
             var data = await _repo.GetRecentWithArticlesAsync(
                 DateTime.UtcNow.AddDays(-7));
 
+            return BuildDashboard(data);
+        }
+
+        public async Task<DashboardDto> GetDashboardAsync(DateTime fromDate, DateTime toDate)
+        {
+            var data = await _repo.GetRecentWithArticlesAsync(fromDate.Date, toDate.Date);
+            return BuildDashboard(data);
+        }
+
+        private static DashboardDto BuildDashboard(List<ArticleAnalytics> data)
+        {
             var grouped = data
                 .GroupBy(x => x.ArticleId)
                 .Select(g =>
