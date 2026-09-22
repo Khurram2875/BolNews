@@ -74,5 +74,62 @@ namespace BolNews.Application.Services
                 .Take(10)
                 .ToList();
         }
+        public async Task<List<TrendingTopicResult>> GetTrendingTopicsAsync(DateTime fromDate, DateTime toDate)
+        {
+            var articles = await _articleService.GetRecentArticlesAsync(fromDate.Date, toDate.Date);
+
+            var stopWords = new[] { "the", "with", "this", "from", "that", "have" };
+
+            var internalTrends = articles
+                .SelectMany(a => a.Title.Split(' '))
+                .Where(word => word.Length > 4 && !stopWords.Contains(word.ToLower()))
+                .GroupBy(word => word.ToLower())
+                .Select(g => new TrendingTopicResult
+                {
+                    Topic = g.Key,
+                    Score = g.Count() * 2,
+                    Source = "System Rating"
+                });
+
+            // Google Trends represents current external trends, so it remains live
+            // while the internal system trends respect the selected reporting range.
+            var googleTrendTopics = await _googleTrendsService.GetTrendingTopicsAsync();
+
+            var externalTrends = googleTrendTopics.Select(t =>
+            {
+                int score = 50;
+
+                if (!string.IsNullOrEmpty(t.Traffic))
+                {
+                    var number = new string(t.Traffic.Where(char.IsDigit).ToArray());
+
+                    if (int.TryParse(number, out int val))
+                        score = val / 100;
+                }
+
+                return new TrendingTopicResult
+                {
+                    Topic = t.Title,
+                    Score = score,
+                    Source = t.Source,
+                    Traffic = t.Traffic
+                };
+            });
+
+            return internalTrends
+                .Concat(externalTrends)
+                .GroupBy(t => t.Topic.ToLower())
+                .Select(g => new TrendingTopicResult
+                {
+                    Topic = g.First().Topic,
+                    Score = g.Sum(x => x.Score),
+                    Source = g.First().Source,
+                    Traffic = g.First().Traffic
+                })
+                .OrderByDescending(x => x.Score)
+                .Take(10)
+                .ToList();
+        }
+
     }
 }
