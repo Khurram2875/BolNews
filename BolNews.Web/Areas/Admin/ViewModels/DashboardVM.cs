@@ -5,6 +5,8 @@ namespace BolNews.Web.Areas.Admin.ViewModels
 {
     public class DashboardVM
     {
+        public DateTime FromDate { get; set; }
+        public DateTime ToDate { get; set; }
         public int TotalArticles { get; set; }
         public int ArticlesToday { get; set; }
         public List<PublicArticleVM> TopArticles { get; set; }
