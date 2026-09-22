@@ -7,6 +7,29 @@
 }
 
 <div class="container-fluid py-4">
+    <div class="card border-0 p-3 shadow-sm mb-4">
+        <form method="get" asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label asp-for="@Model.FromDate" class="form-label fw-semibold">From Date</label>
+                <input type="date" name="fromDate" value="@Model.FromDate.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label asp-for="@Model.ToDate" class="form-label fw-semibold">To Date</label>
+                <input type="date" name="toDate" value="@Model.ToDate.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-funnel me-1"></i> Apply Date Range
+                </button>
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary">
+                    Reset (7 Days)
+                </a>
+            </div>
+        </form>
+        <div class="small text-muted mt-2">
+            Reporting range: <strong>@Model.FromDate.ToString("dd MMM yyyy")</strong> to <strong>@Model.ToDate.ToString("dd MMM yyyy")</strong>
+        </div>
+    </div>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold text-dark">Analytics Overview</h2>
         <div class="text-muted">Top Editor: <span class="badge bg-success fs-6">🏆 @ViewBag.TopEditor</span></div>
