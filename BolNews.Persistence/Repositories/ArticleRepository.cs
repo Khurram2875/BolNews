@@ -335,6 +335,7 @@ namespace BolNews.Persistence.Repositories
         }
 
         public async Task<int> CountAsync() => await _context.Articles.CountAsync(a => !a.IsDeleted);
+        public async Task<int> CountPublishedAsync() => await _context.Articles.CountAsync(a => a.IsPublished && !a.IsDeleted);
         public async Task<int> CountPublishedSinceAsync(DateTime since) => await _context.Articles.CountAsync(a => a.PublishedAt >= since && !a.IsDeleted);
 
         public async Task<int> CountPublishedBetweenAsync(DateTime fromDate, DateTime toDate)
