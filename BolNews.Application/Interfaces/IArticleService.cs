@@ -41,6 +41,7 @@ namespace BolNews.Application.Interfaces
         Task<List<Article>> GetRecentArticlesAsync(int hours = 48);
         Task<List<Article>> GetRecentArticlesAsync(DateTime fromDate, DateTime toDate, int limit = 200);
         Task<int> GetTotalArticlesAsync();
+        Task<int> GetTotalPublishedArticlesAsync();
         Task<int> GetTotalArticlesAsync(DateTime fromDate, DateTime toDate);
         Task<int> GetTodayArticlesCountAsync();
         Task<List<Article>> GetTopArticlesAsync(int count = 10);
