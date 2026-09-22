@@ -50,6 +50,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             // 🔢 Stats
             vm.TotalArticles = await _articleService.GetTotalArticlesAsync(selectedFromDate, selectedToDate);
+            vm.TotalPublishedArticles = await _articleService.GetTotalPublishedArticlesAsync();
             vm.ArticlesToday = await _articleService.GetTodayArticlesCountAsync();
 
             // 🔥 Top Articles
