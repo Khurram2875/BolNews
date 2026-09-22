@@ -37,9 +37,9 @@ namespace BolNews.Application.Interfaces
         Task<List<Article>> GetLowPerformingAsync(DateTime since, int maxViews, int limit);
         Task<int> CountAsync();
         Task<int> CountPublishedSinceAsync(DateTime since);
-        Task<List<(DateTime Date, int Count)>> CountPerDayAsync(DateTime fromDate);
-        Task<List<CategoryPerformanceDto>> GetCategoryPerformanceAsync(DateTime fromDate);
-        Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(DateTime fromDate);
+        Task<List<(DateTime Date, int Count)>> CountPerDayAsync(DateTime fromDate, DateTime toDate);
+        Task<List<CategoryPerformanceDto>> GetCategoryPerformanceAsync(DateTime fromDate, DateTime toDate);
+        Task<List<EditorPerformanceDto>> GetEditorPerformanceAsync(DateTime fromDate, DateTime toDate);
         Task IncrementViewCountAsync(int articleId);
         Task BulkUpdateAsync(IEnumerable<Article> articles);
         Task<List<Article>> GetTopRankedPublishedAsync(int count);
