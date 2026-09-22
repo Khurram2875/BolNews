@@ -49,7 +49,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             };
 
             // 🔢 Stats
-            vm.TotalArticles = await _articleService.GetTotalArticlesAsync();
+            vm.TotalArticles = await _articleService.GetTotalArticlesAsync(selectedFromDate, selectedToDate);
             vm.ArticlesToday = await _articleService.GetTodayArticlesCountAsync();
 
             // 🔥 Top Articles
@@ -57,14 +57,14 @@ namespace BolNews.Web.Areas.Admin.Controllers
             vm.TopArticles = _mapper.Map<List<PublicArticleVM>>(top);
 
             // 🆕 Recent Articles
-            var recent = await _articleService.GetRecentArticlesAsync(24);
+            var recent = await _articleService.GetRecentArticlesAsync(selectedFromDate, selectedToDate, 200);
             vm.RecentArticles = _mapper.Map<List<PublicArticleVM>>(recent);
 
             // 📈 Trending
-            vm.TrendingTopics = await _trendingService.GetTrendingTopicsAsync();
+            vm.TrendingTopics = await _trendingService.GetTrendingTopicsAsync(selectedFromDate, selectedToDate);
 
             // ⚠ Low Performers
-            var low = await _articleService.GetLowPerformingArticlesAsync();
+            var low = await _articleService.GetLowPerformingArticlesAsync(selectedFromDate, selectedToDate);
             vm.LowPerformingArticles = _mapper.Map<List<PublicArticleVM>>(low);
 
             // 📈 Articles per day
@@ -84,7 +84,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             var categoryStats = await _articleService.GetCategoryPerformanceAsync(selectedFromDate, selectedToDate);
 
-            var lowCtrArticles = await _analyticsService.GetLowCTRArticlesAsync();
+            var lowCtrArticles = await _analyticsService.GetLowCTRArticlesAsync(selectedFromDate, selectedToDate);
             ViewBag.LowCTRArticles = lowCtrArticles;
 
             vm.CategoryPerformance = categoryStats;
@@ -104,7 +104,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             vm.EditorAvgViews = editorStats.Select(e => e.AvgViewsPerArticle).ToList();
 
             // for CTR
-            var data = await _analyticsService.GetDashboardAsync();
+            var data = await _analyticsService.GetDashboardAsync(selectedFromDate, selectedToDate);
             vm.AnalyticsData = data;
 
             // 🏆 Top editor
