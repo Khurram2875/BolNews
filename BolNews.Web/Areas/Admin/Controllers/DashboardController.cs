@@ -53,7 +53,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             vm.ArticlesToday = await _articleService.GetTodayArticlesCountAsync();
 
             // 🔥 Top Articles
-            var top = await _articleService.GetTopArticlesAsync();
+            var top = await _articleService.GetTopArticlesAsync(selectedFromDate, selectedToDate, 10);
             vm.TopArticles = _mapper.Map<List<PublicArticleVM>>(top);
 
             // 🆕 Recent Articles
