@@ -20,5 +20,6 @@ namespace BolNews.Application.DTOs
         public int Impressions { get; set; }
 
         public double CTR { get; set; }
+        public string Url { get; set; } = string.Empty;
     }
 }
