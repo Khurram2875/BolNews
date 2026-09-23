@@ -81,18 +81,6 @@
                 </div>
             </div>
         </div>
-            <div class="card h-100 border-0 p-3 shadow-sm">
-                <h6 class="text-muted mb-2">🔥 Trending Topics | Source</h6>
-                <div class="d-flex flex-wrap gap-2">
-                    @foreach (var t in Model.TrendingTopics)
-                    {
-                        <span class="badge rounded-pill bg-light text-dark border">@t.Topic (@t.Score) | @t.Source </span>
-                       
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="row g-4 mb-4">
         <div class="col-lg-8">
@@ -205,23 +193,35 @@
     </div>
 } *@
 
-<div class="row">
-
-    <div class="col-md-6 card p-3 shadow-sm">
-        <h5>🔥 Top Performing Articles</h5>
-        <canvas id="topChart"></canvas>
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card h-100 border-0 p-4 shadow-sm">
+            <h5 class="mb-3">🔥 Top Performing Articles</h5>
+            <div class="dashboard-chart dashboard-chart-tall">
+                <canvas id="topChart"></canvas>
+            </div>
+        </div>
     </div>
 
-    <div class="col-md-6 card p-3 shadow-sm">
-        <h5>⚠️ Underperforming Articles</h5>
-        <canvas id="worstChart"></canvas>
+    <div class="col-lg-6">
+        <div class="card h-100 border-0 p-4 shadow-sm">
+            <h5 class="mb-3">⚠️ Underperforming Articles</h5>
+            <div class="dashboard-chart dashboard-chart-tall">
+                <canvas id="worstChart"></canvas>
+            </div>
+        </div>
     </div>
-
 </div>
 
-<div class="card mt-5 p-3 shadow-sm">
-    <h5>📊 Clicks vs Impressions</h5>
-    <canvas id="comparisonChart"></canvas>
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card border-0 p-4 shadow-sm">
+            <h5 class="mb-3">📊 Clicks vs Impressions</h5>
+            <div class="dashboard-chart dashboard-chart-comparison">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -246,6 +246,26 @@
 
     canvas {
         width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .dashboard-chart {
+        position: relative;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    .dashboard-chart-tall {
+        height: 420px;
+    }
+
+    .dashboard-chart-comparison {
+        height: 520px;
+    }
+
+    .dashboard-chart canvas {
+        display: block;
     }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -427,77 +447,178 @@
     const topCTR = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
                 Model.AnalyticsData.TopArticles.Select(x => Math.Round(x.CTR * 100, 2))));
 
+    const topAnalyticsUrls = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.AnalyticsData.TopArticles.Select(x => x.Url)));
+
     const worstLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
                 Model.AnalyticsData.WorstArticles.Select(x => x.Title)));
 
     const worstCTR = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
                 Model.AnalyticsData.WorstArticles.Select(x => Math.Round(x.CTR * 100, 2))));
 
-        new Chart(document.getElementById('topChart'), {
+    const worstAnalyticsUrls = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.AnalyticsData.WorstArticles.Select(x => x.Url)));
+
+    const chartLabel = function(value) {
+        const label = this.getLabelForValue(value);
+        return label.length > 55 ? label.substring(0, 55) + '…' : label;
+    };
+
+    const setPointerCursor = function(chart, event, elements) {
+        chart.canvas.style.cursor = elements.length ? 'pointer' : 'default';
+    };
+
+    new Chart(document.getElementById('topChart'), {
         type: 'bar',
         data: {
             labels: topLabels,
             datasets: [{
                 label: 'CTR (%)',
-                data: topCTR
+                data: topCTR,
+                backgroundColor: colors.info,
+                borderRadius: 5,
+                barThickness: 18
             }]
         },
         options: {
+            indexAxis: 'y',
             responsive: true,
+            maintainAspectRatio: false,
+            onHover: setPointerCursor,
+            onClick: function (event, elements) {
+                if (elements.length && topAnalyticsUrls[elements[0].index]) {
+                    window.open(topAnalyticsUrls[elements[0].index], '_blank', 'noopener,noreferrer');
+                }
+            },
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: function(items) { return topLabels[items[0].dataIndex]; }
+                    }
+                }
             },
             scales: {
+                x: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'CTR (%)' }
+                },
                 y: {
-                    beginAtZero: true
+                    grid: { display: false },
+                    ticks: {
+                        autoSkip: false,
+                        callback: chartLabel,
+                        font: { size: 11 }
+                    }
                 }
             }
         }
     });
-        new Chart(document.getElementById('worstChart'), {
+
+    new Chart(document.getElementById('worstChart'), {
         type: 'bar',
         data: {
             labels: worstLabels,
             datasets: [{
                 label: 'CTR (%)',
-                data: worstCTR
+                data: worstCTR,
+                backgroundColor: colors.warning,
+                borderRadius: 5,
+                barThickness: 18
             }]
         },
         options: {
+            indexAxis: 'y',
             responsive: true,
+            maintainAspectRatio: false,
+            onHover: setPointerCursor,
+            onClick: function (event, elements) {
+                if (elements.length && worstAnalyticsUrls[elements[0].index]) {
+                    window.open(worstAnalyticsUrls[elements[0].index], '_blank', 'noopener,noreferrer');
+                }
+            },
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: function(items) { return worstLabels[items[0].dataIndex]; }
+                    }
+                }
             },
             scales: {
+                x: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'CTR (%)' }
+                },
                 y: {
-                    beginAtZero: true
+                    grid: { display: false },
+                    ticks: {
+                        autoSkip: false,
+                        callback: chartLabel,
+                        font: { size: 11 }
+                    }
                 }
             }
         }
     });
+
     const clicks = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
                 Model.AnalyticsData.TopArticles.Select(x => x.Clicks)));
 
     const impressions = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
                 Model.AnalyticsData.TopArticles.Select(x => x.Impressions)));
 
-                    new Chart(document.getElementById('comparisonChart'), {
+    new Chart(document.getElementById('comparisonChart'), {
         type: 'bar',
         data: {
             labels: topLabels,
             datasets: [
                 {
                     label: 'Clicks',
-                    data: clicks
+                    data: clicks,
+                    backgroundColor: colors.info,
+                    borderRadius: 5
                 },
                 {
                     label: 'Impressions',
-                    data: impressions
+                    data: impressions,
+                    backgroundColor: colors.primary,
+                    borderRadius: 5
                 }
             ]
         },
         options: {
-            responsive: true
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            onHover: setPointerCursor,
+            onClick: function (event, elements) {
+                if (elements.length && topAnalyticsUrls[elements[0].index]) {
+                    window.open(topAnalyticsUrls[elements[0].index], '_blank', 'noopener,noreferrer');
+                }
+            },
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        title: function(items) { return topLabels[items[0].dataIndex]; }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: { display: false }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: {
+                        autoSkip: false,
+                        callback: chartLabel,
+                        font: { size: 11 }
+                    }
+                }
+            }
         }
     });
 </script>
