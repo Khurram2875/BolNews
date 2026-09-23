@@ -464,7 +464,7 @@
         return label.length > 55 ? label.substring(0, 55) + '…' : label;
     };
 
-    const setPointerCursor = function(chart, event, elements) {
+    const setPointerCursor = function(event, elements, chart) {
         chart.canvas.style.cursor = elements.length ? 'pointer' : 'default';
     };
 
