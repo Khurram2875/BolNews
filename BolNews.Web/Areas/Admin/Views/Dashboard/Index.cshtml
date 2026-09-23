@@ -485,9 +485,17 @@
             responsive: true,
             maintainAspectRatio: false,
             onHover: setPointerCursor,
-            onClick: function (event, elements) {
-                if (elements.length && topAnalyticsUrls[elements[0].index]) {
-                    window.open(topAnalyticsUrls[elements[0].index], '_blank', 'noopener,noreferrer');
+            onClick: function (event, elements, chart) {
+                const activeElements = elements.length
+                    ? elements
+                    : chart.getElementsAtEventForMode(event, 'nearest', { intersect: false }, true);
+
+                if (activeElements.length) {
+                    const articleUrl = topAnalyticsUrls[activeElements[0].index];
+
+                    if (articleUrl) {
+                        window.location.assign(articleUrl);
+                    }
                 }
             },
             plugins: {
@@ -532,9 +540,17 @@
             responsive: true,
             maintainAspectRatio: false,
             onHover: setPointerCursor,
-            onClick: function (event, elements) {
-                if (elements.length && worstAnalyticsUrls[elements[0].index]) {
-                    window.open(worstAnalyticsUrls[elements[0].index], '_blank', 'noopener,noreferrer');
+            onClick: function (event, elements, chart) {
+                const activeElements = elements.length
+                    ? elements
+                    : chart.getElementsAtEventForMode(event, 'nearest', { intersect: false }, true);
+
+                if (activeElements.length) {
+                    const articleUrl = worstAnalyticsUrls[activeElements[0].index];
+
+                    if (articleUrl) {
+                        window.location.assign(articleUrl);
+                    }
                 }
             },
             plugins: {
@@ -592,9 +608,17 @@
             responsive: true,
             maintainAspectRatio: false,
             onHover: setPointerCursor,
-            onClick: function (event, elements) {
-                if (elements.length && topAnalyticsUrls[elements[0].index]) {
-                    window.open(topAnalyticsUrls[elements[0].index], '_blank', 'noopener,noreferrer');
+            onClick: function (event, elements, chart) {
+                const activeElements = elements.length
+                    ? elements
+                    : chart.getElementsAtEventForMode(event, 'nearest', { intersect: false }, true);
+
+                if (activeElements.length) {
+                    const articleUrl = topAnalyticsUrls[activeElements[0].index];
+
+                    if (articleUrl) {
+                        window.location.assign(articleUrl);
+                    }
                 }
             },
             plugins: {
