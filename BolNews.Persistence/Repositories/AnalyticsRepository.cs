@@ -88,6 +88,7 @@ namespace BolNews.Persistence.Repositories
                 .AsNoTracking()
                 .Where(x => x.Date >= fromDate.Date && x.Date < endExclusive)
                 .Include(x => x.Article)
+                .ThenInclude(a => a.Category)
                 .ToListAsync();
         }
 
