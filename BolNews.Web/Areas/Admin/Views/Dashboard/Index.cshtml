@@ -448,8 +448,8 @@
     const topCTR = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
                 Model.AnalyticsData.TopArticles.Select(x => Math.Round(x.CTR * 100, 2))));
 
-    const topAnalyticsUrls = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-                Model.AnalyticsData.TopArticles.Select(x => x.Url)));
+    const topAnalyticsIds = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.AnalyticsData.TopArticles.Select(x => x.ArticleId)));
 
     const worstLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
                 Model.AnalyticsData.WorstArticles.Select(x => x.Title)));
@@ -457,8 +457,8 @@
     const worstCTR = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
                 Model.AnalyticsData.WorstArticles.Select(x => Math.Round(x.CTR * 100, 2))));
 
-    const worstAnalyticsUrls = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-                Model.AnalyticsData.WorstArticles.Select(x => x.Url)));
+    const worstAnalyticsIds = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.AnalyticsData.WorstArticles.Select(x => x.ArticleId)));
 
     const chartLabel = function(value) {
         const label = this.getLabelForValue(value);
@@ -467,6 +467,33 @@
 
     const setPointerCursor = function(event, elements, chart) {
         chart.canvas.style.cursor = elements.length ? 'pointer' : 'default';
+    };
+
+    const openDashboardArticle = function(articleId) {
+        if (!articleId) {
+            return;
+        }
+
+        window.open(
+            '/Admin/Dashboard/OpenArticle?id=' + encodeURIComponent(articleId),
+            '_blank',
+            'noopener,noreferrer'
+        );
+    };
+
+    const getClickedIndex = function(chart, event, elements) {
+        if (elements && elements.length) {
+            return elements[0].index;
+        }
+
+        const nearest = chart.getElementsAtEventForMode(
+            event,
+            'nearest',
+            { intersect: false },
+            true
+        );
+
+        return nearest.length ? nearest[0].index : -1;
     };
 
     new Chart(document.getElementById('topChart'), {
@@ -486,17 +513,11 @@
             responsive: true,
             maintainAspectRatio: false,
             onHover: setPointerCursor,
-            onClick: function (event, elements, chart) {
-                const activeElements = elements.length
-                    ? elements
-                    : chart.getElementsAtEventForMode(event, 'nearest', { intersect: false }, true);
+            onClick: function (event, elements) {
+                const index = getClickedIndex(this, event, elements);
 
-                if (activeElements.length) {
-                    const articleUrl = topAnalyticsUrls[activeElements[0].index];
-
-                    if (articleUrl) {
-                        window.location.assign(articleUrl);
-                    }
+                if (index >= 0) {
+                    openDashboardArticle(topAnalyticsIds[index]);
                 }
             },
             plugins: {
@@ -541,17 +562,11 @@
             responsive: true,
             maintainAspectRatio: false,
             onHover: setPointerCursor,
-            onClick: function (event, elements, chart) {
-                const activeElements = elements.length
-                    ? elements
-                    : chart.getElementsAtEventForMode(event, 'nearest', { intersect: false }, true);
+            onClick: function (event, elements) {
+                const index = getClickedIndex(this, event, elements);
 
-                if (activeElements.length) {
-                    const articleUrl = worstAnalyticsUrls[activeElements[0].index];
-
-                    if (articleUrl) {
-                        window.location.assign(articleUrl);
-                    }
+                if (index >= 0) {
+                    openDashboardArticle(worstAnalyticsIds[index]);
                 }
             },
             plugins: {
@@ -609,17 +624,11 @@
             responsive: true,
             maintainAspectRatio: false,
             onHover: setPointerCursor,
-            onClick: function (event, elements, chart) {
-                const activeElements = elements.length
-                    ? elements
-                    : chart.getElementsAtEventForMode(event, 'nearest', { intersect: false }, true);
+            onClick: function (event, elements) {
+                const index = getClickedIndex(this, event, elements);
 
-                if (activeElements.length) {
-                    const articleUrl = topAnalyticsUrls[activeElements[0].index];
-
-                    if (articleUrl) {
-                        window.location.assign(articleUrl);
-                    }
+                if (index >= 0) {
+                    openDashboardArticle(topAnalyticsIds[index]);
                 }
             },
             plugins: {
