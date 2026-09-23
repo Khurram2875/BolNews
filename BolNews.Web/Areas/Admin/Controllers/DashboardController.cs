@@ -115,6 +115,23 @@ namespace BolNews.Web.Areas.Admin.Controllers
             return View(vm);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> OpenArticle(int id)
+        {
+            var article = await _articleService.GetEntityByIdAsync(id);
+
+            if (article == null ||
+                article.Category == null ||
+                string.IsNullOrWhiteSpace(article.Category.Slug) ||
+                string.IsNullOrWhiteSpace(article.Slug))
+            {
+                return NotFound();
+            }
+
+            var articleUrl = $"/news/{article.Category.Slug}/{article.Slug}";
+            return Redirect(articleUrl);
+        }
+
         public async Task<IActionResult> RecalculateArticleScores()
         {
             await _articleScoringService.RecalculateAllScoresAsync();
