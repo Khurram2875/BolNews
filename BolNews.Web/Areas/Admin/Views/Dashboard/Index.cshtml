@@ -460,6 +460,18 @@
     const worstAnalyticsIds = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
                 Model.AnalyticsData.WorstArticles.Select(x => x.ArticleId)));
 
+    const worstClicks = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.AnalyticsData.WorstArticles.Select(x => x.Clicks)));
+
+    const worstImpressions = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.AnalyticsData.WorstArticles.Select(x => x.Impressions)));
+
+    // Scale the underperforming chart to the actual CTR range so very small CTRs remain visible.
+    const worstMaxCtr = Math.max(...worstCTR, 0);
+    const worstCtrAxisMax = worstMaxCtr > 0
+        ? Math.max(Math.ceil(worstMaxCtr * 1.25 * 100) / 100, 0.05)
+        : 0.05;
+
     const chartLabel = function(value) {
         const label = this.getLabelForValue(value);
         return label.length > 55 ? label.substring(0, 55) + '…' : label;
@@ -573,14 +585,30 @@
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        title: function(items) { return worstLabels[items[0].dataIndex]; }
+                        title: function(items) {
+                            return worstLabels[items[0].dataIndex];
+                        },
+                        label: function(context) {
+                            const index = context.dataIndex;
+                            return [
+                                'CTR: ' + Number(worstCTR[index]).toFixed(2) + '%',
+                                'Clicks: ' + Number(worstClicks[index]).toLocaleString(),
+                                'Impressions: ' + Number(worstImpressions[index]).toLocaleString()
+                            ];
+                        }
                     }
                 }
             },
             scales: {
                 x: {
                     beginAtZero: true,
-                    title: { display: true, text: 'CTR (%)' }
+                    max: worstCtrAxisMax,
+                    title: { display: true, text: 'CTR (%)' },
+                    ticks: {
+                        callback: function(value) {
+                            return Number(value).toFixed(2) + '%';
+                        }
+                    }
                 },
                 y: {
                     grid: { display: false },
