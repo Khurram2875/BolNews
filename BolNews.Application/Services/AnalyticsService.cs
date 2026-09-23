@@ -101,7 +101,13 @@ namespace BolNews.Application.Services
 
                         CTR = impressions == 0
                             ? 0
-                            : (double)clicks / impressions
+                            : (double)clicks / impressions,
+
+                        Url = g.First().Article?.Category != null &&
+                              !string.IsNullOrWhiteSpace(g.First().Article.Category.Slug) &&
+                              !string.IsNullOrWhiteSpace(g.First().Article.Slug)
+                            ? $"/news/{g.First().Article.Category.Slug}/{g.First().Article.Slug}"
+                            : string.Empty
                     };
                 })
                 .OrderByDescending(x => x.CTR)
