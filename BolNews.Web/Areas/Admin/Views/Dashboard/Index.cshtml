@@ -7,8 +7,8 @@
 }
 
 <div class="container-fluid py-4">
-    <div class="card border-0 p-3 shadow-sm mb-4">
-        <form method="get" asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="row g-3 align-items-end">
+    <div class="card article_search_bar mb-4 border-0 p-3 shadow-sm">
+        <form method="get" asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="row g-5 align-items-end">
             <div class="col-md-4">
                 <label asp-for="@Model.FromDate" class="form-label fw-semibold">From Date</label>
                 <input type="date" name="fromDate" value="@Model.FromDate.ToString("yyyy-MM-dd")" class="form-control" />
@@ -18,11 +18,11 @@
                 <input type="date" name="toDate" value="@Model.ToDate.ToString("yyyy-MM-dd")" class="form-control" />
             </div>
             <div class="col-md-4 d-flex gap-2">
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-sm btn-primary">
                     <i class="bi bi-funnel me-1"></i> Apply Date Range
                 </button>
-                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary">
-                    Reset (7 Days)
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="btn btn-sm btn-outline-success">
+                    Last 7 Days
                 </a>
             </div>
         </form>
