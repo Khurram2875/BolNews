@@ -103,8 +103,15 @@
     <link rel="stylesheet" href="~/BolNews.Web.styles.css" asp-append-version="true" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://avads.live">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preload"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          as="style"
+          onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    </noscript>
     <link href="https://fonts.googleapis.com/css2?family=Belleza&family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600&display=swap"
           rel="stylesheet">
 
@@ -148,9 +155,6 @@
         }
     }
 
-    <!-- Ads  -->
-    <script src="https://avads.live/s/av-bolnews.js"></script>  
-    <!-- Ads -->
     <script type="application/ld+json">@Html.Raw(orgSchema)</script>
     <script type="application/ld+json">@Html.Raw(webSiteSchema)</script>
 
@@ -191,6 +195,36 @@
     <script src="~/js/lazyload.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/theme.js" asp-append-version="true"></script>
+    <script>
+        (function () {
+            var adScriptLoaded = false;
+
+            function loadAdScript() {
+                if (adScriptLoaded) return;
+                adScriptLoaded = true;
+
+                var script = document.createElement('script');
+                script.src = 'https://avads.live/s/av-bolnews.js';
+                script.async = true;
+                document.head.appendChild(script);
+            }
+
+            function scheduleAdScript() {
+                if ('requestIdleCallback' in window) {
+                    window.requestIdleCallback(loadAdScript, { timeout: 2500 });
+                    return;
+                }
+
+                window.setTimeout(loadAdScript, 1200);
+            }
+
+            if (document.readyState === 'complete') {
+                scheduleAdScript();
+            } else {
+                window.addEventListener('load', scheduleAdScript, { once: true });
+            }
+        })();
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

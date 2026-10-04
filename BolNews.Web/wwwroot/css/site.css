@@ -3,9 +3,6 @@
    Theme system using CSS custom properties
    4 themes: default | dark | editorial | bold
    ============================================================ */
-/* ── Google Fonts ───────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@400;500;600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 /* ── DEFAULT THEME (BBC-style clean white) ──────────────────── */
 :root {
     --bn-bg: #f5f4f0;
@@ -3026,10 +3023,11 @@ body {
     margin: 20px auto;
     clear: both;
     text-align: center;
+    overflow: hidden;
 }
 
 .bn-ad-code-block > div {
-    min-height: 0;
+    min-height: 90px;
 }
 
 .bn-ad-code-block--top > div {
@@ -3626,7 +3624,7 @@ body,
     width: 100%;
     max-width: 100%;
     overflow: hidden;
-    min-height: 10px;
+    min-height: 250px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3634,11 +3632,29 @@ body,
 
 .bn-ad-slot-incontent {
     margin: 10px 0;
+    min-height: 250px;
+}
+
+#Bolnews_Top_Leaderboard_ATF,
+#Bolnews_Bottom_BTF {
+    min-height: 90px;
+}
+
+#Bolnews_Sidebar_Top_ATF,
+#Bolnews_Sidebar_Bottom_BTF,
+#Bolnews_Incontent_Lazy {
+    min-height: 250px;
 }
 
 @media (max-width: 767.98px) {
+    .bn-ad-code-block > div,
+    #Bolnews_Top_Leaderboard_ATF,
+    #Bolnews_Bottom_BTF {
+        min-height: 100px;
+    }
+
     .bn-ad-slot {
-        min-height: 60px;
+        min-height: 250px;
     }
 }
 /* For Ad Slots */

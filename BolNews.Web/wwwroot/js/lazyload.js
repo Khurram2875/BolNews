@@ -5,21 +5,14 @@
      * BOL NEWS - GLOBAL LAZY IMAGE HANDLER
      * ============================================================
      *
-     * Supports:
-     *
-     * 1. Custom lazy images
-     *    class="lazy-image"
-     *    data-src="..."
-     *
-     * 2. Native lazy images
-     *    loading="lazy"
+     * Supports custom lazy images:
+     * class="lazy-image"
+     * data-src="..."
      *
      * ============================================================
      */
 
-    const images = document.querySelectorAll(
-        'img.lazy-image, img[loading="lazy"]'
-    );
+    const images = document.querySelectorAll("img.lazy-image[data-src]");
 
     function createSpinner(img) {
         const parent = img.parentElement;
@@ -62,33 +55,8 @@
         img._bnLazySpinner = createSpinner(img);
     }
 
-    function prepareNativeLazyImage(img) {
-        if (img.dataset.lazyInitialized === "true") return;
-
-        img.dataset.lazyInitialized = "true";
-        img.classList.add("bn-lazy-loading");
-
-        const spinner = createSpinner(img);
-
-        img.addEventListener("load", function () {
-            imageLoaded(img, spinner);
-        }, { once: true });
-
-        img.addEventListener("error", function () {
-            imageFailed(img, spinner);
-        });
-
-        if (img.complete && img.naturalWidth > 0) {
-            imageLoaded(img, spinner);
-        }
-    }
-
     images.forEach(function (img) {
-        if (img.classList.contains("lazy-image") && img.dataset.src) {
-            prepareCustomLazyImage(img);
-        } else {
-            prepareNativeLazyImage(img);
-        }
+        prepareCustomLazyImage(img);
     });
 
     const observer = new IntersectionObserver(
@@ -98,23 +66,21 @@
 
                 const img = entry.target;
 
-                if (img.classList.contains("lazy-image")) {
-                    const src = img.dataset.src;
-                    const srcset = img.dataset.srcset;
+                const src = img.dataset.src;
+                const srcset = img.dataset.srcset;
 
-                    img.addEventListener("load", function () {
-                        imageLoaded(img, img._bnLazySpinner);
-                    }, { once: true });
+                img.addEventListener("load", function () {
+                    imageLoaded(img, img._bnLazySpinner);
+                }, { once: true });
 
-                    img.addEventListener("error", function () {
-                        imageFailed(img, img._bnLazySpinner);
-                    }, { once: true });
+                img.addEventListener("error", function () {
+                    imageFailed(img, img._bnLazySpinner);
+                }, { once: true });
 
-                    if (srcset) img.srcset = srcset;
-                    if (src) img.src = src;
+                if (srcset) img.srcset = srcset;
+                if (src) img.src = src;
 
-                    observer.unobserve(img);
-                }
+                observer.unobserve(img);
             });
         },
         {
@@ -124,8 +90,6 @@
     );
 
     images.forEach(function (img) {
-        if (img.classList.contains("lazy-image") && img.dataset.src) {
-            observer.observe(img);
-        }
+        observer.observe(img);
     });
 });

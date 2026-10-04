@@ -122,7 +122,16 @@ app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = context =>
     {
-        context.Context.Response.Headers.CacheControl = "public,max-age=604800";
+        var path = context.Context.Request.Path.Value ?? string.Empty;
+        var isVersionedAsset =
+            path.StartsWith("/css/", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/js/", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/lib/", StringComparison.OrdinalIgnoreCase) ||
+            path.EndsWith(".ico", StringComparison.OrdinalIgnoreCase);
+
+        context.Context.Response.Headers.CacheControl = isVersionedAsset
+            ? "public,max-age=31536000,immutable"
+            : "public,max-age=604800";
     }
 });
 
