@@ -48,6 +48,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
         public IActionResult Create()
         {
             var users = _userManager.Users
+            .Where(u => u.EmailConfirmed)
             .Select(u => new SelectListItem
             {
                 Value = u.Id,
@@ -69,6 +70,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Create(AuthorVM vm)
         {
             vm.ExistingUsers = _userManager.Users
+                .Where(u => u.EmailConfirmed)
                 .Select(u => new SelectListItem
                 {
                     Value = u.Id,

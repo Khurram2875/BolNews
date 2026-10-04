@@ -5,13 +5,33 @@
 @{
     ViewData["Title"] = "User Management";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var statusFilter = ViewData["UserStatusFilter"]?.ToString() ?? "active";
 }
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>User Management</h2>
-        <span class="badge bg-secondary">Total Users: @Model.Count</span>
+        <div class="d-flex align-items-center gap-3">
+            <form asp-action="Index" method="get" class="d-flex align-items-center gap-2">
+                <label for="userStatus" class="small text-muted mb-0">Show</label>
+                <select id="userStatus" name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="active" selected="@(statusFilter == "active" ? "selected" : null)">Active users</option>
+                    <option value="inactive" selected="@(statusFilter == "inactive" ? "selected" : null)">Inactive users</option>
+                    <option value="all" selected="@(statusFilter == "all" ? "selected" : null)">All users</option>
+                </select>
+            </form>
+            <span class="badge bg-secondary">Users: @Model.Count</span>
+        </div>
     </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
 
     <div class="table-responsive rounded shadow-sm">
         <table class="table-hover mb-0 table align-middle">
@@ -20,6 +40,7 @@
                     <th scope="col" class="ps-4">Full Name</th>
                     <th scope="col">Email</th>
                     <th scope="col">Current Role</th>
+                    <th scope="col">Status</th>
                     <th scope="col" class="pe-4 text-end">Actions</th>
                 </tr>
             </thead>
@@ -43,7 +64,27 @@
                                 <span class="text-muted small">No Role</span>
                             }
                         </td>
+                        <td>
+                            @if (user.EmailConfirmed)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </td>
                         <td class="pe-4 text-end">
+                            <form asp-action="SetStatus" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="userId" value="@user.Id" />
+                                <input type="hidden" name="isActive" value="@(!user.EmailConfirmed)" />
+                                <input type="hidden" name="status" value="@statusFilter" />
+                                <button type="submit" class="btn btn-sm @(user.EmailConfirmed ? "btn-outline-danger" : "btn-outline-success") rounded-pill">
+                                    <i class="bi @(user.EmailConfirmed ? "bi-person-slash" : "bi-person-check") me-1"></i>
+                                    @(user.EmailConfirmed ? "Deactivate" : "Activate")
+                                </button>
+                            </form>
                             <a href="/Admin/User/AssignRole/@user.Id" class="btn btn-outline-primary btn-sm rounded-pill">
                                 <i class="bi bi-shield-lock me-1"></i> Assign Role
                             </a>

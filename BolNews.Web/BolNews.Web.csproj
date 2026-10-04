@@ -41,8 +41,17 @@
     <None Include="wwwroot\js\adminarea\adminareajs.js" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Excludes the folder contents from the publish output -->
-    <Content Update="wwwroot\uploads\**" CopyToPublishDirectory="Never" />
+    <!-- User-uploaded files stay outside build and publish artifacts. -->
+    <Content Update="wwwroot\uploads\**"
+             CopyToOutputDirectory="Never"
+             CopyToPublishDirectory="Never" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Publishes only the dedicated fuel-price background asset from this new folder. -->
+    <Content Update="wwwroot\images\fuelprice\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Update="Config\fuel-prices.json">

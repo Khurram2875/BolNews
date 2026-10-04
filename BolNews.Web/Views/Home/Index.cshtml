@@ -11,6 +11,7 @@
     // ViewData["Title"] = "Home";
 
     var secondaryStories = Model.SecondaryStories ?? new List<PublicArticleVM>();
+    string ImageVersion(PublicArticleVM article) => article.UpdatedAt.HasValue ? $"?v={article.UpdatedAt.Value.Ticks}" : string.Empty;
     var pinnedSecondaryCount = Math.Min(Model.PinnedSecondaryStoryCount, secondaryStories.Count);
     var pinnedSecondaryStories = secondaryStories.Take(pinnedSecondaryCount).ToList();
     var unpinnedSecondaryStories = secondaryStories.Skip(pinnedSecondaryCount).ToList();
@@ -116,7 +117,7 @@
                    class="bn-card bn-card--featured track-click"
                    data-article-id="@Model.TopStory.Id">
                     <div class="bn-card__image-wrap">
-                        <img src="@(Model.TopStory.FeaturedImageXl ?? Model.TopStory.FeaturedImageLarge ?? Model.TopStory.FeaturedImageMedium ?? Model.TopStory.FeaturedImageThumb ?? "/images/placeholder.png")"
+                        <img src="@(Model.TopStory.FeaturedImageXl ?? Model.TopStory.FeaturedImageLarge ?? Model.TopStory.FeaturedImageMedium ?? Model.TopStory.FeaturedImageThumb ?? "/images/placeholder.png")@ImageVersion(Model.TopStory)"
                              srcset="@(Model.TopStory.FeaturedImageMedium != null ? Model.TopStory.FeaturedImageMedium + " 400w, " : "")@(Model.TopStory.FeaturedImageLarge != null ? Model.TopStory.FeaturedImageLarge + " 800w, " : "")@(Model.TopStory.FeaturedImageXl != null ? Model.TopStory.FeaturedImageXl + " 1200w" : "")"
                              sizes="(max-width: 767px) 100vw, (max-width: 1199px) 55vw, 800px"
                              alt="@(Model.TopStory.FeaturedImageAltText ?? Model.TopStory.Title)"

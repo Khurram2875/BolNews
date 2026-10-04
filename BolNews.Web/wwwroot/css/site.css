@@ -3874,7 +3874,12 @@ body,
 .fuel-price-widget {
     width: 100%;
     box-sizing: border-box;
-    background: #f1f1f1;
+    min-height: 300px;
+    background-color: #e8e8e8;
+    background-image: url('/images/fuelprice/fuelprice_bg.jpeg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
     padding: 24px 22px 22px;
     margin-bottom: 25px;
     overflow: hidden;
@@ -3887,17 +3892,17 @@ body,
 
 .fuel-price-title {
     color: #050505;
-    font-size: 30px;
+    font-size: 29px;
     font-weight: 700;
     line-height: 0.98;
-    letter-spacing: 0.8px;
+    letter-spacing: 0;
 }
 .fuel-price-title1 {
     color: #050505;
-    font-size: 24px;
+    font-size: 23px;
     font-weight: 500;
     line-height: 0.98;
-    letter-spacing: 1.2px;
+    letter-spacing: 0;
 }
 
 .fuel-price-date {
@@ -3909,24 +3914,16 @@ body,
 }
 
 .fuel-price-item {
-    margin-top: 22px;
+    margin-top: 24px;
 }
 
 .fuel-price-label {
     display: block;
     color: #c90000;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 800;
     line-height: 1;
     white-space: nowrap;
-}
-
-.fuel-price-line {
-    height: 2px;
-    background: #111;
-    width: calc(100% - 80px);
-    margin-left: 75px;
-    margin-top: -2px;
 }
 
 .fuel-price-values {
@@ -3960,18 +3957,19 @@ body,
 }
 .fuel-price-change-value {
     color: #050505;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
     line-height: 1;
-    letter-spacing: -1px;
+    letter-spacing: 0;
+    flex: 0 1 auto;
 }
 
 .fuel-price-currency {
     flex: 0 0 auto;
     color: #111;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 500;
-    margin-left: 12px;
+    margin-left: 6px;
 }
 
 .fuel-price-amount {
@@ -3980,7 +3978,7 @@ body,
     color: #fff;
     border-radius: 10px;
     padding: 9px 13px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     line-height: 1.1;
     white-space: nowrap;
@@ -3996,6 +3994,8 @@ body,
     .fuel-price-widget {
         padding: 20px 14px 18px;
         margin-bottom: 18px;
+        background-position: top center;
+        background-size: 100% auto;
     }
 
     .fuel-price-header {
@@ -4004,7 +4004,7 @@ body,
 
     .fuel-price-title {
         font-size: 22px;
-        letter-spacing:1.2px;
+        letter-spacing: 0;
         line-height: 0.98;
     }
     .fuel-price-title1 {
@@ -4021,12 +4021,7 @@ body,
     }
 
     .fuel-price-label {
-        font-size: 27px;
-    }
-
-    .fuel-price-line {
-        width: calc(100% - 95px);
-        margin-left: 95px;
+        font-size: 22px;
     }
 
     .fuel-price-values {
@@ -4047,18 +4042,18 @@ body,
         color: #198754;
     }
     .fuel-price-change-value {
-        font-size: 31px;
-        letter-spacing: -0.5px;
+        font-size: 20px;
+        letter-spacing: 0;
     }
 
     .fuel-price-currency {
-        font-size: 17px;
-        margin-left: 7px;
+        font-size: 10px;
+        margin-left: 6px;
     }
 
     .fuel-price-amount {
-        font-size: 17px;
-        padding: 8px 9px;
+        font-size: 13px;
+        padding: 8px 8px;
         border-radius: 7px;
     }
 }
@@ -4084,12 +4079,7 @@ body,
     }
 
     .fuel-price-label {
-        font-size: 24px;
-    }
-
-    .fuel-price-line {
-        width: calc(100% - 88px);
-        margin-left: 88px;
+        font-size: 21px;
     }
 
     .fuel-price-values {
@@ -4102,17 +4092,17 @@ body,
     }
 
     .fuel-price-change-value {
-        font-size: 27px;
+        font-size: 19px;
     }
 
     .fuel-price-currency {
-        font-size: 15px;
-        margin-left: 5px;
+        font-size: 9px;
+        margin-left: 4px;
     }
 
     .fuel-price-amount {
-        font-size: 15px;
-        padding: 7px 7px;
+        font-size: 12px;
+        padding: 7px 6px;
     }
 }
 /* ── Fuel Price Widget ───────────────────────────── */
@@ -4120,4 +4110,3 @@ body,
 
 
 
-   

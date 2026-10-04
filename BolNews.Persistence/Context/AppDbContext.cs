@@ -42,6 +42,14 @@ namespace BolNews.Persistence.Context
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<MediaAsset>()
+                .Property(x => x.ContentHash)
+                .HasMaxLength(64);
+
+            modelBuilder.Entity<MediaAsset>()
+                .HasIndex(x => new { x.MediaType, x.ContentHash })
+                .IsUnique();
+
             modelBuilder.Entity<IdentityRole>(entity =>
             {
                 entity.Property(x => x.Name).HasMaxLength(100);

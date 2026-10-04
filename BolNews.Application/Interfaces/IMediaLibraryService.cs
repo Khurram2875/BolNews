@@ -7,6 +7,7 @@ public interface IMediaLibraryService
 {
     Task<List<MediaAssetDto>> SearchAsync(string? query, MediaType? type, DateTime? createdFrom, DateTime? createdTo, int? articleId);
     Task<MediaAssetDto?> GetByIdAsync(int id);
+    Task<MediaAssetDto?> FindByContentHashAsync(string contentHash, MediaType mediaType);
     Task<int> CreateAsync(MediaAssetDto dto, string currentUserId);
     Task UpdateAsync(MediaAssetDto dto, string currentUserId);
     Task SetStorageAsync(int id, string url, string? thumb, string? medium, string? large, string currentUserId);

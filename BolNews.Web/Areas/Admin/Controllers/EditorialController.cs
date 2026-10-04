@@ -43,10 +43,10 @@ namespace BolNews.Web.Areas.Admin.Controllers
             var user = await _userManager.GetUserAsync(User);
             var currentUserId = _userManager.GetUserId(User);
             var roles = await _userManager.GetRolesAsync(user);
-            var admins = await _userManager.GetUsersInRoleAsync(Roles.Admin);
-            var editors = await _userManager.GetUsersInRoleAsync(Roles.Editor);
-            var subEditors = await _userManager.GetUsersInRoleAsync(Roles.SubEditor);
-            var factChecker = await _userManager.GetUsersInRoleAsync(Roles.Factchecker);
+            var admins = (await _userManager.GetUsersInRoleAsync(Roles.Admin)).Where(x => x.EmailConfirmed).ToList();
+            var editors = (await _userManager.GetUsersInRoleAsync(Roles.Editor)).Where(x => x.EmailConfirmed).ToList();
+            var subEditors = (await _userManager.GetUsersInRoleAsync(Roles.SubEditor)).Where(x => x.EmailConfirmed).ToList();
+            var factChecker = (await _userManager.GetUsersInRoleAsync(Roles.Factchecker)).Where(x => x.EmailConfirmed).ToList();
 
             var queue = await _articleService.GetEditorialQueueAsync(roles);
             switch (filter.ToLower())

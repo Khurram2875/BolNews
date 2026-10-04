@@ -220,7 +220,7 @@
                                 {
                                     <img class="lazy-image"
                                          src="/images/placeholder.png"
-                                         data-src="@($"{article.FeaturedImageThumb}?v=@{article.Id}")"
+                                           data-src="@($"{article.FeaturedImageThumb}?v={article.UpdatedAt?.Ticks ?? article.Id}")"
                                          style="width:50px; height:50px; object-fit:cover;" />
                                 }
                                 else
@@ -250,7 +250,7 @@
                         {
                             <img class="lazy-image flex-shrink-0"
                                  src="/images/placeholder.png"
-                                 data-src="@($"{article.FeaturedImageThumb}?v=@{article.Id}")"
+                                  data-src="@($"{article.FeaturedImageThumb}?v={article.UpdatedAt?.Ticks ?? article.Id}")"
                                  style="width:64px; height:64px; object-fit:cover; border-radius:4px;" />
                         }
                         else

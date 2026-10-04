@@ -16,9 +16,25 @@ namespace BolNews.Web.Areas.Admin.Controllers
         {
             _userAdminService = userAdminService;
         }
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string status = "active")
         {
-            var users = await _userAdminService.GetUsersWithRolesAsync();
+            var normalizedStatus = status.ToLowerInvariant() switch
+            {
+                "inactive" => "inactive",
+                "all" => "all",
+                _ => "active"
+            };
+
+            bool? isActive = normalizedStatus switch
+            {
+                "inactive" => false,
+                "all" => null,
+                _ => true
+            };
+
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var users = await _userAdminService.GetUsersWithRolesAsync(isActive, currentUserId);
+            ViewData["UserStatusFilter"] = normalizedStatus;
             return View(users);
         }
         public async Task<IActionResult> AssignRole(string id)
@@ -40,6 +56,24 @@ namespace BolNews.Web.Areas.Admin.Controllers
             };
 
             return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetStatus(string userId, bool isActive, string status = "active")
+        {
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!isActive && string.Equals(currentUserId, userId, StringComparison.Ordinal))
+            {
+                TempData["Error"] = "You cannot deactivate your own administrator account.";
+                return RedirectToAction(nameof(Index), new { status });
+            }
+
+            if (!await _userAdminService.SetUserActiveAsync(userId, isActive))
+                return NotFound();
+
+            TempData["Success"] = isActive ? "User activated." : "User deactivated.";
+            return RedirectToAction(nameof(Index), new { status });
         }
         [HttpPost]
         [ValidateAntiForgeryToken]

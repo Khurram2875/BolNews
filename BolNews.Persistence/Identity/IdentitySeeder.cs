@@ -43,7 +43,8 @@ namespace BolNews.Persistence.Identity
                 {
                     UserName = adminEmail,
                     Email = adminEmail,
-                    FullName = "System Admin"
+                    FullName = "System Admin",
+                    EmailConfirmed = true
                 };
 
                 var adminPassword = Environment.GetEnvironmentVariable("BOLNEWS_ADMIN_PASSWORD");

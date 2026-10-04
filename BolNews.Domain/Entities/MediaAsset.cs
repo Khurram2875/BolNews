@@ -14,6 +14,7 @@ public class MediaAsset : BaseEntity
     public string? Caption { get; set; }
     public string? Credit { get; set; }
     public string? OriginalFileName { get; set; }
+    public string? ContentHash { get; set; }
     public ICollection<MediaAssetTag> MediaAssetTags { get; set; } = new List<MediaAssetTag>();
     public ICollection<Article> FeaturedForArticles { get; set; } = new List<Article>();
 }

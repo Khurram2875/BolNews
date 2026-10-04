@@ -49,6 +49,13 @@ namespace BolNews.Web.Controllers
             }
 
 
+            var loginUser = await _userManager.FindByNameAsync(email);
+            if (loginUser == null || !loginUser.EmailConfirmed)
+            {
+                ModelState.AddModelError("", "Invalid email or password");
+                return View();
+            }
+
             var result = await _signInManager.PasswordSignInAsync(
                 email,
                 password,
@@ -61,7 +68,7 @@ namespace BolNews.Web.Controllers
                     "User {Email} logged in successfully.",
                     email);
 
-                var user = await _userManager.FindByNameAsync(email);
+                var user = loginUser;
 
                 var roles = await _userManager.GetRolesAsync(user);
 

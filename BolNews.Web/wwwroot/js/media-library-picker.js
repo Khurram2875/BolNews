@@ -123,6 +123,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (mode === 'featured') {
             if (item.mediaType !== 1) return alert('Only images can be a featured image.');
+            const fileInput = document.getElementById('ImageFile');
+            if (fileInput) fileInput.value = '';
             document.getElementById('FeaturedMediaId').value = item.id;
             const preview = document.getElementById('previewImage');
             if (preview) preview.src = item.largeUrl || item.url;

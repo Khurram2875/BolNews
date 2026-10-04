@@ -10,6 +10,7 @@ public class MediaAssetRepository(AppDbContext context) : IMediaAssetRepository
 {
     public async Task<int> AddAsync(MediaAsset asset) { context.MediaAssets.Add(asset); await context.SaveChangesAsync(); return asset.Id; }
     public Task<MediaAsset?> GetByIdAsync(int id) => context.MediaAssets.Include(x => x.MediaAssetTags).ThenInclude(x => x.Tag).Include(x => x.FeaturedForArticles).FirstOrDefaultAsync(x => x.Id == id);
+    public Task<MediaAsset?> FindByContentHashAsync(string contentHash, MediaType mediaType) => context.MediaAssets.FirstOrDefaultAsync(x => x.ContentHash == contentHash && x.MediaType == mediaType);
     public Task<List<MediaAsset>> SearchAsync(string? query, MediaType? type, DateTime? createdFrom, DateTime? createdTo, int? articleId)
     {
         var assets = context.MediaAssets.AsNoTracking().Include(x => x.MediaAssetTags).ThenInclude(x => x.Tag).Include(x => x.FeaturedForArticles).AsQueryable();

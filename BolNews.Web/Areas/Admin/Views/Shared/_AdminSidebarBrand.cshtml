@@ -3,6 +3,10 @@
 @inject UserManager<ApplicationUser> UserManager
 @{
     var user = await UserManager.GetUserAsync(User);
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var isChangePassword = string.Equals(currentController, "Account", StringComparison.OrdinalIgnoreCase)
+        && string.Equals(currentAction, "ChangePassword", StringComparison.OrdinalIgnoreCase);
 }
 <div class="sidebar-brand mb-4 px-3">
     <h4 class="fw-bold text-danger">BOL<span class="text-white">NEWS</span></h4>
@@ -18,5 +22,12 @@
             <button type="submit" class="btn btn-sm btn-outline-danger bi bi-box-arrow-left" title="Logout"></button>
         </form>
     </div>
+
+    <a class="nav-link px-0 mt-2 @(isChangePassword ? "active" : "")"
+       asp-area=""
+       asp-controller="Account"
+       asp-action="ChangePassword">
+        <i class="bi bi-key me-2"></i> Change password
+    </a>
 </div>
 <hr class="text-secondary" />

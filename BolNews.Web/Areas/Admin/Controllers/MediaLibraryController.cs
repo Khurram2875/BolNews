@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using BolNews.Domain.Entities;
+using System.Security.Cryptography;
 
 namespace BolNews.Web.Areas.Admin.Controllers;
 
@@ -95,8 +96,13 @@ public class MediaLibraryController(
 
         var userId = userManager.GetUserId(User)!;
 
+        var contentHash = await ComputeHashAsync(upload);
+        if (await mediaLibrary.FindByContentHashAsync(contentHash, model.MediaType) != null)
+            return RedirectToAction(nameof(Index));
+
         model.Url = "/uploads/media/pending";
         model.OriginalFileName = upload.FileName;
+        model.ContentHash = contentHash;
 
         var id = await mediaLibrary.CreateAsync(
             model,
@@ -336,6 +342,17 @@ public class MediaLibraryController(
             model.Url = "/uploads/media/pending";
             model.OriginalFileName = safeFileName;
 
+            await using (var hashStream = System.IO.File.OpenRead(assembledPath))
+            {
+                model.ContentHash = Convert.ToHexString(await SHA256.HashDataAsync(hashStream));
+            }
+
+            if (await mediaLibrary.FindByContentHashAsync(model.ContentHash, MediaType.Video) != null)
+            {
+                Directory.Delete(tempRoot, recursive: true);
+                return RedirectToAction(nameof(Index));
+            }
+
             // Validate thumbnail before creating the MediaAsset
             if (videoThumbnail != null &&
                 videoThumbnail.Length > 0)
@@ -428,6 +445,12 @@ public class MediaLibraryController(
             // This makes troubleshooting easier.
             throw;
         }
+    }
+
+    private static async Task<string> ComputeHashAsync(IFormFile file)
+    {
+        await using var stream = file.OpenReadStream();
+        return Convert.ToHexString(await SHA256.HashDataAsync(stream));
     }
 
     public async Task<IActionResult> Edit(int id)

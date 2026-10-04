@@ -38,5 +38,6 @@ namespace BolNews.Application.DTOs
         public bool IsFactChecked { get; set; }
 
         public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
     }
 }

@@ -23,13 +23,26 @@ namespace BolNews.Web.Services
             _context = context;
         }
 
-        public async Task<List<UserWithRolesVM>> GetUsersWithRolesAsync()
+        public async Task<List<UserWithRolesVM>> GetUsersWithRolesAsync(bool? isActive = true, string? currentUserId = null)
         {
             // Eliminates N+1 role lookups by loading users + role mappings in set-based queries.
-            var users = await _userManager.Users
+            var usersQuery = _userManager.Users
                 .AsNoTracking()
-                .Select(u => new { u.Id, u.FullName, u.Email })
+                .AsQueryable();
+
+            if (isActive.HasValue)
+                usersQuery = usersQuery.Where(u => u.EmailConfirmed == isActive.Value);
+
+            var users = await usersQuery
+                .Select(u => new { u.Id, u.FullName, u.Email, u.EmailConfirmed })
                 .ToListAsync();
+
+            // Keep the seeded System Admin account private from other admins,
+            // while allowing the System Admin to see his own account.
+            users = users
+                .Where(u => !string.Equals(u.FullName, "System Admin", StringComparison.OrdinalIgnoreCase)
+                            || u.Id == currentUserId)
+                .ToList();
 
             var roleRows = await (
                 from ur in _context.UserRoles.AsNoTracking()
@@ -49,9 +62,21 @@ namespace BolNews.Web.Services
                     Id = u.Id,
                     FullName = u.FullName ?? string.Empty,
                     Email = u.Email ?? string.Empty,
+                    EmailConfirmed = u.EmailConfirmed,
                     Roles = roleLookup.TryGetValue(u.Id, out var roles) ? roles : new List<string>()
                 })
                 .ToList();
+        }
+
+        public async Task<bool> SetUserActiveAsync(string userId, bool isActive)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return false;
+
+            user.EmailConfirmed = isActive;
+            var result = await _userManager.UpdateAsync(user);
+            return result.Succeeded;
         }
 
         public async Task<(ApplicationUser? user, List<string> roles, IList<string> userRoles)> GetAssignRoleDataAsync(string id)

@@ -14,6 +14,7 @@ public class MediaAssetDto
     public string? Caption { get; set; }
     public string? Credit { get; set; }
     public string? OriginalFileName { get; set; }
+    public string? ContentHash { get; set; }
     public string? TagsInput { get; set; }
     public List<TagDto> Tags { get; set; } = new();
     public List<string> UsedByArticles { get; set; } = new();

@@ -3,7 +3,11 @@ function previewFile(event) {
     const input = event.target;
     const preview = document.getElementById('previewImage');
 
-    if (input.files && input.files[0]) {
+    // A disk upload must take precedence over any previous media-library choice.
+    const mediaId = document.getElementById('FeaturedMediaId');
+    if (mediaId) mediaId.value = '';
+
+    if (preview && input.files && input.files[0]) {
         const reader = new FileReader();
 
         reader.onload = function (e) {
@@ -107,4 +111,3 @@ document.addEventListener("DOMContentLoaded", function () {
     //        console.error(error);
     //    });
 });
-

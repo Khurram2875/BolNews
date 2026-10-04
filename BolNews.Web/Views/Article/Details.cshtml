@@ -144,7 +144,7 @@
 						: Model.Article.Title);
 
 						<figure style="margin:0 0 0;" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-							<img src="@Model.Article.FeaturedImageLarge"
+							<img src="@Model.Article.FeaturedImageLarge@(Model.Article.UpdatedAt.HasValue ? $"?v={Model.Article.UpdatedAt.Value.Ticks}" : string.Empty)"
 								 alt="@imageAlt"
 								 itemprop="url"
 								 style="width:100%;border-radius:var(--bn-radius-md);display:block;max-height:500px;object-fit:cover;"

@@ -528,7 +528,8 @@ namespace BolNews.Persistence.Repositories
                 IsEditorsPick = a.IsEditorsPick,
                 EditorialPriority = a.EditorialPriority,
                 IsFactChecked = a.IsFactChecked,
-                CreatedAt = a.CreatedAt
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
             }).ToListAsync();
             return (articles, totalCount);
         }
@@ -547,7 +548,7 @@ namespace BolNews.Persistence.Repositories
                 ReporterId = a.ReporterId, ReporterName = a.Reporter != null ? a.Reporter.Name : null,
                 IsPublished = a.IsPublished, PublishedAt = a.PublishedAt, WorkflowStatus = a.WorkflowStatus,
                 ReviewerName = a.ReviewerUser != null ? a.ReviewerUser.FullName : null, FactCheckerName = a.FactCheckerUser != null ? a.FactCheckerUser.FullName : null,
-                IsEditorsPick = a.IsEditorsPick, EditorialPriority = a.EditorialPriority, IsFactChecked = a.IsFactChecked, CreatedAt = a.CreatedAt
+                IsEditorsPick = a.IsEditorsPick, EditorialPriority = a.EditorialPriority, IsFactChecked = a.IsFactChecked, CreatedAt = a.CreatedAt, UpdatedAt = a.UpdatedAt
             }).ToListAsync();
             return (articles, totalCount);
         }

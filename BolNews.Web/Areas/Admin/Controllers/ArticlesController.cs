@@ -22,6 +22,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
 using System.Text.Json;
+using System.Security.Cryptography;
 
 namespace BolNews.Web.Areas.Admin.Controllers
 {
@@ -442,6 +443,14 @@ namespace BolNews.Web.Areas.Admin.Controllers
             {
                 if (model.ImageFile != null)
                 {
+                    var contentHash = await ComputeHashAsync(model.ImageFile);
+                    var existingMedia = await _mediaLibraryService.FindByContentHashAsync(contentHash, MediaType.Image);
+                    if (existingMedia != null)
+                    {
+                        await _mediaLibraryService.AssignAsFeaturedAsync(articleId, existingMedia.Id, userId!);
+                    }
+                    else
+                    {
                     using var stream = model.ImageFile.OpenReadStream();
                     var (thumb, medium, large, xl) =
                         await _imageService.SaveArticleImagesAsync(stream, articleId, _env.WebRootPath);
@@ -459,11 +468,13 @@ namespace BolNews.Web.Areas.Admin.Controllers
                         Caption = model.FeaturedImageCaption,
                         Credit = model.FeaturedImageCredit,
                         OriginalFileName = model.ImageFile.FileName,
+                        ContentHash = contentHash,
                         TagsInput = model.FeaturedImageTagsInput
                     }, userId!);
 
                     await _mediaLibraryService.SetStorageAsync(mediaId, xl, thumb, medium, large, userId!);
                     await _mediaLibraryService.AssignAsFeaturedAsync(articleId, mediaId, userId!);
+                    }
                 }
                 else if (model.FeaturedMediaId.HasValue)
                 {
@@ -742,6 +753,14 @@ namespace BolNews.Web.Areas.Admin.Controllers
                     return View(model);
                 }
 
+                var contentHash = await ComputeHashAsync(model.ImageFile);
+                var existingMedia = await _mediaLibraryService.FindByContentHashAsync(contentHash, MediaType.Image);
+                if (existingMedia != null)
+                {
+                    await _mediaLibraryService.AssignAsFeaturedAsync(model.Id, existingMedia.Id, user.Id);
+                }
+                else
+                {
                 _imageService.DeleteArticleImages(
                     model.Id,
                     _env.WebRootPath);
@@ -765,10 +784,12 @@ namespace BolNews.Web.Areas.Admin.Controllers
                     MediaType = MediaType.Image, Url = xl, ThumbnailUrl = thumb, MediumUrl = medium,
                     LargeUrl = large, AltText = model.FeaturedImageAltText, Caption = model.FeaturedImageCaption,
                     Credit = model.FeaturedImageCredit, OriginalFileName = model.ImageFile.FileName,
+                    ContentHash = contentHash,
                     TagsInput = model.FeaturedImageTagsInput
                 }, user.Id);
                 await _mediaLibraryService.SetStorageAsync(mediaId, xl, thumb, medium, large, user.Id);
                 await _mediaLibraryService.AssignAsFeaturedAsync(model.Id, mediaId, user.Id);
+                }
             }
             else if (model.FeaturedMediaId.HasValue)
                 await _mediaLibraryService.AssignAsFeaturedAsync(model.Id, model.FeaturedMediaId.Value, user.Id);
@@ -792,6 +813,11 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _cacheService.Remove(CacheKeys.Trending("month"));
             _cacheService.InvalidateHomePage();
 
+            for (int count = 1; count <= 20; count++)
+            {
+                _cacheService.Remove(CacheKeys.LatestNewsFiltered(count));
+            }
+
             _cacheService.Remove(CacheKeys.Dashboard);
             _cacheService.Remove(CacheKeys.Sitemap + "_index");
             _cacheService.Remove(CacheKeys.Sitemap + "_articles");
@@ -805,6 +831,12 @@ namespace BolNews.Web.Areas.Admin.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        private static async Task<string> ComputeHashAsync(IFormFile file)
+        {
+            await using var stream = file.OpenReadStream();
+            return Convert.ToHexString(await SHA256.HashDataAsync(stream));
         }
         [HttpPost]
         //[IgnoreAntiforgeryToken]
