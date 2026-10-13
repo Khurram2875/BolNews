@@ -222,10 +222,6 @@
 			</aside>
 			
 		</div>   <!-- closes .row g-4 -->
-		<div class="bn-ad-code-block bn-ad-slot-incontent"
-			 aria-label="Advertisement">
-			<div id="Bolnews_Incontent_Lazy"></div>
-		</div>
 		@if (Model.RelatedArticles != null && Model.RelatedArticles.Any())
 		{
 			<div style="margin-top:40px;padding-top:24px;border-top:1px solid var(--bn-border);">
@@ -274,12 +270,18 @@
 				const body = document.querySelector('.bn-article-body');
 				if (!body) return;
 
-				const paragraphs = Array.from(body.querySelectorAll(':scope > p'));
-				if (paragraphs.length === 0) return;
+				const paragraphs = Array.from(body.querySelectorAll(':scope > p'))
+					.filter(function (paragraph) {
+						return paragraph.textContent.trim().length > 0 ||
+							paragraph.querySelector('img, iframe, video, audio, blockquote, .quill-social-embed');
+					});
+
+				if (paragraphs.length < 2) return;
 
 				function makeAdSlot(id, isRepeater) {
 					const wrapper = document.createElement('div');
 					wrapper.className = 'bn-ad-slot bn-ad-slot-incontent';
+					wrapper.setAttribute('aria-label', 'Advertisement');
 
 					const inner = document.createElement('div');
 					if (isRepeater) {
@@ -293,14 +295,50 @@
 					return wrapper;
 				}
 
-				// First ad: right after paragraph 1
-				paragraphs[0].insertAdjacentElement('afterend', makeAdSlot('Bolnews_Incontent_Lazy', false));
+				const insertions = [
+					{
+						key: 'after-second',
+						index: 1,
+						position: 'afterend',
+						id: 'Bolnews_Incontent_Lazy',
+						isRepeater: false
+					}
+				];
 
-				// Repeater: after every 4th paragraph from there on
-				const REPEAT_EVERY = 4;
-				for (let i = REPEAT_EVERY; i < paragraphs.length; i += REPEAT_EVERY) {
-					paragraphs[i].insertAdjacentElement('afterend', makeAdSlot(null, true));
+				if (paragraphs.length >= 4) {
+					insertions.push({
+						key: 'before-last',
+						index: paragraphs.length - 1,
+						position: 'beforebegin',
+						id: null,
+						isRepeater: true
+					});
 				}
+
+				if (paragraphs.length >= 8) {
+					const middleIndex = Math.max(2, Math.floor(paragraphs.length / 2) - 1);
+					insertions.push({
+						key: 'middle',
+						index: Math.min(middleIndex, paragraphs.length - 3),
+						position: 'afterend',
+						id: null,
+						isRepeater: true
+					});
+				}
+
+				const usedPositions = new Set();
+				insertions
+					.filter(function (insertion) {
+						const key = insertion.position + ':' + insertion.index;
+						if (usedPositions.has(key)) return false;
+						usedPositions.add(key);
+						return insertion.index >= 0 && insertion.index < paragraphs.length;
+					})
+					.forEach(function (insertion) {
+						paragraphs[insertion.index].insertAdjacentElement(
+							insertion.position,
+							makeAdSlot(insertion.id, insertion.isRepeater));
+					});
 			})();
 
 			// ==========================================

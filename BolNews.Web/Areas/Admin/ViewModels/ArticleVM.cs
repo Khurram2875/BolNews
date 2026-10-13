@@ -26,7 +26,7 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         public string MetaDescription { get; set; }
 
         [Required]
-        [StringLength(1000)]
+        [StringLength(180, ErrorMessage = "Summary cannot exceed 180 characters.")]
         public string Summary { get; set; } = string.Empty;
 
         [Required]

@@ -275,6 +275,8 @@
     // Makes Quill available in DevTools.
     window.quill = quill;
 
+    initializeSummaryCounter();
+
 
     quill.clipboard.addMatcher(
         'div.quill-social-embed',
@@ -1619,6 +1621,81 @@
     // HTML HELPERS
     // ============================================================
 
+    function initializeSummaryCounter() {
+
+        const summaryInput =
+            document.getElementById('Summary');
+
+        if (!summaryInput) {
+            return;
+        }
+
+        const maxLength =
+            Number(summaryInput.dataset.summaryMaxlength || summaryInput.maxLength || 180);
+
+        const usedCounter =
+            document.querySelector('[data-summary-used]');
+
+        const remainingCounter =
+            document.querySelector('[data-summary-remaining]');
+
+        const counterWrapper =
+            document.querySelector('[data-summary-counter]');
+
+        function updateSummaryCounter() {
+
+            if (
+                summaryInput.value.length > maxLength
+            ) {
+                summaryInput.value =
+                    summaryInput.value.slice(
+                        0,
+                        maxLength
+                    );
+            }
+
+            const used =
+                summaryInput.value.length;
+
+            const remaining =
+                Math.max(
+                    maxLength - used,
+                    0
+                );
+
+            if (usedCounter) {
+                usedCounter.textContent =
+                    used.toString();
+            }
+
+            if (remainingCounter) {
+                remainingCounter.textContent =
+                    remaining.toString();
+            }
+
+            counterWrapper
+                ?.classList
+                .toggle(
+                    'text-danger',
+                    remaining === 0
+                );
+
+            counterWrapper
+                ?.classList
+                .toggle(
+                    'text-muted',
+                    remaining > 0
+                );
+        }
+
+        summaryInput.addEventListener(
+            'input',
+            updateSummaryCounter
+        );
+
+        updateSummaryCounter();
+    }
+
     function escapeHtml(value) {
 
         const div =
@@ -1670,6 +1747,51 @@
                     span.replaceWith(
                         ...span.childNodes
                     );
+                }
+            );
+
+
+        // --------------------------------------------------------
+        // KEEP PARAGRAPH SPACING CONTROLLED BY ENTERS ONLY
+        // --------------------------------------------------------
+
+        div.querySelectorAll('p')
+            .forEach(
+                function (paragraph) {
+
+                    const style =
+                        paragraph.getAttribute(
+                            'style'
+                        );
+
+                    if (!style) {
+                        return;
+                    }
+
+                    const cleanedStyle =
+                        style
+                            .split(';')
+                            .map(function (rule) {
+                                return rule.trim();
+                            })
+                            .filter(function (rule) {
+                                return rule &&
+                                    !/^margin(?:-(?:top|bottom|block(?:-start|-end)?))?\s*:/i.test(rule) &&
+                                    !/^padding(?:-(?:top|bottom|block(?:-start|-end)?))?\s*:/i.test(rule);
+                            })
+                            .join('; ');
+
+                    if (cleanedStyle) {
+                        paragraph.setAttribute(
+                            'style',
+                            cleanedStyle
+                        );
+                    }
+                    else {
+                        paragraph.removeAttribute(
+                            'style'
+                        );
+                    }
                 }
             );
 

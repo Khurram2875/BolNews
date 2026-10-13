@@ -1568,6 +1568,11 @@ body.nav-fixed {
     line-height: 1.8;
 }
 
+    #editor .ql-editor p {
+        margin: 0;
+        padding: 0;
+    }
+
     #editor .ql-editor img {
         max-width: 100%;
         height: auto !important;
@@ -3774,15 +3779,10 @@ body,
     color: #000000;
 }
 
-    .bn-article-body p {
-        margin-top: 0em;
-        margin-bottom: 0em;
-    }
-
-        .bn-article-body p:has(> br:only-child) {
-            margin: 0;
-            display: none;
-        }
+.bn-article-body p {
+    margin: 0;
+    padding: 0;
+}
 
     .bn-article-body h2 {
         font-family: var(--bn-font-display);
