@@ -96,8 +96,123 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         });
     });
+
+    initializeCollapsibleAdSlots();
 });
 
 function trackImpression(articleId) {
     fetch('/analytics/impression/' + articleId, { method: 'POST' });
+}
+
+function initializeCollapsibleAdSlots() {
+    const adRoots = document.querySelectorAll('[data-ad-slot]');
+
+    if (!adRoots.length) {
+        return;
+    }
+
+    adRoots.forEach(function (adRoot) {
+        const shell =
+            adRoot.closest('.bn-ad-slot, .bn-ad-code-block') || adRoot;
+
+        if (
+            shell.classList.contains('bn-ad-slot-incontent') ||
+            shell.closest('.bn-ad-slot-incontent')
+        ) {
+            return;
+        }
+
+        shell.classList.add('bn-ad-collapsible');
+
+        let hasShownAdContent = false;
+        let evaluateTimer = null;
+
+        function isHidden(element) {
+            const style = window.getComputedStyle(element);
+
+            return style.display === 'none' ||
+                style.visibility === 'hidden' ||
+                style.opacity === '0' ||
+                element.hidden ||
+                element.getAttribute('aria-hidden') === 'true';
+        }
+
+        function hasVisibleAdContent() {
+            if (isHidden(adRoot)) {
+                return false;
+            }
+
+            const candidates = adRoot.querySelectorAll(
+                'iframe, img, ins, object, embed, a, [role="img"]'
+            );
+
+            return Array.from(candidates).some(function (element) {
+                if (isHidden(element)) {
+                    return false;
+                }
+
+                const rect = element.getBoundingClientRect();
+
+                return rect.width > 2 &&
+                    rect.height > 2 &&
+                    (
+                        element.tagName === 'IFRAME' ||
+                        element.tagName === 'IMG' ||
+                        element.tagName === 'OBJECT' ||
+                        element.tagName === 'EMBED' ||
+                        element.textContent.trim().length > 0 ||
+                        element.hasAttribute('src') ||
+                        element.hasAttribute('href')
+                    );
+            });
+        }
+
+        function setCollapsed(shouldCollapse) {
+            shell.classList.toggle('bn-ad-collapsed', shouldCollapse);
+            adRoot.toggleAttribute('data-ad-empty', shouldCollapse);
+        }
+
+        function evaluate(forceCollapseWhenEmpty) {
+            const hasContent = hasVisibleAdContent();
+
+            if (hasContent) {
+                hasShownAdContent = true;
+                setCollapsed(false);
+                return;
+            }
+
+            setCollapsed(hasShownAdContent || forceCollapseWhenEmpty);
+        }
+
+        function scheduleEvaluation(forceCollapseWhenEmpty) {
+            window.clearTimeout(evaluateTimer);
+
+            evaluateTimer = window.setTimeout(function () {
+                evaluate(forceCollapseWhenEmpty);
+            }, 250);
+        }
+
+        const observer = new MutationObserver(function () {
+            scheduleEvaluation(false);
+        });
+
+        observer.observe(adRoot, {
+            attributes: true,
+            attributeFilter: ['class', 'style', 'hidden', 'aria-hidden'],
+            childList: true,
+            subtree: true
+        });
+
+        window.setTimeout(function () {
+            evaluate(false);
+        }, 1500);
+
+        window.setTimeout(function () {
+            evaluate(true);
+        }, 10000);
+
+        window.addEventListener('resize', function () {
+            scheduleEvaluation(false);
+        }, { passive: true });
+    });
 }

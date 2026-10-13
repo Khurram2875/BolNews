@@ -3635,9 +3635,49 @@ body,
     justify-content: center;
 }
 
+.bn-ad-code-block.bn-ad-collapsible,
+.bn-ad-slot.bn-ad-collapsible {
+    transition: min-height 0.2s ease, margin 0.2s ease;
+}
+
+.bn-ad-code-block.bn-ad-collapsed {
+    min-height: 0;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.bn-ad-code-block.bn-ad-collapsed > div {
+    min-height: 0 !important;
+    height: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+}
+
+.bn-ad-slot.bn-ad-collapsed {
+    min-height: 0;
+    margin-top: 4px !important;
+    margin-bottom: 4px !important;
+    align-items: flex-start;
+}
+
+.bn-ad-slot.bn-ad-collapsed > div {
+    min-height: 0 !important;
+    height: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+}
+
 .bn-ad-slot-incontent {
     margin: 10px 0;
     min-height: 250px;
+}
+
+.bn-ad-slot-incontent.bn-ad-collapsed,
+.bn-ad-slot-incontent.bn-ad-collapsed > div {
+    min-height: 250px !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: hidden;
 }
 
 #Bolnews_Top_Leaderboard_ATF,
