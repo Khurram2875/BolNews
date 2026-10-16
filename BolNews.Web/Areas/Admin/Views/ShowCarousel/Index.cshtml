@@ -1,0 +1,55 @@
+@{
+    ViewData["Title"] = "Shows Carousel";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var available = (List<string>)ViewBag.Available;
+    var selected = (HashSet<string>)ViewBag.Selected;
+}
+<h2 class="mb-3">Shows carousel</h2>
+<p class="text-muted">Upload images, select which ones appear on the home page, and drag them into display order.</p>
+@if (TempData["Success"] is string success) { <div class="alert alert-success">@success</div> }
+@if (TempData["Error"] is string error) { <div class="alert alert-danger">@error</div> }
+<form asp-action="Upload" method="post" enctype="multipart/form-data" class="card card-body mb-4">
+    @Html.AntiForgeryToken()
+    <label class="form-label" for="upload">Upload a show image (WEBP, JPG, PNG; up to 15 MB)</label>
+    <div class="input-group"><input id="upload" name="upload" type="file" accept=".webp,.jpg,.jpeg,.png" class="form-control" required /><button class="btn btn-outline-primary">Upload</button></div>
+</form>
+<form asp-action="Save" method="post">
+    @Html.AntiForgeryToken()
+    <div id="carousel-images" class="row row-cols-1 row-cols-sm-2 row-cols-lg-5 g-3">
+    @foreach (var name in available)
+    {
+        <div class="col carousel-image" draggable="true">
+            <div class="card h-100">
+                <img src="/images/shows/@name" alt="Show carousel image" class="card-img-top" style="height:230px;object-fit:fill" />
+                <div class="card-body d-flex align-items-center gap-2">
+                    <i class="bi bi-grip-vertical text-muted" aria-label="Drag to reorder"></i>
+                    <input class="form-check-input" type="checkbox" name="selectedImages" value="@name" id="img-@name" checked="@(selected.Contains(name))" />
+                    <label class="form-check-label text-truncate" for="img-@name">@name</label>
+                </div>
+                <div class="card-footer bg-white">
+                    <form asp-action="Delete" method="post" onsubmit="return confirm('Permanently delete this image from the server? This cannot be undone.');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="name" value="@name" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Delete file</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+    </div>
+    @if (available.Count == 0) { <p class="text-muted">No show images uploaded yet.</p> }
+    <button class="btn btn-primary mt-3">Save carousel and order</button>
+</form>
+@section Scripts {
+<script>
+(() => {
+    const list = document.getElementById('carousel-images'); let dragged;
+    list?.querySelectorAll('.carousel-image').forEach(card => {
+        card.addEventListener('dragstart', () => { dragged = card; card.classList.add('opacity-50'); });
+        card.addEventListener('dragend', () => { card.classList.remove('opacity-50'); dragged = null; });
+        card.addEventListener('dragover', e => e.preventDefault());
+        card.addEventListener('drop', e => { e.preventDefault(); if (dragged && dragged !== card) list.insertBefore(dragged, card); });
+    });
+})();
+</script>
+}

@@ -11,5 +11,6 @@
         public List<PublicArticleVM> FeaturedStories { get; set; }    = new();
         public List<CategorySectionVM> CategorySections { get; set; } = new();
         public string? BaseUrl { get; set; }
+        public List<string> ShowCarouselImages { get; set; } = new();
     }
 }

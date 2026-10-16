@@ -4,6 +4,7 @@ using BolNews.Application.Interfaces;
 using BolNews.Domain.Common;
 using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Models;
+using BolNews.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
@@ -20,8 +21,9 @@ namespace BolNews.Web.Controllers
         private static readonly SemaphoreSlim _homeCacheLock = new(1, 1);
         private readonly IMemoryCache _cache;
         private readonly IEditorialCategoryConfigurationService _editorialCategoryConfigurationService;
+        private readonly ShowCarouselService _showCarouselService;
         private static CancellationTokenSource ResetToken = new CancellationTokenSource();
-        public HomeController(ILogger<HomeController> logger, ICategoryService categoryService, IArticleService articleService, IMapper mapper, IMemoryCache cache, IEditorialPlacementService editorialPlacementService, IEditorialCategoryConfigurationService editorialCategoryConfigurationService)
+        public HomeController(ILogger<HomeController> logger, ICategoryService categoryService, IArticleService articleService, IMapper mapper, IMemoryCache cache, IEditorialPlacementService editorialPlacementService, IEditorialCategoryConfigurationService editorialCategoryConfigurationService, ShowCarouselService showCarouselService)
         {
             _logger = logger;
             _categoryService = categoryService;
@@ -30,6 +32,7 @@ namespace BolNews.Web.Controllers
             _cache = cache;
             _editorialPlacementService = editorialPlacementService;
             _editorialCategoryConfigurationService = editorialCategoryConfigurationService;
+            _showCarouselService = showCarouselService;
         }
 
         public async Task<IActionResult> Index(string type = "today")
@@ -75,6 +78,7 @@ namespace BolNews.Web.Controllers
             }
 
             ViewBag.Type = type;
+            vm.ShowCarouselImages = (await _showCarouselService.GetImagesAsync()).Select(x => "/images/shows/" + x).ToList();
             ViewBag.MetaTitle = "Bol News – Pakistan Breaking News, Politics, Business, Sports & Entertainment";
             ViewBag.MetaDescription = "Bol News delivers breaking news, in-depth analysis and live coverage from Pakistan and around the world — politics, business, sports, entertainment and technology.";
             return View(vm);

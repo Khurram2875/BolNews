@@ -24,6 +24,7 @@ builder.Services.AddApplicationServices(builder.Configuration);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<BolNews.Web.Services.ShowCarouselService>();
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);

@@ -1,6 +1,4 @@
 ﻿@using BolNews.Web.Areas.Admin.ViewModels
-@using System.IO
-@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment WebHostEnvironment
 @model HomePageVM
 
 @section Styles {
@@ -57,24 +55,7 @@
 
     var secondaryCards = secondaryStories.Skip(10).Take(12).ToList();
 
-    string relativePath = "/images/shows/";
-    string folderPath = System.IO.Path.Combine(WebHostEnvironment.WebRootPath, "images", "shows");
-    List<string> imagePaths = new List<string>();
-
-    if (Directory.Exists(folderPath))
-    {
-        var files = Directory.GetFiles(folderPath, "*.*")
-            .Where(s => s.EndsWith(".webp", StringComparison.OrdinalIgnoreCase)
-                || s.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
-                || s.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
-            .ToList();
-
-        foreach (var filePath in files)
-        {
-            string fileName = System.IO.Path.GetFileName(filePath);
-            imagePaths.Add(relativePath + fileName);
-        }
-    }
+    var imagePaths = Model.ShowCarouselImages;
 }
 
 <h1 class="visually-hidden">Bol News – Pakistan Breaking News, Politics, Business, Sports & Entertainment</h1>

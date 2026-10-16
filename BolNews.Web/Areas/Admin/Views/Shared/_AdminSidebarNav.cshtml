@@ -36,6 +36,14 @@
             <i class="bi bi-collection me-2"></i> Media Library
         </a>
     </li>
+    @if (User.IsInRole("Admin"))
+    {
+        <li class="nav-item">
+            <a class="nav-link @IsActive("ShowCarousel")" asp-area="Admin" asp-controller="ShowCarousel" asp-action="Index">
+                <i class="bi bi-images me-2"></i> Shows Carousel
+            </a>
+        </li>
+    }
     <li class="nav-item">
         <a class="nav-link @IsActive("BreakingNews")" asp-area="Admin" asp-controller="BreakingNews" asp-action="Index">
             <i class="bi bi-megaphone me-2"></i> Breaking News
