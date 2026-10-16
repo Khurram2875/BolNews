@@ -101,6 +101,13 @@
 						</a>
 						
 						<div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+							<button type="button" class="bn-article-audio-button" data-article-audio-button
+									aria-label="Listen to article" title="Listen to article" aria-pressed="false"
+									style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--bn-surface-alt);color:var(--bn-text-body);border:1px solid var(--bn-border);cursor:pointer;">
+								<svg data-audio-icon-play width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4.03v8.05A4.5 4.5 0 0 0 16.5 12zM14 3.23v2.06a7 7 0 0 1 0 13.42v2.06a9 9 0 0 0 0-17.54z" /></svg>
+								<svg data-audio-icon-stop width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" hidden><path d="M6 6h12v12H6z" /></svg>
+							</button>
+							<span data-article-audio-status class="visually-hidden" aria-live="polite"></span>
 							<a href="https://wa.me/?text=@Uri.EscapeDataString($"{Model.Article.Title} - {articleUrl}")"
 							   target="_blank" rel="noopener" aria-label="Share on WhatsApp"
 							   style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#25d366;color:#fff;">
@@ -260,6 +267,7 @@
 <script type="application/ld+json">@Html.Raw(Model.BreadcrumbSchemaJson)</script>
 @section Scripts
 {
+	<script src="~/js/article-audio.js" asp-append-version="true"></script>
 	<script>
 		document.addEventListener('DOMContentLoaded', function () {
 
