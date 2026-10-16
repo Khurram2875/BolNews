@@ -1,0 +1,15 @@
+@{
+    ViewData["Title"] = "Two-factor sign-in";
+}
+<div class="container py-5" style="max-width:480px">
+    <h1 class="h3">Two-factor sign-in</h1>
+    <p>Enter the current six-digit code from your authenticator app. You can also enter one of your recovery codes.</p>
+    <form asp-action="LoginWithAuthenticator" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <label for="code" class="form-label">Authenticator or recovery code</label>
+        <input id="code" name="code" class="form-control mb-3" autocomplete="one-time-code" inputmode="numeric" required autofocus />
+        <div class="form-check mb-3"><input id="recoveryCode" name="recoveryCode" type="checkbox" value="true" class="form-check-input" /><label for="recoveryCode" class="form-check-label">This is a recovery code</label></div>
+        <button class="btn btn-primary w-100" type="submit">Verify and sign in</button>
+    </form>
+</div>

@@ -22,7 +22,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplicationServices(builder.Configuration);
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+    options.Filters.AddService<BolNews.Web.Filters.AdminTwoFactorEnrollmentFilter>());
+builder.Services.AddScoped<BolNews.Web.Filters.AdminTwoFactorEnrollmentFilter>();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<BolNews.Web.Services.ShowCarouselService>();
 builder.Services.AddSession(options =>
@@ -118,6 +120,15 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 });
 
 app.UseHttpsRedirection();
+// Keep the small two-factor HTML response uncompressed while diagnosing browser
+// content-decoding failures observed on the local authenticator sign-in page.
+app.Use(async (context, next) =>
+{
+    if (string.Equals(context.Request.Path.Value, "/Account/LoginWithAuthenticator", StringComparison.OrdinalIgnoreCase))
+        context.Request.Headers.Remove("Accept-Encoding");
+
+    await next();
+});
 app.UseResponseCompression();
 app.UseStaticFiles(new StaticFileOptions
 {

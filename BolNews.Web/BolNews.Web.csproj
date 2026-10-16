@@ -21,6 +21,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.23" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
+    <PackageReference Include="QRCoder" Version="1.6.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
 
@@ -42,9 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- User-uploaded files stay outside build and publish artifacts. -->
-    <Content Update="wwwroot\uploads\**"
-             CopyToOutputDirectory="Never"
-             CopyToPublishDirectory="Never" />
+    <Content Update="wwwroot\uploads\**" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
   </ItemGroup>
   <ItemGroup>
     <!-- Publishes only the dedicated fuel-price background asset from this new folder. -->

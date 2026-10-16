@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Set up authenticator";
+    var key = (string?)ViewBag.AuthenticatorKey ?? "";
+}
+<div class="container py-5" style="max-width:620px">
+    <h1 class="h3">Set up two-factor authentication</h1>
+    <p>Admin access requires a second verification step. In Google Authenticator (or another TOTP app), scan this QR code or add an account using the key below:</p>
+    <div class="text-center mb-3"><img src="@ViewBag.AuthenticatorQrCode" alt="Authenticator setup QR code" width="220" height="220" class="border rounded p-2" /></div>
+    <div class="alert alert-secondary"><strong>Account:</strong> @ViewBag.AccountName<br /><strong>Key:</strong> <code class="user-select-all">@key</code></div>
+    <p>Enter the six-digit code shown by the app to verify setup. Store the recovery codes shown next in a safe place.</p>
+    <form asp-action="EnableAuthenticator" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <label for="code" class="form-label">Authenticator code</label>
+        <input id="code" name="code" class="form-control mb-3" autocomplete="one-time-code" inputmode="numeric" required autofocus />
+        <button class="btn btn-primary" type="submit">Verify and enable</button>
+    </form>
+</div>

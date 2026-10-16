@@ -1,0 +1,12 @@
+@model IEnumerable<string>
+@{
+    ViewData["Title"] = "Save recovery codes";
+}
+<div class="container py-5" style="max-width:620px">
+    <h1 class="h3">Authenticator enabled</h1>
+    <p>Save these recovery codes somewhere secure. Each code can be used once if you lose access to your authenticator.</p>
+    <ul class="list-group mb-3">
+    @foreach (var code in Model) { <li class="list-group-item"><code>@code</code></li> }
+    </ul>
+    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="btn btn-primary">Continue to admin</a>
+</div>

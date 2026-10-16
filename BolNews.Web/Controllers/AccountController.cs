@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+using QRCoder;
 
 namespace BolNews.Web.Controllers
 {
@@ -108,11 +109,110 @@ namespace BolNews.Web.Controllers
                     routeValues: new { area = "" });
             }
 
+            if (result.RequiresTwoFactor)
+                return RedirectToAction(nameof(LoginWithAuthenticator));
+
             ModelState.AddModelError("", "Invalid email or password");
 
             _logger.LogWarning("Failed login attempt for {Email}.", email);
 
             return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> LoginWithAuthenticator()
+        {
+            // This step is only valid after Identity has established its temporary
+            // two-factor sign-in state following a correct password.
+            if (await _signInManager.GetTwoFactorAuthenticationUserAsync() == null)
+                return RedirectToAction(nameof(Login));
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoginWithAuthenticator(string code, bool recoveryCode = false)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                ModelState.AddModelError(string.Empty, "Enter an authenticator or recovery code.");
+                return View();
+            }
+
+            var pendingUser = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            var result = recoveryCode
+                ? await _signInManager.TwoFactorRecoveryCodeSignInAsync(code.Trim())
+                : await _signInManager.TwoFactorAuthenticatorSignInAsync(code.Replace(" ", "").Replace("-", ""), false, false);
+
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, "The code is invalid or has already been used.");
+                return View();
+            }
+
+            if (pendingUser != null && (await _userManager.GetRolesAsync(pendingUser)).Contains(Roles.Admin))
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+
+            return RedirectToAction("Index", "Home", new { area = "" });
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> EnableAuthenticator()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction(nameof(Login));
+            if (await _userManager.GetTwoFactorEnabledAsync(user))
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+
+            var key = await _userManager.GetAuthenticatorKeyAsync(user);
+            if (string.IsNullOrEmpty(key))
+            {
+                var reset = await _userManager.ResetAuthenticatorKeyAsync(user);
+                if (!reset.Succeeded) return StatusCode(500);
+                key = await _userManager.GetAuthenticatorKeyAsync(user);
+            }
+            ViewBag.AuthenticatorKey = key;
+            ViewBag.AccountName = user.Email ?? user.UserName;
+            ViewBag.AuthenticatorQrCode = CreateAuthenticatorQrCode(key!, ViewBag.AccountName);
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EnableAuthenticator(string code)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction(nameof(Login));
+            var valid = !string.IsNullOrWhiteSpace(code) && await _userManager.VerifyTwoFactorTokenAsync(
+                user, _userManager.Options.Tokens.AuthenticatorTokenProvider, code.Replace(" ", "").Replace("-", ""));
+            if (!valid)
+            {
+                ModelState.AddModelError(nameof(code), "That code is not valid. Check the time on your phone and try again.");
+                var key = await _userManager.GetAuthenticatorKeyAsync(user);
+                ViewBag.AuthenticatorKey = key;
+                ViewBag.AccountName = user.Email ?? user.UserName;
+                ViewBag.AuthenticatorQrCode = CreateAuthenticatorQrCode(key!, ViewBag.AccountName);
+                return View();
+            }
+
+            var enabled = await _userManager.SetTwoFactorEnabledAsync(user, true);
+            if (!enabled.Succeeded) return StatusCode(500);
+            var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+            await _signInManager.RefreshSignInAsync(user);
+            return View("RecoveryCodes", recoveryCodes);
+        }
+
+        private static string CreateAuthenticatorQrCode(string key, string accountName)
+        {
+            const string issuer = "Bol News";
+            var label = Uri.EscapeDataString($"{issuer}:{accountName}");
+            var uri = $"otpauth://totp/{label}?secret={Uri.EscapeDataString(key)}&issuer={Uri.EscapeDataString(issuer)}&digits=6";
+            using var generator = new QRCodeGenerator();
+            using var data = generator.CreateQrCode(uri, QRCodeGenerator.ECCLevel.Q);
+            var png = new PngByteQRCode(data).GetGraphic(8);
+            return "data:image/png;base64," + Convert.ToBase64String(png);
         }
         [HttpPost]
         [ValidateAntiForgeryToken]

@@ -1,7 +1,13 @@
-﻿@{
+@{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
     string IsActive(string controller) =>
         string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+    var adminMenuId = "admin-menu-" + Guid.NewGuid().ToString("N");
+    var toolsMenuId = "tools-menu-" + Guid.NewGuid().ToString("N");
+    var adminOpen = new[] { "Dashboard", "User", "ShowCarousel", "Categories", "Author" }
+        .Contains(currentController, StringComparer.OrdinalIgnoreCase);
+    var toolsOpen = new[] { "Articles", "MediaLibrary", "BreakingNews", "FuelPrices", "EditorialPlacements", "Reporters" }
+        .Contains(currentController, StringComparer.OrdinalIgnoreCase);
 }
 <ul class="nav flex-column mb-auto">
     <li>@await Component.InvokeAsync("NotificationBell")</li>
@@ -16,65 +22,93 @@
             <i class="bi bi-globe2 me-2"></i> News Home
         </a>
     </li>
-    <li class="nav-item">
-        <a class="nav-link @IsActive("Dashboard")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
-            <i class="bi bi-speedometer2 me-2"></i> Dashboard
-        </a>
+
+    <li class="nav-item mt-3">
+        <button class="btn btn-link nav-link text-white-50 text-uppercase small fw-semibold text-decoration-none w-100 d-flex justify-content-between align-items-center px-3 py-2"
+                type="button" data-bs-toggle="collapse" data-bs-target="#@adminMenuId"
+                aria-expanded="@adminOpen.ToString().ToLowerInvariant()" aria-controls="@adminMenuId">
+            Administration <i class="bi bi-chevron-down"></i>
+        </button>
     </li>
     <li class="nav-item">
-        <a class="nav-link @IsActive("User")" asp-area="Admin" asp-controller="User" asp-action="Index">
-            <i class="bi bi-people me-2"></i> User Mgmt.
-        </a>
+        <div class="collapse @(adminOpen ? "show" : "")" id="@adminMenuId">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link @IsActive("Dashboard")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                        <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @IsActive("User")" asp-area="Admin" asp-controller="User" asp-action="Index">
+                        <i class="bi bi-people me-2"></i> User Mgmt.
+                    </a>
+                </li>
+                @if (User.IsInRole("Admin"))
+                {
+                    <li class="nav-item">
+                        <a class="nav-link @IsActive("ShowCarousel")" asp-area="Admin" asp-controller="ShowCarousel" asp-action="Index">
+                            <i class="bi bi-images me-2"></i> Shows Carousel
+                        </a>
+                    </li>
+                }
+                <li class="nav-item">
+                    <a class="nav-link @IsActive("Categories")" asp-area="Admin" asp-controller="Categories" asp-action="Index">
+                        <i class="bi bi-tags me-2"></i> Categories
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @IsActive("Author")" asp-area="Admin" asp-controller="Author" asp-action="Index">
+                        <i class="bi bi-person-badge me-2"></i> Authors
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </li>
+
+    <li class="nav-item mt-3">
+        <button class="btn btn-link nav-link text-white-50 text-uppercase small fw-semibold text-decoration-none w-100 d-flex justify-content-between align-items-center px-3 py-2"
+                type="button" data-bs-toggle="collapse" data-bs-target="#@toolsMenuId"
+                aria-expanded="@toolsOpen.ToString().ToLowerInvariant()" aria-controls="@toolsMenuId">
+            Content &amp; Tools <i class="bi bi-chevron-down"></i>
+        </button>
     </li>
     <li class="nav-item">
-        <a class="nav-link @IsActive("Articles")" asp-area="Admin" asp-controller="Articles" asp-action="Index">
-            <i class="bi bi-journal-text me-2"></i> Articles
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link @IsActive("MediaLibrary")" asp-area="Admin" asp-controller="MediaLibrary" asp-action="Index">
-            <i class="bi bi-collection me-2"></i> Media Library
-        </a>
-    </li>
-    @if (User.IsInRole("Admin"))
-    {
-        <li class="nav-item">
-            <a class="nav-link @IsActive("ShowCarousel")" asp-area="Admin" asp-controller="ShowCarousel" asp-action="Index">
-                <i class="bi bi-images me-2"></i> Shows Carousel
-            </a>
-        </li>
-    }
-    <li class="nav-item">
-        <a class="nav-link @IsActive("BreakingNews")" asp-area="Admin" asp-controller="BreakingNews" asp-action="Index">
-            <i class="bi bi-megaphone me-2"></i> Breaking News
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link @IsActive("Fuel Prices")" asp-area="Admin" asp-controller="FuelPrices" asp-action="Index">
-            <i class="bi bi-megaphone me-2"></i>Update Fuel Prices
-        </a>
-    </li>
-    @if (User.IsInRole("Admin") || User.IsInRole("Editor"))
-    {
-        <li class="nav-item">
-            <a class="nav-link @IsActive("EditorialPlacements")" asp-area="Admin" asp-controller="EditorialPlacements" asp-action="Index">
-                <i class="bi bi-pin-angle me-2"></i> Homepage Placement
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link @IsActive("Reporters")" asp-area="Admin" asp-controller="Reporters" asp-action="Index">
-                <i class="bi bi-person-lines-fill me-2"></i> Reporters / Sources
-            </a>
-        </li>
-    }
-    <li class="nav-item">
-        <a class="nav-link @IsActive("Categories")" asp-area="Admin" asp-controller="Categories" asp-action="Index">
-            <i class="bi bi-tags me-2"></i> Categories
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link @IsActive("Author")" asp-area="Admin" asp-controller="Author" asp-action="Index">
-            <i class="bi bi-person-badge me-2"></i> Authors
-        </a>
+        <div class="collapse @(toolsOpen ? "show" : "")" id="@toolsMenuId">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link @IsActive("Articles")" asp-area="Admin" asp-controller="Articles" asp-action="Index">
+                        <i class="bi bi-journal-text me-2"></i> Articles
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @IsActive("MediaLibrary")" asp-area="Admin" asp-controller="MediaLibrary" asp-action="Index">
+                        <i class="bi bi-collection me-2"></i> Media Library
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @IsActive("BreakingNews")" asp-area="Admin" asp-controller="BreakingNews" asp-action="Index">
+                        <i class="bi bi-megaphone me-2"></i> Breaking News
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @IsActive("FuelPrices")" asp-area="Admin" asp-controller="FuelPrices" asp-action="Index">
+                        <i class="bi bi-fuel-pump me-2"></i> Update Fuel Prices
+                    </a>
+                </li>
+                @if (User.IsInRole("Admin") || User.IsInRole("Editor"))
+                {
+                    <li class="nav-item">
+                        <a class="nav-link @IsActive("EditorialPlacements")" asp-area="Admin" asp-controller="EditorialPlacements" asp-action="Index">
+                            <i class="bi bi-pin-angle me-2"></i> Homepage Placement
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @IsActive("Reporters")" asp-area="Admin" asp-controller="Reporters" asp-action="Index">
+                            <i class="bi bi-person-lines-fill me-2"></i> Reporters / Sources
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
     </li>
 </ul>
