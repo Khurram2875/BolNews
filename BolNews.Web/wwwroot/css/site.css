@@ -3629,7 +3629,7 @@ body,
     width: 100%;
     max-width: 100%;
     overflow: hidden;
-    min-height: 250px;
+    min-height: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3637,7 +3637,25 @@ body,
 
 .bn-ad-code-block.bn-ad-collapsible,
 .bn-ad-slot.bn-ad-collapsible {
-    transition: min-height 0.2s ease, margin 0.2s ease;
+    transition: min-height 0.2s ease, margin 0.2s ease, max-height 0.2s ease;
+}
+
+.bn-ad-code-block > div,
+#Bolnews_Top_Leaderboard_ATF,
+#Bolnews_Bottom_BTF,
+#Bolnews_Sidebar_Top_ATF,
+#Bolnews_Sidebar_Bottom_BTF,
+#Bolnews_Incontent_Lazy {
+    min-height: 0;
+}
+
+.bn-ad-code-block.bn-ad-filled > div {
+    min-height: 90px;
+}
+
+.bn-ad-slot.bn-ad-filled,
+.bn-ad-slot.bn-ad-filled > div {
+    min-height: 250px;
 }
 
 .bn-ad-code-block.bn-ad-collapsed {
@@ -3669,36 +3687,16 @@ body,
 
 .bn-ad-slot-incontent {
     margin: 10px 0;
-    min-height: 250px;
-}
-
-.bn-ad-slot-incontent.bn-ad-collapsed,
-.bn-ad-slot-incontent.bn-ad-collapsed > div {
-    min-height: 250px !important;
-    height: auto !important;
-    max-height: none !important;
-    overflow: hidden;
-}
-
-#Bolnews_Top_Leaderboard_ATF,
-#Bolnews_Bottom_BTF {
-    min-height: 90px;
-}
-
-#Bolnews_Sidebar_Top_ATF,
-#Bolnews_Sidebar_Bottom_BTF,
-#Bolnews_Incontent_Lazy {
-    min-height: 250px;
+    min-height: 0;
 }
 
 @media (max-width: 767.98px) {
-    .bn-ad-code-block > div,
-    #Bolnews_Top_Leaderboard_ATF,
-    #Bolnews_Bottom_BTF {
+    .bn-ad-code-block.bn-ad-filled > div {
         min-height: 100px;
     }
 
-    .bn-ad-slot {
+    .bn-ad-slot.bn-ad-filled,
+    .bn-ad-slot.bn-ad-filled > div {
         min-height: 250px;
     }
 }

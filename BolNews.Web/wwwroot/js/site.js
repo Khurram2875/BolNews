@@ -105,22 +105,21 @@ function trackImpression(articleId) {
 }
 
 function initializeCollapsibleAdSlots() {
-    const adRoots = document.querySelectorAll('[data-ad-slot]');
+    const adSelector =
+        '[data-ad-slot], #Bolnews_Incontent_Lazy, .lazy[parent-unit="Bolnews_Incontent_Lazy"]';
 
-    if (!adRoots.length) {
-        return;
-    }
+    const watchedAdRoots =
+        new WeakSet();
 
-    adRoots.forEach(function (adRoot) {
-        const shell =
-            adRoot.closest('.bn-ad-slot, .bn-ad-code-block') || adRoot;
-
-        if (
-            shell.classList.contains('bn-ad-slot-incontent') ||
-            shell.closest('.bn-ad-slot-incontent')
-        ) {
+    function registerAdRoot(adRoot) {
+        if (!adRoot || watchedAdRoots.has(adRoot)) {
             return;
         }
+
+        watchedAdRoots.add(adRoot);
+
+        const shell =
+            adRoot.closest('.bn-ad-slot, .bn-ad-code-block') || adRoot;
 
         shell.classList.add('bn-ad-collapsible');
 
@@ -172,15 +171,22 @@ function initializeCollapsibleAdSlots() {
             adRoot.toggleAttribute('data-ad-empty', shouldCollapse);
         }
 
+        function setFilled(isFilled) {
+            shell.classList.toggle('bn-ad-filled', isFilled);
+            adRoot.toggleAttribute('data-ad-filled', isFilled);
+        }
+
         function evaluate(forceCollapseWhenEmpty) {
             const hasContent = hasVisibleAdContent();
 
             if (hasContent) {
                 hasShownAdContent = true;
+                setFilled(true);
                 setCollapsed(false);
                 return;
             }
 
+            setFilled(false);
             setCollapsed(hasShownAdContent || forceCollapseWhenEmpty);
         }
 
@@ -214,5 +220,29 @@ function initializeCollapsibleAdSlots() {
         window.addEventListener('resize', function () {
             scheduleEvaluation(false);
         }, { passive: true });
+    }
+
+    document.querySelectorAll(adSelector).forEach(registerAdRoot);
+
+    const pageObserver =
+        new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                mutation.addedNodes.forEach(function (node) {
+                    if (node.nodeType !== Node.ELEMENT_NODE) {
+                        return;
+                    }
+
+                    if (node.matches(adSelector)) {
+                        registerAdRoot(node);
+                    }
+
+                    node.querySelectorAll(adSelector).forEach(registerAdRoot);
+                });
+            });
+        });
+
+    pageObserver.observe(document.body, {
+        childList: true,
+        subtree: true
     });
 }
