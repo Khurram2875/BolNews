@@ -1,0 +1,19 @@
+@{
+    ViewData["Title"] = "Saved Articles";
+}
+<main class="bn-container" style="padding-top:32px;padding-bottom:48px;">
+    <div class="container">
+        <h1 style="font-family:var(--bn-font-display);font-size:28px;font-weight:700;color:var(--bn-text-primary);">Saved articles</h1>
+        <p style="max-width:720px;color:var(--bn-text-muted);line-height:1.7;">
+            Bookmark stories to keep them handy. Your saved articles stay in this browser on this device, so you don’t need an account. They won’t sync to other devices, and clearing this browser’s site data will remove them.
+        </p>
+        <div class="d-flex justify-content-between align-items-center my-4">
+            <p class="mb-0" data-bookmarks-count aria-live="polite"></p>
+            <button type="button" class="btn btn-outline-danger btn-sm" data-clear-bookmarks hidden>Clear saved articles</button>
+        </div>
+        <div class="row g-3" data-bookmarks-list></div>
+        <div class="alert alert-light border" data-bookmarks-empty>
+            You haven’t saved any articles yet. Open a story and select the bookmark icon to save it here.
+        </div>
+    </div>
+</main>
