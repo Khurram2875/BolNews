@@ -170,7 +170,7 @@
         })();
     </script>
 </head>
-<body>
+<body data-auto-refresh="@(ViewData["EnableTimedRefresh"] is true ? "true" : "false")">
 
     <partial name="_Header" />
 
@@ -196,6 +196,10 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/bookmarks.js" asp-append-version="true"></script>
     <script src="~/js/theme.js" asp-append-version="true"></script>
+    @if (ViewData["EnableTimedRefresh"] is true)
+    {
+        <script src="~/js/public-page-refresh.js" asp-append-version="true"></script>
+    }
     <script>
         (function () {
             var adScriptLoaded = false;

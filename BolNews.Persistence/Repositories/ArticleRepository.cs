@@ -197,7 +197,9 @@ namespace BolNews.Persistence.Repositories
             return await _context.Articles.AsNoTracking()
                 .Where(a => a.IsPublished == true && a.IsDeleted == false)
                 .OrderByDescending(a => a.PublishedAt).Take(count)
-                .Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter).ToListAsync();
+                .Include(a => a.Category).Include(a => a.Author).Include(a => a.Reporter)
+                .Include(a => a.ArticleTags).ThenInclude(articleTag => articleTag.Tag)
+                .ToListAsync();
         }
 
         public async Task<Article?> GetLatestPublishedAsync(IReadOnlyCollection<int>? excludedArticleIds = null)

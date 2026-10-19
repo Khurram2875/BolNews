@@ -99,9 +99,10 @@ namespace BolNews.Web.Services
             // 3. Internal links
             // ---------------------------------------------------------
             articleVM.Content = await _cacheService.GetOrCreateAsync(
-                $"article_content_{article.Id}",
+                $"article_content_v5_{article.Id}",
                 () => _internalLinkingService.InjectInternalLinksAsync(
-                    articleVM.Content),
+                    articleVM.Content,
+                    article.Id),
                 10);
 
             // ---------------------------------------------------------

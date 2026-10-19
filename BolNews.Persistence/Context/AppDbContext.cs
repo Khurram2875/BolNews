@@ -37,6 +37,7 @@ namespace BolNews.Persistence.Context
         public DbSet<MediaAssetTag> MediaAssetTags { get; set; }
         public DbSet<BreakingNews> BreakingNews => Set<BreakingNews>();
         public DbSet<EditorialCategoryConfiguration> EditorialCategoryConfigurations { get; set; }
+        public DbSet<ArticleInternalLinkRule> ArticleInternalLinkRules { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

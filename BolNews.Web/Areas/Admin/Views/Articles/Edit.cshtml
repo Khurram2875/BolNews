@@ -42,7 +42,21 @@
 
 <div class="card shadow-sm">
 	<div class="card-header bg-warning text-dark">
-		<h4 class="mb-0">Edit Article <span class="badge bg-success" style="font-size:x-small">by @Model.AuthorName</span></h4>
+		<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+			<h4 class="mb-0">Edit Article <span class="badge bg-success" style="font-size:x-small">by @Model.AuthorName</span></h4>
+			@if (isAdmin || isEditor || isSubEditor)
+			{
+				<a asp-area="Admin" asp-controller="InternalLinks" asp-action="Index" asp-route-articleId="@Model.Id" class="btn btn-sm btn-outline-dark">
+					<i class="bi bi-link-45deg"></i> Manage internal links
+				</a>
+			}
+					<a href="@(string.IsNullOrWhiteSpace(Model.CategorySlug) ? "#" : $"/{Model.CategorySlug.Trim('/')}/{Model.Slug.Trim('/')}")"
+					   target="_blank"
+					   rel="noopener"
+					   class="btn btn-sm btn-outline-primary">
+						<i class="bi bi-eye"></i> Preview in new tab
+					</a>
+		</div>
 	</div>
 
 	<div class="card-body">
@@ -64,13 +78,13 @@
 			</div>
 
 			<div class="mb-3">
-				<label asp-for="MetaTitle" class="form-label"></label>
+				<label asp-for="MetaTitle" class="form-label">Meta Title</label>
 				<input asp-for="MetaTitle" class="form-control" />
 				<span asp-validation-for="MetaTitle" class="text-danger"></span>
 			</div>
 
 			<div class="mb-3">
-				<label asp-for="MetaDescription" class="form-label"></label>
+				<label asp-for="MetaDescription" class="form-label">Meta Description</label>
 				<textarea asp-for="MetaDescription" class="form-control"></textarea>
 				<span asp-validation-for="MetaDescription" class="text-danger"></span>
 			</div>

@@ -28,6 +28,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IArticlePageService, ArticlePageService>();
         services.AddScoped<IUserAdminService, UserAdminService>();
         services.AddScoped<IInternalLinkingService, InternalLinkingService>();
+        services.AddScoped<IArticleInternalLinkRuleService, ArticleInternalLinkRuleService>();
         services.AddScoped<ICacheService, CacheService>();
         services.AddScoped<IAnalyticsService, AnalyticsService>();
         services.AddScoped<IAdService, AdService>();

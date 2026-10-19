@@ -2,6 +2,7 @@
 @model CategorySectionVM
 
 @{
+    ViewData["EnableTimedRefresh"] = true;
     var categoryName = Model.CategoryName ?? ViewBag.CategorySlug;
 }
 

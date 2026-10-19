@@ -4164,3 +4164,96 @@ body,
 
 
 
+/* Saved article page */
+.saved-articles-page .saved-articles-toolbar {
+    border-bottom: 1px solid var(--bn-border, #dee2e6);
+    gap: 12px;
+    margin: 26px 0 18px;
+}
+
+@media (max-width: 767.98px) {
+    .bn-article-meta-toolbar {
+        justify-content: center;
+        padding-left: 0 !important;
+    }
+
+    .bn-article-meta-date {
+        padding-left: 0 !important;
+    }
+
+    .bn-article-source-link img {
+        padding-left: 0 !important;
+    }
+
+    .bn-article-action-group {
+        justify-content: center;
+        margin-left: 0 !important;
+    }
+}
+.saved-articles-page .saved-article-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+}
+.saved-articles-page .saved-article-tab {
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--bn-text-body, #343a40);
+    cursor: pointer;
+    font: inherit;
+    padding: 10px 2px;
+}
+.saved-articles-page .saved-article-tab.active {
+    border-bottom-color: #c4161c;
+    color: #c4161c;
+    font-weight: 700;
+}
+.saved-articles-page .saved-article-tab:focus-visible {
+    outline: 2px solid #c4161c;
+    outline-offset: 3px;
+}
+.saved-articles-page .saved-article-grid .card-img-top {
+    aspect-ratio: 16 / 9;
+    height: auto !important;
+    object-fit: cover;
+}
+.saved-articles-page .saved-article-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 20px;
+}
+.saved-articles-page .saved-article-pagination[hidden] {
+    display: none;
+}
+.saved-articles-page .saved-page-button {
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background: #fff;
+    color: #343a40;
+    cursor: pointer;
+    min-width: 36px;
+    padding: 6px 10px;
+}
+.saved-articles-page .saved-page-button.active {
+    border-color: #c4161c;
+    background: #c4161c;
+    color: #fff;
+}
+.saved-articles-page .saved-page-button:disabled {
+    cursor: not-allowed;
+    opacity: .5;
+}
+.saved-articles-page .saved-articles-rail {
+    min-width: 0;
+}
+.saved-articles-page .saved-rail-section + .saved-rail-section {
+    margin-top: 30px;
+}
+@media (max-width: 991.98px) {
+    .saved-articles-page .saved-articles-rail {
+        margin-top: 12px;
+    }
+}

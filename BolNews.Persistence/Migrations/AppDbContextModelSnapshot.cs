@@ -361,7 +361,7 @@ namespace BolNews.Persistence.Migrations
 
                     b.HasIndex("ArticleId");
 
-                    b.ToTable("ArticleAnalytics", (string)null);
+                    b.ToTable("ArticleAnalytics");
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.ArticleDiscussionComment", b =>
@@ -396,7 +396,48 @@ namespace BolNews.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ArticleDiscussionComments", (string)null);
+                    b.ToTable("ArticleDiscussionComments");
+                });
+
+            modelBuilder.Entity("BolNews.Domain.Entities.ArticleInternalLinkRule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AnchorText")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<int>("RuleType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SourceArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TargetArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TargetUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("varchar(2048)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceArticleId")
+                        .HasDatabaseName("IX_ArticleInternalLinkRules_SourceArticleId");
+
+                    b.HasIndex("TargetArticleId")
+                        .HasDatabaseName("IX_ArticleInternalLinkRules_TargetArticleId");
+
+                    b.ToTable("ArticleInternalLinkRules", (string)null);
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.ArticleRevision", b =>
@@ -489,7 +530,7 @@ namespace BolNews.Persistence.Migrations
                     b.HasIndex("ArticleId", "RevisionNumber")
                         .IsUnique();
 
-                    b.ToTable("ArticleRevisions", (string)null);
+                    b.ToTable("ArticleRevisions");
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.ArticleTag", b =>
@@ -883,6 +924,10 @@ namespace BolNews.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
 
+                    b.Property<string>("ContentHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -926,6 +971,9 @@ namespace BolNews.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Caption");
+
+                    b.HasIndex("MediaType", "ContentHash")
+                        .IsUnique();
 
                     b.HasIndex("MediaType", "CreatedAt");
 
@@ -992,7 +1040,7 @@ namespace BolNews.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.Reporter", b =>
@@ -1035,7 +1083,7 @@ namespace BolNews.Persistence.Migrations
 
                     b.HasIndex("Slug");
 
-                    b.ToTable("Reporters", (string)null);
+                    b.ToTable("Reporters");
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.Tag", b =>
@@ -1291,6 +1339,24 @@ namespace BolNews.Persistence.Migrations
                     b.Navigation("Article");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BolNews.Domain.Entities.ArticleInternalLinkRule", b =>
+                {
+                    b.HasOne("BolNews.Domain.Entities.Article", "SourceArticle")
+                        .WithMany()
+                        .HasForeignKey("SourceArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BolNews.Domain.Entities.Article", "TargetArticle")
+                        .WithMany()
+                        .HasForeignKey("TargetArticleId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("SourceArticle");
+
+                    b.Navigation("TargetArticle");
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.ArticleRevision", b =>

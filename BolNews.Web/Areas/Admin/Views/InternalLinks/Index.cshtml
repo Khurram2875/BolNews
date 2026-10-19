@@ -1,0 +1,220 @@
+@using BolNews.Domain.Enums
+@model BolNews.Web.Areas.Admin.ViewModels.InternalLinksManageVM
+@{
+    ViewData["Title"] = "Internal Links";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h2 class="mb-1">Internal links</h2>
+        @if (Model.SourceArticleId.HasValue)
+        {
+            <div class="text-muted">Managing links for: <strong>@Model.SourceArticleTitle</strong></div>
+        }
+        else
+        {
+            <div class="text-muted">Choose a published source article to manage its internal links.</div>
+        }
+    </div>
+    @if (Model.SourceArticleId.HasValue)
+    {
+        <a asp-area="Admin" asp-controller="Articles" asp-action="Edit" asp-route-id="@Model.SourceArticleId" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to article
+        </a>
+    }
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+@if (!Model.SourceArticleId.HasValue)
+{
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <label for="source-article-search" class="form-label">Search published articles</label>
+            <div class="article-picker" data-search-url="@Url.Action("SearchArticles", "InternalLinks", new { area = "Admin" })" data-select-url="@Url.Action("Index", "InternalLinks", new { area = "Admin" })">
+                <input id="source-article-search" class="form-control" data-article-search autocomplete="off" placeholder="Enter at least two characters of a title" />
+                <div class="list-group mt-2" data-article-results></div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-xl-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header"><h5 class="mb-0">Create a manual link</h5></div>
+                <div class="card-body">
+                    <p class="small text-muted">Choose the exact complete word or phrase from the article and its destination. You can link to a published article or enter a URL.</p>
+                    <form asp-action="AddManualLink" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="SourceArticleId" value="@Model.SourceArticleId" />
+                        <div class="mb-3">
+                            <label class="form-label" for="manual-anchor">Exact anchor text</label>
+                            <input id="manual-anchor" name="AnchorText" class="form-control" maxlength="500" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Destination article</label>
+                            <div class="article-picker" data-search-url="@Url.Action("SearchArticles", "InternalLinks", new { area = "Admin" })">
+                                <input class="form-control" data-article-search autocomplete="off" placeholder="Search published articles" />
+                                <input type="hidden" name="TargetArticleId" data-article-id />
+                                <div class="small text-success mt-1" data-selected-article></div>
+                                <div class="list-group mt-2" data-article-results></div>
+                            </div>
+                        </div>
+                        <div class="text-center text-muted small mb-3">or use a direct URL</div>
+                        <div class="mb-3">
+                            <label class="form-label" for="manual-url">Destination URL</label>
+                            <input id="manual-url" name="TargetUrl" type="text" class="form-control" maxlength="2048" placeholder="https://example.com/story or /category/story" />
+                            <div class="form-text">Use either a destination article or a URL, not both.</div>
+                        </div>
+                        <button class="btn btn-primary" type="submit"><i class="bi bi-link-45deg"></i> Save manual link</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header"><h5 class="mb-0">Block an automatic link</h5></div>
+                <div class="card-body">
+                    <p class="small text-muted">Choose the target article whose automatically generated link should be suppressed in this source article.</p>
+                    <form asp-action="AddExclusion" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="SourceArticleId" value="@Model.SourceArticleId" />
+                        <div class="article-picker mb-3" data-search-url="@Url.Action("SearchArticles", "InternalLinks", new { area = "Admin" })">
+                            <label class="form-label">Target article</label>
+                            <input class="form-control" data-article-search autocomplete="off" placeholder="Search published articles" />
+                            <input type="hidden" name="TargetArticleId" data-article-id required />
+                            <div class="small text-success mt-1" data-selected-article></div>
+                            <div class="list-group mt-2" data-article-results></div>
+                        </div>
+                        <button class="btn btn-outline-danger" type="submit"><i class="bi bi-slash-circle"></i> Block automatic link</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header"><h5 class="mb-0">Saved rules</h5></div>
+        @if (Model.Rules.Count == 0)
+        {
+            <div class="card-body text-muted">There are no manual links or automatic-link exclusions for this article.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead><tr><th>Rule</th><th>Anchor text</th><th>Destination</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var rule in Model.Rules)
+                    {
+                        <tr>
+                            <td>
+                                @if (rule.RuleType == ArticleInternalLinkRuleType.Manual)
+                                {
+                                    <span class="badge bg-primary">Manual link</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Automatic link blocked</span>
+                                }
+                            </td>
+                            <td>@(rule.AnchorText ?? "—")</td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(rule.DestinationUrl))
+                                {
+                                    <a href="@rule.DestinationUrl" target="_blank" rel="noopener">@rule.DestinationLabel</a>
+                                }
+                                else
+                                {
+                                    @rule.DestinationLabel
+                                }
+                            </td>
+                            <td class="text-end">
+                                <form asp-action="DeleteRule" method="post" onsubmit="return confirm('Remove this internal link rule?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="sourceArticleId" value="@Model.SourceArticleId" />
+                                    <input type="hidden" name="ruleId" value="@rule.Id" />
+                                    <button class="btn btn-sm btn-outline-danger" type="submit"><i class="bi bi-trash"></i> Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+<script>
+(() => {
+    document.querySelectorAll('.article-picker').forEach(picker => {
+        const search = picker.querySelector('[data-article-search]');
+        const results = picker.querySelector('[data-article-results]');
+        const selectedId = picker.querySelector('[data-article-id]');
+        const selectedLabel = picker.querySelector('[data-selected-article]');
+        const searchUrl = picker.dataset.searchUrl;
+        let timer;
+
+        search?.addEventListener('input', () => {
+            clearTimeout(timer);
+            if (selectedId) selectedId.value = '';
+            if (selectedLabel) selectedLabel.textContent = '';
+            const term = search.value.trim();
+            results.replaceChildren();
+            if (term.length < 2) return;
+
+            timer = setTimeout(async () => {
+                try {
+                    const response = await fetch(`${searchUrl}?term=${encodeURIComponent(term)}`);
+                    if (!response.ok) return;
+                    const articles = await response.json();
+                    articles.forEach(article => {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'list-group-item list-group-item-action';
+                        button.textContent = article.text;
+                        button.addEventListener('click', () => {
+                            if (!selectedId && picker.dataset.selectUrl) {
+                                window.location.href = `${picker.dataset.selectUrl}?articleId=${encodeURIComponent(article.id)}`;
+                                return;
+                            }
+                            if (selectedId) selectedId.value = article.id;
+                            if (selectedLabel) selectedLabel.textContent = `Selected: ${article.text}`;
+                            search.value = article.text;
+                            results.replaceChildren();
+                            const manualForm = picker.closest('form');
+                            const urlInput = manualForm?.querySelector('[name="TargetUrl"]');
+                            if (urlInput) urlInput.value = '';
+                        });
+                        results.appendChild(button);
+                    });
+                } catch (error) {
+                    results.replaceChildren();
+                }
+            }, 250);
+        });
+    });
+
+    document.querySelector('[name="TargetUrl"]')?.addEventListener('input', () => {
+        const manualForm = document.querySelector('[name="TargetUrl"]')?.closest('form');
+        const articleId = manualForm?.querySelector('[name="TargetArticleId"]');
+        const selectedArticle = manualForm?.querySelector('[data-selected-article]');
+        if (articleId) articleId.value = '';
+        if (selectedArticle) selectedArticle.textContent = '';
+    });
+})();
+</script>
+}

@@ -1,19 +1,51 @@
-@{
+﻿@{
     ViewData["Title"] = "Saved Articles";
 }
-<main class="bn-container" style="padding-top:32px;padding-bottom:48px;">
+<main class="bn-container saved-articles-page" style="padding-top:32px;padding-bottom:48px;">
     <div class="container">
         <h1 style="font-family:var(--bn-font-display);font-size:28px;font-weight:700;color:var(--bn-text-primary);">Saved articles</h1>
         <p style="max-width:720px;color:var(--bn-text-muted);line-height:1.7;">
-            Bookmark stories to keep them handy. Your saved articles stay in this browser on this device, so you don’t need an account. They won’t sync to other devices, and clearing this browser’s site data will remove them.
+            <small>Disclaimer: Bookmark stories to keep them handy. Your saved articles stay in this browser on this device. They won’t sync to other devices, and clearing this browser’s site data will remove them.</small>
         </p>
-        <div class="d-flex justify-content-between align-items-center my-4">
-            <p class="mb-0" data-bookmarks-count aria-live="polite"></p>
-            <button type="button" class="btn btn-outline-danger btn-sm" data-clear-bookmarks hidden>Clear saved articles</button>
-        </div>
-        <div class="row g-3" data-bookmarks-list></div>
-        <div class="alert alert-light border" data-bookmarks-empty>
-            You haven’t saved any articles yet. Open a story and select the bookmark icon to save it here.
+        <div class="row g-4">
+            <section class="col-lg-8" aria-label="Saved and recommended articles">
+                <div class="saved-articles-toolbar d-flex justify-content-between align-items-center">
+                    <div class="saved-article-tabs" role="tablist" aria-label="Article lists">
+                        <button type="button" class="saved-article-tab active" id="saved-tab" role="tab" aria-selected="true" aria-controls="saved-panel" data-saved-tab="saved">
+                            <span data-bookmarks-count>0 saved articles</span>
+                        </button>
+                        <button type="button" class="saved-article-tab" id="recommended-tab" role="tab" aria-selected="false" aria-controls="recommended-panel" data-saved-tab="recommended">
+                            Recommended for you
+                        </button>
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-sm" data-clear-bookmarks hidden>Clear saved articles</button>
+                </div>
+                <div id="saved-panel" role="tabpanel" aria-labelledby="saved-tab" data-saved-panel="saved">
+                    <div class="row g-3 saved-article-grid" data-bookmarks-list></div>
+                    <div class="alert alert-light mt-3 border" data-bookmarks-empty>
+                        You haven’t saved any articles yet. Open a story and select the bookmark icon to save it here.
+                    </div>
+                    <nav class="saved-article-pagination" aria-label="Saved articles pages" data-saved-pagination="saved" hidden></nav>
+                </div>
+                <div id="recommended-panel" role="tabpanel" aria-labelledby="recommended-tab" data-saved-panel="recommended" hidden>
+                    <div class="row g-3 saved-article-grid" data-recommended-list></div>
+                    <div class="alert alert-light mt-3 border" data-recommended-empty hidden>
+                        Save a few articles and we’ll suggest recent stories from the same categories.
+                    </div>
+                    <div class="text-muted mt-3" data-recommended-loading hidden>Finding stories for you…</div>
+                    <nav class="saved-article-pagination" aria-label="Recommended articles pages" data-saved-pagination="recommended" hidden></nav>
+                </div>
+            </section>
+            <aside class="col-lg-4 saved-articles-rail" aria-label="More news">
+                <section class="bn-story-rail saved-rail-section">
+                    <h2>Trending</h2>
+                    @await Component.InvokeAsync("TrendingNews", new { type = "today", count = 5 })
+                </section>
+                <section class="bn-story-rail saved-rail-section">
+                    <h2>Latest News</h2>
+                    @await Component.InvokeAsync("LatestNews", new { count = 8 })
+                </section>
+            </aside>
         </div>
     </div>
 </main>

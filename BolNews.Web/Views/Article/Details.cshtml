@@ -5,6 +5,7 @@
 @model ArticleDetailsPageVM
 
 @{
+	ViewData["EnableTimedRefresh"] = true;
 	ViewData["Title"] = Model.Article.MetaTitle ?? Model.Article.Title;
 	var articleUrl = $"{Model.BaseUrl}/{Model.Article.CategorySlug}/{Model.Article.Slug}";
 }
@@ -73,7 +74,7 @@
 					}
 
 					<!-- Author bar -->
-					<div style="
+					<div class="bn-article-meta-toolbar" style="
 						 display:flex;
 							align-items:center;
 							flex-wrap:wrap;
@@ -90,17 +91,17 @@
 
 						@if (Model.Article.PublishedAt.HasValue)
 						{
-							<span style="display:flex;align-items:center;gap:6px;font-family:var(--bn-font-body);font-size:14px;font-weight:500;line-height:26px;color:#000000; padding-left:20px;">
+							<span class="bn-article-meta-date" style="display:flex;align-items:center;gap:6px;font-family:var(--bn-font-body);font-size:14px;font-weight:500;line-height:26px;color:#000000; padding-left:20px;">
 								<svg width="14" height="14" viewBox="0 0 448 512" fill="#C4161C"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-160v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z" /></svg>
 								@Model.Article.PublishedAt.Value.ToString("MMMM dd, yyyy")
 							</span>
 						}
 
-						<a href="https://www.google.com/preferences/source?q=bolnews.com" target="_blank" style="display:flex;align-items:center;">
+						<a class="bn-article-source-link" href="https://www.google.com/preferences/source?q=bolnews.com" target="_blank" style="display:flex;align-items:center;">
 							<img src="~/images/googlepreferred.webp" alt="Add Bol News as a trusted source" loading="lazy" style="height:30px;width:auto;padding-left:20px" />
 						</a>
 						
-						<div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+						<div class="bn-article-action-group" style="display:flex;align-items:center;gap:8px;margin-left:auto;">
 							<button type="button" class="bn-article-bookmark-button" data-bookmark-button
 									data-article-id="@Model.Article.Id"
 									data-article-title="@Model.Article.Title"

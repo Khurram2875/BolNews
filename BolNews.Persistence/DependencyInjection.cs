@@ -76,6 +76,7 @@ namespace BolNews.Persistence
                 options.SlidingExpiration = true;
             });
             services.AddScoped<IArticleRepository, ArticleRepository>();
+            services.AddScoped<IArticleInternalLinkRuleRepository, ArticleInternalLinkRuleRepository>();
             services.AddScoped<IEditorialPlacementRepository, EditorialPlacementRepository>();
             services.AddScoped<IEditorialCategoryConfigurationRepository, EditorialCategoryConfigurationRepository>();
             services.AddScoped<IEditorialCategoryConfigurationService, EditorialCategoryConfigurationService>();

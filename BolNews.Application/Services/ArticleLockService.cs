@@ -12,7 +12,7 @@ namespace BolNews.Application.Services
 {
     public class ArticleLockService : IArticleLockService
     {
-        private static readonly TimeSpan LockTimeout = TimeSpan.FromMinutes(30);
+        private static readonly TimeSpan LockTimeout = TimeSpan.FromMinutes(5);
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<ArticleLockService> _logger;
 

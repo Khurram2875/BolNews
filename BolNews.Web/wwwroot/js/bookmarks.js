@@ -3,6 +3,9 @@
 
     const storageKey = 'bolnews.bookmarks.v1';
     const placeholderImage = '/images/placeholder.png';
+    const pageSize = 15;
+    const pageByList = { saved: 1, recommended: 1 };
+    let recommendations = [];
 
     function readBookmarks() {
         try {
@@ -52,11 +55,12 @@
         card.className = 'card h-100 shadow-sm';
 
         const link = document.createElement('a');
-        link.href = article.url;
+        link.href = article.url || (article.categorySlug && article.slug ? `/${article.categorySlug}/${article.slug}` : '#');
         link.className = 'text-decoration-none text-reset';
 
         const image = document.createElement('img');
-        image.src = isLocalPath(article.image) ? article.image : placeholderImage;
+        const articleImage = article.image || article.featuredImageThumb || article.featuredImageMedium || article.featuredImageLarge;
+        image.src = isLocalPath(articleImage) ? articleImage : placeholderImage;
         image.alt = '';
         image.loading = 'lazy';
         image.className = 'card-img-top';
@@ -64,10 +68,11 @@
 
         const body = document.createElement('div');
         body.className = 'card-body';
-        if (article.category) {
+        const categoryName = article.category || article.categoryName;
+        if (categoryName) {
             const category = document.createElement('div');
             category.className = 'small text-danger fw-semibold mb-2';
-            category.textContent = article.category;
+            category.textContent = categoryName;
             body.appendChild(category);
         }
         const title = document.createElement('h2');
@@ -98,6 +103,41 @@
         return column;
     }
 
+    function renderCards(list, items, type) {
+        if (!list) return;
+        const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
+        pageByList[type] = Math.min(pageByList[type], pageCount);
+        const start = (pageByList[type] - 1) * pageSize;
+        list.replaceChildren(...items.slice(start, start + pageSize).map(makeSavedCard));
+
+        const pagination = document.querySelector(`[data-saved-pagination="${type}"]`);
+        if (!pagination) return;
+        pagination.hidden = pageCount <= 1;
+        pagination.replaceChildren();
+        if (pageCount <= 1) return;
+
+        const addButton = (label, page, disabled, current = false) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `saved-page-button${current ? ' active' : ''}`;
+            button.textContent = label;
+            button.disabled = disabled;
+            if (current) button.setAttribute('aria-current', 'page');
+            button.addEventListener('click', () => {
+                pageByList[type] = page;
+                if (type === 'saved') renderSavedPage(readBookmarks());
+                else renderCards(document.querySelector('[data-recommended-list]'), recommendations, 'recommended');
+            });
+            pagination.appendChild(button);
+        };
+
+        addButton('Previous', pageByList[type] - 1, pageByList[type] === 1);
+        for (let page = 1; page <= pageCount; page++) {
+            addButton(String(page), page, false, page === pageByList[type]);
+        }
+        addButton('Next', pageByList[type] + 1, pageByList[type] === pageCount);
+    }
+
     function renderSavedPage(items) {
         const list = document.querySelector('[data-bookmarks-list]');
         if (!list) return;
@@ -105,16 +145,76 @@
         const count = document.querySelector('[data-bookmarks-count]');
         const clear = document.querySelector('[data-clear-bookmarks]');
 
-        list.replaceChildren(...items.map(makeSavedCard));
+        renderCards(list, items, 'saved');
         if (empty) empty.hidden = items.length > 0;
         if (count) count.textContent = items.length === 1 ? '1 saved article' : `${items.length} saved articles`;
         if (clear) clear.hidden = items.length === 0;
+    }
+
+    async function loadRecommendations(items) {
+        const list = document.querySelector('[data-recommended-list]');
+        const empty = document.querySelector('[data-recommended-empty]');
+        const loading = document.querySelector('[data-recommended-loading]');
+        if (!list) return;
+        list.replaceChildren();
+        if (!items.length) {
+            if (empty) empty.hidden = false;
+            return;
+        }
+
+        if (empty) empty.hidden = true;
+        if (loading) loading.hidden = false;
+        try {
+            const categories = [...new Set(items.map(item => item.category).filter(Boolean))];
+            const query = new URLSearchParams();
+            categories.forEach(category => query.append('categories', category));
+            items.forEach(item => query.append('savedTitles', item.title));
+            items.forEach(item => query.append('excludeIds', String(item.id)));
+            const response = await fetch(`/saved-articles/recommended?${query}`, {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!response.ok) throw new Error('Could not load recommendations');
+            recommendations = await response.json();
+            renderCards(list, recommendations, 'recommended');
+            if (empty) empty.hidden = recommendations.length > 0;
+        } catch {
+            if (empty) {
+                empty.textContent = 'Recommendations are temporarily unavailable. Please try again later.';
+                empty.hidden = false;
+            }
+        } finally {
+            if (loading) loading.hidden = true;
+        }
+    }
+
+    function activateTab(name) {
+        document.querySelectorAll('[data-saved-tab]').forEach(tab => {
+            const active = tab.dataset.savedTab === name;
+            tab.classList.toggle('active', active);
+            tab.setAttribute('aria-selected', String(active));
+            tab.tabIndex = active ? 0 : -1;
+        });
+        document.querySelectorAll('[data-saved-panel]').forEach(panel => {
+            panel.hidden = panel.dataset.savedPanel !== name;
+        });
+        if (name === 'recommended') loadRecommendations(readBookmarks());
     }
 
     let bookmarks = readBookmarks();
     updateNavCount(bookmarks);
     updateBookmarkButtons(bookmarks);
     renderSavedPage(bookmarks);
+
+    document.querySelectorAll('[data-saved-tab]').forEach(tab => {
+        tab.addEventListener('click', () => activateTab(tab.dataset.savedTab));
+        tab.addEventListener('keydown', event => {
+            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+            event.preventDefault();
+            const nextName = tab.dataset.savedTab === 'saved' ? 'recommended' : 'saved';
+            document.querySelector(`[data-saved-tab="${nextName}"]`)?.focus();
+            activateTab(nextName);
+        });
+    });
 
     document.querySelectorAll('[data-bookmark-button]').forEach(button => {
         button.addEventListener('click', () => {

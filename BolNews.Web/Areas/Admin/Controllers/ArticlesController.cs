@@ -627,6 +627,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 return NotFound();
 
             var model = _mapper.Map<ArticleVM>(dto);
+            var articleCategory = await _categoryService.GetByIdAsync(dto.CategoryId);
+            model.CategorySlug = articleCategory?.Slug ?? dto.CategorySlug ?? string.Empty;
             model.ArticleTagsInput = JsonSerializer.Serialize(model.ArticleTags.Select(x => x.Name));
             model.FeaturedImageTagsInput = JsonSerializer.Serialize(model.FeaturedImageTags.Select(x => x.Name));
 
@@ -707,6 +709,8 @@ namespace BolNews.Web.Areas.Admin.Controllers
                     });
 
                 await PopulateDropdowns(model.CategoryId, model.ReporterId);
+                var selectedCategory = await _categoryService.GetByIdAsync(model.CategoryId);
+                model.CategorySlug = selectedCategory?.Slug ?? string.Empty;
 
                 return View(model);
             }
@@ -803,6 +807,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _cacheService.Remove(CacheKeys.Article(oldSlug));
             _cacheService.Remove(CacheKeys.Article(dto.Slug));
 
+            _cacheService.Remove($"article_content_v5_{dto.Id}");
             _cacheService.Remove($"article_content_{dto.Id}");
             _cacheService.Remove($"related_{dto.Id}");
 
