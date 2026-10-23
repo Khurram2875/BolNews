@@ -3879,6 +3879,14 @@ body,
     margin-bottom: 1.4em;
 }
 
+.bn-article-body li[data-list="bullet"] {
+    list-style-type: disc;
+}
+
+.bn-article-body li[data-list="ordered"] {
+    list-style-type: decimal;
+}
+
 .bn-article-body li {
     margin-bottom: 0.4em;
 }
