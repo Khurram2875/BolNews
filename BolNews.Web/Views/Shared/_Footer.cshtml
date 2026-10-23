@@ -1,65 +1,55 @@
+@inject BolNews.Web.Services.SiteProfileService SiteProfileService
+@{
+    var profile = await SiteProfileService.GetAsync(Context.RequestAborted);
+    var footerColumns = new[] { profile.FooterColumnOneLinks, profile.FooterColumnTwoLinks, profile.FooterColumnThreeLinks };
+    List<(string Label, string Url)> ParseLinks(string? value) => (value ?? string.Empty)
+        .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Select(line => line.Split('|', 2, StringSplitOptions.TrimEntries))
+        .Where(parts => parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]) && !string.IsNullOrWhiteSpace(parts[1]))
+        .Select(parts => (parts[0], parts[1]))
+        .ToList();
+}
 <footer class="bn-footer" aria-label="Footer">
     <div class="bn-footer__top">
-        <a href="/" class="bn-footer__logo" aria-label="BOL News home">
-            <img src="~/images/logo-black.png" alt="BOL News" />
+        <a href="/" class="bn-footer__logo" aria-label="@profile.SiteName home">
+            <img src="@Url.Content(profile.FooterLogoUrl)" alt="@profile.SiteName" />
         </a>
 
         <nav class="bn-footer__links" aria-label="Footer links">
-            <ul>
-                <li><a href="/category/latest-news">Latest News</a></li>
-                <li><a href="/category/health">Health</a></li>
-                <li><a href="/category/showbiz">Showbiz</a></li>
-                <li><a href="/category/trending">Trending</a></li>
-                <li><a href="/category/viral">Viral</a></li>
-            </ul>
-            <ul>
-                <li><a href="/about-us">About Us</a></li>
-                <li><a href="/contact-us">Contact Us</a></li>
-                <li><a href="/advertise">Advertise With Us</a></li>
-                <li><a href="http://urdu.bolnews.com">Urdu</a></li>
-                <li><a href="/live">Live</a></li>
-            </ul>
-            <ul>
-                <li><a href="/branded-content">Branded Content</a></li>
-                <li><a href="/privacy-policy">Privacy Policy</a></li>
-                <li><a href="/terms-of-service">Terms Of Service</a></li>
-                <li><a href="/editorial-policy">Editorial Policy</a></li>
-                <li><a href="/blogs">Blog</a></li>
-            </ul>
+            @foreach (var column in footerColumns)
+            {
+                <ul>
+                    @foreach (var (label, url) in ParseLinks(column))
+                    {
+                        <li><a href="@url">@label</a></li>
+                    }
+                </ul>
+            }
         </nav>
     </div>
 
-    @* <div class="bn-footer__social" aria-label="Social links">
-        <a href="https://whatsapp.com/channel/0029Vb7ZANWGJP8NYx9M4g0I" target="_blank" rel="noopener" aria-label="WhatsApp">WA</a>
-        <a href="https://www.facebook.com/BOLNETWORK/" target="_blank" rel="noopener" aria-label="Facebook">f</a>
-        <a href="https://twitter.com/BOLNETWORK" target="_blank" rel="noopener" aria-label="X">X</a>
-        <a href="https://www.youtube.com/@@BOLNewsofficial" target="_blank" rel="noopener" aria-label="YouTube">YT</a>
-        <a href="https://www.instagram.com/bolnetwork/" target="_blank" rel="noopener" aria-label="Instagram">IG</a>
-        <a href="https://www.tiktok.com/@@bolnews" target="_blank" rel="noopener" aria-label="TikTok">TT</a>
-    </div> *@
-
     <div class="bn-footer__social" aria-label="Social links">
-        <a href="https://whatsapp.com/channel/0029Vb7ZANWGJP8NYx9M4g0I" target="_blank" rel="noopener" aria-label="WhatsApp">
+        @if (!string.IsNullOrWhiteSpace(profile.WhatsAppUrl)) { <a href="@profile.WhatsAppUrl" target="_blank" rel="noopener" aria-label="WhatsApp">
             <i class="fa-brands fa-whatsapp"></i>
-        </a>
-        <a href="https://www.facebook.com/BOLNETWORK/" target="_blank" rel="noopener" aria-label="Facebook">
+        </a> }
+        @if (!string.IsNullOrWhiteSpace(profile.FacebookUrl)) { <a href="@profile.FacebookUrl" target="_blank" rel="noopener" aria-label="Facebook">
             <i class="fa-brands fa-facebook-f"></i>
-        </a>
-        <a href="https://twitter.com/BOLNETWORK" target="_blank" rel="noopener" aria-label="X">
+        </a> }
+        @if (!string.IsNullOrWhiteSpace(profile.XUrl)) { <a href="@profile.XUrl" target="_blank" rel="noopener" aria-label="X">
             <i class="fa-brands fa-x-twitter"></i>
-        </a>
-        <a href="https://www.youtube.com/@@BOLNewsofficial" target="_blank" rel="noopener" aria-label="YouTube">
+        </a> }
+        @if (!string.IsNullOrWhiteSpace(profile.YouTubeUrl)) { <a href="@profile.YouTubeUrl" target="_blank" rel="noopener" aria-label="YouTube">
             <i class="fa-brands fa-youtube"></i>
-        </a>
-        <a href="https://www.instagram.com/bolnetwork/" target="_blank" rel="noopener" aria-label="Instagram">
+        </a> }
+        @if (!string.IsNullOrWhiteSpace(profile.InstagramUrl)) { <a href="@profile.InstagramUrl" target="_blank" rel="noopener" aria-label="Instagram">
             <i class="fa-brands fa-instagram"></i>
-        </a>
-        <a href="https://www.tiktok.com/@@bolnews" target="_blank" rel="noopener" aria-label="TikTok">
+        </a> }
+        @if (!string.IsNullOrWhiteSpace(profile.TikTokUrl)) { <a href="@profile.TikTokUrl" target="_blank" rel="noopener" aria-label="TikTok">
             <i class="fa-brands fa-tiktok"></i>
-        </a>
+        </a> }
     </div>
 
     <div class="bn-footer__copyright">
-        Copyright &copy; @DateTime.UtcNow.Year BOL Media Network. All rights reserved.
+        Copyright &copy; @DateTime.UtcNow.Year @profile.CopyrightText
     </div>
 </footer>

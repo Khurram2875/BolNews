@@ -1,0 +1,54 @@
+@model BolNews.Web.Areas.Admin.ViewModels.AdPlacementsIndexVM
+@{
+    ViewData["Title"] = "Ad Placements";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<div class="container-fluid">
+    <div class="mb-4"><h1 class="h3 mb-1">Ad Placements</h1><p class="text-muted mb-0">Change ad unit IDs, provider unit names, and select a supported display zone without editing views.</p></div>
+    @if (TempData["SuccessMessage"] is string success) { <div class="alert alert-success">@success</div> }
+    @if (TempData["ErrorMessage"] is string error) { <div class="alert alert-danger">@error</div> }
+
+    <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Add placement</div><div class="card-body">
+        <p class="small text-muted">Each placement starts from a supported page zone. To move its div elsewhere at runtime, provide a CSS selector for an existing element and choose where the ad should be inserted relative to it.</p>
+        <form asp-action="Add" method="post" class="row g-3">
+            @Html.AntiForgeryToken()
+            <input asp-for="NewPlacement.Id" type="hidden" />
+            <div class="col-md-2"><label asp-for="NewPlacement.Key" class="form-label">Key</label><input asp-for="NewPlacement.Key" class="form-control" required placeholder="home-rail-top" /></div>
+            <div class="col-md-2"><label asp-for="NewPlacement.DisplayName" class="form-label">Name</label><input asp-for="NewPlacement.DisplayName" class="form-control" required /></div>
+            <div class="col-md-3"><label asp-for="NewPlacement.ZoneKey" class="form-label">Zone</label><select asp-for="NewPlacement.ZoneKey" class="form-select">@foreach (var zone in Model.Zones) { <option value="@zone.Key">@zone.Name</option> }</select></div>
+            <div class="col-md-2"><label asp-for="NewPlacement.ElementId" class="form-label">Div ID</label><input asp-for="NewPlacement.ElementId" class="form-control" required placeholder="publisher_top_ad" /></div>
+            <div class="col-md-2"><label asp-for="NewPlacement.ProviderUnit" class="form-label">Provider unit</label><input asp-for="NewPlacement.ProviderUnit" class="form-control" /></div>
+            <div class="col-md-1"><label asp-for="NewPlacement.SortOrder" class="form-label">Order</label><input asp-for="NewPlacement.SortOrder" class="form-control" type="number" /></div>
+            <div class="col-md-3"><label asp-for="NewPlacement.ContainerClass" class="form-label">Container classes</label><input asp-for="NewPlacement.ContainerClass" class="form-control" placeholder="mb-4" /></div>
+            <div class="col-md-4"><label asp-for="NewPlacement.TargetSelector" class="form-label">Optional CSS target selector</label><input asp-for="NewPlacement.TargetSelector" class="form-control" placeholder=".article-body" /></div>
+            <div class="col-md-2"><label asp-for="NewPlacement.TargetPosition" class="form-label">Insert position</label><select asp-for="NewPlacement.TargetPosition" class="form-select"><option value="beforebegin">Before target</option><option value="afterbegin">Inside, first</option><option value="beforeend">Inside, last</option><option value="afterend">After target</option></select></div>
+            <div class="col-md-2"><label asp-for="NewPlacement.ParagraphIndex" class="form-label">After paragraph</label><input asp-for="NewPlacement.ParagraphIndex" class="form-control" type="number" min="1" placeholder="Inline only" /></div>
+            <div class="col-md-2 d-flex align-items-end"><div class="form-check mb-2"><input asp-for="NewPlacement.IsEnabled" class="form-check-input" /><label asp-for="NewPlacement.IsEnabled" class="form-check-label">Enabled</label></div></div>
+            <div class="col-md-5 d-flex align-items-end"><button class="btn btn-danger" type="submit">Add placement</button></div>
+        </form>
+    </div></div>
+
+    @if (!Model.Placements.Any()) { <div class="alert alert-info">No ad placements configured yet.</div> }
+    @foreach (var placement in Model.Placements)
+    {
+        <div class="card shadow-sm mb-3"><div class="card-body">
+            <form asp-action="Save" method="post" class="row g-3 align-items-end">
+                @Html.AntiForgeryToken()
+                <input name="Id" value="@placement.Id" type="hidden" />
+                <div class="col-lg-2"><label class="form-label">Key</label><input name="Key" value="@placement.Key" class="form-control" required /></div>
+                <div class="col-lg-2"><label class="form-label">Name</label><input name="DisplayName" value="@placement.DisplayName" class="form-control" required /></div>
+                <div class="col-lg-3"><label class="form-label">Zone</label><select name="ZoneKey" class="form-select">@foreach (var zone in Model.Zones) { <option value="@zone.Key" selected="@(placement.ZoneKey == zone.Key)">@zone.Name</option> }</select></div>
+                <div class="col-lg-2"><label class="form-label">Div ID</label><input name="ElementId" value="@placement.ElementId" class="form-control" required /></div>
+                <div class="col-lg-2"><label class="form-label">Provider unit</label><input name="ProviderUnit" value="@placement.ProviderUnit" class="form-control" /></div>
+                <div class="col-lg-1"><label class="form-label">Order</label><input name="SortOrder" value="@placement.SortOrder" class="form-control" type="number" /></div>
+                <div class="col-lg-3"><label class="form-label">Container classes</label><input name="ContainerClass" value="@placement.ContainerClass" class="form-control" /></div>
+                <div class="col-lg-3"><label class="form-label">CSS target selector</label><input name="TargetSelector" value="@placement.TargetSelector" class="form-control" placeholder="Optional, e.g. .article-body" /></div>
+                <div class="col-lg-2"><label class="form-label">Insert position</label><select name="TargetPosition" class="form-select"><option value="beforebegin" selected="@(placement.TargetPosition == "beforebegin")">Before target</option><option value="afterbegin" selected="@(placement.TargetPosition == "afterbegin")">Inside, first</option><option value="beforeend" selected="@(placement.TargetPosition == "beforeend")">Inside, last</option><option value="afterend" selected="@(placement.TargetPosition == "afterend")">After target</option></select></div>
+                <div class="col-lg-2"><label class="form-label">After paragraph</label><input name="ParagraphIndex" value="@placement.ParagraphIndex" class="form-control" type="number" min="1" /></div>
+                <div class="col-lg-2"><div class="form-check"><input name="IsEnabled" value="true" type="checkbox" class="form-check-input" checked="@placement.IsEnabled" /><input name="IsEnabled" value="false" type="hidden" /><label class="form-check-label">Enabled</label></div></div>
+                <div class="col-lg-5 d-flex gap-2"><button class="btn btn-outline-danger" type="submit">Save</button></div>
+            </form>
+            <form asp-action="Delete" method="post" class="mt-2" onsubmit="return confirm('Delete this ad placement?');">@Html.AntiForgeryToken()<input name="id" value="@placement.Id" type="hidden" /><button type="submit" class="btn btn-sm btn-outline-secondary">Delete</button></form>
+        </div></div>
+    }
+</div>

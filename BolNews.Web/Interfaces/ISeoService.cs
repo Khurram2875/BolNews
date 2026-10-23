@@ -5,7 +5,7 @@ namespace BolNews.Web.Interfaces
   
         public interface ISeoService
         {
-            string BuildArticleSchema(PublicArticleVM article, string baseUrl);
+            string BuildArticleSchema(PublicArticleVM article, string baseUrl, string publisherName = "Publisher", string logoUrl = "/");
             string BuildKeywords(PublicArticleVM article);
 
             string BuildCategorySchema(
@@ -16,13 +16,13 @@ namespace BolNews.Web.Interfaces
                 string baseUrl
             );
 
-            string BuildOrganizationSchema(string baseUrl);
+            string BuildOrganizationSchema(string baseUrl, string publisherName = "Publisher", string logoUrl = "/");
 
             string BuildBreadcrumb(PublicArticleVM article, string baseUrl);
 
             string BuildCategoryBreadcrumb(string categoryName, string categorySlug, string baseUrl);
             string BuildAuthorSchema(AuthorPageVM author);
-            string BuildWebSiteSchema(string baseUrl);
+            string BuildWebSiteSchema(string baseUrl, string publisherName = "Publisher");
         }
     
 }

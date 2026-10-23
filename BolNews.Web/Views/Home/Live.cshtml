@@ -1,5 +1,7 @@
-﻿@{
-    ViewData["Title"] = "Bol News Live";
+@inject BolNews.Web.Services.SiteProfileService SiteProfileService
+@{
+    var profile = await SiteProfileService.GetAsync(Context.RequestAborted);
+    ViewData["Title"] = $"{profile.SiteName} Live";
 }
 
 @section Styles {
@@ -11,9 +13,9 @@
         <div class="bn-home-shell">
             <div class="mb-4 py-0">
                 <div class="d-flex align-items-center gap-3">
-                    <img decoding="async" width="47" height="46" src="~/images/small-logo.png" class="img-fluid" alt="BOL News Logo">
+                    <img decoding="async" width="47" height="46" src="@Url.Content(profile.HeaderLogoUrl)" class="img-fluid" alt="@profile.SiteName logo">
                     <h1 class="h3 fw-bold text-dark m-0 gy-live-title">
-                        Live BOL NEWS | BOL NEWS LIVE STREAMING
+                        @profile.SiteName Live
                     </h1>
                 </div>
             </div>
@@ -22,11 +24,11 @@
                 <div class="e-con-inner">
                     <div class="elementor-shortcode">
                         <div class="gy-live-wrapper">
-                            <div class="gy-live-thumbnail" id="gy-live-thumb">
+                            <div class="gy-live-thumbnail" id="gy-live-thumb" data-live-embed-url="@profile.LiveVideoEmbedUrl">
                                 <img decoding="async"
                                      width="1280"
                                      height="720"
-                                     src="https://img.youtube.com/vi/M8DGZa5xX5A/maxresdefault.jpg"
+                                     src="@Url.Content(profile.LiveThumbnailUrl ?? string.Empty)"
                                      alt="Watch Live Stream">
                                 <div class="gy-live-play-btn"></div>
                                 <div class="gy-live-overlay">Watch Live</div>

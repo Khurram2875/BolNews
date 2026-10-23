@@ -4,7 +4,7 @@
         string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase) ? "active" : "";
     var adminMenuId = "admin-menu-" + Guid.NewGuid().ToString("N");
     var toolsMenuId = "tools-menu-" + Guid.NewGuid().ToString("N");
-    var adminOpen = new[] { "Dashboard", "User", "ShowCarousel", "Categories", "Author", "InternalLinks" }
+    var adminOpen = new[] { "Dashboard", "User", "ShowCarousel", "Categories", "Author", "InternalLinks", "SiteSettings", "AdPlacements" }
         .Contains(currentController, StringComparer.OrdinalIgnoreCase);
     var toolsOpen = new[] { "Articles", "MediaLibrary", "BreakingNews", "FuelPrices", "EditorialPlacements", "Reporters" }
         .Contains(currentController, StringComparer.OrdinalIgnoreCase);
@@ -45,6 +45,16 @@
                 </li>
                 @if (User.IsInRole("Admin"))
                 {
+                    <li class="nav-item">
+                        <a class="nav-link @IsActive("SiteSettings")" asp-area="Admin" asp-controller="SiteSettings" asp-action="Index">
+                            <i class="bi bi-palette me-2"></i> Publisher Settings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @IsActive("AdPlacements")" asp-area="Admin" asp-controller="AdPlacements" asp-action="Index">
+                            <i class="bi bi-badge-ad me-2"></i> Ad Placements
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link @IsActive("ShowCarousel")" asp-area="Admin" asp-controller="ShowCarousel" asp-action="Index">
                             <i class="bi bi-images me-2"></i> Shows Carousel

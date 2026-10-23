@@ -5,8 +5,16 @@ namespace BolNews.Web.SEO
 {
     public static class StructuredDataBuilder
     {
+        private static string ToAbsoluteUrl(string value, string baseUrl)
+        {
+            if (Uri.TryCreate(value, UriKind.Absolute, out var absolute)
+                && (absolute.Scheme == Uri.UriSchemeHttp || absolute.Scheme == Uri.UriSchemeHttps))
+                return absolute.ToString();
 
-        public static object BuildNewsArticle(PublicArticleVM article, string baseUrl)
+            return $"{baseUrl.TrimEnd('/')}/{value.TrimStart('/')}";
+        }
+
+        public static object BuildNewsArticle(PublicArticleVM article, string baseUrl, string publisherName = "Publisher", string logoUrl = "/")
         {
             return new
             {
@@ -38,13 +46,13 @@ namespace BolNews.Web.SEO
                 publisher = new
                 {
                     @type = "Organization",
-                    name = "Bol News",
+                    name = publisherName,
                     url = baseUrl,
 
                     logo = new
                     {
                         @type = "ImageObject",
-                        url = $"{baseUrl}/logo-black.png"
+                        url = ToAbsoluteUrl(logoUrl, baseUrl)
                     }
                 }
             };
@@ -79,28 +87,23 @@ namespace BolNews.Web.SEO
                 }
             };
         }
-        public static object BuildOrganization(string baseUrl)
+        public static object BuildOrganization(string baseUrl, string publisherName = "Publisher", string logoUrl = "/", IEnumerable<string>? socialLinks = null)
         {
             return new
             {
                 @context = "https://schema.org",
                 @type = "Organization",
 
-                name = "Bol News",
+                name = publisherName,
                 url = baseUrl,
 
                 logo = new
                 {
                     @type = "ImageObject",
-                    url = $"{baseUrl}/logo.png"
+                    url = ToAbsoluteUrl(logoUrl, baseUrl)
                 },
 
-                sameAs = new[]
-                {
-                    "https://www.facebook.com/bolnews",
-                    "https://twitter.com/bolnews",
-                    "https://www.youtube.com/bolnews"
-                }
+                sameAs = (socialLinks ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).ToArray()
             };
         }
         public static object BuildCategoryPage(
@@ -131,14 +134,14 @@ namespace BolNews.Web.SEO
                 }
             };
         }
-        public static object BuildWebSite(string baseUrl)
+        public static object BuildWebSite(string baseUrl, string publisherName = "Publisher")
         {
             return new
             {
                 @context = "https://schema.org",
                 @type = "WebSite",
 
-                name = "Bol News",
+                name = publisherName,
 
                 url = baseUrl,
 

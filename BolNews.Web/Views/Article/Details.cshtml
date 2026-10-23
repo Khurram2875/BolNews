@@ -1,10 +1,12 @@
 ﻿@using BolNews.Web.Areas.Admin.ViewModels
 @using System.Text.Json
 @using BolNews.Web.SEO
+@inject BolNews.Web.Services.SiteProfileService SiteProfileService
 
 @model ArticleDetailsPageVM
 
 @{
+	var siteProfile = await SiteProfileService.GetAsync(Context.RequestAborted);
 	ViewData["EnableTimedRefresh"] = true;
 	ViewData["Title"] = Model.Article.MetaTitle ?? Model.Article.Title;
 	var articleUrl = $"{Model.BaseUrl}/{Model.Article.CategorySlug}/{Model.Article.Slug}";
@@ -97,8 +99,8 @@
 							</span>
 						}
 
-						<a class="bn-article-source-link" href="https://www.google.com/preferences/source?q=bolnews.com" target="_blank" style="display:flex;align-items:center;">
-							<img src="~/images/googlepreferred.webp" alt="Add Bol News as a trusted source" loading="lazy" style="height:30px;width:auto;padding-left:20px" />
+						<a class="bn-article-source-link" href="https://www.google.com/preferences/source?q=@Context.Request.Host.Host" target="_blank" rel="noopener" style="display:flex;align-items:center;">
+							<img src="~/images/googlepreferred.webp" alt="Add @siteProfile.SiteName as a trusted source" loading="lazy" style="height:30px;width:auto;padding-left:20px" />
 						</a>
 						
 						<div class="bn-article-action-group" style="display:flex;align-items:center;gap:8px;margin-left:auto;">
@@ -214,9 +216,7 @@
 			<aside class="col-lg-4">
 				<div style="position:sticky;top:70px;">
 					<!-- Sidebar Ad — Top -->
-					<div class="bn-ad-slot mb-4">
-						<div id="Bolnews_Sidebar_Top_ATF" data-ad-slot="sidebar-top-atf"></div>
-					</div>
+					@await Component.InvokeAsync("AdZone", new { zone = "article.sidebar.top" })
 					<!-- Latest news widget -->
 					
 						<div class="bn-story-rail"><h2>Latest News</h2></div>
@@ -232,9 +232,7 @@
 						new { type = Context.Request.Query["type"].ToString() })
 					</div>
 					<!-- Sidebar Ad — Bottom -->
-					<div class="bn-ad-slot mt-4">
-						<div id="Bolnews_Sidebar_Bottom_BTF" data-ad-slot="sidebar-bottom-btf"></div>
-					</div>
+					@await Component.InvokeAsync("AdZone", new { zone = "article.sidebar.bottom" })
 					
 				</div>
 			</aside>
@@ -276,6 +274,7 @@
 <!-- ── SEO Schemas (preserved exactly) ───────────────────── -->
 <script type="application/ld+json">@Html.Raw(Model.ArticleSchemaJson)</script>
 <script type="application/ld+json">@Html.Raw(Model.BreadcrumbSchemaJson)</script>
+@await Component.InvokeAsync("AdZone", new { zone = "article.inline" })
 @section Scripts
 {
 	<script src="~/js/article-audio.js" asp-append-version="true"></script>
@@ -295,69 +294,32 @@
 							paragraph.querySelector('img, iframe, video, audio, blockquote, .quill-social-embed');
 					});
 
-				if (paragraphs.length < 2) return;
-
-				function makeAdSlot(id, isRepeater) {
-					const wrapper = document.createElement('div');
-					wrapper.className = 'bn-ad-slot bn-ad-slot-incontent';
-					wrapper.setAttribute('aria-label', 'Advertisement');
-
-					const inner = document.createElement('div');
-					if (isRepeater) {
-						inner.className = 'lazy';
-						inner.setAttribute('parent-unit', 'Bolnews_Incontent_Lazy');
-					} else {
-						inner.id = id;
-					}
-
-					wrapper.appendChild(inner);
-					return wrapper;
-				}
-
-				const insertions = [
-					{
-						key: 'after-second',
-						index: 1,
-						position: 'afterend',
-						id: 'Bolnews_Incontent_Lazy',
-						isRepeater: false
-					}
-				];
-
-				if (paragraphs.length >= 4) {
-					insertions.push({
-						key: 'before-last',
-						index: paragraphs.length - 1,
-						position: 'beforebegin',
-						id: null,
-						isRepeater: true
-					});
-				}
-
-				if (paragraphs.length >= 8) {
-					const middleIndex = Math.max(2, Math.floor(paragraphs.length / 2) - 1);
-					insertions.push({
-						key: 'middle',
-						index: Math.min(middleIndex, paragraphs.length - 3),
-						position: 'afterend',
-						id: null,
-						isRepeater: true
-					});
-				}
+				if (!paragraphs.length) return;
 
 				const usedPositions = new Set();
-				insertions
-					.filter(function (insertion) {
-						const key = insertion.position + ':' + insertion.index;
-						if (usedPositions.has(key)) return false;
-						usedPositions.add(key);
-						return insertion.index >= 0 && insertion.index < paragraphs.length;
-					})
-					.forEach(function (insertion) {
-						paragraphs[insertion.index].insertAdjacentElement(
-							insertion.position,
-							makeAdSlot(insertion.id, insertion.isRepeater));
-					});
+				document.querySelectorAll('template[data-ad-inline-placement]').forEach(function (template) {
+					const selector = template.dataset.targetSelector;
+					if (selector) {
+						try {
+							const target = document.querySelector(selector);
+							const position = template.dataset.targetPosition || 'beforeend';
+							if (target && ['beforebegin', 'afterbegin', 'beforeend', 'afterend'].includes(position)) {
+								const fragment = template.content.cloneNode(true);
+								target.insertAdjacentElement(position, fragment.firstElementChild);
+								return;
+							}
+						} catch (error) { console.warn('Invalid configured article ad target selector.', selector); }
+					}
+					const mode = template.dataset.insertionMode;
+					const configuredIndex = parseInt(template.dataset.paragraphIndex || '0', 10);
+					const targetIndex = mode === 'beforeLastParagraph' ? paragraphs.length - 1 : configuredIndex - 1;
+					const position = mode === 'beforeLastParagraph' ? 'beforebegin' : 'afterend';
+					const uniqueKey = position + ':' + targetIndex;
+					if (targetIndex < 0 || targetIndex >= paragraphs.length || usedPositions.has(uniqueKey)) return;
+					usedPositions.add(uniqueKey);
+					const fragment = template.content.cloneNode(true);
+					paragraphs[targetIndex].insertAdjacentElement(position, fragment.firstElementChild);
+				});
 			})();
 
 			// ==========================================

@@ -1,7 +1,9 @@
 ﻿@using BolNews.Web.Areas.Admin.ViewModels
+@inject BolNews.Web.Services.SiteProfileService SiteProfileService
 @model List<PublicArticleVM>
 
 @{
+	var siteProfile = await SiteProfileService.GetAsync(Context.RequestAborted);
 	ViewData["Title"] = $"Search: {ViewBag.Query}";
 	var query = ViewBag.Query as string ?? "";
 }
@@ -15,7 +17,7 @@
 						<input type="text"
 							   name="q"
 							   value="@query"
-							   placeholder="Search BolNews..."
+							   placeholder="Search @siteProfile.ShortName..."
 							   style="
                        flex:1;
                        padding:9px 14px;
@@ -58,10 +60,7 @@
 			
 		</div>
 	</div>
-	<div class="bn-ad-code-block bn-ad-slot-incontent"
-		 aria-label="Advertisement">
-		<div id="Bolnews_Incontent_Lazy"></div>
-	</div>
+	@await Component.InvokeAsync("AdZone", new { zone = "search.content" })
 	
 
 	
@@ -184,20 +183,14 @@
 			<!-- Sidebar -->
 			<aside class="col-lg-4">
 				<div style="position:sticky;top:70px;">
-					<div class="bn-ad-slot mb-4">
-						<div id="Bolnews_Sidebar_Top_ATF"
-							 data-ad-slot="sidebar-top-atf"></div>
-					</div>
+					@await Component.InvokeAsync("AdZone", new { zone = "search.sidebar.top" })
 					<div class="bn-story-rail"><h2>Latest News</h2></div>
 					<div class="mb-4">
 						@await Component.InvokeAsync("LatestNews", new { count = 8 })
 					</div>
 					<div class="bn-story-rail"><h2>Trending</h2></div>
 					@await Component.InvokeAsync("TrendingNews", new { type = Context.Request.Query["type"].ToString() })
-					<div class="bn-ad-slot mt-4">
-						<div id="Bolnews_Sidebar_Bottom_BTF"
-							 data-ad-slot="sidebar-bottom-btf"></div>
-					</div>
+					@await Component.InvokeAsync("AdZone", new { zone = "search.sidebar.bottom" })
 				</div>
 			</aside>
 

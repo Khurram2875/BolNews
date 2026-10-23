@@ -17,6 +17,7 @@ namespace BolNews.Web.Services
         private readonly IAnalyticsService _analyticsService;
         private readonly IArticleEngagementQueue _engagementQueue;
         private readonly ILogger<ArticlePageService> _logger;
+        private readonly SiteProfileService _siteProfileService;
 
         public ArticlePageService(
             IArticleService articleService,
@@ -27,7 +28,8 @@ namespace BolNews.Web.Services
             ICacheService cacheService,
             IAnalyticsService analyticsService,
             IArticleEngagementQueue engagementQueue,
-            ILogger<ArticlePageService> logger)
+            ILogger<ArticlePageService> logger,
+            SiteProfileService siteProfileService)
         {
             _articleService = articleService;
             _mapper = mapper;
@@ -38,6 +40,7 @@ namespace BolNews.Web.Services
             _analyticsService = analyticsService;
             _engagementQueue = engagementQueue;
             _logger = logger;
+            _siteProfileService = siteProfileService;
         }
         //temporary logging added for performance monitoring
         public async Task<ArticleDetailsPageVM?> BuildDetailsPageAsync(string slug)
@@ -132,10 +135,14 @@ namespace BolNews.Web.Services
             pageVM.MetaKeywords =
                 _seoService.BuildKeywords(pageVM.Article);
 
+            var siteProfile = await _siteProfileService.GetAsync();
+
             pageVM.ArticleSchemaJson =
                 _seoService.BuildArticleSchema(
                     pageVM.Article,
-                    pageVM.BaseUrl);
+                    pageVM.BaseUrl,
+                    siteProfile.SiteName,
+                    siteProfile.HeaderLogoUrl);
 
             pageVM.BreadcrumbSchemaJson =
                 _seoService.BuildBreadcrumb(

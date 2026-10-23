@@ -32,6 +32,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICacheService, CacheService>();
         services.AddScoped<IAnalyticsService, AnalyticsService>();
         services.AddScoped<IAdService, AdService>();
+        services.AddScoped<SiteProfileService>();
+        services.AddScoped<AdPlacementService>();
         services.AddScoped<IArticleRevisionService, ArticleRevisionService>();
         services.AddScoped<IArticleDiffService, ArticleDiffService>();
         services.AddScoped<IWorkflowTransitionService, WorkflowTransitionService>();

@@ -97,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    initializeConfiguredAdPlacements();
     initializeCollapsibleAdSlots();
 });
 
@@ -104,9 +105,26 @@ function trackImpression(articleId) {
     fetch('/analytics/impression/' + articleId, { method: 'POST' });
 }
 
+function initializeConfiguredAdPlacements() {
+    const allowedPositions = ['beforebegin', 'afterbegin', 'beforeend', 'afterend'];
+    document.querySelectorAll('.bn-ad-slot[data-target-selector]').forEach(function (shell) {
+        const selector = shell.dataset.targetSelector;
+        if (!selector) return;
+
+        try {
+            const target = document.querySelector(selector);
+            const position = shell.dataset.targetPosition || 'beforeend';
+            if (!target || target === shell || shell.contains(target) || !allowedPositions.includes(position)) return;
+            target.insertAdjacentElement(position, shell);
+        } catch (error) {
+            console.warn('Invalid configured ad target selector.', selector);
+        }
+    });
+}
+
 function initializeCollapsibleAdSlots() {
     const adSelector =
-        '[data-ad-slot], #Bolnews_Incontent_Lazy, .lazy[parent-unit="Bolnews_Incontent_Lazy"]';
+        '[data-ad-slot]';
 
     const watchedAdRoots =
         new WeakSet();

@@ -47,10 +47,7 @@
                     </a>
 
                 }
-                <div class="bn-ad-code-block bn-ad-slot-incontent my-4"
-                     aria-label="Advertisement">
-                    <div id="Bolnews_Incontent_Lazy"></div>
-                </div>
+                @await Component.InvokeAsync("AdZone", new { zone = "category.content" })
                 @if (Model.Articles.Any())
                 {
                     <div class="row g-3 mt-1">
@@ -97,19 +94,14 @@
             <aside class="col-lg-4">
                 <div style="position:sticky;top:70px;">
                     <!-- Sidebar Ad — Top -->
-                    <div class="bn-ad-slot mb-4">
-                        <div id="Bolnews_Sidebar_Top_ATF" data-ad-slot="sidebar-top-atf"></div>
-                    </div>
+                    @await Component.InvokeAsync("AdZone", new { zone = "category.sidebar.top" })
                     <div class="bn-story-rail"><h2>Latest News</h2></div>
                     <div class="mb-4">
                         @await Component.InvokeAsync("LatestNews", new { count = 8 })
                     </div>
                     <div class="bn-story-rail"><h2>Trending</h2></div>
                         @await Component.InvokeAsync("TrendingNews", new { type = Context.Request.Query["type"].ToString() })
-                    <div class="bn-ad-slot mt-4">
-                        <div id="Bolnews_Sidebar_Bottom_BTF"
-                             data-ad-slot="sidebar-bottom-btf"></div>
-                    </div>
+                    @await Component.InvokeAsync("AdZone", new { zone = "category.sidebar.bottom" })
                     
                 </div>
             </aside>

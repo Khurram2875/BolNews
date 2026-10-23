@@ -1,4 +1,5 @@
 ﻿@using BolNews.Web.Areas.Admin.ViewModels
+@inject BolNews.Web.Services.SiteProfileService SiteProfileService
 @model HomePageVM
 
 @section Styles {
@@ -6,7 +7,11 @@
 }
 
 @{
+    var siteProfile = await SiteProfileService.GetAsync(Context.RequestAborted);
     ViewData["EnableTimedRefresh"] = true;
+    ViewData["Title"] = siteProfile.DefaultMetaTitle;
+    ViewBag.MetaTitle = siteProfile.DefaultMetaTitle;
+    ViewBag.MetaDescription = siteProfile.DefaultMetaDescription;
     // ViewData["Title"] = "Home";
 
     var secondaryStories = Model.SecondaryStories ?? new List<PublicArticleVM>();
@@ -59,7 +64,7 @@
     var imagePaths = Model.ShowCarouselImages;
 }
 
-<h1 class="visually-hidden">Bol News – Pakistan Breaking News, Politics, Business, Sports & Entertainment</h1>
+<h1 class="visually-hidden">@siteProfile.SiteName – @siteProfile.Tagline</h1>
 <div class="bn-container bn-container--home">
     @if (Model.TopStory != null)
     {
@@ -154,9 +159,7 @@
             @if (featuredStories.Any())
             {
                 <aside class="bn-story-rail" aria-label="Featured">
-                    <div class="bn-ad-slot mb-4">
-                        <div id="Bolnews_Sidebar_Top_ATF" data-ad-slot="sidebar-top-atf"></div>
-                    </div>
+                    @await Component.InvokeAsync("AdZone", new { zone = "home.sidebar.top" })
                     @* <div class="d-none d-md-block">
                         @await Component.InvokeAsync("FuelPrice")
                     </div> *@
@@ -221,18 +224,14 @@
                             </button>
                         </div>
                     }
-                    <div class="bn-ad-slot mt-4">
-                        <div id="Bolnews_Sidebar_Bottom_BTF" data-ad-slot="sidebar-bottom-btf"></div>
-                    </div>
+                    @await Component.InvokeAsync("AdZone", new { zone = "home.sidebar.bottom" })
                 </aside>
             }
         </section>
     }
 </div>
 
-<div class="bn-ad-code-block bn-ad-slot-incontent" aria-label="Advertisement">
-    <div id="Bolnews_Incontent_Lazy"></div>
-</div>
+@await Component.InvokeAsync("AdZone", new { zone = "home.content" })
 
 @if (Model.CategorySections.Count > 2)
 {

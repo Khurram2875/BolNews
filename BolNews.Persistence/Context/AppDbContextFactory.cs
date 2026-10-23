@@ -9,17 +9,20 @@ namespace BolNews.Persistence.Context
         
         public AppDbContext CreateDbContext(string[] args)
         {
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             IConfigurationRoot configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .Build();
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddJsonFile($"appsettings.{environment}.json", optional: true)
+                .AddEnvironmentVariables()
+                .Build();
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-            //Connection string for MySQL database local
-            var connectionString = "server=192.168.75.129; port=3306; database=BolNewsDB; user=admin_user; password =Bol12345";
-            //Get the connection string from Azure
-            //var connectionString = "server=bolnewsdb.mysql.database.azure.com; port=3306; database=bolnewsdb; user=admin_user; password =Bol12345";
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured for Entity Framework design-time operations.");
             optionsBuilder.UseMySql(
                 connectionString,
-                new MySqlServerVersion(new Version(5, 6, 4)));
+                ServerVersion.AutoDetect(connectionString));
 
             return new AppDbContext(optionsBuilder.Options);
         }

@@ -1,0 +1,32 @@
+@using BolNews.Domain.Entities
+@model IReadOnlyList<AdPlacement>
+@{
+    var inlineZone = ViewBag.IsInlineZone is true;
+}
+@foreach (var placement in Model)
+{
+    if (inlineZone)
+    {
+        <template class="bn-ad-placement-template"
+                  data-ad-inline-placement
+                  data-insertion-mode="@placement.InsertionMode"
+                  data-paragraph-index="@(placement.ParagraphIndex ?? 0)"
+                  data-target-selector="@placement.TargetSelector"
+                  data-target-position="@placement.TargetPosition">
+            <div class="bn-ad-slot @placement.ContainerClass" aria-label="Advertisement">
+                <div id="@placement.ElementId"
+                     data-ad-slot="@placement.ProviderUnit"
+                     data-ad-placement="@placement.Key"></div>
+            </div>
+        </template>
+    }
+    else
+    {
+        <div class="bn-ad-slot @placement.ContainerClass" aria-label="Advertisement"
+             data-target-selector="@placement.TargetSelector" data-target-position="@placement.TargetPosition">
+            <div id="@placement.ElementId"
+                 data-ad-slot="@placement.ProviderUnit"
+                 data-ad-placement="@placement.Key"></div>
+        </div>
+    }
+}

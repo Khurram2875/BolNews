@@ -1,4 +1,8 @@
-﻿<div class="bn-brand">
+@inject BolNews.Web.Services.SiteProfileService SiteProfileService
+@{
+    var profile = await SiteProfileService.GetAsync(Context.RequestAborted);
+}
+<div class="bn-brand">
     <div class="bn-container">
 
         <!-- Desktop / tablet layout -->
@@ -14,13 +18,13 @@
             <!-- Center -->
             <div class="col-lg-6 col-md-6 text-center">
                 <a asp-controller="Home" asp-action="Index" class="bn-brand-logo">
-                    <img src="~/images/logo-black.png" alt="Bol News" />
+                    <img src="@Url.Content(profile.HeaderLogoUrl)" alt="@profile.SiteName" />
                 </a>
             </div>
 
             <!-- Right -->
             <div class="col-lg-3 col-md-3 text-end">
-                <a href="/live" class="bn-watch-live">
+                <a href="@profile.LiveStreamUrl" class="bn-watch-live">
                     Watch Live
                 </a>
             </div>
@@ -34,10 +38,10 @@
             </div>
 
             <a asp-controller="Home" asp-action="Index" class="bn-brand-logo mb-2">
-                <img src="~/images/logo-black.png" alt="Bol News" />
+                <img src="@Url.Content(profile.HeaderLogoUrl)" alt="@profile.SiteName" />
             </a>
 
-            <a href="/live" class="bn-watch-live">
+            <a href="@profile.LiveStreamUrl" class="bn-watch-live">
                 Watch Live
             </a>
         </div>

@@ -7,12 +7,14 @@
         var iframe = document.getElementById('gy-live-iframe');
 
         if (!thumbnail || !player || !iframe) return;
+        var embedUrl = thumbnail.dataset.liveEmbedUrl;
+        if (!embedUrl) return;
 
         thumbnail.addEventListener('click', function () {
             thumbnail.style.display = 'none';
             iframe.setAttribute(
                 'src',
-                'https://www.youtube.com/embed/9N6SWn1BQpA?si=OenP3TYNCWNSIv57&autoplay=1&rel=0&modestbranding=1'
+                embedUrl + (embedUrl.indexOf('?') >= 0 ? '&' : '?') + 'autoplay=1'
             );
             player.style.display = 'block';
         });

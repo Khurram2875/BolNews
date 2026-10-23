@@ -6,10 +6,19 @@
 
 @inject ISeoService SeoService
 @inject IUrlService UrlService
-@inject IAdService AdService
+@inject SiteProfileService SiteProfileService
+
+@{
+    var siteProfile = await SiteProfileService.GetAsync(Context.RequestAborted);
+    var siteName = string.IsNullOrWhiteSpace(siteProfile.SiteName) ? "Newsroom" : siteProfile.SiteName;
+    var siteTagline = string.IsNullOrWhiteSpace(siteProfile.Tagline) ? "Latest News" : siteProfile.Tagline;
+    var adOrigin = Uri.TryCreate(siteProfile.AdScriptUrl, UriKind.Absolute, out var adScriptUri)
+        ? adScriptUri.GetLeftPart(UriPartial.Authority)
+        : null;
+}
 
 <!DOCTYPE html>
-<html lang="en" data-theme="default">
+<html lang="en" data-theme="@siteProfile.ThemeName">
 <head>
     @{
         var defaultImage = $"{UrlService.GetBaseUrl()}/default-og.jpg";
@@ -45,11 +54,11 @@
             ? viewTitle
             : !string.IsNullOrWhiteSpace(metaTitle)
                 ? metaTitle
-                : "Bol News - Latest News, Politics, Sports and Entertainment";
+                : $"{siteName} - {siteTagline}";
         var metaDescription = ViewBag.MetaDescription as string;
         var pageDescription = !string.IsNullOrWhiteSpace(metaDescription)
             ? metaDescription
-            : "Latest news from Bol News";
+            : $"Latest news from {siteName}";
     }
 
     <!-- SEO -->
@@ -97,13 +106,23 @@
     }
 
     <!-- Styles -->
-    <link rel="icon" type="image/x-icon" href="~/bol_network.ico" />
+    <link rel="icon" type="image/x-icon" href="@Url.Content(siteProfile.FaviconUrl)" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/site-theme.css" />
     <link rel="stylesheet" href="~/BolNews.Web.styles.css" asp-append-version="true" />
+    <style>
+        :root { --bn-brand-primary: @siteProfile.PrimaryColor; --bn-brand-accent: @siteProfile.AccentColor; }
+        [data-theme] {
+            --bn-accent: var(--bn-brand-primary);
+            --bn-accent-hover: color-mix(in srgb, var(--bn-brand-primary) 86%, black);
+            --bn-nav-active: var(--bn-brand-primary);
+            --bn-ticker-bg: var(--bn-brand-accent);
+        }
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://avads.live">
+    @if (!string.IsNullOrWhiteSpace(adOrigin)) { <link rel="dns-prefetch" href="@adOrigin"> }
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preload"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -119,8 +138,8 @@
 
     @{
         var baseUrl = UrlService.GetBaseUrl();
-        var orgSchema = SeoService.BuildOrganizationSchema(baseUrl);
-        var webSiteSchema = SeoService.BuildWebSiteSchema(baseUrl);
+        var orgSchema = SeoService.BuildOrganizationSchema(baseUrl, siteProfile.SiteName, siteProfile.HeaderLogoUrl);
+        var webSiteSchema = SeoService.BuildWebSiteSchema(baseUrl, siteProfile.SiteName);
     }
 
     @if (ViewBag.Page is int page)
@@ -175,18 +194,14 @@
     <partial name="_Header" />
 
     @* Sample ad placement: top leaderboard immediately after header, before homepage/content. *@
-    <div class="bn-ad-code-block bn-ad-code-block--top" aria-label="Advertisement">
-        <div id="Bolnews_Top_Leaderboard_ATF" data-ad-slot="top-leaderboard-atf"></div>
-    </div>
+    @await Component.InvokeAsync("AdZone", new { zone = "site.top" })
 
     <main class="bn-main">
         @RenderBody()
     </main>
 
     @* Sample ad placement: bottom BTF immediately before footer. *@
-    <div class="bn-ad-code-block bn-ad-code-block--bottom" aria-label="Advertisement">
-        <div id="Bolnews_Bottom_BTF" data-ad-slot="bottom-btf"></div>
-    </div>
+    @await Component.InvokeAsync("AdZone", new { zone = "site.bottom" })
 
     <partial name="_Footer" />
 
@@ -200,16 +215,19 @@
     {
         <script src="~/js/public-page-refresh.js" asp-append-version="true"></script>
     }
+    @if (!string.IsNullOrWhiteSpace(siteProfile.AdScriptUrl))
+    {
     <script>
         (function () {
             var adScriptLoaded = false;
+            var adScriptUrl = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(siteProfile.AdScriptUrl));
 
             function loadAdScript() {
                 if (adScriptLoaded) return;
                 adScriptLoaded = true;
 
                 var script = document.createElement('script');
-                script.src = 'https://avads.live/s/av-bolnews.js';
+                script.src = adScriptUrl;
                 script.async = true;
                 document.head.appendChild(script);
             }
@@ -230,6 +248,7 @@
             }
         })();
     </script>
+    }
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

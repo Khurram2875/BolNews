@@ -30,7 +30,7 @@ namespace BolNews.Web.Services
             return $"{baseUrl.TrimEnd('/')}{path}";
         }
 
-        public string BuildArticleSchema(PublicArticleVM article, string baseUrl)
+        public string BuildArticleSchema(PublicArticleVM article, string baseUrl, string publisherName = "Publisher", string logoUrl = "/")
         {
             var keywords = BuildKeywords(article);
             var articleUrl = $"{baseUrl.TrimEnd('/')}/{article.CategorySlug}/{article.Slug}";
@@ -83,12 +83,12 @@ namespace BolNews.Web.Services
                 publisher = new
                 {
                     @type = "Organization",
-                    name = "Bol News",
+                    name = publisherName,
                     url = baseUrl,
                     logo = new
                     {
                         @type = "ImageObject",
-                        url = $"{baseUrl.TrimEnd('/')}/logo.png"
+                        url = ToAbsoluteUrl(logoUrl, baseUrl)
                     }
                 },
 
@@ -138,20 +138,20 @@ namespace BolNews.Web.Services
             return JsonSerializer.Serialize(schema);
         }
 
-        public string BuildOrganizationSchema(string baseUrl)
+        public string BuildOrganizationSchema(string baseUrl, string publisherName = "Publisher", string logoUrl = "/")
         {
             var schema = new
             {
                 @context = "https://schema.org",
                 @type = "Organization",
 
-                name = "Bol News",
+                name = publisherName,
                 url = baseUrl,
 
                 logo = new
                 {
                     @type = "ImageObject",
-                    url = $"{baseUrl.TrimEnd('/')}/logo.png"
+                    url = ToAbsoluteUrl(logoUrl, baseUrl)
                 }
             };
 
@@ -241,10 +241,10 @@ namespace BolNews.Web.Services
             return JsonSerializer.Serialize(schema);
         }
 
-        public string BuildWebSiteSchema(string baseUrl)
+        public string BuildWebSiteSchema(string baseUrl, string publisherName = "Publisher")
         {
             return JsonSerializer.Serialize(
-                StructuredDataBuilder.BuildWebSite(baseUrl));
+                StructuredDataBuilder.BuildWebSite(baseUrl, publisherName));
         }
     }
 }

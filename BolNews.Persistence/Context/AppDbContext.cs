@@ -38,6 +38,8 @@ namespace BolNews.Persistence.Context
         public DbSet<BreakingNews> BreakingNews => Set<BreakingNews>();
         public DbSet<EditorialCategoryConfiguration> EditorialCategoryConfigurations { get; set; }
         public DbSet<ArticleInternalLinkRule> ArticleInternalLinkRules { get; set; }
+        public DbSet<SiteProfile> SiteProfiles { get; set; }
+        public DbSet<AdPlacement> AdPlacements { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -64,6 +66,67 @@ namespace BolNews.Persistence.Context
             });
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+            modelBuilder.Entity<SiteProfile>(entity =>
+            {
+                entity.ToTable("SiteProfiles");
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.SiteName).HasMaxLength(160).IsRequired();
+                entity.Property(x => x.ShortName).HasMaxLength(80).IsRequired();
+                entity.Property(x => x.Tagline).HasMaxLength(300).IsRequired();
+                entity.Property(x => x.HeaderLogoUrl).HasMaxLength(512).IsRequired();
+                entity.Property(x => x.FooterLogoUrl).HasMaxLength(512).IsRequired();
+                entity.Property(x => x.FaviconUrl).HasMaxLength(512).IsRequired();
+                entity.Property(x => x.PrimaryColor).HasMaxLength(7).IsRequired();
+                entity.Property(x => x.AccentColor).HasMaxLength(7).IsRequired();
+                entity.Property(x => x.ThemeName).HasMaxLength(40).IsRequired();
+                entity.Property(x => x.LiveStreamUrl).HasMaxLength(512).IsRequired();
+                entity.Property(x => x.LiveVideoEmbedUrl).HasMaxLength(1024);
+                entity.Property(x => x.LiveThumbnailUrl).HasMaxLength(512);
+                entity.Property(x => x.CopyrightText).HasMaxLength(300).IsRequired();
+                entity.Property(x => x.DefaultMetaTitle).HasMaxLength(200).IsRequired();
+                entity.Property(x => x.DefaultMetaDescription).HasMaxLength(500).IsRequired();
+                entity.Property(x => x.CustomCss).HasColumnType("longtext");
+                entity.Property(x => x.AdScriptUrl).HasMaxLength(1024);
+                entity.Property(x => x.WhatsAppUrl).HasMaxLength(512);
+                entity.Property(x => x.FacebookUrl).HasMaxLength(512);
+                entity.Property(x => x.XUrl).HasMaxLength(512);
+                entity.Property(x => x.YouTubeUrl).HasMaxLength(512);
+                entity.Property(x => x.InstagramUrl).HasMaxLength(512);
+                entity.Property(x => x.TikTokUrl).HasMaxLength(512);
+                entity.Property(x => x.UrduEditionUrl).HasMaxLength(512);
+                entity.Property(x => x.OtherEditionLabel).HasMaxLength(80).IsRequired();
+                entity.Property(x => x.FooterColumnOneLinks).HasColumnType("longtext");
+                entity.Property(x => x.FooterColumnTwoLinks).HasColumnType("longtext");
+                entity.Property(x => x.FooterColumnThreeLinks).HasColumnType("longtext");
+                entity.Property(x => x.AboutContent).HasColumnType("longtext");
+                entity.Property(x => x.ContactContent).HasColumnType("longtext");
+                entity.Property(x => x.AdvertiseContent).HasColumnType("longtext");
+                entity.Property(x => x.BlogsContent).HasColumnType("longtext");
+                entity.Property(x => x.BrandedContent).HasColumnType("longtext");
+                entity.Property(x => x.EditorialPolicyContent).HasColumnType("longtext");
+                entity.Property(x => x.PrivacyPolicyContent).HasColumnType("longtext");
+                entity.Property(x => x.TermsOfServiceContent).HasColumnType("longtext");
+                entity.Property(x => x.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+            });
+
+            modelBuilder.Entity<AdPlacement>(entity =>
+            {
+                entity.ToTable("AdPlacements");
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.Key).HasMaxLength(100).IsRequired();
+                entity.Property(x => x.DisplayName).HasMaxLength(160).IsRequired();
+                entity.Property(x => x.ZoneKey).HasMaxLength(100).IsRequired();
+                entity.Property(x => x.ElementId).HasMaxLength(128).IsRequired();
+                entity.Property(x => x.ProviderUnit).HasMaxLength(200).IsRequired();
+                entity.Property(x => x.ContainerClass).HasMaxLength(300).IsRequired();
+                entity.Property(x => x.TargetSelector).HasMaxLength(500);
+                entity.Property(x => x.TargetPosition).HasMaxLength(16).IsRequired();
+                entity.Property(x => x.InsertionMode).HasMaxLength(32).IsRequired();
+                entity.Property(x => x.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+                entity.HasIndex(x => x.Key).IsUnique();
+                entity.HasIndex(x => new { x.ZoneKey, x.IsEnabled, x.SortOrder });
+            });
 
             modelBuilder.Entity<ArticleAnalytics>()
                 .HasOne(a => a.Article)

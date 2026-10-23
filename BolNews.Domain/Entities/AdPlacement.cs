@@ -1,30 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace BolNews.Domain.Entities;
 
-namespace BolNews.Domain.Entities
+/// <summary>
+/// An ad unit configured for a supported public-page zone. The zone is chosen
+/// by an administrator; views expose the available zones as stable anchors.
+/// </summary>
+public class AdPlacement
 {
-    public class AdPlacement
-    {
-        public int Id { get; set; }
-
-        [Required]
-        public string Name { get; set; } = string.Empty;
-
-        [Required]
-        public string PlacementKey { get; set; } = string.Empty;
-
-        public string? Description { get; set; }
-
-        public string? AdCode { get; set; }
-
-        public bool IsEnabled { get; set; } = true;
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        public DateTime? UpdatedAt { get; set; }
-    }
+    public int Id { get; set; }
+    public string Key { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public string ZoneKey { get; set; } = string.Empty;
+    public string ElementId { get; set; } = string.Empty;
+    public string ProviderUnit { get; set; } = string.Empty;
+    public string ContainerClass { get; set; } = string.Empty;
+    public string? TargetSelector { get; set; }
+    public string TargetPosition { get; set; } = "beforeend";
+    public bool IsEnabled { get; set; } = true;
+    public int SortOrder { get; set; }
+    public int? ParagraphIndex { get; set; }
+    public string InsertionMode { get; set; } = "zone";
+    public DateTime UpdatedAt { get; set; }
 }

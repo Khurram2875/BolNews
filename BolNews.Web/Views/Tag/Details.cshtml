@@ -18,10 +18,7 @@
 	</div>
 
 	<div style="background:var(--bn-nav-bg);padding:28px 0 24px;">
-		<div class="bn-ad-code-block bn-ad-slot-incontent"
-			 aria-label="Advertisement">
-			<div id="Bolnews_Incontent_Lazy"></div>
-		</div>
+		@await Component.InvokeAsync("AdZone", new { zone = "tag.content" })
 		<div class="container">
 			<span class="bn-tag d-inline-block mb-2">Tag</span>
 			<h1 style="font-family:var(--bn-font-display);font-size:clamp(26px,4vw,40px);font-weight:800;color:#fff;margin:0;line-height:1.2;">
@@ -91,10 +88,7 @@
 
 			<aside class="col-lg-4">
 				<div style="position:sticky;top:70px;">
-					<div class="bn-ad-slot mb-4">
-						<div id="Bolnews_Sidebar_Top_ATF"
-							 data-ad-slot="sidebar-top-atf"></div>
-					</div>
+					@await Component.InvokeAsync("AdZone", new { zone = "tag.sidebar.top" })
 					<div class="bn-widget">
 						@await Component.InvokeAsync("TrendingNews", new { type = Context.Request.Query["type"].ToString() })
 					</div>
@@ -104,10 +98,7 @@
 							@await Component.InvokeAsync("LatestNews", new { count = 10 })
 						</div>
 					</div>
-					<div class="bn-ad-slot mt-4">
-						<div id="Bolnews_Sidebar_Bottom_BTF"
-							 data-ad-slot="sidebar-bottom-btf"></div>
-					</div>
+					@await Component.InvokeAsync("AdZone", new { zone = "tag.sidebar.bottom" })
 				</div>
 			</aside>
 		</div>

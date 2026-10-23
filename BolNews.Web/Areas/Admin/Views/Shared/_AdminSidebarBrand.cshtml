@@ -1,15 +1,17 @@
 ﻿@using BolNews.Domain.Entities
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<ApplicationUser> UserManager
+@inject BolNews.Web.Services.SiteProfileService SiteProfileService
 @{
     var user = await UserManager.GetUserAsync(User);
+    var profile = await SiteProfileService.GetAsync(Context.RequestAborted);
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
     var isChangePassword = string.Equals(currentController, "Account", StringComparison.OrdinalIgnoreCase)
         && string.Equals(currentAction, "ChangePassword", StringComparison.OrdinalIgnoreCase);
 }
 <div class="sidebar-brand mb-4 px-3">
-    <h4 class="fw-bold text-danger">BOL<span class="text-white">NEWS</span></h4>
+    <h4 class="fw-bold text-danger">@profile.ShortName</h4>
     <small class="text-uppercase fw-bold text-white" style="font-size: 0.65rem;">Editorial Control</small>
 
     <div class="d-flex align-items-center mt-2 gap-2">

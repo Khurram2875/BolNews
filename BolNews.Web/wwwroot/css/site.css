@@ -12,13 +12,13 @@
     --bn-text-primary: #111111;
     --bn-text-body: #2d2d2d;
     --bn-text-muted: #767676;
-    --bn-accent: #c0392b;
-    --bn-accent-hover: #a93226;
+    --bn-accent: var(--bn-brand-primary, #c0392b);
+    --bn-accent-hover: color-mix(in srgb, var(--bn-brand-primary, #a93226) 86%, black);
     --bn-nav-bg: #111111;
     --bn-nav-text: rgba(255,255,255,0.78);
     --bn-nav-text-hover: #ffffff;
-    --bn-nav-active: #c0392b;
-    --bn-ticker-bg: #c0392b;
+    --bn-nav-active: var(--bn-brand-primary, #c0392b);
+    --bn-ticker-bg: var(--bn-brand-primary, #c0392b);
     --bn-ticker-text: #ffffff;
     --bn-hero-overlay: linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.28) 55%, transparent 100%);
     --bn-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.05);

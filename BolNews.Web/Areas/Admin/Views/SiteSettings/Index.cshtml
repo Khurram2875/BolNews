@@ -1,0 +1,79 @@
+@model BolNews.Domain.Entities.SiteProfile
+@{
+    ViewData["Title"] = "Publisher Settings";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="mb-4">
+        <h1 class="h3 mb-1">Publisher Settings</h1>
+        <p class="text-muted mb-0">Configure this installation’s name, brand, theme, metadata, and legal page text.</p>
+    </div>
+    @if (TempData["SuccessMessage"] is string success) { <div class="alert alert-success">@success</div> }
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+    <form asp-action="Index" method="post">
+        @Html.AntiForgeryToken()
+        <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Publisher identity</div><div class="card-body row g-3">
+            <div class="col-md-6"><label asp-for="SiteName" class="form-label">Publisher name</label><input asp-for="SiteName" class="form-control" /></div>
+            <div class="col-md-6"><label asp-for="ShortName" class="form-label">Short name</label><input asp-for="ShortName" class="form-control" /></div>
+            <div class="col-12"><label asp-for="Tagline" class="form-label"></label><input asp-for="Tagline" class="form-control" /></div>
+            <div class="col-md-4"><label asp-for="HeaderLogoUrl" class="form-label">Header logo URL/path</label><input asp-for="HeaderLogoUrl" class="form-control" placeholder="/uploads/brand/header-logo.svg" /><div class="form-text">Upload the asset in Media Library, then paste its public path.</div></div>
+            <div class="col-md-4"><label asp-for="FooterLogoUrl" class="form-label">Footer logo URL/path</label><input asp-for="FooterLogoUrl" class="form-control" /></div>
+            <div class="col-md-4"><label asp-for="FaviconUrl" class="form-label">Favicon URL/path</label><input asp-for="FaviconUrl" class="form-control" /></div>
+            <div class="col-md-4"><label asp-for="PrimaryColor" class="form-label">Primary brand color</label><input asp-for="PrimaryColor" type="color" class="form-control form-control-color" /></div>
+            <div class="col-md-4"><label asp-for="AccentColor" class="form-label">Accent color</label><input asp-for="AccentColor" type="color" class="form-control form-control-color" /></div>
+            <div class="col-md-4"><label asp-for="ThemeName" class="form-label">Base theme</label><select asp-for="ThemeName" class="form-select"><option value="default">Default</option><option value="dark">Dark</option><option value="editorial">Editorial</option><option value="bold">Bold</option></select></div>
+            <div class="col-md-6"><label asp-for="LiveStreamUrl" class="form-label">Live page path</label><input asp-for="LiveStreamUrl" class="form-control" /></div>
+            <div class="col-md-6"><label asp-for="LiveVideoEmbedUrl" class="form-label">Live player embed URL</label><input asp-for="LiveVideoEmbedUrl" class="form-control" placeholder="https://www.youtube.com/embed/..." /></div>
+            <div class="col-md-6"><label asp-for="LiveThumbnailUrl" class="form-label">Live player thumbnail URL/path</label><input asp-for="LiveThumbnailUrl" class="form-control" /></div>
+            <div class="col-md-6"><label asp-for="UrduEditionUrl" class="form-label">Other language edition URL</label><input asp-for="UrduEditionUrl" class="form-control" placeholder="https://..." /></div>
+            <div class="col-md-6"><label asp-for="CopyrightText" class="form-label">Copyright text</label><input asp-for="CopyrightText" class="form-control" /></div>
+        </div></div>
+
+        <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Footer navigation</div><div class="card-body row g-3">
+            <p class="text-muted">Enter one link per line as <code>Label|/path</code>. Use a full HTTPS URL for external sites. Clear a column to hide it.</p>
+            <div class="col-md-4"><label asp-for="FooterColumnOneLinks" class="form-label">Column one</label><textarea asp-for="FooterColumnOneLinks" class="form-control" rows="7"></textarea></div>
+            <div class="col-md-4"><label asp-for="FooterColumnTwoLinks" class="form-label">Column two</label><textarea asp-for="FooterColumnTwoLinks" class="form-control" rows="7"></textarea></div>
+            <div class="col-md-4"><label asp-for="FooterColumnThreeLinks" class="form-label">Column three</label><textarea asp-for="FooterColumnThreeLinks" class="form-control" rows="7"></textarea></div>
+        </div></div>
+
+        <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Search and advertising integration</div><div class="card-body row g-3">
+            <div class="col-md-6"><label asp-for="DefaultMetaTitle" class="form-label"></label><input asp-for="DefaultMetaTitle" class="form-control" /></div>
+            <div class="col-md-6"><label asp-for="DefaultMetaDescription" class="form-label"></label><textarea asp-for="DefaultMetaDescription" class="form-control" rows="2"></textarea></div>
+            <div class="col-12"><label asp-for="AdScriptUrl" class="form-label">Ad provider script URL</label><input asp-for="AdScriptUrl" class="form-control" placeholder="https://..." /><div class="form-text">Leave blank to disable the provider script. Ad unit div IDs are managed separately under Ad Placements.</div></div>
+        </div></div>
+
+        <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Custom frontend styles</div><div class="card-body">
+            <label asp-for="CustomCss" class="form-label">Additional CSS</label>
+            <textarea asp-for="CustomCss" class="form-control font-monospace" rows="12" placeholder=".bn-brand-logo img { max-height: 70px; }"></textarea>
+            <div class="form-text">CSS is applied across the public site after built-in theme styles. Keep branding and structural changes here to avoid maintaining customer-specific code branches.</div>
+        </div></div>
+
+        <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Social links</div><div class="card-body row g-3">
+            <div class="col-md-4"><label asp-for="FacebookUrl" class="form-label"></label><input asp-for="FacebookUrl" class="form-control" /></div>
+            <div class="col-md-4"><label asp-for="XUrl" class="form-label">X URL</label><input asp-for="XUrl" class="form-control" /></div>
+            <div class="col-md-4"><label asp-for="YouTubeUrl" class="form-label"></label><input asp-for="YouTubeUrl" class="form-control" /></div>
+            <div class="col-md-4"><label asp-for="InstagramUrl" class="form-label"></label><input asp-for="InstagramUrl" class="form-control" /></div>
+            <div class="col-md-4"><label asp-for="TikTokUrl" class="form-label"></label><input asp-for="TikTokUrl" class="form-control" /></div>
+            <div class="col-md-4"><label asp-for="WhatsAppUrl" class="form-label"></label><input asp-for="WhatsAppUrl" class="form-control" /></div>
+        </div></div>
+
+        <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">About, contact, and legal pages</div><div class="card-body">
+            <p class="text-muted">Content is plain text and displayed safely. Add your organization’s own information and policies; blank pages will show a setup notice.</p>
+            @foreach (var field in new[] {
+                (Name: nameof(Model.AboutContent), Label: "About Us", Value: Model.AboutContent),
+                (Name: nameof(Model.ContactContent), Label: "Contact Us", Value: Model.ContactContent),
+                (Name: nameof(Model.AdvertiseContent), Label: "Advertise", Value: Model.AdvertiseContent),
+                (Name: nameof(Model.BlogsContent), Label: "Blogs", Value: Model.BlogsContent),
+                (Name: nameof(Model.BrandedContent), Label: "Branded Content", Value: Model.BrandedContent),
+                (Name: nameof(Model.EditorialPolicyContent), Label: "Editorial Policy", Value: Model.EditorialPolicyContent),
+                (Name: nameof(Model.PrivacyPolicyContent), Label: "Privacy Policy", Value: Model.PrivacyPolicyContent),
+                (Name: nameof(Model.TermsOfServiceContent), Label: "Terms of Service", Value: Model.TermsOfServiceContent)
+            })
+            {
+                <div class="mb-3"><label for="@field.Name" class="form-label">@field.Label</label><textarea id="@field.Name" name="@field.Name" class="form-control" rows="4">@field.Value</textarea></div>
+            }
+        </div></div>
+        <button class="btn btn-danger" type="submit">Save publisher settings</button>
+    </form>
+</div>
