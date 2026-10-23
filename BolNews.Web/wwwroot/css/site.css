@@ -1573,6 +1573,13 @@ body.nav-fixed {
         padding: 0;
     }
 
+    #editor .ql-editor h1,
+    #editor .ql-editor h2,
+    #editor .ql-editor h3 {
+        margin: 0;
+        padding: 0;
+    }
+
     #editor .ql-editor img {
         max-width: 100%;
         height: auto !important;
@@ -3822,12 +3829,16 @@ body,
     padding: 0;
 }
 
+    .bn-article-body h1 {
+        margin: 0;
+    }
+
     .bn-article-body h2 {
         font-family: var(--bn-font-display);
         font-size: 22px;
         font-weight: 700;
         color: var(--bn-text-primary);
-        margin: 1em 0 0.4em;
+        margin: 1em 0 0;
     }
 
     .bn-article-body h3 {
@@ -3835,7 +3846,7 @@ body,
         font-size: 18px;
         font-weight: 700;
         color: var(--bn-text-primary);
-        margin: 0.8em 0 0.3em;
+        margin: 0.8em 0 0;
     }
 
     .bn-article-body img {
