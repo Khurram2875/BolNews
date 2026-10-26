@@ -51,24 +51,43 @@ namespace BolNews.Web.Areas.Admin.ViewModels
                 var timeSpan = DateTime.UtcNow - PublishedAt.Value;
 
                 if (timeSpan.TotalSeconds < 60)
-                    return $"{(int)timeSpan.TotalSeconds} seconds ago";
+                {
+                    var count = Math.Max(1, (int)timeSpan.TotalSeconds);
+                    return $"{count} {(count == 1 ? "second" : "seconds")} ago";
+                }
 
                 if (timeSpan.TotalMinutes < 60)
-                    return $"{(int)timeSpan.TotalMinutes} minutes ago";
+                {
+                    var count = (int)timeSpan.TotalMinutes;
+                    return $"{count} {(count == 1 ? "minute" : "minutes")} ago";
+                }
 
                 if (timeSpan.TotalHours < 24)
-                    return $"{(int)timeSpan.TotalHours} hours ago";
+                {
+                    var count = (int)timeSpan.TotalHours;
+                    return $"{count} {(count == 1 ? "hour" : "hours")} ago";
+                }
 
                 if (timeSpan.TotalDays < 7)
-                    return $"{(int)timeSpan.TotalDays} days ago";
+                {
+                    var count = (int)timeSpan.TotalDays;
+                    return $"{count} {(count == 1 ? "day" : "days")} ago";
+                }
 
                 if (timeSpan.TotalDays < 30)
-                    return $"{(int)(timeSpan.TotalDays / 7)} weeks ago";
+                {
+                    var count = (int)(timeSpan.TotalDays / 7);
+                    return $"{count} {(count == 1 ? "week" : "weeks")} ago";
+                }
 
                 if (timeSpan.TotalDays < 365)
-                    return $"{(int)(timeSpan.TotalDays / 30)} months ago";
+                {
+                    var count = (int)(timeSpan.TotalDays / 30);
+                    return $"{count} {(count == 1 ? "month" : "months")} ago";
+                }
 
-                return $"{(int)(timeSpan.TotalDays / 365)} years ago";
+                var years = (int)(timeSpan.TotalDays / 365);
+                return $"{years} {(years == 1 ? "year" : "years")} ago";
             }
         }
         public DashboardDto dashboard { get; set; }

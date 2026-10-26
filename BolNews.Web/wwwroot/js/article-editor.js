@@ -275,7 +275,7 @@
     // Makes Quill available in DevTools.
     window.quill = quill;
 
-    initializeSummaryCounter();
+    initializeMetaDescriptionCounter();
 
 
     quill.clipboard.addMatcher(
@@ -1621,41 +1621,41 @@
     // HTML HELPERS
     // ============================================================
 
-    function initializeSummaryCounter() {
+    function initializeMetaDescriptionCounter() {
 
-        const summaryInput =
-            document.getElementById('Summary');
+        const metaDescriptionInput =
+            document.getElementById('MetaDescription');
 
-        if (!summaryInput) {
+        if (!metaDescriptionInput) {
             return;
         }
 
         const maxLength =
-            Number(summaryInput.dataset.summaryMaxlength || summaryInput.maxLength || 180);
+            Number(metaDescriptionInput.dataset.metaDescriptionMaxlength || metaDescriptionInput.maxLength || 180);
 
         const usedCounter =
-            document.querySelector('[data-summary-used]');
+            document.querySelector('[data-meta-description-used]');
 
         const remainingCounter =
-            document.querySelector('[data-summary-remaining]');
+            document.querySelector('[data-meta-description-remaining]');
 
         const counterWrapper =
-            document.querySelector('[data-summary-counter]');
+            document.querySelector('[data-meta-description-counter]');
 
-        function updateSummaryCounter() {
+        function updateMetaDescriptionCounter() {
 
             if (
-                summaryInput.value.length > maxLength
+                metaDescriptionInput.value.length > maxLength
             ) {
-                summaryInput.value =
-                    summaryInput.value.slice(
+                metaDescriptionInput.value =
+                    metaDescriptionInput.value.slice(
                         0,
                         maxLength
                     );
             }
 
             const used =
-                summaryInput.value.length;
+                metaDescriptionInput.value.length;
 
             const remaining =
                 Math.max(
@@ -1688,12 +1688,12 @@
                 );
         }
 
-        summaryInput.addEventListener(
+        metaDescriptionInput.addEventListener(
             'input',
-            updateSummaryCounter
+            updateMetaDescriptionCounter
         );
 
-        updateSummaryCounter();
+        updateMetaDescriptionCounter();
     }
 
     function escapeHtml(value) {

@@ -22,11 +22,10 @@ namespace BolNews.Web.Areas.Admin.ViewModels
         public string MetaTitle { get; set; }
 
         [Required]
-        [StringLength(500)]
+        [StringLength(180, ErrorMessage = "Meta Description cannot exceed 180 characters.")]
         public string MetaDescription { get; set; }
 
         [Required]
-        [StringLength(180, ErrorMessage = "Summary cannot exceed 180 characters.")]
         public string Summary { get; set; } = string.Empty;
 
         [Required]
