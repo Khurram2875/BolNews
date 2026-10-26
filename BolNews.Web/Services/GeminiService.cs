@@ -69,7 +69,7 @@ namespace BolNews.Web.Services
 
                 if (string.IsNullOrWhiteSpace(jsonResponse))
                 {
-                    return ($"{title} | BolNews", summary);
+                    return ($"{title} | BolNews", LimitMetaDescription(summary));
                 }
 
                 jsonResponse = CleanJsonResponse(jsonResponse);
@@ -81,12 +81,18 @@ namespace BolNews.Web.Services
                         PropertyNameCaseInsensitive = true
                     });
 
-                return (result?.MetaTitle ?? title, result?.MetaDescription ?? summary);
+                return (result?.MetaTitle ?? title, LimitMetaDescription(result?.MetaDescription ?? summary));
             }
             catch
             {
-                return ($"{title} | BolNews", summary);
+                return ($"{title} | BolNews", LimitMetaDescription(summary));
             }
+        }
+
+        private static string LimitMetaDescription(string? description)
+        {
+            var value = description?.Trim() ?? string.Empty;
+            return value.Length <= 180 ? value : value[..180].TrimEnd();
         }
 
         public async Task<IReadOnlyList<GrammarIssueDto>> CheckGrammarAsync(
