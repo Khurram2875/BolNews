@@ -111,9 +111,8 @@ html {
 }
 
 body {
-    font-family: var(--bn-font-body);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-    /*background-color: var(--bn-bg);*/
+    font-family: var(--bn-font-family, var(--bn-font-body));
+    background-color: var(--bn-bg);
     color: var(--bn-text-primary);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -2167,12 +2166,12 @@ body.nav-fixed {
 }
 
 .bn-main {
-    background: #fff;
+    background: var(--bn-surface);
 }
 
 .bn-header {
-    background: #fff;
-    border-bottom: 1px solid #cfcfcf;
+    background: var(--bn-surface);
+    border-bottom: 1px solid var(--bn-border);
 }
 
 .bn-brand {
@@ -2202,14 +2201,14 @@ body.nav-fixed {
 }
 
 .bn-watch-live {
-    color: #d71920;
+    color: var(--bn-brand-accent, var(--bn-accent, #d71920));
     font-size: 14px;
     font-weight: 600;
     text-decoration: none;
 }
 
 .bn-watch-live:hover {
-    color: #a90000;
+    color: var(--bn-brand-accent-hover, var(--bn-accent-hover, #a90000));
 }
 
 .bn-header__breaking {
@@ -3166,9 +3165,9 @@ body.nav-fixed {
 
 .bn-footer {
     margin-top: 18px;
-    border-top: 3px solid #d71920;
-    background: #fff;
-    color: #111;
+    border-top: 3px solid var(--bn-accent);
+    background: var(--bn-surface);
+    color: var(--bn-text-primary);
     font-family: "Poppins", Arial, sans-serif;
 }
 
@@ -3214,7 +3213,7 @@ body.nav-fixed {
 }
 
 .bn-footer__links a:hover {
-    color: #d71920;
+    color: var(--bn-brand-accent, var(--bn-accent, #d71920));
 }
 
 .bn-footer__social {
@@ -3222,7 +3221,7 @@ body.nav-fixed {
     justify-content: center;
     gap: 10px;
     padding: 20px 16px;
-    border-top: 2px solid #d71920;
+    border-top: 2px solid var(--bn-brand-accent, var(--bn-accent, #d71920));
 }
 
     .bn-footer__social a {
@@ -3231,7 +3230,7 @@ body.nav-fixed {
         justify-content: center;
         width: 36px;
         height: 36px;
-        background-color: #C4161C; /* Matching red background */
+        background-color: var(--bn-brand-accent, var(--bn-accent, #C4161C));
         color: #FFFFFF; /* White icon color */
         border-radius: 4px; /* Smooth rounded corners */
         font-size: 18px; /* Icon size */
@@ -3245,7 +3244,7 @@ body.nav-fixed {
 
 .bn-footer__copyright {
     padding: 12px 16px;
-    background: #d71920;
+    background: var(--bn-brand-accent, var(--bn-accent, #d71920));
     color: #fff;
     font-size: 14px;
     font-weight: 600;
@@ -3305,7 +3304,7 @@ body,
 .breaking-news-bar,
 .bn-home-shell,
 .bn-category-section {
-    font-family: "Poppins", Arial, sans-serif;
+    font-family: var(--bn-font-family, var(--bn-font-body));
 }
 
 .bn-container,
@@ -4267,4 +4266,85 @@ body,
     .saved-articles-page .saved-articles-rail {
         margin-top: 12px;
     }
+}
+
+/* Publisher-selected theme and font overrides. Keep the theme configured in
+   Publisher Settings authoritative over built-in BOL styling. */
+html[data-theme] body,
+html[data-theme] .bn-main,
+html[data-theme] .bn-header,
+html[data-theme] .bn-footer {
+    background-color: var(--bn-bg);
+    color: var(--bn-text-primary);
+}
+
+html[data-theme] .bn-header,
+html[data-theme] .bn-main,
+html[data-theme] .bn-footer {
+    background-color: var(--bn-surface);
+}
+
+html[data-theme] body *:not(i):not(svg):not(code):not(pre):not([class*="fa-"]):not([class*="bi-"]) {
+    font-family: var(--bn-font-family, var(--bn-font-body)) !important;
+}
+
+html[data-theme] #sticky-navbar.bn-nav {
+    background-color: var(--bn-nav-bg) !important;
+    border-color: var(--bn-border) !important;
+}
+
+html[data-theme] .bn-menu-link {
+    color: var(--bn-nav-text) !important;
+}
+
+html[data-theme] .bn-menu-link.active,
+html[data-theme] .bn-menu-link:hover {
+    background-color: var(--bn-nav-active) !important;
+    color: var(--bn-nav-text-hover) !important;
+}
+
+html[data-theme] .breaking-news-bar .badge,
+html[data-theme] .bn-footer__social a {
+    background-color: var(--bn-ticker-bg) !important;
+}
+
+html[data-theme] .bn-brand-date,
+html[data-theme] .bn-footer__links a {
+    color: var(--bn-text-primary) !important;
+}
+
+html[data-theme] .bn-footer__copyright {
+    background-color: var(--bn-brand-accent, var(--bn-accent, #d71920)) !important;
+    color: var(--bn-ticker-text, #fff) !important;
+}
+
+html[data-theme="dark"] .bn-card,
+html[data-theme="dark"] .bn-rec-card,
+html[data-theme="dark"] .bn-popular-card,
+html[data-theme="dark"] .bn-story-rail,
+html[data-theme="dark"] .bn-top-stories-panel,
+html[data-theme="dark"] .bn-category-section,
+html[data-theme="dark"] .bn-footer__social {
+    background-color: var(--bn-surface);
+    color: var(--bn-text-primary);
+    border-color: var(--bn-border);
+}
+
+html[data-theme="dark"] .bn-main .bg-white,
+html[data-theme="dark"] .bn-main .bg-light,
+html[data-theme="dark"] .bn-main .card,
+html[data-theme="dark"] .bn-main .bn-story-card,
+html[data-theme="dark"] .bn-main .bn-news-card {
+    background-color: var(--bn-surface) !important;
+    color: var(--bn-text-primary) !important;
+    border-color: var(--bn-border) !important;
+}
+
+html[data-theme="dark"] .bn-main .text-dark,
+html[data-theme="dark"] .bn-main .text-black {
+    color: var(--bn-text-primary) !important;
+}
+
+html[data-theme="dark"] .bn-main .text-muted {
+    color: var(--bn-text-muted) !important;
 }

@@ -6,9 +6,12 @@
 @inject BolNews.Web.Services.SiteProfileService SiteProfileService
 @{
     var siteProfile = await SiteProfileService.GetAsync(Context.RequestAborted);
+    var publisherThemeName = BolNews.Web.Services.PublisherThemeCatalog.NormalizeTheme(siteProfile.ThemeName);
+    var publisherThemeCss = BolNews.Web.Services.PublisherThemeCatalog.BuildCssVariables(siteProfile);
+    var publisherFontUrl = BolNews.Web.Services.PublisherThemeCatalog.GetGoogleFontStylesheetUrl(siteProfile.FontFamily);
 }
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="@publisherThemeName">
 <head>
 
     <meta charset="utf-8" />
@@ -42,6 +45,23 @@
 
     <!-- Admin CSS -->
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <style>
+        @Html.Raw(publisherThemeCss)
+        html, body { background-color: var(--bn-bg); color: var(--bn-text-primary); }
+        body *:not(i):not(svg):not(code):not(pre):not([class*="fa-"]):not([class*="bi-"]) { font-family: var(--bn-font-family) !important; }
+        .card, .modal-content, .dropdown-menu, .list-group-item, .table { --bs-card-bg: var(--bn-surface); --bs-card-color: var(--bn-text-primary); background-color: var(--bn-surface); color: var(--bn-text-primary); border-color: var(--bn-border); }
+        .table { --bs-table-bg: var(--bn-surface); --bs-table-color: var(--bn-text-primary); --bs-table-border-color: var(--bn-border); }
+        .form-control, .form-select { background-color: var(--bn-surface); color: var(--bn-text-primary); border-color: var(--bn-border); }
+        .form-control:focus, .form-select:focus { background-color: var(--bn-surface); color: var(--bn-text-primary); }
+        .btn-danger, .btn-primary { --bs-btn-bg: var(--bn-accent); --bs-btn-border-color: var(--bn-accent); --bs-btn-hover-bg: var(--bn-accent-hover); --bs-btn-hover-border-color: var(--bn-accent-hover); --bs-btn-active-bg: var(--bn-accent-hover); --bs-btn-active-border-color: var(--bn-accent-hover); }
+        .btn-outline-danger, .btn-outline-primary { --bs-btn-color: var(--bn-accent); --bs-btn-border-color: var(--bn-accent); --bs-btn-hover-bg: var(--bn-accent); --bs-btn-hover-border-color: var(--bn-accent); }
+    </style>
+    @if (!string.IsNullOrWhiteSpace(publisherFontUrl))
+    {
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="stylesheet" href="@publisherFontUrl" />
+    }
 </head>
 <body>
   
@@ -300,7 +320,7 @@
 <style>
     /* Sidebar Container Styling */
     .admin-sidebar-bg {
-        background-color: #1a1a27; /* Deep Navy Dark */
+        background-color: var(--bn-nav-bg);
         min-height: 100vh;
         border-right: 1px solid rgba(255, 255, 255, 0.05);
         transition: all 0.3s ease;
@@ -308,7 +328,7 @@
 
     /* Sidebar Links */
     .admin-sidebar-bg .nav-link {
-        color: #9899ac !important;
+        color: var(--bn-nav-text) !important;
         font-weight: 500;
         padding: 12px 20px;
         margin: 4px 12px;
@@ -326,13 +346,13 @@
 
         /* Active Page Styling */
         .admin-sidebar-bg .nav-link.active {
-            color: #ffffff !important;
-            background-color: #2b2b40 !important;
+            color: var(--bn-nav-text-hover) !important;
+            background-color: var(--bn-accent) !important;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
 
             .admin-sidebar-bg .nav-link.active i {
-                color: #0d6efd; /* Blue icon for active state */
+                color: var(--bn-nav-text-hover);
             }
 
         /* Sidebar Icons */
@@ -355,12 +375,12 @@
 
     /* Main Content Adjustment */
     main {
-        background-color: #f5f7f9; /* Light grey background for the dashboard area */
+        background-color: var(--bn-bg);
         min-height: 100vh;
     }
 
     .admin-mobile-topbar {
-        background-color: #1a1a27;
+        background-color: var(--bn-nav-bg);
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         position: sticky;
         top: 0;

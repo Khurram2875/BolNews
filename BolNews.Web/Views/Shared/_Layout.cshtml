@@ -12,13 +12,16 @@
     var siteProfile = await SiteProfileService.GetAsync(Context.RequestAborted);
     var siteName = string.IsNullOrWhiteSpace(siteProfile.SiteName) ? "Newsroom" : siteProfile.SiteName;
     var siteTagline = string.IsNullOrWhiteSpace(siteProfile.Tagline) ? "Latest News" : siteProfile.Tagline;
+    var publisherThemeName = PublisherThemeCatalog.NormalizeTheme(siteProfile.ThemeName);
+    var publisherThemeCss = PublisherThemeCatalog.BuildCssVariables(siteProfile);
+    var publisherFontUrl = PublisherThemeCatalog.GetGoogleFontStylesheetUrl(siteProfile.FontFamily);
     var adOrigin = Uri.TryCreate(siteProfile.AdScriptUrl, UriKind.Absolute, out var adScriptUri)
         ? adScriptUri.GetLeftPart(UriPartial.Authority)
         : null;
 }
 
 <!DOCTYPE html>
-<html lang="en" data-theme="@siteProfile.ThemeName">
+<html lang="en" data-theme="@publisherThemeName">
 <head>
     @{
         var defaultImage = $"{UrlService.GetBaseUrl()}/default-og.jpg";
@@ -111,17 +114,10 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="/site-theme.css" />
     <link rel="stylesheet" href="~/BolNews.Web.styles.css" asp-append-version="true" />
-    <style>
-        :root { --bn-brand-primary: @siteProfile.PrimaryColor; --bn-brand-accent: @siteProfile.AccentColor; }
-        [data-theme] {
-            --bn-accent: var(--bn-brand-primary);
-            --bn-accent-hover: color-mix(in srgb, var(--bn-brand-primary) 86%, black);
-            --bn-nav-active: var(--bn-brand-primary);
-            --bn-ticker-bg: var(--bn-brand-accent);
-        }
-    </style>
+    <style>@Html.Raw(publisherThemeCss)</style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    @if (!string.IsNullOrWhiteSpace(publisherFontUrl)) { <link rel="stylesheet" href="@publisherFontUrl" /> }
     @if (!string.IsNullOrWhiteSpace(adOrigin)) { <link rel="dns-prefetch" href="@adOrigin"> }
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preload"
@@ -131,8 +127,6 @@
     <noscript>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     </noscript>
-    <link href="https://fonts.googleapis.com/css2?family=Belleza&family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600&display=swap"
-          rel="stylesheet">
 
     @await RenderSectionAsync("Styles", required: false)
 
@@ -177,17 +171,6 @@
     <script type="application/ld+json">@Html.Raw(orgSchema)</script>
     <script type="application/ld+json">@Html.Raw(webSiteSchema)</script>
 
-    <!-- Theme init: apply saved theme before paint to avoid flash -->
-    <script>
-        (function () {
-            try {
-                var t = localStorage.getItem('bolnews-theme');
-                if (t && ['default','dark','editorial','bold'].includes(t)) {
-                    document.documentElement.setAttribute('data-theme', t);
-                }
-            } catch (e) {}
-        })();
-    </script>
 </head>
 <body data-auto-refresh="@(ViewData["EnableTimedRefresh"] is true ? "true" : "false")">
 

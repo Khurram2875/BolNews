@@ -1,7 +1,5 @@
-@inject BolNews.Web.Services.SiteProfileService SiteProfileService
 @{
     var currentPath = Context.Request.Path.Value?.ToLowerInvariant() ?? "";
-    var siteProfile = await SiteProfileService.GetAsync(Context.RequestAborted);
 }
 <ul class="bn-menu">
     <li class="bn-menu-item"><a href="/" class="bn-menu-link @(currentPath == "/" ? "active" : "")">Home</a></li>
@@ -28,15 +26,5 @@
         {
             <li class="bn-menu-item"><a class="bn-menu-link @(parentIsActive ? "active" : "")" href="/category/@parent.Slug">@parent.Name</a></li>
         }
-    }
-    <li class="bn-menu-item">
-        <a href="/category/videos"
-           class="bn-menu-link @(currentPath.StartsWith("/category/videos") ? "active" : "")">
-            VIDEOS
-        </a>
-    </li>
-    @if (!string.IsNullOrWhiteSpace(siteProfile.UrduEditionUrl))
-    {
-        <li class="bn-menu-item"><a href="@siteProfile.UrduEditionUrl" class="bn-menu-link">@siteProfile.OtherEditionLabel</a></li>
     }
 </ul>

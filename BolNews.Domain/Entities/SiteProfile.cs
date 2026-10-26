@@ -16,6 +16,9 @@ public class SiteProfile
     public string PrimaryColor { get; set; } = "#d30b12";
     public string AccentColor { get; set; } = "#d30b12";
     public string ThemeName { get; set; } = "default";
+    public string FontFamily { get; set; } = "Inter";
+    /// <summary>Comma-separated ordered category IDs for the public navigation. Null uses the legacy default.</summary>
+    public string? NavigationCategoryIds { get; set; }
     public string LiveStreamUrl { get; set; } = "/live";
     public string? LiveVideoEmbedUrl { get; set; } = "https://www.youtube.com/embed/9N6SWn1BQpA?rel=0&modestbranding=1";
     public string? LiveThumbnailUrl { get; set; } = "https://img.youtube.com/vi/9N6SWn1BQpA/maxresdefault.jpg";

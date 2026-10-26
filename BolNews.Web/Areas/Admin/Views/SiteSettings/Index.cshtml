@@ -17,17 +17,66 @@
             <div class="col-md-6"><label asp-for="SiteName" class="form-label">Publisher name</label><input asp-for="SiteName" class="form-control" /></div>
             <div class="col-md-6"><label asp-for="ShortName" class="form-label">Short name</label><input asp-for="ShortName" class="form-control" /></div>
             <div class="col-12"><label asp-for="Tagline" class="form-label"></label><input asp-for="Tagline" class="form-control" /></div>
-            <div class="col-md-4"><label asp-for="HeaderLogoUrl" class="form-label">Header logo URL/path</label><input asp-for="HeaderLogoUrl" class="form-control" placeholder="/uploads/brand/header-logo.svg" /><div class="form-text">Upload the asset in Media Library, then paste its public path.</div></div>
-            <div class="col-md-4"><label asp-for="FooterLogoUrl" class="form-label">Footer logo URL/path</label><input asp-for="FooterLogoUrl" class="form-control" /></div>
-            <div class="col-md-4"><label asp-for="FaviconUrl" class="form-label">Favicon URL/path</label><input asp-for="FaviconUrl" class="form-control" /></div>
+            <div class="col-md-4">
+                <label asp-for="HeaderLogoUrl" class="form-label">Header logo URL/path</label>
+                <input asp-for="HeaderLogoUrl" class="form-control" placeholder="/uploads/brand/header-logo.png" />
+                <div class="input-group mt-2"><input id="HeaderLogoUpload" type="file" class="form-control" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" aria-label="Choose header logo" /><button class="btn btn-outline-secondary" type="button" data-brand-upload="HeaderLogoUrl" data-file-input="HeaderLogoUpload">Upload</button></div>
+                <div class="form-text" data-upload-status="HeaderLogoUrl">JPG, PNG, or WEBP; max 2 MB. Save settings after uploading.</div>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="FooterLogoUrl" class="form-label">Footer logo URL/path</label>
+                <input asp-for="FooterLogoUrl" class="form-control" placeholder="/uploads/brand/footer-logo.png" />
+                <div class="input-group mt-2"><input id="FooterLogoUpload" type="file" class="form-control" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" aria-label="Choose footer logo" /><button class="btn btn-outline-secondary" type="button" data-brand-upload="FooterLogoUrl" data-file-input="FooterLogoUpload">Upload</button></div>
+                <div class="form-text" data-upload-status="FooterLogoUrl">JPG, PNG, or WEBP; max 2 MB. Save settings after uploading.</div>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="FaviconUrl" class="form-label">Favicon URL/path</label>
+                <input asp-for="FaviconUrl" class="form-control" placeholder="/uploads/brand/favicon.ico" />
+                <div class="input-group mt-2"><input id="FaviconUpload" type="file" class="form-control" accept=".ico,.jpg,.jpeg,.png,.webp,image/x-icon,image/jpeg,image/png,image/webp" aria-label="Choose favicon" /><button class="btn btn-outline-secondary" type="button" data-brand-upload="FaviconUrl" data-file-input="FaviconUpload">Upload</button></div>
+                <div class="form-text" data-upload-status="FaviconUrl">ICO, JPG, PNG, or WEBP; max 2 MB. Save settings after uploading.</div>
+            </div>
             <div class="col-md-4"><label asp-for="PrimaryColor" class="form-label">Primary brand color</label><input asp-for="PrimaryColor" type="color" class="form-control form-control-color" /></div>
             <div class="col-md-4"><label asp-for="AccentColor" class="form-label">Accent color</label><input asp-for="AccentColor" type="color" class="form-control form-control-color" /></div>
-            <div class="col-md-4"><label asp-for="ThemeName" class="form-label">Base theme</label><select asp-for="ThemeName" class="form-select"><option value="default">Default</option><option value="dark">Dark</option><option value="editorial">Editorial</option><option value="bold">Bold</option></select></div>
+            <div class="col-md-4"><label asp-for="ThemeName" class="form-label">Color theme</label><select asp-for="ThemeName" class="form-select"><option value="default">Default</option><option value="dark">Dark</option><option value="editorial">Editorial</option><option value="bold">Bold</option></select><div class="form-text">Applies the color palette across public pages and the admin workspace.</div></div>
+            <div class="col-md-4"><label asp-for="FontFamily" class="form-label">Site font family</label><select asp-for="FontFamily" class="form-select">
+                @foreach (var font in (IEnumerable<string>)ViewBag.FontFamilies) { <option value="@font">@font</option> }
+            </select><div class="form-text">Applies to public and admin text. Web fonts are loaded only for the selected family.</div></div>
             <div class="col-md-6"><label asp-for="LiveStreamUrl" class="form-label">Live page path</label><input asp-for="LiveStreamUrl" class="form-control" /></div>
             <div class="col-md-6"><label asp-for="LiveVideoEmbedUrl" class="form-label">Live player embed URL</label><input asp-for="LiveVideoEmbedUrl" class="form-control" placeholder="https://www.youtube.com/embed/..." /></div>
             <div class="col-md-6"><label asp-for="LiveThumbnailUrl" class="form-label">Live player thumbnail URL/path</label><input asp-for="LiveThumbnailUrl" class="form-control" /></div>
             <div class="col-md-6"><label asp-for="UrduEditionUrl" class="form-label">Other language edition URL</label><input asp-for="UrduEditionUrl" class="form-control" placeholder="https://..." /></div>
             <div class="col-md-6"><label asp-for="CopyrightText" class="form-label">Copyright text</label><input asp-for="CopyrightText" class="form-control" /></div>
+        </div></div>
+
+        <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Public navigation categories</div><div class="card-body">
+            <p class="text-muted">Home and Latest stay fixed. Choose up to nine parent categories below; their slot numbers set the display order. Leave a slot blank to show fewer categories.</p>
+            <div class="row g-3">
+                @{
+                    var navigationCategories = (IEnumerable<BolNews.Domain.Entities.Category>)ViewBag.NavigationCategories;
+                    var navigationOrder = (IEnumerable<int>)ViewBag.NavigationCategoryOrder;
+                    var selectedNavigationIds = navigationOrder.ToList();
+                }
+                @for (var slot = 0; slot < 9; slot++)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label" for="navigationCategoryOrder_@slot">Position @(slot + 1)</label>
+                        <select id="navigationCategoryOrder_@slot" name="navigationCategoryOrder" class="form-select" data-navigation-order>
+                            <option value="">— Not selected —</option>
+                            @foreach (var category in navigationCategories)
+                            {
+                                if (selectedNavigationIds.ElementAtOrDefault(slot) == category.Id)
+                                {
+                                    <option value="@category.Id" selected>@category.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@category.Id">@category.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                }
+            </div>
         </div></div>
 
         <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Footer navigation</div><div class="card-body row g-3">
@@ -77,3 +126,50 @@
         <button class="btn btn-danger" type="submit">Save publisher settings</button>
     </form>
 </div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const categorySlots = [...document.querySelectorAll('[data-navigation-order]')];
+            const updateCategoryOptions = () => {
+                const selected = new Set(categorySlots.map(select => select.value).filter(Boolean));
+                categorySlots.forEach(select => [...select.options].forEach(option => {
+                    option.disabled = option.value !== '' && selected.has(option.value) && select.value !== option.value;
+                }));
+            };
+            categorySlots.forEach(select => select.addEventListener('change', updateCategoryOptions));
+            updateCategoryOptions();
+
+            const token = document.querySelector('meta[name="request-verification-token"]')?.content;
+            const uploadUrl = '@Url.Action("UploadBrandAsset", "SiteSettings", new { area = "Admin" })';
+            document.querySelectorAll('[data-brand-upload]').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const target = button.dataset.brandUpload;
+                    const fileInput = document.getElementById(button.dataset.fileInput);
+                    const status = document.querySelector(`[data-upload-status="${target}"]`);
+                    const file = fileInput.files[0];
+                    if (!file) { status.textContent = 'Choose a file first.'; status.className = 'form-text text-danger'; return; }
+
+                    const form = new FormData();
+                    form.append('upload', file);
+                    form.append('target', target);
+                    button.disabled = true;
+                    status.textContent = 'Uploading…';
+                    status.className = 'form-text text-muted';
+                    try {
+                        const response = await fetch(uploadUrl, { method: 'POST', headers: { 'RequestVerificationToken': token }, body: form });
+                        const result = await response.json();
+                        if (!response.ok) throw new Error(result.error || 'Upload failed.');
+                        document.getElementById(target).value = result.path;
+                        fileInput.value = '';
+                        status.textContent = 'Uploaded. Save publisher settings to apply this path.';
+                        status.className = 'form-text text-success';
+                    } catch (error) {
+                        status.textContent = error.message || 'Upload failed.';
+                        status.className = 'form-text text-danger';
+                    } finally { button.disabled = false; }
+                });
+            });
+        })();
+    </script>
+}

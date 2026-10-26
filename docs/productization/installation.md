@@ -37,7 +37,7 @@ The CMS supports a fresh MySQL or MariaDB database through the interactive `BolN
 
    Substitute the actual service account and application path. Do not place the file in source control or a public download directory.
 
-4. The installer creates the database and application DB user, applies all included EF migrations, then creates the CMS Admin account. It grants the application database user data access only; database schema changes are performed by the installer using the database administrator connection. Configure the service with `ASPNETCORE_ENVIRONMENT=Production`, ensure the application process can read the config file, and restart the service.
+4. The installer creates the database and application DB user, creates the schema from the current EF model when the database is empty, and records the included migration history. This is required because the earliest migrations were written for an already-existing BOL schema and do not create its original tables. For databases that already contain CMS tables, the installer applies pending EF migrations normally. It then seeds the default publisher/ad configuration and creates the CMS Admin account. It grants the application database user data access only; schema changes are performed by the installer using the database administrator connection. Configure the service with `ASPNETCORE_ENVIRONMENT=Production`, ensure the application process can read the config file, and restart the service.
 
 5. Sign in using the administrator email/password chosen during installation. Complete the publisher branding, policy, ad placement, email, and other environment-specific settings before opening the site to readers.
 
@@ -57,7 +57,7 @@ Use this same value for future deployments of that installation, or move it to a
 
 ## Recovery and reruns
 
-The installer uses `CREATE DATABASE IF NOT EXISTS` and can rerun migrations. It resets the selected application database user's password to the value entered in that run. If the selected database contains data, do not run a fresh-install flow against it without a verified backup. The initial Admin account is reused if the entered email already exists; its password is not reset by a rerun.
+The installer uses `CREATE DATABASE IF NOT EXISTS` and can rerun migrations. If a previous installer run stopped while upgrading a newly created but otherwise empty database, the installer detects the EF migration metadata without CMS tables, removes that incomplete metadata, and retries fresh schema creation. It resets the selected application database user's password to the value entered in that run. If the selected database contains application tables or data, do not run a fresh-install flow against it without a verified backup. The initial Admin account is reused if the entered email already exists; its password is not reset by a rerun.
 
 If installation stops after creating the database, rerun using the same database and application user details. If it fails while applying migrations, inspect the error and database migration history before manually changing schema. Back up the database before retrying after any schema migration has started.
 

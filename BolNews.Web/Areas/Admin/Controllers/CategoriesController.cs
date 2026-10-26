@@ -6,6 +6,7 @@ using BolNews.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BolNews.Web.Areas.Admin.Controllers
 {
@@ -17,11 +18,13 @@ namespace BolNews.Web.Areas.Admin.Controllers
     {
         private readonly ICategoryService _categoryService;
         private readonly IMapper _mapper;
+        private readonly IMemoryCache _cache;
 
-        public CategoriesController(ICategoryService categoryService, IMapper mapper)
+        public CategoriesController(ICategoryService categoryService, IMapper mapper, IMemoryCache cache)
         {
             _categoryService = categoryService;
             _mapper = mapper;
+            _cache = cache;
         }
 
         private async Task PopulateParentCategories(int? selectedId = null)
@@ -81,6 +84,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             var dto = _mapper.Map<CategoryDto>(model);
             await _categoryService.CreateAsync(dto);
+            _cache.Remove("navbar_categories");
 
             return RedirectToAction(nameof(Index));
         }
@@ -111,6 +115,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
 
             var dto = _mapper.Map<CategoryDto>(model);
             await _categoryService.UpdateAsync(dto);
+            _cache.Remove("navbar_categories");
 
             return RedirectToAction(nameof(Index));
         }
@@ -121,6 +126,7 @@ namespace BolNews.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             await _categoryService.DeleteAsync(id);
+            _cache.Remove("navbar_categories");
             return RedirectToAction(nameof(Index));
         }
     }

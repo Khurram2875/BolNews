@@ -1219,6 +1219,11 @@ namespace BolNews.Persistence.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("varchar(512)");
 
+                    b.Property<string>("FontFamily")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("varchar(80)");
+
                     b.Property<string>("FaviconUrl")
                         .IsRequired()
                         .HasMaxLength(512)
@@ -1259,6 +1264,10 @@ namespace BolNews.Persistence.Migrations
                     b.Property<string>("LiveVideoEmbedUrl")
                         .HasMaxLength(1024)
                         .HasColumnType("varchar(1024)");
+
+                    b.Property<string>("NavigationCategoryIds")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("OtherEditionLabel")
                         .IsRequired()

@@ -13,22 +13,17 @@
             btn.classList.add('active');
         }
 
-        try {
-            localStorage.setItem('bolnews-theme', name);
-        } catch (e) { }
     };
 
     document.addEventListener('DOMContentLoaded', function () {
-        try {
-            var saved = localStorage.getItem('bolnews-theme') || 'default';
-            var btn = document.querySelector('.bn-theme-btn[data-t="' + saved + '"]');
+        var saved = document.documentElement.getAttribute('data-theme') || 'default';
+        var btn = document.querySelector('.bn-theme-btn[data-t="' + saved + '"]');
 
-            if (btn) {
-                document.querySelectorAll('.bn-theme-btn').forEach(function (button) {
-                    button.classList.remove('active');
-                });
-                btn.classList.add('active');
-            }
-        } catch (e) { }
+        if (btn) {
+            document.querySelectorAll('.bn-theme-btn').forEach(function (button) {
+                button.classList.remove('active');
+            });
+            btn.classList.add('active');
+        }
     });
 })();
