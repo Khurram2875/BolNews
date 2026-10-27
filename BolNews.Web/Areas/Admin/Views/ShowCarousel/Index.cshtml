@@ -13,8 +13,9 @@
     <label class="form-label" for="upload">Upload a show image (WEBP, JPG, PNG; up to 15 MB)</label>
     <div class="input-group"><input id="upload" name="upload" type="file" accept=".webp,.jpg,.jpeg,.png" class="form-control" required /><button class="btn btn-outline-primary">Upload</button></div>
 </form>
-<form asp-action="Save" method="post">
+<form id="save-carousel-form" asp-action="Save" method="post">
     @Html.AntiForgeryToken()
+</form>
     <div id="carousel-images" class="row row-cols-1 row-cols-sm-2 row-cols-lg-5 g-3">
     @foreach (var name in available)
     {
@@ -23,7 +24,7 @@
                 <img src="/images/shows/@name" alt="Show carousel image" class="card-img-top" style="height:230px;object-fit:fill" />
                 <div class="card-body d-flex align-items-center gap-2">
                     <i class="bi bi-grip-vertical text-muted" aria-label="Drag to reorder"></i>
-                    <input class="form-check-input" type="checkbox" name="selectedImages" value="@name" id="img-@name" checked="@(selected.Contains(name))" />
+                    <input class="form-check-input" type="checkbox" name="selectedImages" value="@name" id="img-@name" form="save-carousel-form" checked="@(selected.Contains(name))" />
                     <label class="form-check-label text-truncate" for="img-@name">@name</label>
                 </div>
                 <div class="card-footer bg-white">
@@ -38,8 +39,7 @@
     }
     </div>
     @if (available.Count == 0) { <p class="text-muted">No show images uploaded yet.</p> }
-    <button class="btn btn-primary mt-3">Save carousel and order</button>
-</form>
+    <button type="submit" form="save-carousel-form" class="btn btn-primary mt-3">Save carousel and order</button>
 @section Scripts {
 <script>
 (() => {
