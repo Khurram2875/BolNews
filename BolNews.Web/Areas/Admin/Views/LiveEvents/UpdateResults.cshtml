@@ -1,0 +1,45 @@
+@model BolNews.Web.Areas.Admin.ViewModels.LiveEventResultsVM
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Update election results";
+}
+<div class="container-fluid py-3">
+    <h1>Update election results</h1>
+    <p class="text-muted">
+        <strong>@Model.Title</strong> &middot; @Model.RaceTitle &middot; @Model.RaceSubtitle<br />
+        Type the percentage and votes exactly as they should appear on the card. Nothing is calculated automatically.
+    </p>
+    <form asp-action="UpdateResults" method="post">
+        <input asp-for="Id" type="hidden" />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        @for (var i = 0; i < Model.Candidates.Count; i++)
+        {
+            <div class="card my-3">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <input asp-for="Candidates[i].Id" type="hidden" />
+                        <div class="col-md-4">
+                            <div class="text-muted small">@Model.Candidates[i].Party</div>
+                            <div class="h5 mb-0">@Model.Candidates[i].Name</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Percentage (%)</label>
+                            <input asp-for="Candidates[i].Percentage" type="number" step="0.01" min="0" max="100" class="form-control" />
+                            <span asp-validation-for="Candidates[i].Percentage" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Votes</label>
+                            <input asp-for="Candidates[i].Votes" type="number" step="1" min="0" class="form-control" />
+                            <span asp-validation-for="Candidates[i].Votes" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        <button class="btn btn-primary" type="submit">Save results</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

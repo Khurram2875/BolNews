@@ -12,6 +12,28 @@
         <div class="col-md-6"><label asp-for="FeaturedMediaId" class="form-label">Select from Media Library</label><select asp-for="FeaturedMediaId" asp-items="Model.Images" class="form-select"><option value="0">Choose an existing image</option></select><span asp-validation-for="FeaturedMediaId" class="text-danger"></span></div>
         <div class="col-md-6"><label asp-for="FeaturedImageUpload" class="form-label">Or upload a featured image</label><input asp-for="FeaturedImageUpload" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="form-control" /><span asp-validation-for="FeaturedImageUpload" class="text-danger"></span><small class="form-text">JPG, PNG, or WEBP; maximum 2 MB.</small></div>
         <div class="col-md-4 form-check ms-2"><input asp-for="IsActive" class="form-check-input" /><label asp-for="IsActive" class="form-check-label">Active (show publicly)</label></div><div class="col-md-3 form-check"><input asp-for="IsPinned" class="form-check-input" /><label asp-for="IsPinned" class="form-check-label">Pin to front</label></div><div class="col-md-4 form-check"><input asp-for="ShowLiveBadge" class="form-check-input" /><label asp-for="ShowLiveBadge" class="form-check-label">Show LIVE badge</label></div>
+        <div class="col-md-4"><label asp-for="EventType" class="form-label">Event type</label><select asp-for="EventType" asp-items="Html.GetEnumSelectList<BolNews.Domain.Enums.LiveEventType>()" class="form-select"></select><span class="form-text">Election shows the US scoreboard card in the homepage carousel.</span></div>
+        <div class="col-12" id="election-fields" hidden>
+            <div class="card border-primary"><div class="card-body">
+                <h2 class="h5">US election scoreboard card</h2>
+                <p class="text-muted small">Type the percentage and votes yourself. They appear on the card exactly as entered, nothing is calculated. The card background is the featured image selected above.</p>
+                <div class="row g-3">
+                    <div class="col-md-4"><label asp-for="ElectionHeader" class="form-label">Header</label><input asp-for="ElectionHeader" class="form-control" placeholder="U.S. MIDTERM ELECTIONS" /><span asp-validation-for="ElectionHeader" class="text-danger"></span></div>
+                    <div class="col-md-4"><label asp-for="RaceTitle" class="form-label">State / race</label><input asp-for="RaceTitle" class="form-control" placeholder="WASHINGTON" /><span asp-validation-for="RaceTitle" class="text-danger"></span></div>
+                    <div class="col-md-4"><label asp-for="RaceSubtitle" class="form-label">Office</label><input asp-for="RaceSubtitle" class="form-control" placeholder="U.S. SENATE" /><span asp-validation-for="RaceSubtitle" class="text-danger"></span></div>
+                    @for (var c = 0; c < Model.Candidates.Count; c++)
+                    {
+                        <div class="col-12"><div class="row g-2 align-items-start rounded border p-2">
+                            <input asp-for="Candidates[c].Id" type="hidden" />
+                            <div class="col-md-2"><label class="form-label">Party</label><select asp-for="Candidates[c].Party" asp-items="Html.GetEnumSelectList<BolNews.Domain.Enums.ElectionParty>()" class="form-select"></select></div>
+                            <div class="col-md-4"><label class="form-label">Candidate name</label><input asp-for="Candidates[c].Name" class="form-control" /><span asp-validation-for="Candidates[c].Name" class="text-danger"></span></div>
+                            <div class="col-md-3"><label class="form-label">Percentage (%)</label><input asp-for="Candidates[c].Percentage" type="number" step="0.01" min="0" max="100" class="form-control" /><span asp-validation-for="Candidates[c].Percentage" class="text-danger"></span></div>
+                            <div class="col-md-3"><label class="form-label">Votes</label><input asp-for="Candidates[c].Votes" type="number" step="1" min="0" class="form-control" /><span asp-validation-for="Candidates[c].Votes" class="text-danger"></span></div>
+                        </div></div>
+                    }
+                </div>
+            </div></div>
+        </div>
         <div class="col-12"><label class="form-label" for="article-search">Linked published articles <span class="text-muted">(optional, select multiple)</span></label><input id="article-search" type="search" class="form-control" placeholder="Search published articles by title or summary…" autocomplete="off" /><div id="article-search-results" class="list-group mt-2" role="listbox"></div><div id="selected-articles" class="d-flex mt-3 flex-wrap gap-2">
             @foreach (var article in Model.SelectedArticles)
             {
@@ -65,6 +87,13 @@
  const reindex = () => host.querySelectorAll('.update-row').forEach((row, i) => row.querySelectorAll('[name]').forEach(el => { el.name = el.name.replace(/Updates\[\d+\]/, `Updates[${i}]`); if (el.id) el.id = el.id.replace(/Updates_\d+__/, `Updates_${i}__`); }));
  document.getElementById('addUpdate').addEventListener('click', () => { const row = host.querySelector('.update-row').cloneNode(true); row.querySelectorAll('input,textarea').forEach(el => { if (el.type === 'hidden') el.value = '0'; else if (el.type === 'datetime-local') el.value = new Date().toISOString().slice(0,16); else el.value = ''; }); host.appendChild(row); reindex(); });
  host.addEventListener('click', e => { if (e.target.closest('.remove-update')) { const rows = host.querySelectorAll('.update-row'); if (rows.length > 1) e.target.closest('.update-row').remove(); reindex(); } });
+})();
+(() => {
+ const type = document.getElementById('EventType');
+ const fields = document.getElementById('election-fields');
+ if (!type || !fields) return;
+ const sync = () => { fields.hidden = type.value !== '1'; };
+ type.addEventListener('change', sync); sync();
 })();
 </script>
 }
