@@ -922,6 +922,10 @@ namespace BolNews.Persistence.Migrations
                     b.Property<string>("Title").IsRequired().HasMaxLength(250).HasColumnType("varchar(250)");
                     b.Property<DateTime?>("UpdatedAt").HasColumnType("datetime(6)");
                     b.Property<string>("UpdatedBy").HasColumnType("longtext");
+                    b.Property<string>("ElectionHeader").HasMaxLength(100).HasColumnType("varchar(100)");
+                    b.Property<int>("EventType").HasColumnType("int");
+                    b.Property<string>("RaceSubtitle").HasMaxLength(100).HasColumnType("varchar(100)");
+                    b.Property<string>("RaceTitle").HasMaxLength(100).HasColumnType("varchar(100)");
                     b.Property<bool>("ShowLiveBadge").HasColumnType("tinyint(1)");
                     b.HasKey("Id");
                     b.HasIndex("FeaturedMediaId");
@@ -937,6 +941,21 @@ namespace BolNews.Persistence.Migrations
                     b.HasKey("LiveEventId", "ArticleId");
                     b.HasIndex("ArticleId");
                     b.ToTable("LiveEventArticles", (string)null);
+                });
+
+            modelBuilder.Entity("BolNews.Domain.Entities.LiveEventCandidate", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    b.Property<int>("LiveEventId").HasColumnType("int");
+                    b.Property<string>("Name").IsRequired().HasMaxLength(100).HasColumnType("varchar(100)");
+                    b.Property<int>("Party").HasColumnType("int");
+                    b.Property<decimal>("Percentage").HasPrecision(5, 2).HasColumnType("decimal(5,2)");
+                    b.Property<int>("SortOrder").HasColumnType("int");
+                    b.Property<int>("Votes").HasColumnType("int");
+                    b.HasKey("Id");
+                    b.HasIndex("LiveEventId", "SortOrder");
+                    b.ToTable("LiveEventCandidates", (string)null);
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.LiveEventUpdate", b =>
@@ -1429,6 +1448,13 @@ namespace BolNews.Persistence.Migrations
                     b.Navigation("LiveEvent");
                 });
 
+            modelBuilder.Entity("BolNews.Domain.Entities.LiveEventCandidate", b =>
+                {
+                    b.HasOne("BolNews.Domain.Entities.LiveEvent", "LiveEvent").WithMany("Candidates")
+                        .HasForeignKey("LiveEventId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                    b.Navigation("LiveEvent");
+                });
+
             modelBuilder.Entity("BolNews.Domain.Entities.ArticleRevision", b =>
                 {
                     b.HasOne("BolNews.Domain.Entities.Article", "Article")
@@ -1684,6 +1710,7 @@ namespace BolNews.Persistence.Migrations
 
             modelBuilder.Entity("BolNews.Domain.Entities.LiveEvent", b =>
                 {
+                    b.Navigation("Candidates");
                     b.Navigation("LinkedArticles");
                     b.Navigation("Updates");
                 });
