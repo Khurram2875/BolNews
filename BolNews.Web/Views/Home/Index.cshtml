@@ -151,35 +151,34 @@
                 @await Component.InvokeAsync("SmartTrending", new { count = 6 })
             </article>
 
-            @if (featuredStories.Any())
-            {
-                <aside class="bn-story-rail" aria-label="Featured">
+            <aside class="bn-story-rail" aria-label="Featured">
                     <div class="bn-ad-slot mb-4">
                         <div id="Bolnews_Sidebar_Top_ATF" data-ad-slot="sidebar-top-atf"></div>
                     </div>
+                    @await Component.InvokeAsync("LiveEvents")
                     @* <div class="d-none d-md-block">
                         @await Component.InvokeAsync("FuelPrice")
                     </div> *@
-                    <h2>Featured</h2>
-                    <div class="bn-latest-list">
-                        @foreach (var item in featuredStories)
-                        {
-                            <a href="/@item.CategorySlug/@item.Slug"
-                               class="bn-latest-item track-click"
-                               data-article-id="@item.Id">
-                                <img src="@(item.FeaturedImageThumb ?? item.FeaturedImageMedium ?? "/images/placeholder.png")"
-                                     alt="@(item.FeaturedImageAltText ?? item.Title)"
-                                     width="112"
-                                     height="84"
-                                     loading="lazy"
-                                     decoding="async" />
-                                <span>
-                                    <strong>@item.Title</strong>
-                                    <small>@item.TimeAgo</small>
-                                </span>
-                            </a>
-                        }
-                    </div>
+                    @if (featuredStories.Any())
+                    {
+                        <h2>Featured</h2>
+                        <div class="bn-latest-list">
+                            @foreach (var item in featuredStories)
+                            {
+                                <a href="/@item.CategorySlug/@item.Slug"
+                                   class="bn-latest-item track-click"
+                                   data-article-id="@item.Id">
+                                    <img src="@(item.FeaturedImageThumb ?? item.FeaturedImageMedium ?? "/images/placeholder.png")"
+                                         alt="@(item.FeaturedImageAltText ?? item.Title)"
+                                         width="112"
+                                         height="84"
+                                         loading="lazy"
+                                         decoding="async" />
+                                    <span><strong>@item.Title</strong><small>@item.TimeAgo</small></span>
+                                </a>
+                            }
+                        </div>
+                    }
                     <h2>Shows</h2>
                     @if (imagePaths.Any())
                     {
@@ -224,8 +223,7 @@
                     <div class="bn-ad-slot mt-4">
                         <div id="Bolnews_Sidebar_Bottom_BTF" data-ad-slot="sidebar-bottom-btf"></div>
                     </div>
-                </aside>
-            }
+            </aside>
         </section>
     }
 </div>

@@ -1,0 +1,14 @@
+﻿@model IReadOnlyList<BolNews.Domain.Entities.LiveEvent>
+@{ ViewData["Title"] = "Live Events";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3"><h1>Live Events</h1><a asp-action="Create" class="btn btn-primary">Create live event</a></div>
+    @if (TempData["Success"] is string message) { <div class="alert alert-success">@message</div> }
+    <div class="table-responsive"><table class="table-striped table align-middle"><thead><tr><th>Event</th><th>Status</th><th>Updates</th><th>Created</th><th></th></tr></thead><tbody>
+    @foreach (var item in Model)
+    {
+        <tr><td><div class="d-flex align-items-center gap-2"><img src="@(item.FeaturedMedia.ThumbnailUrl ?? item.FeaturedMedia.Url)" alt="" style="width:72px;height:48px;object-fit:cover" /><div><strong>@item.Title</strong><div class="text-muted">/live/@item.Slug</div></div></div></td><td>@(item.IsActive ? "Active" : "Inactive") @if (item.IsPinned) { <span class="badge text-bg-warning">Pinned</span> }</td><td>@item.Updates.Count</td><td>@item.CreatedAt.ToLocalTime().ToString("g")<div class="text-muted">@item.CreatedBy</div></td><td class="text-nowrap"><a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a><form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this live event and its updates?')"><button class="btn btn-sm btn-outline-danger">Delete</button></form></td></tr>
+    }
+    </tbody></table></div>
+</div>

@@ -1,0 +1,51 @@
+﻿@model BolNews.Web.ViewModels.LiveEventPageVM
+@{
+    ViewData["Title"] = Model.Title;
+}
+<main class="bn-live-page container py-4">
+    <div class="row bn-live-hero mb-4">
+        <div class="col-md-6">
+            <img src="@Model.ImageUrl" alt="@(Model.ImageAlt ?? Model.Title)" />
+        </div>
+        <div class="col-md-6">
+            <div >@if (Model.ShowLiveBadge) { <span class="bn-live-badge">LIVE</span> }<h1>@Model.Title</h1></div>
+        </div>
+    </div>
+    <div class="row g-4">
+        <aside class="col-lg-3">
+            <h2 class="h4">Timeline</h2>
+            <nav class="bn-live-timeline">
+                @foreach (var update in Model.Updates)
+                {
+                    <a href="#update-@update.Id"><time datetime="@update.Timestamp.ToString("O")">@update.Timestamp.ToLocalTime().ToString("dd MMM, h:mm tt")</time><span>@update.Summary</span></a>
+                }
+            </nav>
+        </aside>
+        <section class="col-lg-6">
+            <h2 class="h4">Latest updates</h2>
+            @foreach (var update in Model.Updates)
+            {
+                <article class="bn-live-update" id="update-@update.Id">
+                    <time datetime="@update.Timestamp.ToString("O")">@update.Timestamp.ToLocalTime().ToString("dd MMM, yyyy h:mm tt")</time>
+                    <h3>@update.Summary</h3>
+                    <div class="bn-live-update__details">@Html.Raw(System.Net.WebUtility.HtmlEncode(update.Details).Replace("\n", "<br />"))</div>
+                    <p class="text-muted mb-0">Updated by @update.UpdatedBy</p>
+                    @if (!string.IsNullOrWhiteSpace(update.Source)) { <p class="text-muted mb-0">Source: @update.Source</p> }
+                </article>
+            }
+        </section>
+        <aside class="col-lg-3">
+            <h2 class="h4">Related articles</h2>
+            <div class="bn-live-related">
+                @foreach (var article in Model.Articles)
+                {
+                    <a class="bn-live-related-card" href="/@article.CategorySlug/@article.Slug">
+                        @if (!string.IsNullOrWhiteSpace(article.ImageUrl)) { <img src="@article.ImageUrl" alt="@article.Title" loading="lazy" /> }
+                        <strong>@article.Title</strong>
+                        @if (!string.IsNullOrWhiteSpace(article.Summary)) { <span>@article.Summary</span> }
+                    </a>
+                }
+            </div>
+        </aside>
+    </div>
+</main>

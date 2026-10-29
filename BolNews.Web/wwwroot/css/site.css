@@ -4265,3 +4265,186 @@ body,
         margin-top: 12px;
     }
 }
+/*.bn-live-events { border: 1px solid #ddd; border-radius: .5rem; padding: 1rem; }
+.bn-live-event-card { flex: 0 0 250px; color: inherit; text-decoration: none; border: 1px solid #ddd; border-radius: .4rem; overflow: hidden; background: #fff; }
+.bn-live-event-card__image { height: 132px; position: relative; }
+.bn-live-event-card__image img { width: 100%; height: 100%; object-fit: cover; }
+.bn-live-event-card__text { display: grid; gap: .35rem; padding: .65rem; }
+.bn-live-event-card__text span { font-size: .9rem; }
+.bn-live-badge { display: inline-block; color: #fff; background: #d71920; font-size: .72rem; font-weight: 700; padding: .2rem .45rem; border-radius: .2rem; }
+.bn-live-event-card .bn-live-badge { position: absolute; top: .5rem; right: .5rem; }
+.bn-live-hero { height: clamp(260px, 42vw, 540px); position: relative; overflow: hidden; background: #222; }
+.bn-live-hero > img { width: 100%; height: 100%; object-fit: cover; opacity: .82; }
+.bn-live-hero__title { position: absolute; inset: auto 0 0; padding: 1.5rem; color: #fff; background: linear-gradient(transparent, #000b); }
+.bn-live-hero__title h1 { margin: .5rem 0 0; }
+.bn-live-timeline { display: grid; gap: .75rem; border-left: 2px solid #d71920; padding-left: .8rem; }
+.bn-live-timeline a { color: inherit; text-decoration: none; display: grid; gap: .25rem; }
+.bn-live-timeline time, .bn-live-update time { color: #777; font-size: .85rem; }
+.bn-live-update { padding: 1rem 0; border-bottom: 1px solid #ddd; scroll-margin-top: 1rem; }
+.bn-live-update h3 { font-size: 1.15rem; margin: .4rem 0; }
+.bn-live-update__details { line-height: 1.7; white-space: normal; }
+.bn-live-related { display: grid; gap: 1rem; }
+.bn-live-related-card { display: grid; gap: .4rem; color: inherit; text-decoration: none; border-bottom: 1px solid #ddd; padding-bottom: 1rem; }
+.bn-live-related-card img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+@media (min-width: 992px) { .bn-live-page { max-width: 1440px; } }*/
+
+.bn-live-events {
+    border: 1px solid #ddd;
+    border-radius: .5rem;
+    padding: 1rem;
+}
+
+/* Card (now a carousel slide, so it fills the slide instead of being a 250px scroller item) */
+.bn-live-event-card {
+    display: block;
+    width: 100%;
+    color: inherit;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    border-radius: .4rem;
+    overflow: hidden;
+    background: #fff;
+}
+
+/* Image wrapper: no fixed height, so the full image shows; also the size container for the title */
+.bn-live-event-card__image {
+    position: relative;
+    container-type: inline-size;
+    background: #0b1f3a;
+}
+
+    /* Full image, never cropped */
+    .bn-live-event-card__image img,
+    .bn-live-img {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1;
+        object-fit: contain;
+    }
+
+/* Title overlay, placed like "WASHINGTON" in the sample */
+.bn-live-event-card__title {
+    position: absolute;
+    top: 17%;
+    left: 5%;
+    right: 5%;
+    margin: 0;
+    color: #fff;
+    font-weight: 800;
+    text-transform: uppercase;
+    line-height: 1.05;
+    letter-spacing: .02em;
+    font-size: 26px;
+    font-size: 9.3cqw;
+    text-shadow: 0 1px 4px rgba(0,0,0,.45);
+    pointer-events: none;
+}
+
+.bn-live-event-card__text {
+    padding: .65rem;
+    font-size: .9rem;
+}
+
+.bn-live-badge {
+    display: inline-block;
+    color: #fff;
+    background: #d71920;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: .2rem .45rem;
+    border-radius: .2rem;
+}
+
+.bn-live-event-card .bn-live-badge {
+    position: absolute;
+    top: .5rem;
+    right: .5rem;
+}
+
+.bn-live-hero {
+    height: clamp(260px, 42vw, 540px);
+    position: relative;
+    overflow: hidden;
+    /*background: #222;*/
+}
+
+    .bn-live-hero > img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+       
+    }
+
+.bn-live-hero__title {
+    position: absolute;
+    inset: auto 0 0;
+    padding: 1.5rem;
+    color: #fff;
+    background: linear-gradient(transparent, #000b);
+}
+
+    .bn-live-hero__title h1 {
+        margin: .5rem 0 0;
+    }
+
+.bn-live-timeline {
+    display: grid;
+    gap: .75rem;
+    border-left: 2px solid #d71920;
+    padding-left: .8rem;
+}
+
+    .bn-live-timeline a {
+        color: inherit;
+        text-decoration: none;
+        display: grid;
+        gap: .25rem;
+    }
+
+    .bn-live-timeline time, .bn-live-update time {
+        color: #777;
+        font-size: .85rem;
+    }
+
+.bn-live-update {
+    padding: 1rem 0;
+    border-bottom: 1px solid #ddd;
+    scroll-margin-top: 1rem;
+}
+
+    .bn-live-update h3 {
+        font-size: 1.15rem;
+        margin: .4rem 0;
+    }
+
+.bn-live-update__details {
+    line-height: 1.7;
+    white-space: normal;
+}
+
+.bn-live-related {
+    display: grid;
+    gap: 1rem;
+}
+
+.bn-live-related-card {
+    display: grid;
+    gap: .4rem;
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 1rem;
+}
+
+    .bn-live-related-card img {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+    }
+
+@media (min-width: 992px) {
+    .bn-live-page {
+        max-width: 1440px;
+    }
+}

@@ -38,6 +38,9 @@ namespace BolNews.Persistence.Context
         public DbSet<BreakingNews> BreakingNews => Set<BreakingNews>();
         public DbSet<EditorialCategoryConfiguration> EditorialCategoryConfigurations { get; set; }
         public DbSet<ArticleInternalLinkRule> ArticleInternalLinkRules { get; set; }
+        public DbSet<LiveEvent> LiveEvents { get; set; }
+        public DbSet<LiveEventUpdate> LiveEventUpdates { get; set; }
+        public DbSet<LiveEventArticle> LiveEventArticles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
