@@ -1,3 +1,4 @@
+using BolNews.Domain.Enums;
 using BolNews.Persistence.Context;
 using BolNews.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,10 @@ public class LiveController(AppDbContext db) : Controller
             {
                 Id = x.Id, Title = x.Title, Slug = x.Slug, CreatedAt = x.CreatedAt,
                 ShowLiveBadge = x.ShowLiveBadge,
+                IsElection = x.EventType == LiveEventType.Election,
+                ElectionHeader = x.ElectionHeader, RaceTitle = x.RaceTitle, RaceSubtitle = x.RaceSubtitle,
+                Candidates = x.Candidates.OrderBy(c => c.SortOrder)
+                    .Select(c => new LiveEventCandidateCardVM { Party = c.Party, Name = c.Name, Percentage = c.Percentage, Votes = c.Votes }).ToList(),
                 ImageUrl = x.FeaturedMedia.LargeUrl ?? x.FeaturedMedia.Url, ImageAlt = x.FeaturedMedia.AltText,
                 Updates = x.Updates.OrderByDescending(u => u.Timestamp).Select(u => new LiveEventPageUpdateVM
                 { Id = u.Id, Timestamp = u.Timestamp, Summary = u.Summary, Details = u.Details, Source = u.Source, UpdatedBy = u.UpdatedBy }).ToList(),

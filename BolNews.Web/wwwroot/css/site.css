@@ -4448,3 +4448,218 @@ body,
         max-width: 1440px;
     }
 }
+
+/* ===== US election scoreboard card (Live Events with EventType = Election) =====
+   Scales with its own width via container query units: 1 unit = width / 280, so the
+   numbers below are "pixels at the 280px design size". Works in the carousel slot
+   and on the live page. */
+.bn-elect-card {
+    container-type: inline-size;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: #fff;
+    color: #111;
+}
+
+.bn-elect-card__inner {
+    --u: 1px; /* fallback when container query units are unsupported */
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: 104fr 68fr 68fr 40fr;
+}
+
+@supports (width: 1cqw) {
+    .bn-elect-card__inner {
+        --u: calc(100cqw / 280);
+    }
+}
+
+.bn-elect-card__top {
+    position: relative;
+    overflow: hidden;
+    padding: calc(var(--u) * 11) calc(var(--u) * 14) 0;
+    background: #0b2a5b;
+    color: #fff;
+}
+
+.bn-elect-card__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: right center;
+}
+
+.bn-elect-card__shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(7, 30, 72, .96) 0%, rgba(11, 42, 91, .82) 55%, rgba(11, 42, 91, .4) 100%);
+}
+
+.bn-elect-card__header,
+.bn-elect-card__race,
+.bn-elect-card__office {
+    position: relative;
+}
+
+.bn-elect-card__header {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 6);
+    padding-bottom: calc(var(--u) * 7);
+    border-bottom: calc(var(--u) * 2) solid transparent;
+    border-image: linear-gradient(90deg, #d3212d 0 30%, #2f63d1 30% 100%) 1;
+    font-size: calc(var(--u) * 11.5);
+    font-weight: 700;
+    letter-spacing: .05em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.bn-elect-card__star {
+    color: #5b8def;
+}
+
+.bn-elect-card__race {
+    margin: calc(var(--u) * 10) 0 0;
+    font-size: calc(var(--u) * 26);
+    font-weight: 800;
+    letter-spacing: .03em;
+    line-height: 1;
+    overflow-wrap: anywhere;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, .45);
+    text-transform: uppercase;
+}
+
+.bn-elect-card__office {
+    margin: calc(var(--u) * 5) 0 0;
+    color: #cfe0ff;
+    font-size: calc(var(--u) * 11);
+    font-weight: 600;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+}
+
+.bn-elect-card__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(var(--u) * 8);
+    padding: 0 calc(var(--u) * 14);
+}
+
+.bn-elect-card__who {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: calc(var(--u) * 5);
+    min-width: 0;
+}
+
+.bn-elect-party {
+    display: inline-block;
+    padding: calc(var(--u) * 3) calc(var(--u) * 9);
+    border-radius: calc(var(--u) * 4);
+    color: #fff;
+    font-size: calc(var(--u) * 9);
+    font-weight: 800;
+    letter-spacing: .06em;
+    line-height: 1.1;
+    text-transform: uppercase;
+}
+
+.bn-elect-name {
+    font-size: calc(var(--u) * 19);
+    font-weight: 800;
+    letter-spacing: .01em;
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+    text-transform: uppercase;
+}
+
+.bn-elect-score {
+    display: grid;
+    flex: 0 0 auto;
+    gap: calc(var(--u) * 2);
+    min-width: calc(var(--u) * 84);
+    padding: calc(var(--u) * 6);
+    border-radius: calc(var(--u) * 5);
+    color: #fff;
+    text-align: center;
+}
+
+    .bn-elect-score strong {
+        font-size: calc(var(--u) * 20);
+        font-weight: 800;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
+    .bn-elect-score small {
+        font-size: calc(var(--u) * 8.5);
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+
+.bn-elect-card__row--rep .bn-elect-party,
+.bn-elect-card__row--rep .bn-elect-score {
+    background: #c4161c;
+}
+
+.bn-elect-card__row--dem .bn-elect-party,
+.bn-elect-card__row--dem .bn-elect-score {
+    background: #1f3f94;
+}
+
+.bn-elect-card__row--oth .bn-elect-party,
+.bn-elect-card__row--oth .bn-elect-score {
+    background: #5c6675;
+}
+
+.bn-elect-card__foot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--u) * 6);
+    color: #0b2a5b;
+    font-size: calc(var(--u) * 9);
+    font-weight: 800;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.bn-elect-card__dot {
+    width: calc(var(--u) * 7);
+    height: calc(var(--u) * 7);
+    border-radius: 50%;
+    background: #1a9a3a;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .bn-elect-card__dot {
+        animation: bn-elect-pulse 1.6s ease-in-out infinite;
+    }
+}
+
+@keyframes bn-elect-pulse {
+    50% {
+        opacity: .35;
+    }
+}
+
+/* Live page: let the square card set the hero height instead of the fixed hero box */
+.bn-live-hero--election {
+    height: auto;
+    overflow: visible;
+}
+
+    .bn-live-hero--election .bn-elect-card {
+        width: min(100%, 420px);
+        border: 1px solid #ddd;
+        border-radius: .4rem;
+    }

@@ -38,26 +38,34 @@
                         var item = items[i];
                         <div class="carousel-item @(i == 0 ? "active" : "")">
                             <a class="bn-live-event-card d-block" href="/live/@item.Slug">
-                                <div class="bn-live-event-card__image">
-                                    <img loading="lazy"
-                                         decoding="async"
-                                         src="@item.ImageUrl"
-                                         width="280"
-                                         height="280"
-                                         class="bn-live-img"
-                                         alt="@item.Title" />
-
-                                    <h3 class="bn-live-event-card__title">@item.Title</h3>
-
-                                    @if (item.ShowLiveBadge)
-                                    {
-                                        <span class="bn-live-badge">LIVE</span>
-                                    }
-                                </div>
-
-                                @if (!string.IsNullOrWhiteSpace(item.LatestUpdate))
+                                @if (item.IsElection)
                                 {
-                                    <div class="bn-live-event-card__text">@item.LatestUpdate</div>
+                                    @* US election scoreboard card: typed-in percentages and votes *@
+                                    <partial name="_LiveElectionCard" model="item" />
+                                }
+                                else
+                                {
+                                    <div class="bn-live-event-card__image">
+                                        <img loading="lazy"
+                                             decoding="async"
+                                             src="@item.ImageUrl"
+                                             width="280"
+                                             height="280"
+                                             class="bn-live-img"
+                                             alt="@item.Title" />
+
+                                        <h3 class="bn-live-event-card__title">@item.Title</h3>
+
+                                        @if (item.ShowLiveBadge)
+                                        {
+                                            <span class="bn-live-badge">LIVE</span>
+                                        }
+                                    </div>
+
+                                    if (!string.IsNullOrWhiteSpace(item.LatestUpdate))
+                                    {
+                                        <div class="bn-live-event-card__text">@item.LatestUpdate</div>
+                                    }
                                 }
                             </a>
                         </div>

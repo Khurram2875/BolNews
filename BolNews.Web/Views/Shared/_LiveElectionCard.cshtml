@@ -1,0 +1,62 @@
+@using System.Globalization
+@using BolNews.Domain.Enums
+@model BolNews.Web.ViewModels.LiveEventElectionCardVM
+@{
+    // Percentages and votes are typed in by editors and shown exactly as entered (formatted only).
+    static string PartyKey(ElectionParty party) => party switch
+    {
+        ElectionParty.Republican => "rep",
+        ElectionParty.Democrat => "dem",
+        _ => "oth"
+    };
+    static string PartyLabel(ElectionParty party) => party switch
+    {
+        ElectionParty.Republican => "Republican",
+        ElectionParty.Democrat => "Democrat",
+        _ => "Other"
+    };
+    var rows = Model.Candidates.Take(2).ToList();
+}
+<div class="bn-elect-card">
+    <div class="bn-elect-card__inner">
+        <div class="bn-elect-card__top">
+            @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+            {
+                <img class="bn-elect-card__bg" src="@Model.ImageUrl" alt="" loading="lazy" decoding="async" />
+            }
+            <span class="bn-elect-card__shade" aria-hidden="true"></span>
+            <div class="bn-elect-card__header">
+                <span class="bn-elect-card__star" aria-hidden="true">&#9733;</span>
+                <span>@Model.ElectionHeader</span>
+            </div>
+            <h3 class="bn-elect-card__race">@Model.RaceTitle</h3>
+            <p class="bn-elect-card__office">@Model.RaceSubtitle</p>
+        </div>
+
+        @foreach (var candidate in rows)
+        {
+            <div class="bn-elect-card__row bn-elect-card__row--@(PartyKey(candidate.Party))">
+                <div class="bn-elect-card__who">
+                    <span class="bn-elect-party">@PartyLabel(candidate.Party)</span>
+                    <span class="bn-elect-name">@candidate.Name</span>
+                </div>
+                <div class="bn-elect-score">
+                    <strong>@candidate.Percentage.ToString("0.00", CultureInfo.InvariantCulture)%</strong>
+                    <small>@candidate.Votes.ToString("N0", CultureInfo.InvariantCulture) votes</small>
+                </div>
+            </div>
+        }
+        @for (var pad = rows.Count; pad < 2; pad++)
+        {
+            <div class="bn-elect-card__row"></div>
+        }
+
+        <div class="bn-elect-card__foot">
+            @if (Model.ShowLiveBadge)
+            {
+                <span class="bn-elect-card__dot" aria-hidden="true"></span>
+                <span>Live update</span>
+            }
+        </div>
+    </div>
+</div>
