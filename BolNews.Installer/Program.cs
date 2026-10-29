@@ -255,10 +255,14 @@ static async Task CreateInitialAdmin(string connectionString, string email, stri
     using var scope = provider.CreateScope();
     var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    if (!await roles.RoleExistsAsync(Roles.Admin))
+    foreach (var roleName in Roles.SupportedRoleNames)
     {
-        var roleResult = await roles.CreateAsync(new IdentityRole(Roles.Admin));
-        if (!roleResult.Succeeded) throw new InvalidOperationException(string.Join("; ", roleResult.Errors.Select(e => e.Description)));
+        if (await roles.RoleExistsAsync(roleName))
+            continue;
+
+        var roleResult = await roles.CreateAsync(new IdentityRole(roleName));
+        if (!roleResult.Succeeded)
+            throw new InvalidOperationException(string.Join("; ", roleResult.Errors.Select(e => e.Description)));
     }
     var existing = await users.FindByEmailAsync(email);
     if (existing is not null)

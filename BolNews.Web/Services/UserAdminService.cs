@@ -1,4 +1,5 @@
 using BolNews.Domain.Entities;
+using BolNews.Domain.Common;
 using BolNews.Persistence.Context;
 using BolNews.Web.Interfaces;
 using BolNews.Web.Models;
@@ -82,10 +83,14 @@ namespace BolNews.Web.Services
         public async Task<(ApplicationUser? user, List<string> roles, IList<string> userRoles)> GetAssignRoleDataAsync(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
-            var roles = await _roleManager.Roles
+            var existingRoleNames = await _roleManager.Roles
                 .AsNoTracking()
                 .Select(r => r.Name!)
                 .ToListAsync();
+            var existingRoleSet = existingRoleNames.ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var roles = Roles.SupportedRoleNames
+                .Where(existingRoleSet.Contains)
+                .ToList();
 
             if (user == null)
                 return (null, roles, new List<string>());
@@ -111,6 +116,13 @@ namespace BolNews.Web.Services
         }
         public async Task UpdateUserRolesAsync(string userId, List<string> selectedRoles)
         {
+            var supportedRoleNames = Roles.SupportedRoleNames
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            selectedRoles = selectedRoles
+                .Where(supportedRoleNames.Contains)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
             var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null)

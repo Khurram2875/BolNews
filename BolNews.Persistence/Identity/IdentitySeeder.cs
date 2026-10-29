@@ -18,16 +18,7 @@ namespace BolNews.Persistence.Identity
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-            string[] roles =
-            {
-                Roles.Admin,
-                Roles.Editor,
-                Roles.SubEditor,
-                Roles.Author,
-                Roles.User
-            };
-
-            foreach (var role in roles)
+            foreach (var role in Roles.SupportedRoleNames)
             {
                 if (!await roleManager.RoleExistsAsync(role))
                     await roleManager.CreateAsync(new IdentityRole(role));

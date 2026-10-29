@@ -14,5 +14,15 @@ namespace BolNews.Domain.Common
         public const string Author = "Author";
         public const string User = "User";
         public const string Factchecker = "Factchecker";
+
+        public static IReadOnlyList<string> SupportedRoleNames { get; } = Array.AsReadOnly(new[]
+        {
+            Admin,
+            Editor,
+            SubEditor,
+            Author,
+            Factchecker,
+            User
+        });
     }
 }

@@ -16,6 +16,7 @@ namespace BolNews.Web.Controllers
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ILogger<AccountController> _logger;
         private readonly IEmailService _emailService;
         private readonly EmailOptions _emailOptions;
@@ -23,12 +24,14 @@ namespace BolNews.Web.Controllers
         public AccountController(
             SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager,
             ILogger<AccountController> logger,
             IEmailService emailService,
              IOptions<EmailOptions> emailOptions)
         {
             _signInManager = signInManager;
             _userManager = userManager;
+            _roleManager = roleManager;
             _logger = logger;
             _emailService = emailService;
             _emailOptions = emailOptions.Value; 
@@ -240,6 +243,19 @@ namespace BolNews.Web.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
+            // Older installations may not have seeded the public-user role yet.
+            if (!await _roleManager.RoleExistsAsync(Roles.User))
+            {
+                var roleResult = await _roleManager.CreateAsync(new IdentityRole(Roles.User));
+                if (!roleResult.Succeeded && !await _roleManager.RoleExistsAsync(Roles.User))
+                {
+                    foreach (var error in roleResult.Errors)
+                        ModelState.AddModelError(string.Empty, error.Description);
+
+                    return View(model);
+                }
+            }
+
             var user = new ApplicationUser
             {
                 UserName = model.Email,
@@ -251,10 +267,23 @@ namespace BolNews.Web.Controllers
 
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user, "User");
-                await _signInManager.SignInAsync(user, isPersistent: false);
+                var roleAssignment = await _userManager.AddToRoleAsync(user, Roles.User);
+                if (!roleAssignment.Succeeded)
+                {
+                    _logger.LogError(
+                        "Could not assign the public-user role to newly registered user {Email}: {Errors}",
+                        model.Email,
+                        string.Join("; ", roleAssignment.Errors.Select(error => error.Description)));
 
-                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                    await _userManager.DeleteAsync(user);
+                    foreach (var error in roleAssignment.Errors)
+                        ModelState.AddModelError(string.Empty, error.Description);
+
+                    return View(model);
+                }
+
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                return RedirectToAction("Index", "Home", new { area = "" });
             }
 
             foreach (var error in result.Errors)
