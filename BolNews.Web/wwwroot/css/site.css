@@ -4468,7 +4468,9 @@ body,
     position: absolute;
     inset: 0;
     display: grid;
-    grid-template-rows: 104fr 68fr 68fr 40fr;
+    /* Header block + two equal candidate rows. Each row centres its own content, so the
+       party badge, name and vote box sit in the middle of the white area. */
+    grid-template-rows: 104fr 88fr 88fr;
 }
 
 @supports (width: 1cqw) {
@@ -4509,19 +4511,40 @@ body,
 .bn-elect-card__header {
     display: flex;
     align-items: center;
-    gap: calc(var(--u) * 6);
+    gap: calc(var(--u) * 5);
     padding-bottom: calc(var(--u) * 7);
     border-bottom: calc(var(--u) * 2) solid transparent;
     border-image: linear-gradient(90deg, #d3212d 0 30%, #2f63d1 30% 100%) 1;
-    font-size: calc(var(--u) * 11.5);
+    font-size: calc(var(--u) * 10.5);
     font-weight: 700;
-    letter-spacing: .05em;
+    letter-spacing: .03em;
     line-height: 1;
     text-transform: uppercase;
 }
 
 .bn-elect-card__star {
     color: #5b8def;
+}
+
+.bn-elect-card__title {
+    flex: 0 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+/* LIVE UPDATE + blinking green dot, top right of the card on the header row */
+.bn-elect-card__live {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: calc(var(--u) * 4);
+    margin-left: auto;
+    color: #fff;
+    font-size: calc(var(--u) * 8.5);
+    font-weight: 800;
+    letter-spacing: .07em;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 .bn-elect-card__race {
@@ -4579,6 +4602,12 @@ body,
     line-height: 1.05;
     overflow-wrap: anywhere;
     text-transform: uppercase;
+    /* Very long names stop at two lines so the row never outgrows its space */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
 }
 
 .bn-elect-score {
@@ -4621,23 +4650,12 @@ body,
     background: #5c6675;
 }
 
-.bn-elect-card__foot {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: calc(var(--u) * 6);
-    color: #0b2a5b;
-    font-size: calc(var(--u) * 9);
-    font-weight: 800;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-}
-
 .bn-elect-card__dot {
     width: calc(var(--u) * 7);
     height: calc(var(--u) * 7);
     border-radius: 50%;
-    background: #1a9a3a;
+    background: #2ee564;
+    box-shadow: 0 0 calc(var(--u) * 5) rgba(46, 229, 100, .85);
 }
 
 @media (prefers-reduced-motion: no-preference) {

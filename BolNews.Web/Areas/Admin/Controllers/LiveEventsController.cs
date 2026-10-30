@@ -17,7 +17,7 @@ using System.Security.Cryptography;
 namespace BolNews.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Roles = Roles.Editor + "," + Roles.SubEditor)]
+[Authorize(Roles = Roles.Admin + "," + Roles.Editor + "," + Roles.SubEditor)]
 public class LiveEventsController(
     AppDbContext db,
     UserManager<ApplicationUser> users,

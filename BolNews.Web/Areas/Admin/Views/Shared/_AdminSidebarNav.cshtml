@@ -4,9 +4,9 @@
         string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase) ? "active" : "";
     var adminMenuId = "admin-menu-" + Guid.NewGuid().ToString("N");
     var toolsMenuId = "tools-menu-" + Guid.NewGuid().ToString("N");
-    var adminOpen = new[] { "Dashboard", "User", "ShowCarousel", "Categories", "Author", "InternalLinks", "LiveEvents" }
+    var adminOpen = new[] { "Dashboard", "User", "ShowCarousel", "Categories", "Author", "InternalLinks" }
         .Contains(currentController, StringComparer.OrdinalIgnoreCase);
-    var toolsOpen = new[] { "Articles", "MediaLibrary", "BreakingNews", "FuelPrices", "EditorialPlacements", "Reporters" }
+    var toolsOpen = new[] { "Articles", "MediaLibrary", "BreakingNews", "FuelPrices", "LiveEvents", "EditorialPlacements", "Reporters" }
         .Contains(currentController, StringComparer.OrdinalIgnoreCase);
 }
 <ul class="nav flex-column mb-auto">
@@ -64,11 +64,6 @@
                 @if (User.IsInRole("Admin") || User.IsInRole("Editor") || User.IsInRole("SubEditor"))
                 {
                     <li class="nav-item">
-                        <a class="nav-link @IsActive("LiveEvents")" asp-area="Admin" asp-controller="LiveEvents" asp-action="Index">
-                            <i class="bi bi-broadcast me-2"></i> Live Events
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link @IsActive("InternalLinks")" asp-area="Admin" asp-controller="InternalLinks" asp-action="Index">
                             <i class="bi bi-link-45deg me-2"></i> Internal Links
                         </a>
@@ -108,6 +103,14 @@
                         <i class="bi bi-fuel-pump me-2"></i> Update Fuel Prices
                     </a>
                 </li>
+                @if (User.IsInRole("Admin") || User.IsInRole("Editor") || User.IsInRole("SubEditor"))
+                {
+                    <li class="nav-item">
+                        <a class="nav-link @IsActive("LiveEvents")" asp-area="Admin" asp-controller="LiveEvents" asp-action="Index">
+                            <i class="bi bi-broadcast me-2"></i> Live Events
+                        </a>
+                    </li>
+                }
                 @if (User.IsInRole("Admin") || User.IsInRole("Editor"))
                 {
                     <li class="nav-item">

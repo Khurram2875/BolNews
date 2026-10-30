@@ -27,7 +27,14 @@
             <span class="bn-elect-card__shade" aria-hidden="true"></span>
             <div class="bn-elect-card__header">
                 <span class="bn-elect-card__star" aria-hidden="true">&#9733;</span>
-                <span>@Model.ElectionHeader</span>
+                <span class="bn-elect-card__title">@Model.ElectionHeader</span>
+                @if (Model.ShowLiveBadge)
+                {
+                    <span class="bn-elect-card__live">
+                        <span class="bn-elect-card__dot" aria-hidden="true"></span>
+                        <span>Live update</span>
+                    </span>
+                }
             </div>
             <h3 class="bn-elect-card__race">@Model.RaceTitle</h3>
             <p class="bn-elect-card__office">@Model.RaceSubtitle</p>
@@ -50,13 +57,5 @@
         {
             <div class="bn-elect-card__row"></div>
         }
-
-        <div class="bn-elect-card__foot">
-            @if (Model.ShowLiveBadge)
-            {
-                <span class="bn-elect-card__dot" aria-hidden="true"></span>
-                <span>Live update</span>
-            }
-        </div>
     </div>
 </div>
