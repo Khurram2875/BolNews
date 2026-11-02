@@ -4396,6 +4396,7 @@ body,
 }
 
     .bn-live-timeline a {
+        position: relative;
         color: inherit;
         text-decoration: none;
         display: grid;
@@ -4410,7 +4411,8 @@ body,
 .bn-live-update {
     padding: 1rem 0;
     border-bottom: 1px solid #ddd;
-    scroll-margin-top: 1rem;
+    /* clears the fixed site navbar when the page itself scrolls to an update (phones) */
+    scroll-margin-top: 4.5rem;
 }
 
     .bn-live-update h3 {
@@ -4681,3 +4683,53 @@ body,
         border: 1px solid #ddd;
         border-radius: .4rem;
     }
+
+/* ===== Live page: red dot per timeline entry ===== */
+.bn-live-timeline a::before {
+    content: "";
+    position: absolute;
+    top: .3rem;
+    /* centres the dot on the 2px red line: line centre sits .8rem + 1px left of the link's edge */
+    left: calc(-.8rem - 6px);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #d71920;
+    box-shadow: 0 0 0 3px #fff; /* small gap so the line looks broken behind the dot */
+}
+
+/* ===== Live page: three independently scrolling columns =====
+   Each column is a "panel": the heading stays put and only the content under it scrolls.
+   Panels stick just below the fixed site navbar so the Timeline stays in view. Desktop only;
+   on phones the columns stack and the page scrolls as usual. */
+.bn-live-panel {
+    min-width: 0;
+}
+
+@media (min-width: 992px) {
+    .bn-live-page {
+        --bn-live-top: 4rem; /* fixed navbar is ~47px tall */
+    }
+
+    .bn-live-panel {
+        position: sticky;
+        top: var(--bn-live-top);
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - var(--bn-live-top) - 1rem);
+    }
+
+    .bn-live-scroll {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        padding-right: .5rem; /* keeps text clear of the scrollbar */
+        scrollbar-width: thin;
+        scrollbar-color: #c9c9c9 transparent;
+    }
+
+    /* left room so the dots on the red line are not clipped by the scroll area */
+    .bn-live-scroll--timeline {
+        padding-left: .5rem;
+    }
+}
