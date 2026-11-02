@@ -42,8 +42,7 @@
                             <time datetime="@update.Timestamp.ToString("O")">@update.Timestamp.ToLocalTime().ToString("dd MMM, yyyy h:mm tt")</time>
                             <h3>@update.Summary</h3>
                             <div class="bn-live-update__details">@Html.Raw(System.Net.WebUtility.HtmlEncode(update.Details).Replace("\n", "<br />"))</div>
-                            <p class="text-muted mb-0">Updated by @update.UpdatedBy</p>
-                            @if (!string.IsNullOrWhiteSpace(update.Source)) { <p class="text-muted mb-0">Source: @update.Source</p> }
+                            @if (!string.IsNullOrWhiteSpace(update.Source)) { <p class="bn-live-update__source text-muted mb-0">Source: @update.Source</p> }
                         </article>
                     }
                 </div>
@@ -57,9 +56,12 @@
                         @foreach (var article in Model.Articles)
                         {
                             <a class="bn-live-related-card" href="/@article.CategorySlug/@article.Slug">
-                                @if (!string.IsNullOrWhiteSpace(article.ImageUrl)) { <img src="@article.ImageUrl" alt="@article.Title" loading="lazy" /> }
-                                <strong>@article.Title</strong>
-                                @if (!string.IsNullOrWhiteSpace(article.Summary)) { <span>@article.Summary</span> }
+                                @* Title sits on the image over a dark gradient so it stays readable on any photo; without an image the card shows a solid colour instead *@
+                                <span class="bn-live-related-card__media">
+                                    @if (!string.IsNullOrWhiteSpace(article.ImageUrl)) { <img src="@article.ImageUrl" alt="" loading="lazy" /> }
+                                    <strong class="bn-live-related-card__title">@article.Title</strong>
+                                </span>
+                                @if (!string.IsNullOrWhiteSpace(article.Summary)) { <span class="bn-live-related-card__summary">@article.Summary</span> }
                             </a>
                         }
                     </div>
@@ -86,8 +88,16 @@
         const target = document.getElementById(link.getAttribute('href').slice(1));
         if (!target) return;
         event.preventDefault();
-        const top = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
-        scroller.scrollTo({ top, behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+        const behavior = reduceMotion.matches ? 'auto' : 'smooth';
+        // 1) Move the page so the three columns sit right below the navbar (where the panels stick).
+        const panel = scroller.closest('.bn-live-panel');
+        const stickyTop = parseFloat(getComputedStyle(panel).top) || 0;
+        const gap = panel.getBoundingClientRect().top - stickyTop;
+        if (Math.abs(gap) > 1) window.scrollBy({ top: gap, behavior });
+        // 2) Scroll the updates column itself to the clicked update.
+        const padTop = parseFloat(getComputedStyle(scroller).paddingTop) || 0;
+        const top = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - padTop;
+        scroller.scrollTo({ top, behavior });
         try { history.replaceState(null, '', link.getAttribute('href')); } catch (e) { }
     });
 })();

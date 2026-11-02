@@ -4405,45 +4405,140 @@ body,
 
     .bn-live-timeline time, .bn-live-update time {
         color: #777;
-        font-size: .85rem;
+        font-size: .78rem;
     }
 
 .bn-live-update {
-    padding: 1rem 0;
-    border-bottom: 1px solid #ddd;
+    margin-bottom: .9rem;
+    padding: .95rem 1.1rem;
+    background: #fff;
+    border: 1px solid #e4e4e4;
+    border-radius: .85rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
     /* clears the fixed site navbar when the page itself scrolls to an update (phones) */
     scroll-margin-top: 4.5rem;
 }
 
+    .bn-live-update:hover {
+        transform: translateY(-2px);
+        border-color: rgba(215, 25, 32, .35);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, .10);
+    }
+
     .bn-live-update h3 {
-        font-size: 1.15rem;
-        margin: .4rem 0;
+        font-size: 1.05rem;
+        margin: .35rem 0 .45rem;
     }
 
 .bn-live-update__details {
-    line-height: 1.7;
+    line-height: 1.65;
     white-space: normal;
+}
+
+.bn-live-update__source {
+    margin-top: .6rem;
+    font-size: .8rem;
 }
 
 .bn-live-related {
     display: grid;
-    gap: 1rem;
+    gap: .9rem;
 }
 
 .bn-live-related-card {
-    display: grid;
-    gap: .4rem;
+    display: block;
     color: inherit;
     text-decoration: none;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 1rem;
+    background: #fff;
+    border: 1px solid #e4e4e4;
+    border-radius: .85rem;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
 
-    .bn-live-related-card img {
-        width: 100%;
-        aspect-ratio: 16 / 9;
-        object-fit: cover;
+    .bn-live-related-card:hover {
+        color: inherit;
+        transform: translateY(-3px);
+        border-color: rgba(215, 25, 32, .35);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, .16);
     }
+
+/* Image area with the title laid over it. The gradient keeps white text readable on bright photos;
+   with no image the solid blue shows instead. */
+.bn-live-related-card__media {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0b2a5b, #1f3f94);
+}
+
+    .bn-live-related-card__media img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform .35s ease;
+    }
+
+    .bn-live-related-card:hover .bn-live-related-card__media img {
+        transform: scale(1.06);
+    }
+
+    .bn-live-related-card__media::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, .9) 0%, rgba(0, 0, 0, .8) 45%, rgba(0, 0, 0, .4) 72%, rgba(0, 0, 0, 0) 100%);
+    }
+
+.bn-live-related-card__title {
+    /* offsets instead of padding: padding on a line-clamped box lets the next line peek through */
+    position: absolute;
+    left: .85rem;
+    right: .85rem;
+    bottom: .7rem;
+    z-index: 1;
+    color: #fff;
+    font-size: .92rem;
+    font-weight: 700;
+    line-height: 1.3;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .85), 0 0 8px rgba(0, 0, 0, .6);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+}
+
+.bn-live-related-card__summary {
+    padding: .6rem .85rem .75rem;
+    color: #555;
+    font-size: .82rem;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bn-live-update,
+    .bn-live-related-card,
+    .bn-live-related-card__media img {
+        transition: none;
+    }
+
+    .bn-live-update:hover,
+    .bn-live-related-card:hover,
+    .bn-live-related-card:hover .bn-live-related-card__media img {
+        transform: none;
+    }
+}
 
 @media (min-width: 992px) {
     .bn-live-page {
@@ -4719,17 +4814,24 @@ body,
         max-height: calc(100vh - var(--bn-live-top) - 1rem);
     }
 
+    /* The negative side margins and equal padding keep cards lined up with the heading while leaving
+       room inside the scroll area for the hover lift, shadow and the timeline dots (otherwise clipped). */
     .bn-live-scroll {
         flex: 1 1 auto;
         min-height: 0;
         overflow-y: auto;
-        padding-right: .5rem; /* keeps text clear of the scrollbar */
+        margin: 0 -.65rem;
+        padding: .4rem .65rem .75rem;
         scrollbar-width: thin;
         scrollbar-color: #c9c9c9 transparent;
     }
+}
 
-    /* left room so the dots on the red line are not clipped by the scroll area */
-    .bn-live-scroll--timeline {
-        padding-left: .5rem;
-    }
+/* Slightly smaller type across the three columns */
+.bn-live-columns {
+    font-size: .9rem;
+}
+
+.bn-live-panel > h2 {
+    font-size: 1.35rem;
 }
