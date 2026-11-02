@@ -4399,13 +4399,14 @@ body,
         position: relative;
         color: inherit;
         text-decoration: none;
-        display: grid;
+         display: grid;
         gap: .25rem;
     }
 
     .bn-live-timeline time, .bn-live-update time {
-        color: #777;
-        font-size: .78rem;
+        color: red;
+        font-weight:bold;
+        font-size: .70rem;
     }
 
 .bn-live-update {

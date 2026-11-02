@@ -23,10 +23,10 @@
             <div class="bn-live-panel">
                 <h2 class="h4">Timeline</h2>
                 <div class="bn-live-scroll bn-live-scroll--timeline" tabindex="0" role="region" aria-label="Timeline">
-                    <nav class="bn-live-timeline">
+                    <nav class="bn-live-timeline" style="background-color:lightgray">
                         @foreach (var update in Model.Updates)
                         {
-                            <a href="#update-@update.Id"><time datetime="@update.Timestamp.ToString("O")">@update.Timestamp.ToLocalTime().ToString("dd MMM, h:mm tt")</time><span>@update.Summary</span></a>
+                            <a href="#update-@update.Id"><time datetime="@update.Timestamp.ToString("O")">@update.Timestamp.ToLocalTime().ToString("dd MMM | h:mm tt")</time><span>@update.Summary</span></a>
                         }
                     </nav>
                 </div>
@@ -39,7 +39,7 @@
                     @foreach (var update in Model.Updates)
                     {
                         <article class="bn-live-update" id="update-@update.Id">
-                            <time datetime="@update.Timestamp.ToString("O")">@update.Timestamp.ToLocalTime().ToString("dd MMM, yyyy h:mm tt")</time>
+                            <time datetime="@update.Timestamp.ToString("O")">@update.Timestamp.ToLocalTime().ToString("dd MMM, yyyy | h:mm tt")</time>
                             <h3>@update.Summary</h3>
                             <div class="bn-live-update__details">@Html.Raw(System.Net.WebUtility.HtmlEncode(update.Details).Replace("\n", "<br />"))</div>
                             @if (!string.IsNullOrWhiteSpace(update.Source)) { <p class="bn-live-update__source text-muted mb-0">Source: @update.Source</p> }
