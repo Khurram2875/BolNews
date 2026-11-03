@@ -924,6 +924,7 @@ namespace BolNews.Persistence.Migrations
                     b.Property<string>("UpdatedBy").HasColumnType("longtext");
                     b.Property<string>("ElectionHeader").HasMaxLength(100).HasColumnType("varchar(100)");
                     b.Property<int>("EventType").HasColumnType("int");
+                    b.Property<string>("IntroHtml").HasColumnType("longtext");
                     b.Property<string>("RaceSubtitle").HasMaxLength(100).HasColumnType("varchar(100)");
                     b.Property<string>("RaceTitle").HasMaxLength(100).HasColumnType("varchar(100)");
                     b.Property<bool>("ShowLiveBadge").HasColumnType("tinyint(1)");

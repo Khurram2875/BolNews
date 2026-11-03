@@ -15,7 +15,7 @@ public class LiveController(AppDbContext db) : Controller
             .Select(x => new LiveEventPageVM
             {
                 Id = x.Id, Title = x.Title, Slug = x.Slug, CreatedAt = x.CreatedAt,
-                ShowLiveBadge = x.ShowLiveBadge,
+                ShowLiveBadge = x.ShowLiveBadge, IntroHtml = x.IntroHtml,
                 IsElection = x.EventType == LiveEventType.Election,
                 ElectionHeader = x.ElectionHeader, RaceTitle = x.RaceTitle, RaceSubtitle = x.RaceSubtitle,
                 Candidates = x.Candidates.OrderBy(c => c.SortOrder)

@@ -18,6 +18,7 @@ public class LiveEventConfiguration : IEntityTypeConfiguration<LiveEvent>
         builder.Property(x => x.ElectionHeader).HasMaxLength(100);
         builder.Property(x => x.RaceTitle).HasMaxLength(100);
         builder.Property(x => x.RaceSubtitle).HasMaxLength(100);
+        builder.Property(x => x.IntroHtml).HasColumnType("longtext");
         builder.HasIndex(x => new { x.IsActive, x.IsPinned, x.CreatedAt });
         builder.HasOne(x => x.FeaturedMedia).WithMany()
             .HasForeignKey(x => x.FeaturedMediaId).OnDelete(DeleteBehavior.Restrict);

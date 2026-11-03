@@ -17,6 +17,8 @@ public class LiveEvent : BaseEntity
     public string? ElectionHeader { get; set; }
     public string? RaceTitle { get; set; }
     public string? RaceSubtitle { get; set; }
+    // Rich-text (sanitized Quill HTML) shown in the scrollable box beside the image on the detail page.
+    public string? IntroHtml { get; set; }
     public ICollection<LiveEventCandidate> Candidates { get; set; } = new List<LiveEventCandidate>();
     public ICollection<LiveEventUpdate> Updates { get; set; } = new List<LiveEventUpdate>();
     public ICollection<LiveEventArticle> LinkedArticles { get; set; } = new List<LiveEventArticle>();

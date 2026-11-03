@@ -7,6 +7,7 @@ using BolNews.Domain.Entities.Base;
 using BolNews.Domain.Enums;
 using BolNews.Persistence.Context;
 using BolNews.Web.Areas.Admin.ViewModels;
+using BolNews.Web.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -57,8 +58,9 @@ public class LiveEventsController(
             RaceTitle = IsElection(vm) ? Clean(vm.RaceTitle) : null,
             RaceSubtitle = IsElection(vm) ? Clean(vm.RaceSubtitle) : null,
             Candidates = IsElection(vm) ? BuildCandidates(vm.Candidates) : new List<LiveEventCandidate>(),
-            Updates = vm.Updates.Where(x => !string.IsNullOrWhiteSpace(x.Summary) || !string.IsNullOrWhiteSpace(x.Details))
-                .Select(x => new LiveEventUpdate { Timestamp = AsUtc(x.Timestamp), Summary = x.Summary!.Trim(), Details = x.Details!.Trim(), Source = x.Source?.Trim(), UpdatedBy = name }).ToList(),
+            IntroHtml = CleanIntro(vm.IntroHtml),
+            Updates = vm.Updates.Where(HasUpdateContent)
+                .Select(x => new LiveEventUpdate { Timestamp = AsUtc(x.Timestamp), Summary = x.Summary!.Trim(), Details = LiveHtml.Sanitize(x.Details), Source = x.Source?.Trim(), UpdatedBy = name }).ToList(),
             LinkedArticles = vm.ArticleIds.Distinct().Select(id => new LiveEventArticle { ArticleId = id }).ToList()
         };
         db.LiveEvents.Add(item);
@@ -76,11 +78,11 @@ public class LiveEventsController(
             Id = item.Id, Title = item.Title, Slug = item.Slug, FeaturedMediaId = item.FeaturedMediaId,
             IsActive = item.IsActive, IsPinned = item.IsPinned, ShowLiveBadge = item.ShowLiveBadge,
             EventType = item.EventType, ElectionHeader = item.ElectionHeader ?? DefaultElectionHeader,
-            RaceTitle = item.RaceTitle, RaceSubtitle = item.RaceSubtitle,
+            RaceTitle = item.RaceTitle, RaceSubtitle = item.RaceSubtitle, IntroHtml = item.IntroHtml,
             Candidates = item.Candidates.OrderBy(x => x.SortOrder)
                 .Select(x => new LiveEventCandidateVM { Id = x.Id, Party = x.Party, Name = x.Name, Percentage = x.Percentage, Votes = x.Votes }).ToList(),
             ArticleIds = item.LinkedArticles.Select(x => x.ArticleId).ToList(),
-            Updates = item.Updates.OrderBy(x => x.Timestamp).Select(x => new LiveEventUpdateVM { Id = x.Id, Timestamp = x.Timestamp, Summary = x.Summary, Details = x.Details, Source = x.Source }).ToList()
+            Updates = item.Updates.OrderBy(x => x.Timestamp).Select(x => new LiveEventUpdateVM { Id = x.Id, Timestamp = x.Timestamp, Summary = x.Summary, Details = LiveHtml.ToEditorHtml(x.Details), Source = x.Source }).ToList()
         };
         if (vm.Updates.Count == 0) vm.Updates.Add(new LiveEventUpdateVM());
         await PopulateChoices(vm);
@@ -102,8 +104,9 @@ public class LiveEventsController(
         item.UpdatedAt = DateTime.UtcNow; item.UpdatedBy = name;
         SyncElectionCard(item, vm);
         db.LiveEventUpdates.RemoveRange(item.Updates);
-        item.Updates = vm.Updates.Where(x => !string.IsNullOrWhiteSpace(x.Summary) || !string.IsNullOrWhiteSpace(x.Details))
-            .Select(x => new LiveEventUpdate { LiveEventId = item.Id, Timestamp = AsUtc(x.Timestamp), Summary = x.Summary!.Trim(), Details = x.Details!.Trim(), Source = x.Source?.Trim(), UpdatedBy = name }).ToList();
+        item.IntroHtml = CleanIntro(vm.IntroHtml);
+        item.Updates = vm.Updates.Where(HasUpdateContent)
+            .Select(x => new LiveEventUpdate { LiveEventId = item.Id, Timestamp = AsUtc(x.Timestamp), Summary = x.Summary!.Trim(), Details = LiveHtml.Sanitize(x.Details), Source = x.Source?.Trim(), UpdatedBy = name }).ToList();
         db.LiveEventArticles.RemoveRange(item.LinkedArticles);
         item.LinkedArticles = vm.ArticleIds.Distinct().Select(id => new LiveEventArticle { LiveEventId = item.Id, ArticleId = id }).ToList();
         await db.SaveChangesAsync();
@@ -195,9 +198,9 @@ public class LiveEventsController(
         if (validIds.Count != vm.ArticleIds.Distinct().Count()) ModelState.AddModelError(nameof(vm.ArticleIds), "One or more selected articles are unavailable.");
         for (var i = 0; i < vm.Updates.Count; i++)
         {
-            if (string.IsNullOrWhiteSpace(vm.Updates[i].Summary) && string.IsNullOrWhiteSpace(vm.Updates[i].Details)) continue;
+            if (!HasUpdateContent(vm.Updates[i])) continue;
             if (string.IsNullOrWhiteSpace(vm.Updates[i].Summary)) ModelState.AddModelError($"Updates[{i}].Summary", "Enter an update summary.");
-            if (string.IsNullOrWhiteSpace(vm.Updates[i].Details)) ModelState.AddModelError($"Updates[{i}].Details", "Enter update details.");
+            if (!LiveHtml.HasContent(vm.Updates[i].Details)) ModelState.AddModelError($"Updates[{i}].Details", "Enter update details.");
         }
         ValidateElection(vm);
     }
@@ -240,6 +243,11 @@ public class LiveEventsController(
     }
 
     // ---- US election scoreboard card -------------------------------------------------
+    // Rich-text editors post "<p><br></p>" when empty, so "blank" means no visible text, image or embed.
+    private static bool HasUpdateContent(LiveEventUpdateVM x) => !string.IsNullOrWhiteSpace(x.Summary) || LiveHtml.HasContent(x.Details);
+
+    private static string? CleanIntro(string? html) => LiveHtml.HasContent(html) ? LiveHtml.Sanitize(html) : null;
+
     private const string DefaultElectionHeader = "U.S. MIDTERM ELECTIONS";
 
     private static bool IsElection(LiveEventVM vm) => vm.EventType == LiveEventType.Election;

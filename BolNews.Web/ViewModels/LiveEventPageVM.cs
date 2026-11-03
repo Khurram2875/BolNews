@@ -31,6 +31,8 @@ public class LiveEventPageVM : LiveEventElectionCardVM
     public string Title { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty;
     public string? ImageAlt { get; set; }
+    /// <summary>Sanitised rich-text intro shown beside the image; empty when none.</summary>
+    public string? IntroHtml { get; set; }
     public DateTime CreatedAt { get; set; }
     public List<LiveEventPageUpdateVM> Updates { get; set; } = new();
     public List<LiveEventPageArticleVM> Articles { get; set; } = new();

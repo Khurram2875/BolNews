@@ -19,6 +19,7 @@ public class LiveEventVM
     [StringLength(100)] public string? ElectionHeader { get; set; }
     [StringLength(100)] public string? RaceTitle { get; set; }
     [StringLength(100)] public string? RaceSubtitle { get; set; }
+    public string? IntroHtml { get; set; }
     public List<LiveEventCandidateVM> Candidates { get; set; } = new();
     public List<int> ArticleIds { get; set; } = new();
     public List<LiveEventUpdateVM> Updates { get; set; } = new();
