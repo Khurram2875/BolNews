@@ -16,7 +16,7 @@ public class LiveEventsViewComponent(AppDbContext db) : ViewComponent
             .Select(x => new LiveEventCarouselItemVM
             {
                 Title = x.Title, Slug = x.Slug,
-                ImageUrl = x.FeaturedMedia.MediumUrl ?? x.FeaturedMedia.ThumbnailUrl ?? x.FeaturedMedia.Url,
+                ImageUrl = x.FeaturedMedia.LargeUrl ?? x.FeaturedMedia.ThumbnailUrl ?? x.FeaturedMedia.Url,
                 ShowLiveBadge = x.ShowLiveBadge,
                 LatestUpdate = x.Updates.OrderByDescending(u => u.Timestamp).Select(u => u.Summary).FirstOrDefault(),
                 IsElection = x.EventType == LiveEventType.Election,

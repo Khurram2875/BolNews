@@ -68,7 +68,8 @@
             {
                 <aside class="bn-story-rail" aria-label="Latest">
                     <div class="d-none d-md-block">
-                        @await Component.InvokeAsync("FuelPrice")
+                       @*  @await Component.InvokeAsync("FuelPrice") *@
+                        @await Component.InvokeAsync("LiveEvents")
                     </div>
                     <h2>Latest</h2>
                     <div class="bn-latest-list">
@@ -155,10 +156,9 @@
                     <div class="bn-ad-slot mb-4">
                         <div id="Bolnews_Sidebar_Top_ATF" data-ad-slot="sidebar-top-atf"></div>
                     </div>
-                    @await Component.InvokeAsync("LiveEvents")
-                    @* <div class="d-none d-md-block">
-                        @await Component.InvokeAsync("FuelPrice")
-                    </div> *@
+                @await Component.InvokeAsync("FuelPrice")
+                    @* @await Component.InvokeAsync("LiveEvents") *@
+                    
                     @if (featuredStories.Any())
                     {
                         <h2>Featured</h2>
