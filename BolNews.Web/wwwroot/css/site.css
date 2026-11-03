@@ -4516,7 +4516,11 @@ body,
 }
 
 .bn-live-related-card__summary {
-    padding: .6rem .85rem .75rem;
+    /* Bottom spacing is a margin, not padding: padding inside a line-clamped box lets part of the
+       next line show through underneath the clamp (the text got cut by the card border). */
+    display: block;
+    margin-bottom: .75rem;
+    padding: .6rem .85rem 0;
     color: #555;
     font-size: .82rem;
     line-height: 1.45;
