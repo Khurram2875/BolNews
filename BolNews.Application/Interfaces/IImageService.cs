@@ -21,6 +21,13 @@ namespace BolNews.Application.Interfaces
         Task<(string thumb, string medium, string large, string xl)>
         SaveMediaImagesAsync(Stream stream, int mediaId, string rootPath);
 
+        /// <summary>
+        /// Same four sizes as <see cref="SaveMediaImagesAsync"/> but never cropped: each size keeps the
+        /// original aspect ratio (fits inside the bounds, never enlarged). Used for Live Event feature images.
+        /// </summary>
+        Task<(string thumb, string medium, string large, string xl)>
+        SaveMediaImagesUncroppedAsync(Stream stream, int mediaId, string rootPath);
+
         Task<string> SaveMediaFileAsync(Stream stream, string fileName, int mediaId, string rootPath);
 
         Task<string> SaveArticleContentImageAsync(Stream stream, string fileName, string rootPath);

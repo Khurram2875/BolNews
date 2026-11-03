@@ -237,7 +237,7 @@ public class LiveEventsController(
         };
         var id = await mediaLibrary.CreateAsync(dto, userId);
         await using var imageStream = file.OpenReadStream();
-        var (thumb, medium, large, xl) = await imageService.SaveMediaImagesAsync(imageStream, id, environment.WebRootPath);
+        var (thumb, medium, large, xl) = await imageService.SaveMediaImagesUncroppedAsync(imageStream, id, environment.WebRootPath);
         await mediaLibrary.SetStorageAsync(id, xl, thumb, medium, large, userId);
         return id;
     }
