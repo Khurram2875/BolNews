@@ -959,6 +959,19 @@ namespace BolNews.Persistence.Migrations
                     b.ToTable("LiveEventCandidates", (string)null);
                 });
 
+            modelBuilder.Entity("BolNews.Domain.Entities.SiteSetting", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("Key").IsRequired().HasMaxLength(100).HasColumnType("varchar(100)");
+                    b.Property<DateTime>("UpdatedAt").HasColumnType("datetime(6)");
+                    b.Property<string>("UpdatedBy").HasMaxLength(450).HasColumnType("varchar(450)");
+                    b.Property<string>("Value").IsRequired().HasMaxLength(500).HasColumnType("varchar(500)");
+                    b.HasKey("Id");
+                    b.HasIndex("Key").IsUnique();
+                    b.ToTable("SiteSettings", (string)null);
+                });
+
             modelBuilder.Entity("BolNews.Domain.Entities.LiveEventUpdate", b =>
                 {
                     b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");

@@ -5,7 +5,7 @@
     <span class="badge">Headlines</span>
 
     <div class="ticker-wrapper">
-        <div class="ticker">
+        <div class="ticker" data-speed-level="@(ViewData["TickerSpeedLevel"] ?? 2)">
 
             @for (int i = 0; i < 2; i++)
             {
@@ -36,3 +36,22 @@
     </div>
 
 </div>
+
+<script>
+    (function () {
+        // Constant scroll speed whatever the number of headlines: level 1 = 20 px/s ... level 10 = 200 px/s.
+        var ticker = document.querySelector('.breaking-news-bar .ticker');
+        if (!ticker) return;
+        var level = parseInt(ticker.getAttribute('data-speed-level'), 10);
+        if (!(level >= 1 && level <= 10)) level = 2;
+        var pxPerSecond = 20 * level;
+        function apply() {
+            // The track holds every headline twice and scrolls by half its own width, then loops.
+            var distance = ticker.getBoundingClientRect().width / 2;
+            if (distance > 0) ticker.style.animationDuration = Math.max(5, distance / pxPerSecond) + 's';
+        }
+        apply();
+        window.addEventListener('load', apply);
+        window.addEventListener('resize', apply);
+    })();
+</script>

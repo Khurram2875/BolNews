@@ -24,6 +24,37 @@
 
     </div>
 
+    @{ var tickerLevel = ViewData["TickerSpeedLevel"] as int? ?? 2; }
+    @if (TempData["Success"] is string tickerMessage)
+    {
+        <div class="alert alert-success py-2">@tickerMessage</div>
+    }
+    <div class="card mb-3">
+        <div class="card-body">
+            <form asp-action="UpdateTickerSpeed" method="post" class="row g-3 align-items-center">
+                <div class="col-lg-3">
+                    <h5 class="mb-0">Headline ticker speed</h5>
+                    <small class="text-muted">The scrolling "Headlines" bar above the navbar on public pages.</small>
+                </div>
+                <div class="col-lg-6 d-flex align-items-center gap-2">
+                    <span class="small text-muted">Slow</span>
+                    <input type="range" class="form-range" name="level" id="tickerSpeed" min="1" max="10" step="1" value="@tickerLevel" />
+                    <span class="small text-muted">Fast</span>
+                    <span class="badge text-bg-secondary" id="tickerSpeedLabel">@tickerLevel</span>
+                </div>
+                <div class="col-lg-3 text-lg-end">
+                    <button type="submit" class="btn btn-primary">Save speed</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        (function () {
+            var r = document.getElementById('tickerSpeed'), l = document.getElementById('tickerSpeedLabel');
+            if (r && l) r.addEventListener('input', function () { l.textContent = r.value; });
+        })();
+    </script>
+
     <div class="card">
 
         <div class="card-body">

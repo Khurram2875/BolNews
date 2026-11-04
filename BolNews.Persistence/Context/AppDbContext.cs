@@ -42,6 +42,7 @@ namespace BolNews.Persistence.Context
         public DbSet<LiveEventUpdate> LiveEventUpdates { get; set; }
         public DbSet<LiveEventArticle> LiveEventArticles { get; set; }
         public DbSet<LiveEventCandidate> LiveEventCandidates { get; set; }
+        public DbSet<SiteSetting> SiteSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
