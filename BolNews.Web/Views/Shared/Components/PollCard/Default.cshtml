@@ -4,7 +4,7 @@
     var leader = Model.Options.Count == 0 ? 0 : Model.Options.Max(o => o.Percent);
     var inv = System.Globalization.CultureInfo.InvariantCulture;
 }
-<section class="bn-poll@(Model.IsVersus ? " bn-poll--versus" : "")@(ended ? " is-ended" : "")@(Model.HasVoted ? " has-voted" : "")"
+<section class="bn-poll bn-poll--n@(Model.Options.Count)@(Model.IsVersus ? " bn-poll--versus" : "")@(ended ? " is-ended" : "")@(Model.HasVoted ? " has-voted" : "")"
          data-poll-id="@Model.Id" data-ends="@Model.EndsAtUtc.ToString("yyyy-MM-ddTHH:mm:ss'Z'")" aria-label="Poll: @Model.Title">
     <img class="bn-poll__bg" src="@Model.ImageUrl" alt="" loading="lazy" decoding="async" />
     <span class="bn-poll__shade" aria-hidden="true"></span>

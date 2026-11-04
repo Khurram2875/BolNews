@@ -4931,13 +4931,14 @@ body,
 }
 
 /* ===== Poll card (PollCard view component) =====
-   The uploaded image is the whole card background. Bars show percentages only. */
+   Portrait 4:5 card. The uploaded image is the whole background (use a 4:5 image such as 1080 x 1350 and it
+   is shown without any cropping). All text sits in the LOWER HALF; the upper half is left clear for the picture.
+   Everything scales with the card width (1 unit = width / 400), so a smaller card keeps the same layout. */
 .bn-poll {
+    container-type: inline-size;
     position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    min-height: 22rem;
+    width: 100%;
+    aspect-ratio: 4 / 5;
     overflow: hidden;
     border-radius: .75rem;
     background: #12233f;
@@ -4954,26 +4955,40 @@ body,
     object-fit: cover;
 }
 
+/* Clear over the top half, darkening only behind the text in the lower half */
 .bn-poll__shade {
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: linear-gradient(180deg, rgba(5, 12, 28, .32) 0%, rgba(5, 12, 28, .6) 40%, rgba(5, 12, 28, .88) 100%);
+    background: linear-gradient(180deg, rgba(5, 12, 28, 0) 0%, rgba(5, 12, 28, 0) 36%, rgba(5, 12, 28, .66) 50%, rgba(5, 12, 28, .92) 100%);
 }
 
 .bn-poll__body {
+    --u: 1px; /* fallback when container query units are unsupported */
+    position: absolute;
+    left: calc(var(--u) * 16);
+    right: calc(var(--u) * 16);
+    bottom: calc(var(--u) * 14);
+    top: 51%;
     display: flex;
     flex-direction: column;
-    gap: .6rem;
-    padding: 1.1rem 1.15rem 1.15rem;
+    justify-content: flex-end;
+    gap: calc(var(--u) * 7);
+    overflow: hidden;
+}
+
+@supports (width: 1cqw) {
+    .bn-poll__body {
+        --u: calc(100cqw / 400);
+    }
 }
 
 .bn-poll__type {
     align-self: flex-start;
-    padding: .2rem .55rem;
+    padding: calc(var(--u) * 2.5) calc(var(--u) * 9);
     border-radius: 999px;
     background: #d71920;
-    font-size: .68rem;
+    font-size: calc(var(--u) * 9);
     font-weight: 800;
     letter-spacing: .1em;
     line-height: 1.2;
@@ -4982,23 +4997,33 @@ body,
 
 .bn-poll__title {
     margin: 0;
-    font-size: 1.35rem;
+    font-size: calc(var(--u) * 19);
     font-weight: 800;
-    line-height: 1.2;
+    line-height: 1.15;
     text-shadow: 0 2px 8px rgba(0, 0, 0, .55);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
 }
 
 .bn-poll__desc {
     margin: 0;
     color: rgba(255, 255, 255, .88);
-    font-size: .88rem;
-    line-height: 1.4;
+    font-size: calc(var(--u) * 11.5);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    overflow: hidden;
 }
 
 .bn-poll__results {
     display: grid;
-    gap: .6rem;
-    margin: .25rem 0 0;
+    gap: calc(var(--u) * 7);
+    margin: calc(var(--u) * 2) 0 0;
     padding: 0;
     list-style: none;
 }
@@ -5007,29 +5032,31 @@ body,
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: .75rem;
-    margin-bottom: .25rem;
+    gap: calc(var(--u) * 8);
+    margin-bottom: calc(var(--u) * 3);
 }
 
 .bn-poll__label {
     min-width: 0;
-    font-size: .95rem;
+    font-size: calc(var(--u) * 13.5);
     font-weight: 700;
+    line-height: 1.15;
     overflow-wrap: anywhere;
 }
 
 .bn-poll__pct {
     flex: 0 0 auto;
-    font-size: 1.05rem;
+    font-size: calc(var(--u) * 14);
     font-weight: 800;
+    line-height: 1.15;
     font-variant-numeric: tabular-nums;
 }
 
 .bn-poll__bar {
-    height: .7rem;
+    height: calc(var(--u) * 8);
     overflow: hidden;
     border-radius: 999px;
-    background: rgba(255, 255, 255, .22);
+    background: rgba(255, 255, 255, .24);
 }
 
     .bn-poll__bar > span {
@@ -5048,7 +5075,7 @@ body,
 .bn-poll__option--c5 { --poll-c: #06b6d4; }
 
 .bn-poll__option.is-leading .bn-poll__bar > span {
-    box-shadow: 0 0 .6rem var(--poll-c);
+    box-shadow: 0 0 calc(var(--u) * 8) var(--poll-c);
 }
 
 .bn-poll__option.is-leading .bn-poll__label::after {
@@ -5056,25 +5083,47 @@ body,
     color: #ffd24a;
 }
 
+.bn-poll__body > * {
+    flex-shrink: 0; /* never squash a line; the size classes below make everything fit instead */
+}
+
+/* Three or four answers: drop the short description and tighten a little */
+.bn-poll--n3 .bn-poll__desc, .bn-poll--n4 .bn-poll__desc { display: none; }
+.bn-poll--n4 .bn-poll__results { gap: calc(var(--u) * 5); }
+.bn-poll--n4 .bn-poll__label { font-size: calc(var(--u) * 12.5); }
+.bn-poll--n4 .bn-poll__pct { font-size: calc(var(--u) * 13); }
+.bn-poll--n4 .bn-poll__bar { height: calc(var(--u) * 7); }
+.bn-poll--n4 .bn-poll__title { font-size: calc(var(--u) * 17); }
+
+/* Many answers: tighten everything so it still fits in the lower half (description and type badge are dropped) */
+.bn-poll--n5 .bn-poll__desc, .bn-poll--n6 .bn-poll__desc, .bn-poll--n5 .bn-poll__type, .bn-poll--n6 .bn-poll__type { display: none; }
+.bn-poll--n5 .bn-poll__results, .bn-poll--n6 .bn-poll__results { gap: calc(var(--u) * 3); }
+.bn-poll--n5 .bn-poll__row, .bn-poll--n6 .bn-poll__row { margin-bottom: calc(var(--u) * 1.5); }
+.bn-poll--n5 .bn-poll__label, .bn-poll--n6 .bn-poll__label { font-size: calc(var(--u) * 11.5); }
+.bn-poll--n5 .bn-poll__pct, .bn-poll--n6 .bn-poll__pct { font-size: calc(var(--u) * 12); }
+.bn-poll--n5 .bn-poll__bar, .bn-poll--n6 .bn-poll__bar { height: calc(var(--u) * 5.5); }
+.bn-poll--n5 .bn-poll__title, .bn-poll--n6 .bn-poll__title { font-size: calc(var(--u) * 15); }
+.bn-poll--n5 .bn-poll__body, .bn-poll--n6 .bn-poll__body { gap: calc(var(--u) * 5); }
+
 .bn-poll__foot {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: .6rem .9rem;
-    margin-top: .4rem;
+    gap: calc(var(--u) * 8);
+    margin-top: calc(var(--u) * 3);
 }
 
 .bn-poll__deadline {
+    min-width: 0;
     margin: 0;
     color: rgba(255, 255, 255, .85);
-    font-size: .78rem;
-    line-height: 1.35;
+    font-size: calc(var(--u) * 10.5);
+    line-height: 1.3;
 }
 
 .bn-poll__deadline-label {
     display: block;
-    font-size: .66rem;
+    font-size: calc(var(--u) * 8.5);
     font-weight: 700;
     letter-spacing: .08em;
     text-transform: uppercase;
@@ -5086,22 +5135,28 @@ body,
 }
 
 .bn-poll__left {
-    margin-left: .25rem;
+    margin-left: calc(var(--u) * 3);
     color: #ffd24a;
     font-weight: 700;
 }
 
 .bn-poll__vote,
 .bn-poll__submit {
-    padding: .55rem 1.2rem;
+    padding: calc(var(--u) * 8) calc(var(--u) * 18);
     border: 0;
     border-radius: 999px;
     background: #d71920;
     color: #fff;
-    font-size: .9rem;
+    font-size: calc(var(--u) * 13);
     font-weight: 800;
+    white-space: nowrap;
     cursor: pointer;
     transition: background .15s ease, transform .15s ease;
+}
+
+.bn-poll__submit {
+    padding: .55rem 1.2rem;
+    font-size: .9rem;
 }
 
     .bn-poll__vote:hover,
@@ -5120,11 +5175,13 @@ body,
 /* After the deadline: plain text, not a button or link */
 .bn-poll__final,
 .bn-poll__voted {
-    padding: .45rem .9rem;
+    flex: 0 0 auto;
+    padding: calc(var(--u) * 6) calc(var(--u) * 13);
     border: 1px solid rgba(255, 255, 255, .5);
     border-radius: 999px;
-    font-size: .85rem;
+    font-size: calc(var(--u) * 12);
     font-weight: 800;
+    white-space: nowrap;
     cursor: default;
 }
 

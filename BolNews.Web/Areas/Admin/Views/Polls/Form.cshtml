@@ -6,7 +6,7 @@
 }
 <div class="container-fluid py-3">
     <h1>@ViewData["Title"]</h1>
-    <p class="text-muted">The image you choose becomes the whole card background on the site. Visitors see percentage bars only, never vote counts.</p>
+    <p class="text-muted">The image you choose becomes the whole card background on the site. Use a portrait <strong>4:5</strong> image (best: 1080 x 1350 px) and it is shown without cropping; the text sits on the lower half, so keep the important part of the picture in the upper half. Visitors see percentage bars only, never vote counts.</p>
     <form id="poll-form" asp-action="@(editing ? "Edit" : "Create")" method="post" enctype="multipart/form-data">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <input asp-for="Id" type="hidden" />
@@ -86,7 +86,7 @@
   const typeHelp = document.getElementById('type-help');
   const hiddenEnds = document.getElementById('EndsAtUtc');
   const endsLocal = document.getElementById('endsLocal');
-  const MAX = 10;
+  const MAX = 6;
 
   // Deadline: show the stored UTC value in the editor's local time; post it back as UTC.
   const pad = n => String(n).padStart(2, '0');
@@ -116,8 +116,8 @@
     }
     addBtn.hidden = fixedTwo();
     host.querySelectorAll('.remove-option').forEach(b => { b.hidden = fixedTwo(); });
-    typeHelp.textContent = { '0': 'A question with 2-10 answers; the visitor picks one.', '1': 'Two contenders, e.g. two rap singers. Exactly two answers.', '2': 'True / False (you can rename them, e.g. Yes / No). Exactly two answers.' }[type.value];
-    help.textContent = fixedTwo() ? 'This type uses exactly two answers.' : 'Add 2 to 10 answers. Reordering is by position here.';
+    typeHelp.textContent = { '0': 'A question with 2-6 answers; the visitor picks one.', '1': 'Two contenders, e.g. two rap singers. Exactly two answers.', '2': 'True / False (you can rename them, e.g. Yes / No). Exactly two answers.' }[type.value];
+    help.textContent = fixedTwo() ? 'This type uses exactly two answers.' : 'Add 2 to 6 answers (all of them must fit in the lower half of the card). Reordering is by position here.';
     reindex();
   }
   type.addEventListener('change', () => applyType(false));

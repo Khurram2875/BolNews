@@ -25,7 +25,7 @@ public class PollsController(
     IImageService imageService,
     IWebHostEnvironment environment) : Controller
 {
-    private const int MaxOptions = 10;
+    private const int MaxOptions = 6;
 
     public async Task<IActionResult> Index()
     {
