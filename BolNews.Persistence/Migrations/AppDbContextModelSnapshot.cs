@@ -959,6 +959,55 @@ namespace BolNews.Persistence.Migrations
                     b.ToTable("LiveEventCandidates", (string)null);
                 });
 
+            modelBuilder.Entity("BolNews.Domain.Entities.Poll", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    b.Property<DateTime>("CreatedAt").HasColumnType("datetime(6)");
+                    b.Property<string>("CreatedBy").HasMaxLength(450).HasColumnType("varchar(450)");
+                    b.Property<string>("Description").HasMaxLength(500).HasColumnType("varchar(500)");
+                    b.Property<DateTime>("EndsAt").HasColumnType("datetime(6)");
+                    b.Property<int>("FeaturedMediaId").HasColumnType("int");
+                    b.Property<bool>("IsActive").HasColumnType("tinyint(1)");
+                    b.Property<int>("PollType").HasColumnType("int");
+                    b.Property<string>("Title").IsRequired().HasMaxLength(250).HasColumnType("varchar(250)");
+                    b.Property<DateTime?>("UpdatedAt").HasColumnType("datetime(6)");
+                    b.Property<string>("UpdatedBy").HasMaxLength(450).HasColumnType("varchar(450)");
+                    b.HasKey("Id");
+                    b.HasIndex("FeaturedMediaId");
+                    b.HasIndex("IsActive", "EndsAt");
+                    b.ToTable("Polls", (string)null);
+                });
+
+            modelBuilder.Entity("BolNews.Domain.Entities.PollOption", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    b.Property<int>("PollId").HasColumnType("int");
+                    b.Property<int>("SortOrder").HasColumnType("int");
+                    b.Property<string>("Text").IsRequired().HasMaxLength(150).HasColumnType("varchar(150)");
+                    b.HasKey("Id");
+                    b.HasIndex("PollId", "SortOrder");
+                    b.ToTable("PollOptions", (string)null);
+                });
+
+            modelBuilder.Entity("BolNews.Domain.Entities.PollVote", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    b.Property<DateTime>("CreatedAt").HasColumnType("datetime(6)");
+                    b.Property<string>("IpHash").IsRequired().HasMaxLength(64).HasColumnType("varchar(64)");
+                    b.Property<int>("OptionId").HasColumnType("int");
+                    b.Property<int>("PollId").HasColumnType("int");
+                    b.Property<string>("VoterHash").IsRequired().HasMaxLength(64).HasColumnType("varchar(64)");
+                    b.HasKey("Id");
+                    b.HasIndex("OptionId");
+                    b.HasIndex("PollId", "IpHash");
+                    b.HasIndex("PollId", "OptionId");
+                    b.HasIndex("PollId", "VoterHash").IsUnique();
+                    b.ToTable("PollVotes", (string)null);
+                });
+
             modelBuilder.Entity("BolNews.Domain.Entities.SiteSetting", b =>
                 {
                     b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
@@ -1462,6 +1511,30 @@ namespace BolNews.Persistence.Migrations
                     b.Navigation("LiveEvent");
                 });
 
+            modelBuilder.Entity("BolNews.Domain.Entities.Poll", b =>
+                {
+                    b.HasOne("BolNews.Domain.Entities.MediaAsset", "FeaturedMedia").WithMany()
+                        .HasForeignKey("FeaturedMediaId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+                    b.Navigation("FeaturedMedia");
+                });
+
+            modelBuilder.Entity("BolNews.Domain.Entities.PollOption", b =>
+                {
+                    b.HasOne("BolNews.Domain.Entities.Poll", "Poll").WithMany("Options")
+                        .HasForeignKey("PollId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                    b.Navigation("Poll");
+                });
+
+            modelBuilder.Entity("BolNews.Domain.Entities.PollVote", b =>
+                {
+                    b.HasOne("BolNews.Domain.Entities.PollOption", "Option").WithMany()
+                        .HasForeignKey("OptionId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                    b.HasOne("BolNews.Domain.Entities.Poll", "Poll").WithMany("Votes")
+                        .HasForeignKey("PollId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                    b.Navigation("Option");
+                    b.Navigation("Poll");
+                });
+
             modelBuilder.Entity("BolNews.Domain.Entities.LiveEventCandidate", b =>
                 {
                     b.HasOne("BolNews.Domain.Entities.LiveEvent", "LiveEvent").WithMany("Candidates")
@@ -1727,6 +1800,12 @@ namespace BolNews.Persistence.Migrations
                     b.Navigation("Candidates");
                     b.Navigation("LinkedArticles");
                     b.Navigation("Updates");
+                });
+
+            modelBuilder.Entity("BolNews.Domain.Entities.Poll", b =>
+                {
+                    b.Navigation("Options");
+                    b.Navigation("Votes");
                 });
 
             modelBuilder.Entity("BolNews.Domain.Entities.Reporter", b =>

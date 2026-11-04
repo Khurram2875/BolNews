@@ -1,0 +1,61 @@
+@using BolNews.Domain.Enums
+@model IReadOnlyList<BolNews.Web.Areas.Admin.ViewModels.PollListItemVM>
+@{
+    ViewData["Title"] = "Polls";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    string TypeName(PollType t) => t switch { PollType.Versus => "Versus (A vs B)", PollType.TrueFalse => "True / False", _ => "Question" };
+}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h1>Polls</h1>
+        <a asp-action="Create" class="btn btn-primary">Create poll</a>
+    </div>
+    <p class="text-muted">Show a poll on any page with <code>@@await Component.InvokeAsync("PollCard")</code> (newest poll) or <code>@@await Component.InvokeAsync("PollCard", new { pollId = 3 })</code> (a specific poll). Visitors only see percentages; the real vote counts below are for editors.</p>
+    @if (TempData["Success"] is string message) { <div class="alert alert-success">@message</div> }
+    <div class="table-responsive">
+        <table class="table-striped table align-middle">
+            <thead><tr><th>Poll</th><th>Type</th><th>Status</th><th>Voting ends</th><th>Votes</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                var ended = item.EndsAtUtc <= DateTime.UtcNow;
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="@item.ImageUrl" alt="" style="width:72px;height:48px;object-fit:cover" />
+                            <div><strong>@item.Title</strong><div class="text-muted small">ID @item.Id</div></div>
+                        </div>
+                    </td>
+                    <td>@TypeName(item.PollType)</td>
+                    <td>
+                        @if (!item.IsActive) { <span class="badge text-bg-secondary">Hidden</span> }
+                        else if (ended) { <span class="badge text-bg-dark">Ended (final results shown)</span> }
+                        else { <span class="badge text-bg-success">Open</span> }
+                    </td>
+                    <td><time class="admin-local-time" datetime="@item.EndsAtUtc.ToString("yyyy-MM-ddTHH:mm:ss'Z'")">@item.EndsAtUtc.ToString("dd MMM yyyy, h:mm tt") UTC</time></td>
+                    <td>
+                        <strong>@item.TotalVotes</strong>
+                        <div class="small text-muted">@string.Join(" · ", item.Options.Select(o => $"{o.Text}: {o.Votes}"))</div>
+                    </td>
+                    <td class="text-nowrap">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form asp-action="ToggleActive" asp-route-id="@item.Id" method="post" class="d-inline"><button class="btn btn-sm btn-outline-secondary">@(item.IsActive ? "Hide" : "Show")</button></form>
+                        <form asp-action="ResetVotes" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Clear ALL votes for this poll? This cannot be undone.')"><button class="btn btn-sm btn-outline-warning">Reset votes</button></form>
+                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this poll and all its votes?')"><button class="btn btn-sm btn-outline-danger">Delete</button></form>
+                    </td>
+                </tr>
+            }
+            @if (Model.Count == 0) { <tr><td colspan="6" class="text-muted">No polls yet.</td></tr> }
+            </tbody>
+        </table>
+    </div>
+</div>
+@section Scripts {
+<script>
+    // Show deadlines in the editor's own time zone.
+    document.querySelectorAll('time.admin-local-time').forEach(function (t) {
+        var d = new Date(t.getAttribute('datetime'));
+        if (!isNaN(d)) t.textContent = d.toLocaleString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+    });
+</script>
+}
