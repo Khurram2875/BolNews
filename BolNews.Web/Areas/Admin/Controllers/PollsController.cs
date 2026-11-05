@@ -211,9 +211,18 @@ public class PollsController(
 
     private async Task<int> SaveFeaturedImageAsync(Microsoft.AspNetCore.Http.IFormFile file)
     {
+        // The hash includes a marker so a poll upload never reuses an older copy of the same file that the
+        // Media Library already cropped to 16:9 (the poll card needs the uncropped picture).
         string hash;
         await using (var input = file.OpenReadStream())
-            hash = Convert.ToHexString(await SHA256.HashDataAsync(input));
+        {
+            using var sha = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+            var buffer = new byte[81920];
+            int read;
+            while ((read = await input.ReadAsync(buffer)) > 0) sha.AppendData(buffer, 0, read);
+            sha.AppendData(System.Text.Encoding.UTF8.GetBytes("|uncropped"));
+            hash = Convert.ToHexString(sha.GetHashAndReset());
+        }
         var existing = await mediaLibrary.FindByContentHashAsync(hash, MediaType.Image);
         if (existing != null) return existing.Id;
 
@@ -226,7 +235,7 @@ public class PollsController(
         };
         var id = await mediaLibrary.CreateAsync(dto, userId);
         await using var imageStream = file.OpenReadStream();
-        var (thumb, medium, large, xl) = await imageService.SaveMediaImagesAsync(imageStream, id, environment.WebRootPath);
+        var (thumb, medium, large, xl) = await imageService.SaveMediaImagesUncroppedAsync(imageStream, id, environment.WebRootPath);
         await mediaLibrary.SetStorageAsync(id, xl, thumb, medium, large, userId);
         return id;
     }

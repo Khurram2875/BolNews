@@ -51,7 +51,7 @@ public static class PollHelper
             .Select(x => new
             {
                 x.Id, x.Title, x.Description, x.PollType, x.EndsAt,
-                Image = x.FeaturedMedia.LargeUrl ?? x.FeaturedMedia.Url,
+                Image = x.FeaturedMedia.Url, // largest size (xl); uncropped for poll uploads
                 Options = x.Options.OrderBy(o => o.SortOrder).Select(o => new { o.Id, o.Text }).ToList()
             }).FirstOrDefaultAsync();
         if (poll == null) return null;

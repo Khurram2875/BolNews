@@ -36,7 +36,7 @@
                 <label asp-for="FeaturedImageUpload" class="form-label">Or upload an image</label>
                 <input asp-for="FeaturedImageUpload" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="form-control" />
                 <span asp-validation-for="FeaturedImageUpload" class="text-danger"></span>
-                <small class="form-text">JPG, PNG, or WEBP; maximum 2 MB. Uploaded images are saved to the Media Library.</small>
+                <small class="form-text">JPG, PNG, or WEBP; maximum 2 MB. Uploaded here, the picture is stored <strong>uncropped</strong>. Images already in the Media Library were cropped to 16:9 when they were uploaded, so for polls upload the original file here instead of picking it from the list.</small>
             </div>
             <div class="col-md-4">
                 <label class="form-label" for="endsLocal">Voting ends (your local time)</label>
