@@ -63,14 +63,21 @@
 <div class="bn-container bn-container--home">
     @if (Model.TopStory != null)
     {
-        <section class="bn-home-hero bn-home-hero--three" aria-label="Top stories">
+        <section  class="bn-home-hero bn-home-hero--three" aria-label="Top stories">
             @if (latestStories.Any())
             {
                 <aside class="bn-story-rail" aria-label="Latest">
                     
                        @*  @await Component.InvokeAsync("FuelPrice") *@
+                        @* @await Component.InvokeAsync("LiveEvents") *@
+                         <section id="polls">
+                        @await Component.InvokeAsync("PollCard")
+                    </section>
+                        <section id="liveEvents">
                         @await Component.InvokeAsync("LiveEvents")
-                    
+                    </section>
+
+                   
                     <h2>Latest</h2>
                     <div class="bn-latest-list">
                         @foreach (var item in latestStories)

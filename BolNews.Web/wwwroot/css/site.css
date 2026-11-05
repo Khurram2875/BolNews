@@ -4289,9 +4289,9 @@ body,
 @media (min-width: 992px) { .bn-live-page { max-width: 1440px; } }*/
 
 .bn-live-events {
-    border: 1px solid #ddd;
+    /*border: 1px solid #ddd;*/
     border-radius: .5rem;
-    padding: 1rem;
+    /*padding: 1rem;*/
 }
 
 /* Card (now a carousel slide, so it fills the slide instead of being a 250px scroller item) */
@@ -4940,10 +4940,11 @@ body,
     width: 100%;
     aspect-ratio: 4 / 5;
     overflow: hidden;
-    border-radius: .75rem;
+    border-radius: .4rem;
     background: #12233f;
     color: #fff;
     isolation: isolate;
+    margin-bottom:15px;
 }
 
 .bn-poll__bg {
@@ -4960,7 +4961,7 @@ body,
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: linear-gradient(180deg, rgba(5, 12, 28, 0) 0%, rgba(5, 12, 28, 0) 30%, rgba(5, 12, 28, .68) 44%, rgba(5, 12, 28, .93) 100%);
+    background: linear-gradient(180deg, rgba(5, 12, 28, 0) 0%, rgba(5, 12, 28, 0) 20%, rgba(5, 12, 28, .68) 30, rgba(5, 12, 28, .93) 40%);
 }
 
 .bn-poll__body {
