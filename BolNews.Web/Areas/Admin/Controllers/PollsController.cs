@@ -74,6 +74,7 @@ public class PollsController(
         };
         db.Polls.Add(poll);
         await db.SaveChangesAsync();
+        if (poll.IsActive) await DeactivateOthersAsync(poll.Id);
         TempData["Success"] = "Poll created.";
         return RedirectToAction(nameof(Index));
     }
@@ -128,6 +129,7 @@ public class PollsController(
             else { existing.Text = posted[i].Text!.Trim(); existing.SortOrder = i; }
         }
         await db.SaveChangesAsync();
+        if (poll.IsActive) await DeactivateOthersAsync(poll.Id);
         TempData["Success"] = "Poll updated.";
         return RedirectToAction(nameof(Index));
     }
@@ -140,7 +142,10 @@ public class PollsController(
         poll.IsActive = !poll.IsActive;
         poll.UpdatedAt = DateTime.UtcNow; poll.UpdatedBy = User.Identity?.Name;
         await db.SaveChangesAsync();
-        TempData["Success"] = poll.IsActive ? "Poll is now visible on the site." : "Poll hidden from the site.";
+        if (poll.IsActive) await DeactivateOthersAsync(poll.Id);
+        TempData["Success"] = poll.IsActive
+            ? "Poll is now active and shown on the site (any other active poll was switched off)."
+            : "Poll switched off. With no active poll, the poll section disappears from the site.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -165,6 +170,10 @@ public class PollsController(
     }
 
     // ---- helpers ----------------------------------------------------------------------
+
+    /// <summary>The site has one poll slot: switching a poll on switches every other poll off.</summary>
+    private Task<int> DeactivateOthersAsync(int activeId) =>
+        db.Polls.Where(x => x.Id != activeId && x.IsActive).ExecuteUpdateAsync(s => s.SetProperty(p => p.IsActive, false));
 
     private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 

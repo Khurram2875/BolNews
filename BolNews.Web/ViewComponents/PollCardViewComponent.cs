@@ -8,11 +8,13 @@ namespace BolNews.Web.ViewComponents;
 /// <summary>
 /// Poll card for any page:  @await Component.InvokeAsync("PollCard")                 (newest poll, open ones first)
 ///                          @await Component.InvokeAsync("PollCard", new { pollId = 3 })   (a specific poll)
-/// Renders nothing when there is no visible poll, or when the polls table does not exist yet.
+/// Optional wrapperClass (e.g. "col-lg-4") wraps the card in a div that is only output when a poll is active,
+/// so the column/space collapses completely when no poll is active.
+/// Renders nothing when there is no active poll, or when the polls table does not exist yet.
 /// </summary>
 public class PollCardViewComponent(AppDbContext db) : ViewComponent
 {
-    public async Task<IViewComponentResult> InvokeAsync(int? pollId = null)
+    public async Task<IViewComponentResult> InvokeAsync(int? pollId = null, string? wrapperClass = null)
     {
         try
         {
@@ -28,7 +30,9 @@ public class PollCardViewComponent(AppDbContext db) : ViewComponent
 
             var voterId = HttpContext.Request.Cookies[PollHelper.VoterCookie];
             var model = await PollHelper.BuildCardAsync(db, id.Value, voterId);
-            return model == null || model.Options.Count < 2 ? Content(string.Empty) : View(model);
+            if (model == null || model.Options.Count < 2) return Content(string.Empty);
+            ViewData["WrapperClass"] = wrapperClass;
+            return View(model);
         }
         catch (Exception)
         {

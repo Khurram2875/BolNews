@@ -11,6 +11,7 @@
         <a asp-action="Create" class="btn btn-primary">Create poll</a>
     </div>
     <p class="text-muted">Show a poll on any page with <code>@@await Component.InvokeAsync("PollCard")</code> (newest poll) or <code>@@await Component.InvokeAsync("PollCard", new { pollId = 3 })</code> (a specific poll). Visitors only see percentages; the real vote counts below are for editors.</p>
+    <p class="text-muted">The site has <strong>one poll slot</strong>: switching a poll to <strong>Active</strong> switches any other poll off. When no poll is active the poll card, and the space around it, disappears. Switch a poll off after its results have been shown long enough. If you place the card inside a column, pass the column class so the column disappears too: <code>@@await Component.InvokeAsync("PollCard", new { wrapperClass = "col-lg-4" })</code>.</p>
     @if (TempData["Success"] is string message) { <div class="alert alert-success">@message</div> }
     <div class="table-responsive">
         <table class="table-striped table align-middle">
@@ -28,9 +29,12 @@
                     </td>
                     <td>@TypeName(item.PollType)</td>
                     <td>
-                        @if (!item.IsActive) { <span class="badge text-bg-secondary">Hidden</span> }
-                        else if (ended) { <span class="badge text-bg-dark">Ended (final results shown)</span> }
-                        else { <span class="badge text-bg-success">Open</span> }
+                        <form asp-action="ToggleActive" asp-route-id="@item.Id" method="post" class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="active-@item.Id" @(item.IsActive ? "checked" : "") onchange="this.form.submit()" />
+                            <label class="form-check-label" for="active-@item.Id">@(item.IsActive ? "Active" : "Inactive")</label>
+                        </form>
+                        @if (item.IsActive && ended) { <span class="badge text-bg-dark">Ended: final results shown</span> }
+                        else if (item.IsActive) { <span class="badge text-bg-success">Open for voting</span> }
                     </td>
                     <td><time class="admin-local-time" datetime="@item.EndsAtUtc.ToString("yyyy-MM-ddTHH:mm:ss'Z'")">@item.EndsAtUtc.ToString("dd MMM yyyy, h:mm tt") UTC</time></td>
                     <td>
@@ -39,7 +43,6 @@
                     </td>
                     <td class="text-nowrap">
                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
-                        <form asp-action="ToggleActive" asp-route-id="@item.Id" method="post" class="d-inline"><button class="btn btn-sm btn-outline-secondary">@(item.IsActive ? "Hide" : "Show")</button></form>
                         <form asp-action="ResetVotes" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Clear ALL votes for this poll? This cannot be undone.')"><button class="btn btn-sm btn-outline-warning">Reset votes</button></form>
                         <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this poll and all its votes?')"><button class="btn btn-sm btn-outline-danger">Delete</button></form>
                     </td>
