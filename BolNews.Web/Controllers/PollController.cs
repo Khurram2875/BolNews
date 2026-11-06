@@ -40,12 +40,17 @@ public class PollController(AppDbContext db) : Controller
         }
 
         var voterHash = PollHelper.VoterHash(id, voterId);
-        var ipHash = PollHelper.IpHash(id, HttpContext.Connection.RemoteIpAddress?.ToString());
+        var remoteIp = HttpContext.Connection.RemoteIpAddress;
+        var ipHash = PollHelper.IpHash(id, remoteIp?.ToString());
 
         if (await db.PollVotes.AnyAsync(v => v.PollId == id && v.VoterHash == voterHash))
             return await Respond(id, 409, "You have already voted in this poll.", voterId);
-        if (await db.PollVotes.CountAsync(v => v.PollId == id && v.IpHash == ipHash) >= PollHelper.MaxVotesPerIp)
-            return await Respond(id, 429, "Too many votes from this network. Please try again later.", voterId);
+        if (!PollHelper.IsMeaninglessIp(remoteIp))
+        {
+            var since = DateTime.UtcNow.AddMinutes(-PollHelper.IpWindowMinutes);
+            if (await db.PollVotes.CountAsync(v => v.PollId == id && v.IpHash == ipHash && v.CreatedAt >= since) >= PollHelper.MaxVotesPerIp)
+                return await Respond(id, 429, "Too many votes from this network just now. Please try again in a few minutes.", voterId);
+        }
 
         db.PollVotes.Add(new PollVote { PollId = id, OptionId = optionId, VoterHash = voterHash, IpHash = ipHash, CreatedAt = DateTime.UtcNow });
         try
