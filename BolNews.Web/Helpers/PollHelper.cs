@@ -11,8 +11,21 @@ namespace BolNews.Web.Helpers;
 public static class PollHelper
 {
     public const string VoterCookie = "bn_voter";
-    /// <summary>Votes allowed from one IP address per poll: blocks scripted abuse yet tolerates shared networks.</summary>
-    public const int MaxVotesPerIp = 20;
+    /// <summary>Burst limit: votes allowed from one IP address per poll within <see cref="IpWindowMinutes"/>.
+    /// It only slows scripts down; the real one-vote-per-visitor rule is the cookie. It is deliberately generous
+    /// because many mobile users share one public IP (carrier NAT) and a misconfigured proxy shows every visitor as one IP.</summary>
+    public const int MaxVotesPerIp = 40;
+    public const int IpWindowMinutes = 10;
+
+    /// <summary>Loopback / private / missing addresses say nothing about the visitor (reverse proxy not forwarding the real IP), so no IP cap is applied to them.</summary>
+    public static bool IsMeaninglessIp(System.Net.IPAddress? ip)
+    {
+        if (ip == null || System.Net.IPAddress.IsLoopback(ip)) return true;
+        if (ip.IsIPv4MappedToIPv6) ip = ip.MapToIPv4();
+        var b = ip.GetAddressBytes();
+        if (b.Length == 4) return b[0] == 10 || (b[0] == 172 && b[1] >= 16 && b[1] <= 31) || (b[0] == 192 && b[1] == 168) || (b[0] == 169 && b[1] == 254);
+        return ip.IsIPv6LinkLocal || ip.IsIPv6SiteLocal || (b[0] & 0xFE) == 0xFC; // fe80::, site-local, fc00::/7
+    }
 
     public static string Sha256(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant();
     public static string VoterHash(int pollId, string voterId) => Sha256($"poll:{pollId}:voter:{voterId}");
