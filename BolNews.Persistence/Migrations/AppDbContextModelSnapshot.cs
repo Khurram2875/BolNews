@@ -1352,6 +1352,13 @@ namespace BolNews.Persistence.Migrations
                         .HasMaxLength(80)
                         .HasColumnType("varchar(80)");
 
+                    b.Property<string>("LanguageCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(8)
+                        .HasColumnType("varchar(8)")
+                        .HasDefaultValue("en");
+
                     b.Property<string>("FaviconUrl")
                         .IsRequired()
                         .HasMaxLength(512)

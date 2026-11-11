@@ -41,6 +41,7 @@
             <div class="col-md-4"><label asp-for="FontFamily" class="form-label">Site font family</label><select asp-for="FontFamily" class="form-select">
                 @foreach (var font in (IEnumerable<string>)ViewBag.FontFamilies) { <option value="@font">@font</option> }
             </select><div class="form-text">Applies to public and admin text. Web fonts are loaded only for the selected family.</div></div>
+            <div class="col-md-4"><label asp-for="LanguageCode" class="form-label">Public site language</label><select asp-for="LanguageCode" class="form-select"><option value="en">English (left-to-right)</option><option value="ur">Urdu (right-to-left)</option></select><div class="form-text">Urdu switches public pages to right-to-left layout with an Urdu font and Urdu labels. The admin area stays left-to-right; article, live event and poll text editors switch to right-to-left.</div></div>
             <div class="col-md-6"><label asp-for="LiveStreamUrl" class="form-label">Live page path</label><input asp-for="LiveStreamUrl" class="form-control" /></div>
             <div class="col-md-6"><label asp-for="LiveVideoEmbedUrl" class="form-label">Live player embed URL</label><input asp-for="LiveVideoEmbedUrl" class="form-control" placeholder="https://www.youtube.com/embed/..." /></div>
             <div class="col-md-6"><label asp-for="LiveThumbnailUrl" class="form-label">Live player thumbnail URL/path</label><input asp-for="LiveThumbnailUrl" class="form-control" /></div>

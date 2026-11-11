@@ -5,7 +5,7 @@
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/pages/live.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/@(ViewData["IsRtl"] is true ? "live.rtl.css" : "live.css")" asp-append-version="true" />
 }
 
 <div class="site grid-container hfeed container" id="page">

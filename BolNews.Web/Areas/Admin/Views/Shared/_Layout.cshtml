@@ -7,7 +7,7 @@
 @{
     var siteProfile = await SiteProfileService.GetAsync(Context.RequestAborted);
     var publisherThemeName = BolNews.Web.Services.PublisherThemeCatalog.NormalizeTheme(siteProfile.ThemeName);
-    var publisherThemeCss = BolNews.Web.Services.PublisherThemeCatalog.BuildCssVariables(siteProfile);
+    var publisherThemeCss = BolNews.Web.Services.PublisherThemeCatalog.BuildCssVariables(siteProfile, publicSite: false);
     var publisherFontUrl = BolNews.Web.Services.PublisherThemeCatalog.GetGoogleFontStylesheetUrl(siteProfile.FontFamily);
 }
 <!DOCTYPE html>

@@ -17,12 +17,26 @@ public static class PublisherThemeCatalog
         ["Source Sans 3"] = "'Source Sans 3', Arial, sans-serif",
         ["System UI"] = "system-ui, -apple-system, 'Segoe UI', sans-serif",
         ["Georgia"] = "Georgia, 'Times New Roman', serif",
-        ["Arial"] = "Arial, Helvetica, sans-serif"
+        ["Arial"] = "Arial, Helvetica, sans-serif",
+        ["Noto Nastaliq Urdu"] = "'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif",
+        ["Noto Naskh Arabic"] = "'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif"
     };
+
+    public static IReadOnlyCollection<string> Languages { get; } = new[] { "en", "ur" };
+    private static readonly string[] UrduFonts = { "Noto Nastaliq Urdu", "Noto Naskh Arabic" };
+
+    public static string NormalizeLanguage(string? value) =>
+        Languages.FirstOrDefault(code => string.Equals(code, value, StringComparison.OrdinalIgnoreCase)) ?? "en";
+
+    /// <summary>Urdu (and other right-to-left languages) render right-to-left.</summary>
+    public static bool IsRtl(string? languageCode) => NormalizeLanguage(languageCode) == "ur";
+
+    public static string TextDirection(string? languageCode) => IsRtl(languageCode) ? "rtl" : "ltr";
 
     private static readonly string[] GoogleFonts =
     {
-        "Inter", "Poppins", "Roboto", "Open Sans", "Lato", "Merriweather", "Playfair Display", "Source Sans 3"
+        "Inter", "Poppins", "Roboto", "Open Sans", "Lato", "Merriweather", "Playfair Display", "Source Sans 3",
+        "Noto Nastaliq Urdu", "Noto Naskh Arabic"
     };
 
     public static IReadOnlyCollection<string> FontNames => FontStacks.Keys.OrderBy(name => name).ToArray();
@@ -39,13 +53,26 @@ public static class PublisherThemeCatalog
         var font = NormalizeFont(fontName);
         if (!GoogleFonts.Contains(font, StringComparer.OrdinalIgnoreCase)) return string.Empty;
         var family = Uri.EscapeDataString(font).Replace("%20", "+", StringComparison.Ordinal);
-        return $"https://fonts.googleapis.com/css2?family={family}:wght@400;500;600;700;800&display=swap";
+        var weights = UrduFonts.Contains(font, StringComparer.OrdinalIgnoreCase) ? "400;500;600;700" : "400;500;600;700;800";
+        return $"https://fonts.googleapis.com/css2?family={family}:wght@{weights}&display=swap";
     }
 
-    public static string BuildCssVariables(SiteProfile profile)
+    /// <summary>
+    /// Stylesheet URL for the font the page actually renders with. On an Urdu site whose selected font has no
+    /// Urdu glyphs (for example Inter) the Urdu font is used instead so text never falls back to a system font.
+    /// </summary>
+    public static string GetEffectiveFont(SiteProfile profile)
+    {
+        var font = NormalizeFont(profile.FontFamily);
+        return IsRtl(profile.LanguageCode) && !UrduFonts.Contains(font, StringComparer.OrdinalIgnoreCase)
+            ? "Noto Nastaliq Urdu"
+            : font;
+    }
+
+    public static string BuildCssVariables(SiteProfile profile, bool publicSite = true)
     {
         var theme = NormalizeTheme(profile.ThemeName);
-        var font = FontStacks[NormalizeFont(profile.FontFamily)];
+        var font = FontStacks[publicSite ? GetEffectiveFont(profile) : NormalizeFont(profile.FontFamily)];
         var primary = SafeColor(profile.PrimaryColor, "#d30b12");
         var accent = SafeColor(profile.AccentColor, primary);
         var (background, surface, surfaceAlt, border, text, bodyText, muted, navBackground, navText) = theme switch

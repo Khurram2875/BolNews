@@ -114,6 +114,8 @@ public sealed class SiteSettingsController(SiteProfileService profiles, IWebHost
             ModelState.AddModelError(nameof(model.ThemeName), "Choose a supported theme.");
         if (!PublisherThemeCatalog.FontNames.Contains(model.FontFamily, StringComparer.OrdinalIgnoreCase))
             ModelState.AddModelError(nameof(model.FontFamily), "Choose a supported font family.");
+        if (!PublisherThemeCatalog.Languages.Contains(model.LanguageCode, StringComparer.OrdinalIgnoreCase))
+            ModelState.AddModelError(nameof(model.LanguageCode), "Choose a supported site language.");
         if (!IsSafeUrlOrPath(model.HeaderLogoUrl) || !IsSafeUrlOrPath(model.FooterLogoUrl) || !IsSafeUrlOrPath(model.FaviconUrl) || !IsSafeUrlOrPath(model.LiveStreamUrl) || !IsSafeUrlOrPath(model.LiveVideoEmbedUrl) || !IsSafeUrlOrPath(model.LiveThumbnailUrl))
             ModelState.AddModelError(string.Empty, "Logo, favicon, thumbnail, and live links must be local paths or HTTPS URLs.");
         if (!string.IsNullOrWhiteSpace(model.LiveVideoEmbedUrl) && !IsHttpsUrl(model.LiveVideoEmbedUrl))
@@ -143,6 +145,7 @@ public sealed class SiteSettingsController(SiteProfileService profiles, IWebHost
         model.Id = 1;
         model.ThemeName = PublisherThemeCatalog.NormalizeTheme(model.ThemeName);
         model.FontFamily = PublisherThemeCatalog.NormalizeFont(model.FontFamily);
+        model.LanguageCode = PublisherThemeCatalog.NormalizeLanguage(model.LanguageCode);
         await profiles.SaveAsync(model, cancellationToken);
         TempData["SuccessMessage"] = "Publisher settings saved. Changes are visible immediately.";
         return RedirectToAction(nameof(Index));

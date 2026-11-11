@@ -3,7 +3,7 @@
 @model HomePageVM
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/pages/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/@(ViewData["IsRtl"] is true ? "home.rtl.css" : "home.css")" asp-append-version="true" />
 }
 
 @{

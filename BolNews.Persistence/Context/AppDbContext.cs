@@ -89,6 +89,7 @@ namespace BolNews.Persistence.Context
                 entity.Property(x => x.AccentColor).HasMaxLength(7).IsRequired();
                 entity.Property(x => x.ThemeName).HasMaxLength(40).IsRequired();
                 entity.Property(x => x.FontFamily).HasMaxLength(80).IsRequired();
+                entity.Property(x => x.LanguageCode).HasMaxLength(8).IsRequired().HasDefaultValue("en");
                 entity.Property(x => x.NavigationCategoryIds).HasMaxLength(100);
                 entity.Property(x => x.LiveStreamUrl).HasMaxLength(512).IsRequired();
                 entity.Property(x => x.LiveVideoEmbedUrl).HasMaxLength(1024);
