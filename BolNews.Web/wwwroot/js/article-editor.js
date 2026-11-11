@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function () {
 
     const editorElement = document.getElementById('editor');
     const contentField = document.getElementById('Content');

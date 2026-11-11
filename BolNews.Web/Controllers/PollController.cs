@@ -1,12 +1,13 @@
 using BolNews.Domain.Entities;
 using BolNews.Persistence.Context;
 using BolNews.Web.Helpers;
+using BolNews.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace BolNews.Web.Controllers;
 
-public class PollController(AppDbContext db) : Controller
+public class PollController(AppDbContext db, UiText t) : Controller
 {
     /// <summary>
     /// Casts one vote. One vote per visitor per poll: a long-lived cookie identifies the visitor and the
@@ -18,12 +19,12 @@ public class PollController(AppDbContext db) : Controller
     {
         var poll = await db.Polls.AsNoTracking().Where(x => x.Id == id && x.IsActive)
             .Select(x => new { x.EndsAt }).FirstOrDefaultAsync();
-        if (poll == null) return NotFound(new { ok = false, message = "This poll is not available." });
+        if (poll == null) return NotFound(new { ok = false, message = t["This poll is not available."] });
         if (DateTime.UtcNow >= poll.EndsAt)
-            return await Respond(id, 409, "Voting has ended for this poll.");
+            return await Respond(id, 409, t["Voting has ended for this poll."]);
 
         if (!await db.PollOptions.AnyAsync(o => o.Id == optionId && o.PollId == id))
-            return BadRequest(new { ok = false, message = "Please choose one of the options." });
+            return BadRequest(new { ok = false, message = t["Please choose one of the options."] });
 
         var voterId = Request.Cookies[PollHelper.VoterCookie];
         if (string.IsNullOrWhiteSpace(voterId) || voterId.Length > 64)
@@ -44,12 +45,12 @@ public class PollController(AppDbContext db) : Controller
         var ipHash = PollHelper.IpHash(id, remoteIp?.ToString());
 
         if (await db.PollVotes.AnyAsync(v => v.PollId == id && v.VoterHash == voterHash))
-            return await Respond(id, 409, "You have already voted in this poll.", voterId);
+            return await Respond(id, 409, t["You have already voted in this poll."], voterId);
         if (!PollHelper.IsMeaninglessIp(remoteIp))
         {
             var since = DateTime.UtcNow.AddMinutes(-PollHelper.IpWindowMinutes);
             if (await db.PollVotes.CountAsync(v => v.PollId == id && v.IpHash == ipHash && v.CreatedAt >= since) >= PollHelper.MaxVotesPerIp)
-                return await Respond(id, 429, "Too many votes from this network just now. Please try again in a few minutes.", voterId);
+                return await Respond(id, 429, t["Too many votes from this network just now. Please try again in a few minutes."], voterId);
         }
 
         db.PollVotes.Add(new PollVote { PollId = id, OptionId = optionId, VoterHash = voterHash, IpHash = ipHash, CreatedAt = DateTime.UtcNow });
@@ -60,9 +61,9 @@ public class PollController(AppDbContext db) : Controller
         catch (DbUpdateException)
         {
             // Two requests raced: the unique index let only one through.
-            return await Respond(id, 409, "You have already voted in this poll.", voterId);
+            return await Respond(id, 409, t["You have already voted in this poll."], voterId);
         }
-        return await Respond(id, 200, "Thanks for voting!", voterId, voted: true);
+        return await Respond(id, 200, t["Thanks for voting!"], voterId, voted: true);
     }
 
     private async Task<IActionResult> Respond(int pollId, int status, string message, string? voterId = null, bool voted = false)

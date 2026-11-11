@@ -8,7 +8,7 @@
 @if (!string.IsNullOrWhiteSpace(wrapperClass)) { @:<div class="@wrapperClass">
 }
 <section class="bn-poll bn-poll--n@(Model.Options.Count)@(Model.IsVersus ? " bn-poll--versus" : "")@(ended ? " is-ended" : "")@(Model.HasVoted ? " has-voted" : "")"
-         data-poll-id="@Model.Id" data-ends="@Model.EndsAtUtc.ToString("yyyy-MM-ddTHH:mm:ss'Z'")" aria-label="Poll: @Model.Title">
+         data-poll-id="@Model.Id" data-ends="@Model.EndsAtUtc.ToString("yyyy-MM-ddTHH:mm:ss'Z'", inv)" aria-label="@T["Poll"]: @Model.Title">
     <img class="bn-poll__bg" src="@Model.ImageUrl" alt="" loading="lazy" decoding="async" />
     <span class="bn-poll__shade" aria-hidden="true"></span>
     <div class="bn-poll__body">
@@ -35,7 +35,7 @@
         <div class="bn-poll__foot">
             <p class="bn-poll__deadline">
                 <span class="bn-poll__deadline-label">@(ended ? "Ended" : "Voting ends")</span>
-                <time class="bn-poll__time" datetime="@Model.EndsAtUtc.ToString("yyyy-MM-ddTHH:mm:ss'Z'")">@Model.EndsAtUtc.ToString("dd MMM yyyy, h:mm tt") UTC</time>
+                <time class="bn-poll__time" datetime="@Model.EndsAtUtc.ToString("yyyy-MM-ddTHH:mm:ss'Z'", inv)">@Model.EndsAtUtc.ToString("dd MMM yyyy, h:mm tt") UTC</time>
                 <span class="bn-poll__left" aria-live="off"></span>
             </p>
             @if (ended)

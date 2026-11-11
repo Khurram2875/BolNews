@@ -6,10 +6,25 @@
 
     function remaining(ms) {
         var s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
+        if (URDU) {
+            if (d > 0) return d + ' دن ' + h + ' گھنٹے باقی';
+            if (h > 0) return h + ' گھنٹے ' + m + ' منٹ باقی';
+            return Math.max(1, m) + ' منٹ باقی';
+        }
         if (d > 0) return d + 'd ' + h + 'h left';
         if (h > 0) return h + 'h ' + m + 'm left';
         return Math.max(1, m) + ' min left';
     }
+
+    // Labels follow the page language (<html lang>); English is the default.
+    var URDU = document.documentElement.lang === 'ur';
+    var L = URDU ? {
+        final: 'حتمی نتائج', failed: 'کچھ غلط ہو گیا۔ دوبارہ کوشش کریں۔', notRecorded: 'آپ کا ووٹ درج نہیں ہو سکا۔',
+        network: 'نیٹ ورک کا مسئلہ۔ دوبارہ کوشش کریں۔'
+    } : {
+        final: 'Final results', failed: 'Something went wrong. Please try again.', notRecorded: 'Your vote could not be recorded.',
+        network: 'Network problem. Please try again.'
+    };
 
     function markEnded(card) {
         card.classList.add('is-ended');
@@ -18,7 +33,7 @@
         if (action) {
             var final = document.createElement('span');
             final.className = 'bn-poll__final';
-            final.textContent = 'Final results';
+            final.textContent = L.final;
             action.replaceWith(final);   // plain text, no link, no button
         }
         var dlg = card.querySelector('dialog');
@@ -39,7 +54,7 @@
         var d = new Date(card.dataset.ends);
         if (!t || isNaN(d)) return;
         try {
-            t.textContent = d.toLocaleString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+            t.textContent = d.toLocaleString(document.documentElement.lang || undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
         } catch (e) { /* keep the UTC text */ }
     }
 
@@ -91,7 +106,7 @@
         var submit = form.querySelector('.bn-poll__submit');
         submit.disabled = true;
         fetch(form.action, { method: 'POST', body: new FormData(form), credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-            .then(function (r) { return r.json().catch(function () { return { ok: false, message: 'Something went wrong. Please try again.' }; }); })
+            .then(function (r) { return r.json().catch(function () { return { ok: false, message: L.failed }; }); })
             .then(function (data) {
                 if (data.options && data.options.length) applyResults(card, data.options);
                 if (data.ended) { markEnded(card); return; }
@@ -99,11 +114,11 @@
                     markVoted(card);
                     var dlg = form.closest('dialog'); if (dlg) dlg.close();
                 } else {
-                    msg.textContent = data.message || 'Your vote could not be recorded.';
+                    msg.textContent = data.message || L.notRecorded;
                     msg.hidden = false;
                 }
             })
-            .catch(function () { msg.textContent = 'Network problem. Please try again.'; msg.hidden = false; })
+            .catch(function () { msg.textContent = L.network; msg.hidden = false; })
             .then(function () { submit.disabled = false; });
     });
 
