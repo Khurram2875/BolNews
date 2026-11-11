@@ -3,6 +3,17 @@
 -- Each section is guarded by __EFMigrationsHistory where its source script is; do not reorder.
 
 
+-- ======== BEGIN docs/production-sql/20261111000000_AddSiteProfileLanguage_Rollback.sql ========
+START TRANSACTION;
+
+ALTER TABLE `SiteProfiles` DROP COLUMN `LanguageCode`;
+
+DELETE FROM `__EFMigrationsHistory`
+WHERE `MigrationId` = '20261111000000_AddSiteProfileLanguage';
+
+COMMIT;
+-- ======== END docs/production-sql/20261111000000_AddSiteProfileLanguage_Rollback.sql ========
+
 -- ======== BEGIN docs/production-sql/20261105000000_AddPolls_Rollback.sql ========
 -- Rollback for EF Core migration: 20261105000000_AddPolls
 -- WARNING: permanently deletes every poll, its options and all votes. Back up first.

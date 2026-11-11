@@ -55,6 +55,15 @@ try
     await using (var db = new AppDbContext(dbOptions))
     {
         await ApplyFreshSchemaOrMigrations(db);
+        var siteLanguage = Ask("Public site language: en (English) or ur (Urdu, right-to-left)", "en").Trim().ToLowerInvariant();
+        if (siteLanguage != "en" && siteLanguage != "ur") throw new InvalidOperationException("Site language must be en or ur.");
+        var profile = await db.SiteProfiles.OrderBy(x => x.Id).FirstAsync();
+        if (profile.LanguageCode != siteLanguage)
+        {
+            profile.LanguageCode = siteLanguage;
+            if (siteLanguage == "ur") profile.FontFamily = "Noto Nastaliq Urdu";
+            await db.SaveChangesAsync();
+        }
     }
 
     var adminEmail = Ask("Initial CMS administrator email");

@@ -12,6 +12,7 @@ Run `Combined_Upgrade.sql` once (or the individual scripts in this order):
 6. `docs/production-sql/20261103000000_AddLiveEventIntro.sql`
 7. `docs/production-sql/20261104000000_AddSiteSettings.sql` (ticker speed key/value table)
 8. `docs/production-sql/20261105000000_AddPolls.sql`
+9. `docs/production-sql/20261111000000_AddSiteProfileLanguage.sql` (Urdu branch only: public site language column)
 
 Rollback: `Combined_Rollback.sql` (reverse order). Skip any step already applied (check `__EFMigrationsHistory`).
 Local dev: `Update-Database` applies the same chain.
