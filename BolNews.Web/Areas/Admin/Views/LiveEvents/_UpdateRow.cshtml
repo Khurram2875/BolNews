@@ -1,0 +1,23 @@
+@using BolNews.Web.Areas.Admin.ViewModels
+@* Model: (Index, Item). Index is a number, or the literal "__i__" inside the <template> used by "Add update". *@
+@model (string Index, LiveEventUpdateVM Item)
+@{
+    var p = $"Updates[{Model.Index}]";
+    string? Error(string field) => ViewData.ModelState.TryGetValue($"{p}.{field}", out var e) ? e.Errors.FirstOrDefault()?.ErrorMessage : null;
+    var when = Model.Item.Timestamp.ToString("yyyy-MM-ddTHH:mm");
+}
+<div class="card update-row my-3"><div class="card-body">
+    <input type="hidden" name="@(p + ".Id")" value="@Model.Item.Id" />
+    <div class="row g-3">
+        <div class="col-md-4"><label class="form-label">Timestamp</label><input type="datetime-local" name="@(p + ".Timestamp")" value="@when" class="form-control" /></div>
+        <div class="col-md-8"><label class="form-label">Summary</label><input name="@(p + ".Summary")" value="@Model.Item.Summary" class="form-control" maxlength="1000" /><span class="text-danger">@Error("Summary")</span></div>
+        <div class="col-12">
+            <label class="form-label">Details</label>
+            <textarea name="@(p + ".Details")" class="d-none live-details-input" tabindex="-1">@Model.Item.Details</textarea>
+            <div class="live-quill live-quill--update" data-placeholder="Write the update: headings, bullets, links, social embeds..."></div>
+            <span class="text-danger">@Error("Details")</span>
+        </div>
+        <div class="col-md-8"><label class="form-label">Source</label><input name="@(p + ".Source")" value="@Model.Item.Source" class="form-control" maxlength="500" /></div>
+        <div class="col-md-4 d-flex align-items-end"><button type="button" class="btn btn-outline-danger remove-update">Remove update</button></div>
+    </div>
+</div></div>

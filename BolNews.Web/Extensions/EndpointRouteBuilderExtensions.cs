@@ -11,6 +11,12 @@ public static class EndpointRouteBuilderExtensions
         );
 
         endpoints.MapControllerRoute(
+            name: "liveEventDetails",
+            pattern: "live/{slug}",
+            defaults: new { controller = "Live", action = "Details" }
+        );
+
+        endpoints.MapControllerRoute(
             name: "tagDetails",
             pattern: "tag/{slug}",
             defaults: new { controller = "Tag", action = "Details" }

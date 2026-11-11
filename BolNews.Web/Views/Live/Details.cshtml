@@ -1,0 +1,112 @@
+﻿@model BolNews.Web.ViewModels.LiveEventPageVM
+@{
+    ViewData["Title"] = Model.Title;
+    var introHtml = BolNews.Web.Helpers.LiveHtml.Render(Model.IntroHtml);
+}
+<main class="bn-live-page container py-4">
+    <section class="bn-live-top@(Model.IsElection ? " bn-live-top--election" : "")">
+        <div class="bn-live-top__media">
+            @if (Model.IsElection)
+            {
+                <partial name="_LiveElectionCard" model="Model" />
+            }
+            else
+            {
+                <img src="@Model.ImageUrl" alt="@(Model.ImageAlt ?? Model.Title)" />
+            }
+        </div>
+        <div class="bn-live-top__body">
+            <div class="bn-live-top__head">@if (Model.ShowLiveBadge) { <span class="bn-live-badge">LIVE</span> }<h1>@Model.Title</h1></div>
+            @if (!string.IsNullOrWhiteSpace(introHtml))
+            {
+                @* Sanitised rich text from the editors; scrolls inside its own box beside the image *@
+                <div class="bn-live-intro bn-live-rich" tabindex="0" role="region" aria-label="About this live event">@Html.Raw(introHtml)</div>
+            }
+        </div>
+    </section>
+    <div class="row g-4 bn-live-columns">
+        <aside class="col-lg-3">
+            <div class="bn-live-panel">
+                <h2 class="h4">Timeline</h2>
+                <div class="bn-live-scroll bn-live-scroll--timeline" tabindex="0" role="region" aria-label="Timeline">
+                    <nav class="bn-live-timeline" style="background-color:lightgray">
+                        @foreach (var update in Model.Updates)
+                        {
+                            <a href="#update-@update.Id"><time datetime="@update.Timestamp.ToString("O")">@update.Timestamp.ToLocalTime().ToString("dd MMM | h:mm tt")</time><span>@update.Summary</span></a>
+                        }
+                    </nav>
+                </div>
+            </div>
+        </aside>
+        <section class="col-lg-6">
+            <div class="bn-live-panel">
+                <h2 class="h4">Latest updates</h2>
+                <div class="bn-live-scroll" id="bn-live-updates-scroll" tabindex="0" role="region" aria-label="Latest updates">
+                    @foreach (var update in Model.Updates)
+                    {
+                        <article class="bn-live-update" id="update-@update.Id">
+                            <time datetime="@update.Timestamp.ToString("O")">@update.Timestamp.ToLocalTime().ToString("dd MMM, yyyy | h:mm tt")</time>
+                            <h3>@update.Summary</h3>
+                            <div class="bn-live-update__details bn-live-rich">@Html.Raw(BolNews.Web.Helpers.LiveHtml.Render(update.Details))</div>
+                            @if (!string.IsNullOrWhiteSpace(update.Source)) { <p class="bn-live-update__source text-muted mb-0">Source: @update.Source</p> }
+                        </article>
+                    }
+                </div>
+            </div>
+        </section>
+        <aside class="col-lg-3">
+            <div class="bn-live-panel">
+                <h2 class="h4">Related articles</h2>
+                <div class="bn-live-scroll" tabindex="0" role="region" aria-label="Related articles">
+                    <div class="bn-live-related">
+                        @foreach (var article in Model.Articles)
+                        {
+                            <a class="bn-live-related-card" href="/@article.CategorySlug/@article.Slug">
+                                @* Title sits on the image over a dark gradient so it stays readable on any photo; without an image the card shows a solid colour instead *@
+                                <span class="bn-live-related-card__media">
+                                    @if (!string.IsNullOrWhiteSpace(article.ImageUrl)) { <img src="@article.ImageUrl" alt="" loading="lazy" /> }
+                                    <strong class="bn-live-related-card__title">@article.Title</strong>
+                                </span>
+                                @if (!string.IsNullOrWhiteSpace(article.Summary)) { <span class="bn-live-related-card__summary">@article.Summary</span> }
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</main>
+
+@section Scripts {
+<script src="~/js/live-embeds.js" asp-append-version="true"></script>
+<script>
+(() => {
+    // Timeline links scroll the "Latest updates" column on desktop, not the whole page.
+    const scroller = document.getElementById('bn-live-updates-scroll');
+    const timeline = document.querySelector('.bn-live-timeline');
+    if (!scroller || !timeline) return;
+    const desktop = window.matchMedia('(min-width: 992px)');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    // On phones the columns stack and the page scrolls normally, so leave the default anchor behaviour alone.
+    const columnScrolls = () => desktop.matches && scroller.scrollHeight > scroller.clientHeight + 1;
+    timeline.addEventListener('click', event => {
+        const link = event.target.closest('a[href^="#update-"]');
+        if (!link || !columnScrolls()) return;
+        const target = document.getElementById(link.getAttribute('href').slice(1));
+        if (!target) return;
+        event.preventDefault();
+        const behavior = reduceMotion.matches ? 'auto' : 'smooth';
+        // 1) Move the page so the three columns sit right below the navbar (where the panels stick).
+        const panel = scroller.closest('.bn-live-panel');
+        const stickyTop = parseFloat(getComputedStyle(panel).top) || 0;
+        const gap = panel.getBoundingClientRect().top - stickyTop;
+        if (Math.abs(gap) > 1) window.scrollBy({ top: gap, behavior });
+        // 2) Scroll the updates column itself to the clicked update.
+        const padTop = parseFloat(getComputedStyle(scroller).paddingTop) || 0;
+        const top = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - padTop;
+        scroller.scrollTo({ top, behavior });
+        try { history.replaceState(null, '', link.getAttribute('href')); } catch (e) { }
+    });
+})();
+</script>
+}

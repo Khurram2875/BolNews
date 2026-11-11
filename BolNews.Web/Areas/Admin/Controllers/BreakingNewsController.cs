@@ -6,7 +6,11 @@ using BolNews.Web.Areas.Admin.ViewModels;
 using BolNews.Web.Areas.Admin.ViewModels.BreakingNews;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using BolNews.Persistence.Context;
+using BolNews.Web.Helpers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BolNews.Web.Areas.Admin.Controllers
 {
@@ -18,9 +22,13 @@ namespace BolNews.Web.Areas.Admin.Controllers
         private readonly IArticleService _articleService;
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly AppDbContext _db;
+        private readonly IMemoryCache _cache;
 
-        public BreakingNewsController(IBreakingNewsService breakingNewsService, IArticleService articleService, IMapper mapper, UserManager<ApplicationUser> userManager)
+        public BreakingNewsController(IBreakingNewsService breakingNewsService, IArticleService articleService, IMapper mapper, UserManager<ApplicationUser> userManager, AppDbContext db, IMemoryCache cache)
         {
+            _db = db;
+            _cache = cache;
             _breakingNewsService = breakingNewsService;
             _articleService = articleService;
             _mapper = mapper;
@@ -36,7 +44,35 @@ namespace BolNews.Web.Areas.Admin.Controllers
                 BreakingNews = _mapper.Map<List<BreakingNewsVM>>(news)
             };
 
+            ViewData["TickerSpeedLevel"] = await GetTickerSpeedLevelAsync();
             return View(vm);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateTickerSpeed(int level)
+        {
+            level = TickerSettings.Clamp(level);
+            var setting = await _db.SiteSettings.FirstOrDefaultAsync(x => x.Key == TickerSettings.SpeedKey);
+            if (setting == null)
+            {
+                setting = new SiteSetting { Key = TickerSettings.SpeedKey };
+                _db.SiteSettings.Add(setting);
+            }
+            setting.Value = level.ToString();
+            setting.UpdatedAt = DateTime.UtcNow;
+            setting.UpdatedBy = _userManager.GetUserId(User);
+            await _db.SaveChangesAsync();
+            _cache.Remove(TickerSettings.CacheKey); // the public ticker picks the new speed up immediately
+
+            TempData["Success"] = $"Ticker speed saved (level {level} of {TickerSettings.MaxLevel}).";
+            return RedirectToAction(nameof(Index));
+        }
+
+        private async Task<int> GetTickerSpeedLevelAsync()
+        {
+            var value = await _db.SiteSettings.AsNoTracking()
+                .Where(x => x.Key == TickerSettings.SpeedKey).Select(x => x.Value).FirstOrDefaultAsync();
+            return TickerSettings.Parse(value);
         }
         [HttpGet]
         public IActionResult Create()

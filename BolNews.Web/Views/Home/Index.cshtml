@@ -68,13 +68,21 @@
 <div class="bn-container bn-container--home">
     @if (Model.TopStory != null)
     {
-        <section class="bn-home-hero bn-home-hero--three" aria-label="Top stories">
+        <section  class="bn-home-hero bn-home-hero--three" aria-label="Top stories">
             @if (latestStories.Any())
             {
                 <aside class="bn-story-rail" aria-label="Latest">
-                    <div class="d-none d-md-block">
-                        @await Component.InvokeAsync("FuelPrice")
-                    </div>
+                    
+                       @*  @await Component.InvokeAsync("FuelPrice") *@
+                        @* @await Component.InvokeAsync("LiveEvents") *@
+                         <section id="polls">
+                        @await Component.InvokeAsync("PollCard")
+                    </section>
+                        <section id="liveEvents">
+                        @await Component.InvokeAsync("LiveEvents")
+                    </section>
+
+                   
                     <h2>Latest</h2>
                     <div class="bn-latest-list">
                         @foreach (var item in latestStories)
@@ -162,27 +170,29 @@
                     @await Component.InvokeAsync("AdZone", new { zone = "home.sidebar.top" })
                     @* <div class="d-none d-md-block">
                         @await Component.InvokeAsync("FuelPrice")
-                    </div> *@
-                    <h2>Featured</h2>
-                    <div class="bn-latest-list">
-                        @foreach (var item in featuredStories)
-                        {
-                            <a href="/@item.CategorySlug/@item.Slug"
-                               class="bn-latest-item track-click"
-                               data-article-id="@item.Id">
-                                <img src="@(item.FeaturedImageThumb ?? item.FeaturedImageMedium ?? "/images/placeholder.png")"
-                                     alt="@(item.FeaturedImageAltText ?? item.Title)"
-                                     width="112"
-                                     height="84"
-                                     loading="lazy"
-                                     decoding="async" />
-                                <span>
-                                    <strong>@item.Title</strong>
-                                    <small>@item.TimeAgo</small>
-                                </span>
-                            </a>
-                        }
                     </div>
+                    @* @await Component.InvokeAsync("LiveEvents") *@
+                    
+                    @if (featuredStories.Any())
+                    {
+                        <h2>Featured</h2>
+                        <div class="bn-latest-list">
+                            @foreach (var item in featuredStories)
+                            {
+                                <a href="/@item.CategorySlug/@item.Slug"
+                                   class="bn-latest-item track-click"
+                                   data-article-id="@item.Id">
+                                    <img src="@(item.FeaturedImageThumb ?? item.FeaturedImageMedium ?? "/images/placeholder.png")"
+                                         alt="@(item.FeaturedImageAltText ?? item.Title)"
+                                         width="112"
+                                         height="84"
+                                         loading="lazy"
+                                         decoding="async" />
+                                    <span><strong>@item.Title</strong><small>@item.TimeAgo</small></span>
+                                </a>
+                            }
+                        </div>
+                    }
                     <h2>Shows</h2>
                     @if (imagePaths.Any())
                     {

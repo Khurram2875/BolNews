@@ -1,5 +1,4 @@
-﻿/* ============================================================
-   BOLNEWS — SITE.CSS
+﻿/* =====================================================   BOLNEWS — SITE.CSS
    Theme system using CSS custom properties
    4 themes: default | dark | editorial | bold
    ============================================================ */
@@ -3889,6 +3888,14 @@ body,
     margin-bottom: 1.4em;
 }
 
+.bn-article-body li[data-list="bullet"] {
+    list-style-type: disc;
+}
+
+.bn-article-body li[data-list="ordered"] {
+    list-style-type: decimal;
+}
+
 .bn-article-body li {
     margin-bottom: 0.4em;
 }
@@ -4347,4 +4354,1030 @@ html[data-theme="dark"] .bn-main .text-black {
 
 html[data-theme="dark"] .bn-main .text-muted {
     color: var(--bn-text-muted) !important;
+}
+
+/*.bn-live-events { border: 1px solid #ddd; border-radius: .5rem; padding: 1rem; }
+.bn-live-event-card { flex: 0 0 250px; color: inherit; text-decoration: none; border: 1px solid #ddd; border-radius: .4rem; overflow: hidden; background: #fff; }
+.bn-live-event-card__image { height: 132px; position: relative; }
+.bn-live-event-card__image img { width: 100%; height: 100%; object-fit: cover; }
+.bn-live-event-card__text { display: grid; gap: .35rem; padding: .65rem; }
+.bn-live-event-card__text span { font-size: .9rem; }
+.bn-live-badge { display: inline-block; color: #fff; background: #d71920; font-size: .72rem; font-weight: 700; padding: .2rem .45rem; border-radius: .2rem; }
+.bn-live-event-card .bn-live-badge { position: absolute; top: .5rem; right: .5rem; }
+.bn-live-hero { height: clamp(260px, 42vw, 540px); position: relative; overflow: hidden; background: #222; }
+.bn-live-hero > img { width: 100%; height: 100%; object-fit: cover; opacity: .82; }
+.bn-live-hero__title { position: absolute; inset: auto 0 0; padding: 1.5rem; color: #fff; background: linear-gradient(transparent, #000b); }
+.bn-live-hero__title h1 { margin: .5rem 0 0; }
+.bn-live-timeline { display: grid; gap: .75rem; border-left: 2px solid #d71920; padding-left: .8rem; }
+.bn-live-timeline a { color: inherit; text-decoration: none; display: grid; gap: .25rem; }
+.bn-live-timeline time, .bn-live-update time { color: #777; font-size: .85rem; }
+.bn-live-update { padding: 1rem 0; border-bottom: 1px solid #ddd; scroll-margin-top: 1rem; }
+.bn-live-update h3 { font-size: 1.15rem; margin: .4rem 0; }
+.bn-live-update__details { line-height: 1.7; white-space: normal; }
+.bn-live-related { display: grid; gap: 1rem; }
+.bn-live-related-card { display: grid; gap: .4rem; color: inherit; text-decoration: none; border-bottom: 1px solid #ddd; padding-bottom: 1rem; }
+.bn-live-related-card img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+@media (min-width: 992px) { .bn-live-page { max-width: 1440px; } }*/
+
+.bn-live-events {
+    /*border: 1px solid #ddd;*/
+    border-radius: .5rem;
+    /*padding: 1rem;*/
+}
+
+/* Card (now a carousel slide, so it fills the slide instead of being a 250px scroller item) */
+.bn-live-event-card {
+    display: block;
+    width: 100%;
+    color: inherit;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    border-radius: .4rem;
+    overflow: hidden;
+    background: #fff;
+}
+
+/* Image wrapper: no fixed height, so the full image shows; also the size container for the title */
+.bn-live-event-card__image {
+    position: relative;
+    container-type: inline-size;
+    background: #0b1f3a;
+}
+
+    /* Full image, never cropped */
+    .bn-live-event-card__image img,
+    .bn-live-img {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1;
+        object-fit: contain;
+    }
+
+/* Title overlay, placed like "WASHINGTON" in the sample */
+.bn-live-event-card__title {
+    position: absolute;
+    top: 17%;
+    left: 5%;
+    right: 5%;
+    margin: 0;
+    color: #fff;
+    font-weight: 800;
+    text-transform: uppercase;
+    line-height: 1.05;
+    letter-spacing: .02em;
+    font-size: 26px;
+    font-size: 9.3cqw;
+    text-shadow: 0 1px 4px rgba(0,0,0,.45);
+    pointer-events: none;
+}
+
+.bn-live-event-card__text {
+    padding: .65rem;
+    font-size: .9rem;
+}
+
+.bn-live-badge {
+    display: inline-block;
+    color: #fff;
+    background: #d71920;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: .2rem .45rem;
+    border-radius: .2rem;
+}
+
+.bn-live-event-card .bn-live-badge {
+    position: absolute;
+    top: .5rem;
+    right: .5rem;
+}
+
+.bn-live-hero {
+    height: clamp(260px, 42vw, 540px);
+    position: relative;
+    overflow: hidden;
+    /*background: #222;*/
+}
+
+    .bn-live-hero > img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+       
+    }
+
+.bn-live-hero__title {
+    position: absolute;
+    inset: auto 0 0;
+    padding: 1.5rem;
+    color: #fff;
+    background: linear-gradient(transparent, #000b);
+}
+
+    .bn-live-hero__title h1 {
+        margin: .5rem 0 0;
+    }
+
+.bn-live-timeline {
+    display: grid;
+    gap: .75rem;
+    border-left: 2px solid #d71920;
+    padding-left: .8rem;
+}
+
+    .bn-live-timeline a {
+        position: relative;
+        color: inherit;
+        text-decoration: none;
+         display: grid;
+        gap: .25rem;
+    }
+
+    .bn-live-timeline time, .bn-live-update time {
+        color: red;
+        font-weight:bold;
+        font-size: .70rem;
+    }
+
+.bn-live-update {
+    margin-bottom: .9rem;
+    padding: .95rem 1.1rem;
+    background: #fff;
+    border: 1px solid #e4e4e4;
+    border-radius: .85rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    /* clears the fixed site navbar when the page itself scrolls to an update (phones) */
+    scroll-margin-top: 4.5rem;
+}
+
+    .bn-live-update:hover {
+        transform: translateY(-2px);
+        border-color: rgba(215, 25, 32, .35);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, .10);
+    }
+
+    .bn-live-update h3 {
+        font-size: 1.05rem;
+        margin: .35rem 0 .45rem;
+    }
+
+.bn-live-update__details {
+    line-height: 1.65;
+    white-space: normal;
+}
+
+.bn-live-update__source {
+    margin-top: .6rem;
+    font-size: .8rem;
+}
+
+.bn-live-related {
+    display: grid;
+    gap: .9rem;
+}
+
+.bn-live-related-card {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    background: #fff;
+    border: 1px solid #e4e4e4;
+    border-radius: .85rem;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+    .bn-live-related-card:hover {
+        color: inherit;
+        transform: translateY(-3px);
+        border-color: rgba(215, 25, 32, .35);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, .16);
+    }
+
+/* Image area with the title laid over it. The gradient keeps white text readable on bright photos;
+   with no image the solid blue shows instead. */
+.bn-live-related-card__media {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0b2a5b, #1f3f94);
+}
+
+    .bn-live-related-card__media img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform .35s ease;
+    }
+
+    .bn-live-related-card:hover .bn-live-related-card__media img {
+        transform: scale(1.06);
+    }
+
+    .bn-live-related-card__media::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, .9) 0%, rgba(0, 0, 0, .8) 45%, rgba(0, 0, 0, .4) 72%, rgba(0, 0, 0, 0) 100%);
+    }
+
+.bn-live-related-card__title {
+    /* offsets instead of padding: padding on a line-clamped box lets the next line peek through */
+    position: absolute;
+    left: .85rem;
+    right: .85rem;
+    bottom: .7rem;
+    z-index: 1;
+    color: #fff;
+    font-size: .92rem;
+    font-weight: 700;
+    line-height: 1.3;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .85), 0 0 8px rgba(0, 0, 0, .6);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+}
+
+.bn-live-related-card__summary {
+    /* Bottom spacing is a margin, not padding: padding inside a line-clamped box lets part of the
+       next line show through underneath the clamp (the text got cut by the card border). */
+    display: block;
+    margin-bottom: .75rem;
+    padding: .6rem .85rem 0;
+    color: #555;
+    font-size: .82rem;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bn-live-update,
+    .bn-live-related-card,
+    .bn-live-related-card__media img {
+        transition: none;
+    }
+
+    .bn-live-update:hover,
+    .bn-live-related-card:hover,
+    .bn-live-related-card:hover .bn-live-related-card__media img {
+        transform: none;
+    }
+}
+
+@media (min-width: 992px) {
+    .bn-live-page {
+        max-width: 1440px;
+    }
+}
+
+/* ===== US election scoreboard card (Live Events with EventType = Election) =====
+   The featured image fills the whole card (it carries the "US Midterm Election 2026" logo itself).
+   Text sits on top of it. Scales with its own width via container query units:
+   1 unit = width / 280, so the numbers below are "pixels at the 280px design size".
+   Works in the carousel slot and on the live page. */
+.bn-elect-card {
+    container-type: inline-size;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: #0b2a5b;
+    color: #fff;
+}
+
+.bn-elect-card__inner {
+    --u: 1px; /* fallback when container query units are unsupported */
+    position: absolute;
+    inset: 0;
+}
+
+@supports (width: 1cqw) {
+    .bn-elect-card__inner {
+        --u: calc(100cqw / 280);
+    }
+}
+
+.bn-elect-card__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Soft darkening under the text so it stays readable on any image; the logo area stays untouched */
+.bn-elect-card__shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, rgba(0, 0, 0, .38) 55%, rgba(0, 0, 0, .55) 100%);
+}
+
+.bn-elect-card__body {
+    position: absolute;
+    left: calc(var(--u) * 12);
+    right: calc(var(--u) * 12);
+    top: 34%;
+    bottom: calc(var(--u) * 30);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: calc(var(--u) * 8);
+}
+
+.bn-elect-card__office {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 8);
+    margin: 0;
+    font-size: calc(var(--u) * 11);
+    font-weight: 700;
+    letter-spacing: .16em;
+    line-height: 1;
+    text-transform: uppercase;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
+}
+
+    .bn-elect-card__office::before,
+    .bn-elect-card__office::after {
+        content: "";
+        flex: 1 1 0;
+        height: calc(var(--u) * 1.5);
+        background: rgba(255, 255, 255, .85);
+    }
+
+.bn-elect-card__race {
+    margin: 0;
+    font-size: calc(var(--u) * 27);
+    font-weight: 800;
+    letter-spacing: .04em;
+    line-height: 1;
+    text-align: center;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, .6);
+}
+
+.bn-elect-card__results {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: calc(var(--u) * 8);
+    margin-top: calc(var(--u) * 2);
+}
+
+.bn-elect-cand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+}
+
+    /* Both result boxes share the taller one's height, so the pair always lines up */
+    .bn-elect-cand > .bn-elect-box {
+        flex: 1 1 auto;
+    }
+
+.bn-elect-party {
+    display: inline-block;
+    padding: calc(var(--u) * 3) calc(var(--u) * 9);
+    border-radius: calc(var(--u) * 4) calc(var(--u) * 4) 0 0;
+    color: #fff;
+    font-size: calc(var(--u) * 8.5);
+    font-weight: 800;
+    letter-spacing: .08em;
+    line-height: 1.1;
+    text-transform: uppercase;
+}
+
+.bn-elect-box {
+    display: grid;
+    gap: calc(var(--u) * 4);
+    justify-items: center;
+    align-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: calc(var(--u) * 62);
+    padding: calc(var(--u) * 6) calc(var(--u) * 5);
+    border-radius: 0 calc(var(--u) * 5) calc(var(--u) * 5) calc(var(--u) * 5);
+    background: #fff;
+    color: #111;
+    text-align: center;
+    box-shadow: 0 calc(var(--u) * 2) calc(var(--u) * 6) rgba(0, 0, 0, .35);
+}
+
+.bn-elect-name {
+    font-size: calc(var(--u) * 12);
+    font-weight: 800;
+    letter-spacing: .01em;
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+    text-transform: uppercase;
+    /* Very long names stop at two lines so the box never outgrows its space */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+}
+
+.bn-elect-pct {
+    display: inline-block;
+    padding: calc(var(--u) * 3) calc(var(--u) * 10);
+    border-radius: calc(var(--u) * 6);
+    color: #fff;
+    font-size: calc(var(--u) * 15);
+    font-weight: 800;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+.bn-elect-votes {
+    color: #222;
+    font-size: calc(var(--u) * 8);
+    font-weight: 800;
+    letter-spacing: .06em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.bn-elect-cand--rep .bn-elect-party,
+.bn-elect-cand--rep .bn-elect-pct {
+    background: #c4161c;
+}
+
+.bn-elect-cand--dem .bn-elect-party,
+.bn-elect-cand--dem .bn-elect-pct {
+    background: #1f3f94;
+}
+
+.bn-elect-cand--oth .bn-elect-party,
+.bn-elect-cand--oth .bn-elect-pct {
+    background: #5c6675;
+}
+
+/* LIVE UPDATES pill, bottom right, with a blinking green dot */
+.bn-elect-card__live {
+    position: absolute;
+    right: calc(var(--u) * 10);
+    bottom: calc(var(--u) * 9);
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--u) * 5);
+    padding: calc(var(--u) * 4) calc(var(--u) * 9);
+    border-radius: calc(var(--u) * 20);
+    background: #d3212d;
+    color: #fff;
+    font-size: calc(var(--u) * 8.5);
+    font-weight: 800;
+    letter-spacing: .08em;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: 0 calc(var(--u) * 1) calc(var(--u) * 4) rgba(0, 0, 0, .4);
+}
+
+.bn-elect-card__dot {
+    width: calc(var(--u) * 7);
+    height: calc(var(--u) * 7);
+    border-radius: 50%;
+    background: #2ee564;
+    box-shadow: 0 0 calc(var(--u) * 5) rgba(46, 229, 100, .85);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .bn-elect-card__dot {
+        animation: bn-elect-pulse 1.6s ease-in-out infinite;
+    }
+}
+
+@keyframes bn-elect-pulse {
+    50% {
+        opacity: .35;
+    }
+}
+
+/* ===== Live page top: image/card on the left, LIVE badge + title + scrollable intro on the right ===== */
+.bn-live-top {
+    display: grid;
+    grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: stretch;
+    margin-bottom: 1.5rem;
+}
+
+.bn-live-top__media {
+    min-width: 0;
+}
+
+    .bn-live-top__media > img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        border-radius: .4rem;
+    }
+
+    .bn-live-top__media .bn-elect-card {
+        border: 1px solid #ddd;
+        border-radius: .4rem;
+    }
+
+.bn-live-top__body {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    min-width: 0;
+    min-height: 0;
+}
+
+.bn-live-top__head h1 {
+    margin: .35rem 0 0;
+    font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+    line-height: 1.2;
+}
+
+/* The intro fills whatever height is left beside the image and scrolls inside itself */
+.bn-live-intro {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    padding: .85rem 1rem;
+    border: 1px solid #e3e3e3;
+    border-radius: .5rem;
+    background: #fff;
+    scrollbar-width: thin;
+    scrollbar-color: #c9c9c9 transparent;
+}
+
+@media (max-width: 767.98px) {
+    .bn-live-top {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bn-live-top__media {
+        max-width: 420px;
+    }
+
+    .bn-live-intro {
+        flex: none;
+        max-height: 340px;
+    }
+}
+
+/* Rich text written in the Quill editor (intro box and update details) */
+.bn-live-rich > :first-child {
+    margin-top: 0;
+}
+
+.bn-live-rich > :last-child {
+    margin-bottom: 0;
+}
+
+.bn-live-rich h1, .bn-live-rich h2, .bn-live-rich h3, .bn-live-rich h4 {
+    margin: 1rem 0 .4rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.bn-live-rich h1 { font-size: 1.35rem; }
+.bn-live-rich h2 { font-size: 1.2rem; }
+.bn-live-rich h3 { font-size: 1.08rem; }
+.bn-live-rich h4 { font-size: 1rem; }
+.bn-live-rich p { margin: 0 0 .6rem; }
+.bn-live-rich ul, .bn-live-rich ol { margin: 0 0 .6rem; padding-left: 1.3rem; }
+.bn-live-rich blockquote { margin: .6rem 0; padding: .2rem .8rem; border-left: 3px solid #d71920; color: #444; }
+.bn-live-rich a { color: #0b57d0; text-decoration: underline; overflow-wrap: anywhere; }
+.bn-live-rich img { max-width: 100%; height: auto; border-radius: .35rem; }
+.bn-live-rich .ql-align-center { text-align: center; }
+.bn-live-rich .ql-align-right { text-align: right; }
+.bn-live-rich .ql-align-justify { text-align: justify; }
+.bn-live-rich .quill-social-embed { display: flex; justify-content: center; max-width: 100%; margin: .75rem 0; overflow: hidden; }
+.bn-live-rich .quill-social-embed iframe { max-width: 100%; }
+
+/* ===== Live page: red dot per timeline entry ===== */
+.bn-live-timeline a::before {
+    content: "";
+    position: absolute;
+    top: .3rem;
+    /* centres the dot on the 2px red line: line centre sits .8rem + 1px left of the link's edge */
+    left: calc(-.8rem - 6px);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #d71920;
+    box-shadow: 0 0 0 3px #fff; /* small gap so the line looks broken behind the dot */
+}
+
+/* ===== Live page: three independently scrolling columns =====
+   Each column is a "panel": the heading stays put and only the content under it scrolls.
+   Panels stick just below the fixed site navbar so the Timeline stays in view. Desktop only;
+   on phones the columns stack and the page scrolls as usual. */
+.bn-live-panel {
+    min-width: 0;
+}
+
+@media (min-width: 992px) {
+    .bn-live-page {
+        --bn-live-top: 4rem; /* fixed navbar is ~47px tall */
+    }
+
+    .bn-live-panel {
+        position: sticky;
+        top: var(--bn-live-top);
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - var(--bn-live-top) - 1rem);
+    }
+
+    /* The negative side margins and equal padding keep cards lined up with the heading while leaving
+       room inside the scroll area for the hover lift, shadow and the timeline dots (otherwise clipped). */
+    .bn-live-scroll {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        margin: 0 -.65rem;
+        padding: .4rem .65rem .75rem;
+        scrollbar-width: thin;
+        scrollbar-color: #c9c9c9 transparent;
+    }
+}
+
+/* Slightly smaller type across the three columns */
+.bn-live-columns {
+    font-size: .9rem;
+}
+
+.bn-live-panel > h2 {
+    font-size: 1.35rem;
+}
+
+/* ===== Poll card (PollCard view component) =====
+   Portrait 4:5 card. The uploaded image is the whole background (use a 4:5 image such as 1080 x 1350 and it
+   is shown without any cropping). All text sits in the lower ~55% (starting just above the middle); the upper ~42% stays clear for the picture.
+   Everything scales with the card width (1 unit = width / 400), so a smaller card keeps the same layout. */
+.bn-poll {
+    container-type: inline-size;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: .4rem;
+    background: #12233f;
+    color: #fff;
+    isolation: isolate;
+    margin-bottom:15px;
+}
+
+.bn-poll__bg {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Clear over the top half, darkening only behind the text in the lower half */
+.bn-poll__shade {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(180deg, rgba(5, 12, 28, 0) 0%, rgba(5, 12, 28, 0) 20%, rgba(5, 12, 28, .68) 30, rgba(5, 12, 28, .93) 40%);
+}
+
+.bn-poll__body {
+    --u: 1px; /* fallback when container query units are unsupported */
+    position: absolute;
+    left: calc(var(--u) * 16);
+    right: calc(var(--u) * 16);
+    bottom: calc(var(--u) * 14);
+    top: 42%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: calc(var(--u) * 7);
+    overflow: hidden;
+}
+
+@supports (width: 1cqw) {
+    .bn-poll__body {
+        --u: calc(100cqw / 400);
+    }
+}
+
+.bn-poll__type {
+    align-self: flex-start;
+    padding: calc(var(--u) * 2.9) calc(var(--u) * 10.5);
+    border-radius: 999px;
+    background: #d71920;
+    font-size: calc(var(--u) * 10.5);
+    font-weight: 800;
+    letter-spacing: .1em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.bn-poll__title {
+    margin: 0;
+    font-size: calc(var(--u) * 22.2);
+    font-weight: 800;
+    line-height: 1.15;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, .55);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+}
+
+.bn-poll__desc {
+    margin: 0;
+    color: rgba(255, 255, 255, .88);
+    font-size: calc(var(--u) * 13.5);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    overflow: hidden;
+}
+
+.bn-poll__results {
+    display: grid;
+    gap: calc(var(--u) * 8.2);
+    margin: calc(var(--u) * 2.3) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.bn-poll__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: calc(var(--u) * 9.4);
+    margin-bottom: calc(var(--u) * 3.5);
+}
+
+.bn-poll__label {
+    min-width: 0;
+    font-size: calc(var(--u) * 15.8);
+    font-weight: 700;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+.bn-poll__pct {
+    flex: 0 0 auto;
+    font-size: calc(var(--u) * 16.4);
+    font-weight: 800;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+}
+
+.bn-poll__bar {
+    height: calc(var(--u) * 9.4);
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .24);
+}
+
+    .bn-poll__bar > span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--poll-c, #3b82f6);
+        transition: width .7s cubic-bezier(.2, .8, .2, 1);
+    }
+
+.bn-poll__option--c0 { --poll-c: #ef4444; }
+.bn-poll__option--c1 { --poll-c: #3b82f6; }
+.bn-poll__option--c2 { --poll-c: #f59e0b; }
+.bn-poll__option--c3 { --poll-c: #22c55e; }
+.bn-poll__option--c4 { --poll-c: #a855f7; }
+.bn-poll__option--c5 { --poll-c: #06b6d4; }
+
+.bn-poll__option.is-leading .bn-poll__bar > span {
+    box-shadow: 0 0 calc(var(--u) * 9.4) var(--poll-c);
+}
+
+.bn-poll__option.is-leading .bn-poll__label::after {
+    content: " \2605";
+    color: #ffd24a;
+}
+
+.bn-poll__body > * {
+    flex-shrink: 0; /* never squash a line; the size classes below make everything fit instead */
+}
+
+/* Three or four answers: drop the short description and tighten a little */
+.bn-poll--n3 .bn-poll__desc, .bn-poll--n4 .bn-poll__desc { display: none; }
+.bn-poll--n4 .bn-poll__results { gap: calc(var(--u) * 5.8); }
+.bn-poll--n4 .bn-poll__label { font-size: calc(var(--u) * 14.6); }
+.bn-poll--n4 .bn-poll__pct { font-size: calc(var(--u) * 15.2); }
+.bn-poll--n4 .bn-poll__bar { height: calc(var(--u) * 8.2); }
+.bn-poll--n4 .bn-poll__title { font-size: calc(var(--u) * 19.9); }
+
+/* Many answers: tighten everything so it still fits in the lower half (description and type badge are dropped) */
+.bn-poll--n5 .bn-poll__desc, .bn-poll--n6 .bn-poll__desc, .bn-poll--n5 .bn-poll__type, .bn-poll--n6 .bn-poll__type { display: none; }
+.bn-poll--n5 .bn-poll__results, .bn-poll--n6 .bn-poll__results { gap: calc(var(--u) * 3.5); }
+.bn-poll--n5 .bn-poll__row, .bn-poll--n6 .bn-poll__row { margin-bottom: calc(var(--u) * 1.8); }
+.bn-poll--n5 .bn-poll__label, .bn-poll--n6 .bn-poll__label { font-size: calc(var(--u) * 13.5); }
+.bn-poll--n5 .bn-poll__pct, .bn-poll--n6 .bn-poll__pct { font-size: calc(var(--u) * 14); }
+.bn-poll--n5 .bn-poll__bar, .bn-poll--n6 .bn-poll__bar { height: calc(var(--u) * 6.4); }
+.bn-poll--n5 .bn-poll__title, .bn-poll--n6 .bn-poll__title { font-size: calc(var(--u) * 17.5); }
+.bn-poll--n5 .bn-poll__body, .bn-poll--n6 .bn-poll__body { gap: calc(var(--u) * 5.8); }
+
+.bn-poll__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(var(--u) * 9.4);
+    margin-top: calc(var(--u) * 3.5);
+}
+
+.bn-poll__deadline {
+    min-width: 0;
+    margin: 0;
+    color: rgba(255, 255, 255, .85);
+    font-size: calc(var(--u) * 12.3);
+    line-height: 1.3;
+}
+
+.bn-poll__deadline-label {
+    display: block;
+    font-size: calc(var(--u) * 9.9);
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    opacity: .75;
+}
+
+.bn-poll__time {
+    font-weight: 700;
+}
+
+.bn-poll__left {
+    margin-left: calc(var(--u) * 3.5);
+    color: #ffd24a;
+    font-weight: 700;
+}
+
+.bn-poll__vote,
+.bn-poll__submit {
+    padding: calc(var(--u) * 9.4) calc(var(--u) * 21.1);
+    border: 0;
+    border-radius: 999px;
+    background: #d71920;
+    color: #fff;
+    font-size: calc(var(--u) * 15.2);
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background .15s ease, transform .15s ease;
+}
+
+.bn-poll__submit {
+    padding: .55rem 1.2rem;
+    font-size: .9rem;
+}
+
+    .bn-poll__vote:hover,
+    .bn-poll__submit:hover {
+        background: #b9121a;
+        transform: translateY(-1px);
+    }
+
+    .bn-poll__vote:focus-visible,
+    .bn-poll__submit:focus-visible,
+    .bn-poll__cancel:focus-visible {
+        outline: 3px solid #ffd24a;
+        outline-offset: 2px;
+    }
+
+/* After the deadline: plain text, not a button or link */
+.bn-poll__final,
+.bn-poll__voted {
+    flex: 0 0 auto;
+    padding: calc(var(--u) * 7) calc(var(--u) * 15.2);
+    border: 1px solid rgba(255, 255, 255, .5);
+    border-radius: 999px;
+    font-size: calc(var(--u) * 14);
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: default;
+}
+
+.bn-poll__voted {
+    border-color: rgba(46, 229, 100, .7);
+    color: #7cf5a0;
+}
+
+/* Vote dialog */
+.bn-poll__dialog {
+    width: min(26rem, calc(100vw - 2rem));
+    padding: 0;
+    border: 0;
+    border-radius: .75rem;
+    background: #fff;
+    color: #1a1a1a;
+    box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, .35);
+}
+
+    .bn-poll__dialog::backdrop {
+        background: rgba(5, 12, 28, .6);
+    }
+
+.bn-poll__form {
+    display: grid;
+    gap: .75rem;
+    padding: 1.25rem;
+}
+
+.bn-poll__q {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.bn-poll__hint {
+    margin: 0;
+    color: #666;
+    font-size: .82rem;
+}
+
+.bn-poll__choices {
+    display: grid;
+    gap: .5rem;
+}
+
+.bn-poll__choice {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    padding: .7rem .85rem;
+    border: 2px solid #e1e1e1;
+    border-radius: .55rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+}
+
+    .bn-poll__choice:hover {
+        border-color: #9aa7bd;
+    }
+
+    .bn-poll__choice:has(input:checked) {
+        border-color: #d71920;
+        background: #fff3f3;
+    }
+
+    .bn-poll__choice input {
+        width: 1.1rem;
+        height: 1.1rem;
+        accent-color: #d71920;
+    }
+
+.bn-poll__msg {
+    margin: 0;
+    padding: .5rem .7rem;
+    border-radius: .4rem;
+    background: #fdecec;
+    color: #a40f16;
+    font-size: .85rem;
+    font-weight: 600;
+}
+
+.bn-poll__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .6rem;
+}
+
+.bn-poll__cancel {
+    padding: .55rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 999px;
+    background: #fff;
+    color: #333;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bn-poll__bar > span,
+    .bn-poll__vote,
+    .bn-poll__submit {
+        transition: none;
+    }
 }

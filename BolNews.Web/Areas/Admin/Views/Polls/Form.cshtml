@@ -1,0 +1,142 @@
+@model BolNews.Web.Areas.Admin.ViewModels.PollVM
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var editing = Model.Id != 0;
+    ViewData["Title"] = editing ? "Edit Poll" : "Create Poll";
+}
+<div class="container-fluid py-3">
+    <h1>@ViewData["Title"]</h1>
+    <p class="text-muted">The image you choose becomes the whole card background on the site. Use a portrait <strong>4:5</strong> image (best: 1080 x 1350 px) and it is shown without cropping; the text sits on the lower half, so keep the important part of the picture in the upper half. Visitors see percentage bars only, never vote counts.</p>
+    <form id="poll-form" asp-action="@(editing ? "Edit" : "Create")" method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input asp-for="Id" type="hidden" />
+        <input asp-for="EndsAtUtc" type="hidden" id="EndsAtUtc" />
+        <div class="row g-3">
+            <div class="col-md-8">
+                <label asp-for="Title" class="form-label">Question / title</label>
+                <input asp-for="Title" class="form-control" maxlength="250" placeholder="e.g. Who is the better rapper?" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="PollType" class="form-label">Poll type</label>
+                <select asp-for="PollType" asp-items="Html.GetEnumSelectList<BolNews.Domain.Enums.PollType>()" class="form-select" id="PollType"></select>
+                <span class="form-text" id="type-help"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="Description" class="form-label">Short description <span class="text-muted">(optional, shown under the question)</span></label>
+                <input asp-for="Description" class="form-control" maxlength="500" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="FeaturedMediaId" class="form-label">Background image: choose from Media Library</label>
+                <select asp-for="FeaturedMediaId" asp-items="Model.Images" class="form-select"><option value="0">Choose an existing image</option></select>
+                <span asp-validation-for="FeaturedMediaId" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="FeaturedImageUpload" class="form-label">Or upload an image</label>
+                <input asp-for="FeaturedImageUpload" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="form-control" />
+                <span asp-validation-for="FeaturedImageUpload" class="text-danger"></span>
+                <small class="form-text">JPG, PNG, or WEBP; maximum 2 MB. Uploaded here, the picture is stored <strong>uncropped</strong>. Images already in the Media Library were cropped to 16:9 when they were uploaded, so for polls upload the original file here instead of picking it from the list.</small>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="endsLocal">Voting ends (your local time)</label>
+                <input type="datetime-local" id="endsLocal" class="form-control" required />
+                <span class="text-danger" id="ends-error"></span>
+                <span asp-validation-for="EndsAtUtc" class="text-danger"></span>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <div class="form-check"><input asp-for="IsActive" class="form-check-input" /><label asp-for="IsActive" class="form-check-label">Active: shown on the site (switches any other poll off)</label></div>
+            </div>
+        </div>
+
+        <hr />
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h4 mb-0">Answers</h2>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="addOption">Add answer</button>
+        </div>
+        <p class="text-muted small mt-1" id="options-help"></p>
+        <div class="text-danger mb-2">@Html.ValidationMessage("Options")</div>
+        <div id="options" style="max-width:640px">
+            @for (var i = 0; i < Model.Options.Count; i++)
+            {
+                <div class="poll-option-row input-group mb-2">
+                    <input type="hidden" name="Options[@i].Id" value="@Model.Options[i].Id" />
+                    <input type="text" name="Options[@i].Text" value="@Model.Options[i].Text" class="form-control" maxlength="150" placeholder="Answer" data-votes="@Model.Options[i].Votes" />
+                    @if (editing && Model.Options[i].Id != 0) { <span class="input-group-text" title="Current votes (editors only)">@Model.Options[i].Votes votes</span> }
+                    <button type="button" class="btn btn-outline-danger remove-option" aria-label="Remove answer">&times;</button>
+                </div>
+            }
+        </div>
+
+        <div class="mt-4">
+            <button class="btn btn-primary" type="submit">Save poll</button>
+            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+<script>
+(() => {
+  const form = document.getElementById('poll-form');
+  const type = document.getElementById('PollType');
+  const host = document.getElementById('options');
+  const addBtn = document.getElementById('addOption');
+  const help = document.getElementById('options-help');
+  const typeHelp = document.getElementById('type-help');
+  const hiddenEnds = document.getElementById('EndsAtUtc');
+  const endsLocal = document.getElementById('endsLocal');
+  const MAX = 6;
+
+  // Deadline: show the stored UTC value in the editor's local time; post it back as UTC.
+  const pad = n => String(n).padStart(2, '0');
+  const toLocalInput = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  if (hiddenEnds.value) { const d = new Date(hiddenEnds.value); if (!isNaN(d)) endsLocal.value = toLocalInput(d); }
+  else { const d = new Date(Date.now() + 7 * 864e5); d.setMinutes(0, 0, 0); endsLocal.value = toLocalInput(d); }
+
+  const rows = () => [...host.querySelectorAll('.poll-option-row')];
+  const reindex = () => rows().forEach((row, i) => row.querySelectorAll('[name]').forEach(el => { el.name = el.name.replace(/Options\[\d+\]/, `Options[${i}]`); }));
+  const makeRow = text => {
+    const row = document.createElement('div'); row.className = 'poll-option-row input-group mb-2';
+    row.innerHTML = '<input type="hidden" name="Options[0].Id" value="0" /><input type="text" name="Options[0].Text" class="form-control" maxlength="150" placeholder="Answer" /><button type="button" class="btn btn-outline-danger remove-option" aria-label="Remove answer">&times;</button>';
+    row.querySelector('[type=text]').value = text || '';
+    return row;
+  };
+  const fixedTwo = () => type.value === '1' || type.value === '2';   // Versus, TrueFalse
+
+  function applyType(initial) {
+    if (fixedTwo()) {
+      while (rows().length > 2) rows().pop().remove();
+      while (rows().length < 2) host.appendChild(makeRow(''));
+      if (type.value === '2' && !initial) {
+        const [a, b] = rows().map(r => r.querySelector('[type=text]'));
+        if (!a.value.trim() || ['option a','a'].includes(a.value.trim().toLowerCase())) a.value = 'True';
+        if (!b.value.trim()) b.value = 'False';
+      }
+    }
+    addBtn.hidden = fixedTwo();
+    host.querySelectorAll('.remove-option').forEach(b => { b.hidden = fixedTwo(); });
+    typeHelp.textContent = { '0': 'A question with 2-6 answers; the visitor picks one.', '1': 'Two contenders, e.g. two rap singers. Exactly two answers.', '2': 'True / False (you can rename them, e.g. Yes / No). Exactly two answers.' }[type.value];
+    help.textContent = fixedTwo() ? 'This type uses exactly two answers.' : 'Add 2 to 6 answers (all of them must fit in the lower half of the card). Reordering is by position here.';
+    reindex();
+  }
+  type.addEventListener('change', () => applyType(false));
+  addBtn.addEventListener('click', () => { if (rows().length < MAX) { host.appendChild(makeRow('')); reindex(); } });
+  host.addEventListener('click', e => {
+    const btn = e.target.closest('.remove-option'); if (!btn) return;
+    const row = btn.closest('.poll-option-row');
+    const votes = parseInt(row.querySelector('[type=text]').dataset.votes || '0', 10);
+    if (rows().length <= 2) return;
+    if (votes > 0 && !confirm('This answer already has ' + votes + ' vote(s). Removing it deletes those votes. Continue?')) return;
+    row.remove(); reindex();
+  });
+
+  form.addEventListener('submit', e => {
+    const d = new Date(endsLocal.value);
+    if (!endsLocal.value || isNaN(d)) { e.preventDefault(); document.getElementById('ends-error').textContent = 'Choose the voting end date and time.'; return; }
+    hiddenEnds.value = d.toISOString();
+  });
+  applyType(true);
+})();
+</script>
+}

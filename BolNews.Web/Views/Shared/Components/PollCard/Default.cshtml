@@ -1,0 +1,82 @@
+@model BolNews.Web.ViewModels.PollCardVM
+@{
+    var ended = Model.Ended;
+    var leader = Model.Options.Count == 0 ? 0 : Model.Options.Max(o => o.Percent);
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var wrapperClass = ViewData["WrapperClass"] as string;
+}
+@if (!string.IsNullOrWhiteSpace(wrapperClass)) { @:<div class="@wrapperClass">
+}
+<section class="bn-poll bn-poll--n@(Model.Options.Count)@(Model.IsVersus ? " bn-poll--versus" : "")@(ended ? " is-ended" : "")@(Model.HasVoted ? " has-voted" : "")"
+         data-poll-id="@Model.Id" data-ends="@Model.EndsAtUtc.ToString("yyyy-MM-ddTHH:mm:ss'Z'")" aria-label="Poll: @Model.Title">
+    <img class="bn-poll__bg" src="@Model.ImageUrl" alt="" loading="lazy" decoding="async" />
+    <span class="bn-poll__shade" aria-hidden="true"></span>
+    <div class="bn-poll__body">
+        <span class="bn-poll__type">@Model.TypeLabel</span>
+        <h3 class="bn-poll__title">@Model.Title</h3>
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <p class="bn-poll__desc">@Model.Description</p>
+        }
+        <ul class="bn-poll__results">
+            @foreach (var option in Model.Options)
+            {
+                <li class="bn-poll__option bn-poll__option--c@(option.Index % 6)@(option.Percent == leader && leader > 0 ? " is-leading" : "")" data-option-id="@option.Id">
+                    <div class="bn-poll__row">
+                        <span class="bn-poll__label">@option.Text</span>
+                        <span class="bn-poll__pct">@option.Percent%</span>
+                    </div>
+                    <div class="bn-poll__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@option.Percent" aria-label="@option.Text">
+                        <span style="width:@(option.Percent.ToString(inv))%"></span>
+                    </div>
+                </li>
+            }
+        </ul>
+        <div class="bn-poll__foot">
+            <p class="bn-poll__deadline">
+                <span class="bn-poll__deadline-label">@(ended ? "Ended" : "Voting ends")</span>
+                <time class="bn-poll__time" datetime="@Model.EndsAtUtc.ToString("yyyy-MM-ddTHH:mm:ss'Z'")">@Model.EndsAtUtc.ToString("dd MMM yyyy, h:mm tt") UTC</time>
+                <span class="bn-poll__left" aria-live="off"></span>
+            </p>
+            @if (ended)
+            {
+                <span class="bn-poll__final">Final results</span>
+            }
+            else if (Model.HasVoted)
+            {
+                <span class="bn-poll__voted">&#10003; Thanks for voting</span>
+            }
+            else
+            {
+                <button type="button" class="bn-poll__vote" data-poll-open>Vote now</button>
+            }
+        </div>
+    </div>
+
+    @if (!ended)
+    {
+        <dialog class="bn-poll__dialog" aria-labelledby="bn-poll-q-@Model.Id">
+            <form method="post" action="/polls/@Model.Id/vote" class="bn-poll__form">
+                <h4 id="bn-poll-q-@Model.Id" class="bn-poll__q">@Model.Title</h4>
+                <p class="bn-poll__hint">Choose one option and press Submit vote. You can vote once.</p>
+                <div class="bn-poll__choices">
+                    @foreach (var option in Model.Options)
+                    {
+                        <label class="bn-poll__choice">
+                            <input type="radio" name="optionId" value="@option.Id" required />
+                            <span>@option.Text</span>
+                        </label>
+                    }
+                </div>
+                <p class="bn-poll__msg" role="alert" hidden></p>
+                <div class="bn-poll__actions">
+                    <button type="button" class="bn-poll__cancel" data-poll-close>Cancel</button>
+                    <button type="submit" class="bn-poll__submit">Submit vote</button>
+                </div>
+            </form>
+        </dialog>
+    }
+    <script src="~/js/poll-card.js" asp-append-version="true" defer></script>
+</section>
+@if (!string.IsNullOrWhiteSpace(wrapperClass)) { @:</div>
+}

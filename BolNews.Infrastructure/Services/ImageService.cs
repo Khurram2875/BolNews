@@ -101,6 +101,28 @@ namespace BolNews.Infrastructure.Services
             return ($"/uploads/media/{mediaId}/thumb.webp", $"/uploads/media/{mediaId}/medium.webp", $"/uploads/media/{mediaId}/large.webp", $"/uploads/media/{mediaId}/xl.webp");
         }
 
+        public async Task<(string thumb, string medium, string large, string xl)> SaveMediaImagesUncroppedAsync(Stream stream, int mediaId, string rootPath)
+        {
+            var folderPath = Path.Combine(rootPath, "uploads", "media", mediaId.ToString());
+            Directory.CreateDirectory(folderPath);
+            stream.Position = 0;
+            using var image = await Image.LoadAsync(stream);
+            async Task Save(string name, int maxWidth, int maxHeight, int quality)
+            {
+                // Fit inside the bounds keeping the aspect ratio; small images are saved as they are (no upscaling).
+                var scale = Math.Min(1d, Math.Min((double)maxWidth / image.Width, (double)maxHeight / image.Height));
+                var width = Math.Max(1, (int)Math.Round(image.Width * scale));
+                var height = Math.Max(1, (int)Math.Round(image.Height * scale));
+                using var copy = image.Clone(x => x.Resize(width, height));
+                await copy.SaveAsync(Path.Combine(folderPath, name), new WebpEncoder { Quality = quality });
+            }
+            await Save("thumb.webp", 150, 150, 75);
+            await Save("medium.webp", 640, 640, 80);
+            await Save("large.webp", 960, 960, 85);
+            await Save("xl.webp", 1280, 1280, 90);
+            return ($"/uploads/media/{mediaId}/thumb.webp", $"/uploads/media/{mediaId}/medium.webp", $"/uploads/media/{mediaId}/large.webp", $"/uploads/media/{mediaId}/xl.webp");
+        }
+
         public async Task<string> SaveMediaFileAsync(Stream stream, string fileName, int mediaId, string rootPath)
         {
             var folderPath = Path.Combine(rootPath, "uploads", "media", mediaId.ToString());
