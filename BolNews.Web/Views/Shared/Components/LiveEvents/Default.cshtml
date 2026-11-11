@@ -1,11 +1,11 @@
-﻿@model IReadOnlyList<BolNews.Web.ViewModels.LiveEventCarouselItemVM>
+@model IReadOnlyList<BolNews.Web.ViewModels.LiveEventCarouselItemVM>
 @if (Model.Count > 0)
 {
     var items = Model.ToList();
 
-    <section class="bn-live-events mb-4" aria-label="Live events">
+    <section class="bn-live-events mb-4" aria-label="@T["Live events"]">
         @* <div class="d-flex justify-content-between align-items-center mb-2">
-            <h2 class="mb-0">Live Updates</h2>
+            <h2 class="mb-0">@T["Live Updates"]</h2>
             <button class="btn btn-sm btn-outline-secondary" type="button"
                     data-bs-toggle="collapse" data-bs-target="#liveEventsCarouselWrap"
                     aria-expanded="true" aria-controls="liveEventsCarouselWrap">
@@ -58,7 +58,7 @@
 
                                         @if (item.ShowLiveBadge)
                                         {
-                                            <span class="bn-live-badge">LIVE</span>
+                                            <span class="bn-live-badge">@T["LIVE"]</span>
                                         }
                                     </div>
 
@@ -76,11 +76,11 @@
                 {
                     <button class="carousel-control-prev" type="button" data-bs-target="#liveEventsCarousel" data-bs-slide="prev">
                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
+                        <span class="visually-hidden">@T["Previous"]</span>
                     </button>
                     <button class="carousel-control-next" type="button" data-bs-target="#liveEventsCarousel" data-bs-slide="next">
                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
+                        <span class="visually-hidden">@T["Next"]</span>
                     </button>
                 }
             </div>

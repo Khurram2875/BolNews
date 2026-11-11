@@ -13,7 +13,7 @@
                   data-paragraph-index="@(placement.ParagraphIndex ?? 0)"
                   data-target-selector="@placement.TargetSelector"
                   data-target-position="@placement.TargetPosition">
-            <div class="bn-ad-slot @placement.ContainerClass" aria-label="Advertisement">
+            <div class="bn-ad-slot @placement.ContainerClass" aria-label="@T["Advertisement"]">
                 <div id="@placement.ElementId"
                      data-ad-slot="@placement.ProviderUnit"
                      data-ad-placement="@placement.Key"></div>
@@ -22,7 +22,7 @@
     }
     else
     {
-        <div class="bn-ad-slot @placement.ContainerClass" aria-label="Advertisement"
+        <div class="bn-ad-slot @placement.ContainerClass" aria-label="@T["Advertisement"]"
              data-target-selector="@placement.TargetSelector" data-target-position="@placement.TargetPosition">
             <div id="@placement.ElementId"
                  data-ad-slot="@placement.ProviderUnit"

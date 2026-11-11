@@ -1,4 +1,4 @@
-﻿@using BolNews.Web.Areas.Admin.ViewModels
+@using BolNews.Web.Areas.Admin.ViewModels
 @inject BolNews.Web.Services.SiteProfileService SiteProfileService
 @model HomePageVM
 
@@ -68,10 +68,10 @@
 <div class="bn-container bn-container--home">
     @if (Model.TopStory != null)
     {
-        <section  class="bn-home-hero bn-home-hero--three" aria-label="Top stories">
+        <section  class="bn-home-hero bn-home-hero--three" aria-label="@T["Top stories"]">
             @if (latestStories.Any())
             {
-                <aside class="bn-story-rail" aria-label="Latest">
+                <aside class="bn-story-rail" aria-label="@T["Latest"]">
                     
                        @*  @await Component.InvokeAsync("FuelPrice") *@
                         @* @await Component.InvokeAsync("LiveEvents") *@
@@ -83,7 +83,7 @@
                     </section>
 
                    
-                    <h2>Latest</h2>
+                    <h2>@T["Latest"]</h2>
                     <div class="bn-latest-list">
                         @foreach (var item in latestStories)
                         {
@@ -107,7 +107,7 @@
             }
 
             <article class="bn-top-stories-panel">
-                <h2>Top Stories</h2>
+                <h2>@T["Top Stories"]</h2>
                 <a href="/@Model.TopStory.CategorySlug/@Model.TopStory.Slug"
                    class="bn-card bn-card--featured track-click"
                    data-article-id="@Model.TopStory.Id">
@@ -166,7 +166,7 @@
 
             @if (featuredStories.Any())
             {
-                <aside class="bn-story-rail" aria-label="Featured">
+                <aside class="bn-story-rail" aria-label="@T["Featured"]">
                     @await Component.InvokeAsync("AdZone", new { zone = "home.sidebar.top" })
                     @* <div class="d-none d-md-block">
                         @await Component.InvokeAsync("FuelPrice")
@@ -175,7 +175,7 @@
                     
                     @if (featuredStories.Any())
                     {
-                        <h2>Featured</h2>
+                        <h2>@T["Featured"]</h2>
                         <div class="bn-latest-list">
                             @foreach (var item in featuredStories)
                             {
@@ -193,7 +193,7 @@
                             }
                         </div>
                     }
-                    <h2>Shows</h2>
+                    <h2>@T["Shows"]</h2>
                     @if (imagePaths.Any())
                     {
                         <div id="folderImageCarousel" class="carousel slide" data-bs-ride="carousel">
@@ -226,11 +226,11 @@
 
                             <button class="carousel-control-prev" type="button" data-bs-target="#folderImageCarousel" data-bs-slide="prev">
                                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Previous</span>
+                                <span class="visually-hidden">@T["Previous"]</span>
                             </button>
                             <button class="carousel-control-next" type="button" data-bs-target="#folderImageCarousel" data-bs-slide="next">
                                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Next</span>
+                                <span class="visually-hidden">@T["Next"]</span>
                             </button>
                         </div>
                     }
@@ -245,14 +245,14 @@
 
 @if (Model.CategorySections.Count > 2)
 {
-    <section class="bn-category-section" aria-label="Category stories">
+    <section class="bn-category-section" aria-label="@T["Category stories"]">
         <div class="bn-category-grid">
             @foreach (var cat in Model.CategorySections)
             {
                 <section class="bn-category-column" aria-labelledby="category-@cat.CategorySlug">
                     <header class="bn-category-heading">
                         <h2 id="category-@cat.CategorySlug">@cat.CategoryName</h2>
-                        <a href="/category/@cat.CategorySlug">More</a>
+                        <a href="/category/@cat.CategorySlug">@T["More"]</a>
                     </header>
 
                     <div class="bn-category-list">

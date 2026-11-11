@@ -1,8 +1,8 @@
-﻿@using BolNews.Application.DTOs
+@using BolNews.Application.DTOs
 @model IEnumerable<ArticleDto>
 
 @* <div class="smart-trending-widget">
-    <h3>Smart Trending</h3>
+    <h3>@T["Smart Trending"]</h3>
 
     @foreach (var article in Model)
     {
@@ -15,7 +15,7 @@
         </div>
     }
 </div> *@
-@* <div class="bn-section-header"><span class="bn-section-title">Popular Right Now</span></div>
+@* <div class="bn-section-header"><span class="bn-section-title">@T["Popular Right Now"]</span></div>
 <div class="bn-popular-scroll-grid">
     @foreach (var item in Model)
     {
@@ -50,7 +50,7 @@
 <div class="bn-popular-section">
     <!-- Centered Header with Side Lines -->
     <div class="bn-popular-header">
-        <h2>Popular Stories</h2>
+        <h2>@T["Popular Stories"]</h2>
     </div>
 
     <!-- 6-Card Grid Layout -->

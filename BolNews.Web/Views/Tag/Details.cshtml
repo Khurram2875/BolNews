@@ -10,7 +10,7 @@
 		<div class="bn-category-navigation py-2">
 			<nav aria-label="breadcrumb">
 				<ol class="breadcrumb" style="font-family:var(--bn-font-ui);font-size:12px;">
-					<li class="breadcrumb-item"><a href="/" style="color:var(--bn-text-muted);text-decoration:none;">Home</a></li>
+					<li class="breadcrumb-item"><a href="/" style="color:var(--bn-text-muted);text-decoration:none;">@T["Home"]</a></li>
 					<li class="breadcrumb-item active" style="color:var(--bn-text-muted);" aria-current="page">@tagName</li>
 				</ol>
 			</nav>
@@ -20,7 +20,7 @@
 	<div style="background:var(--bn-nav-bg);padding:28px 0 24px;">
 		@await Component.InvokeAsync("AdZone", new { zone = "tag.content" })
 		<div class="container">
-			<span class="bn-tag d-inline-block mb-2">Tag</span>
+			<span class="bn-tag d-inline-block mb-2">@T["Tag"]</span>
 			<h1 style="font-family:var(--bn-font-display);font-size:clamp(26px,4vw,40px);font-weight:800;color:#fff;margin:0;line-height:1.2;">
 				@tagName
 			</h1>
@@ -33,9 +33,9 @@
 				@if (!Model.Articles.Any())
 				{
 					<div style="padding:60px 24px;text-align:center;background:var(--bn-surface);border-radius:var(--bn-radius-md);border:1px solid var(--bn-border);">
-						<h3 style="font-family:var(--bn-font-display);color:var(--bn-text-primary);">No articles yet</h3>
+						<h3 style="font-family:var(--bn-font-display);color:var(--bn-text-primary);">@T["No articles yet"]</h3>
 						<p style="font-family:var(--bn-font-ui);color:var(--bn-text-muted);">Check back soon for more stories tagged @tagName.</p>
-						<a href="/" style="font-family:var(--bn-font-ui);font-size:13px;font-weight:600;color:var(--bn-accent);">Back to Home</a>
+						<a href="/" style="font-family:var(--bn-font-ui);font-size:13px;font-weight:600;color:var(--bn-accent);">@T["Back to Home"]</a>
 					</div>
 				}
 				else
@@ -93,7 +93,7 @@
 						@await Component.InvokeAsync("TrendingNews", new { type = Context.Request.Query["type"].ToString() })
 					</div>
 					<div class="bn-widget mb-4">
-						<div class="bn-widget-title">Latest News</div>
+						<div class="bn-widget-title">@T["Latest News"]</div>
 						<div class="bn-scroll-container">
 							@await Component.InvokeAsync("LatestNews", new { count = 10 })
 						</div>

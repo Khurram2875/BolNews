@@ -1,8 +1,8 @@
-﻿@model List<BolNews.Domain.Entities.BreakingNews>
+@model List<BolNews.Domain.Entities.BreakingNews>
 
 <div class="breaking-news-bar">
 
-    <span class="badge">Headlines</span>
+    <span class="badge">@T["Headlines"]</span>
 
     <div class="ticker-wrapper">
         <div class="ticker" data-speed-level="@(ViewData["TickerSpeedLevel"] ?? 2)">

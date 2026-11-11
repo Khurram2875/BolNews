@@ -1,4 +1,4 @@
-﻿@using BolNews.Web.Areas.Admin.ViewModels
+@using BolNews.Web.Areas.Admin.ViewModels
 @inject BolNews.Web.Services.SiteProfileService SiteProfileService
 @model List<PublicArticleVM>
 
@@ -49,7 +49,7 @@
 		<div class="col-md-6" style="background:var(--bn-nav-bg);>
 			
 				<div class="container">
-					<div style="font-family:var(--bn-font-ui);font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:8px;">Search Results</div>
+					<div style="font-family:var(--bn-font-ui);font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:8px;">@T["Search Results"]</div>
 					<h3 style="font-family:var(--bn-font-display);font-size:clamp(20px,3vw,30px);font-weight:800;color:#fff;margin:0 0 6px;">
 						"@query"
 					</h3>
@@ -184,11 +184,11 @@
 			<aside class="col-lg-4">
 				<div style="position:sticky;top:70px;">
 					@await Component.InvokeAsync("AdZone", new { zone = "search.sidebar.top" })
-					<div class="bn-story-rail"><h2>Latest News</h2></div>
+					<div class="bn-story-rail"><h2>@T["Latest News"]</h2></div>
 					<div class="mb-4">
 						@await Component.InvokeAsync("LatestNews", new { count = 8 })
 					</div>
-					<div class="bn-story-rail"><h2>Trending</h2></div>
+					<div class="bn-story-rail"><h2>@T["Trending"]</h2></div>
 					@await Component.InvokeAsync("TrendingNews", new { type = Context.Request.Query["type"].ToString() })
 					@await Component.InvokeAsync("AdZone", new { zone = "search.sidebar.bottom" })
 				</div>

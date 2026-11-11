@@ -40,7 +40,7 @@
             </p>
             @if (ended)
             {
-                <span class="bn-poll__final">Final results</span>
+                <span class="bn-poll__final">@T["Final results"]</span>
             }
             else if (Model.HasVoted)
             {
@@ -48,7 +48,7 @@
             }
             else
             {
-                <button type="button" class="bn-poll__vote" data-poll-open>Vote now</button>
+                <button type="button" class="bn-poll__vote" data-poll-open>@T["Vote now"]</button>
             }
         </div>
     </div>
@@ -70,8 +70,8 @@
                 </div>
                 <p class="bn-poll__msg" role="alert" hidden></p>
                 <div class="bn-poll__actions">
-                    <button type="button" class="bn-poll__cancel" data-poll-close>Cancel</button>
-                    <button type="submit" class="bn-poll__submit">Submit vote</button>
+                    <button type="button" class="bn-poll__cancel" data-poll-close>@T["Cancel"]</button>
+                    <button type="submit" class="bn-poll__submit">@T["Submit vote"]</button>
                 </div>
             </form>
         </dialog>

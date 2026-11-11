@@ -1,4 +1,4 @@
-﻿@using BolNews.Web.Areas.Admin.ViewModels
+@using BolNews.Web.Areas.Admin.ViewModels
 @model CategorySectionVM
 
 @{
@@ -11,13 +11,13 @@
         <div class="bn-category-navigation">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb bn-category-breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/">@T["Home"]</a></li>
                     <li class="breadcrumb-item active" aria-current="page"><a href="/category/@Model.CategorySlug">@categoryName</a></li>
                 </ol>
             </nav>
             @if (Model.RelatedCategories.Any())
             {
-                <div class="bn-category-pills" aria-label="Related categories">
+                <div class="bn-category-pills" aria-label="@T["Related categories"]">
                     @foreach (var item in Model.RelatedCategories)
                     {
                         <a href="/category/@item.Slug" class="@(item.IsSelected ? "is-active" : null)">@item.Name</a>
@@ -95,11 +95,11 @@
                 <div style="position:sticky;top:70px;">
                     <!-- Sidebar Ad — Top -->
                     @await Component.InvokeAsync("AdZone", new { zone = "category.sidebar.top" })
-                    <div class="bn-story-rail"><h2>Latest News</h2></div>
+                    <div class="bn-story-rail"><h2>@T["Latest News"]</h2></div>
                     <div class="mb-4">
                         @await Component.InvokeAsync("LatestNews", new { count = 8 })
                     </div>
-                    <div class="bn-story-rail"><h2>Trending</h2></div>
+                    <div class="bn-story-rail"><h2>@T["Trending"]</h2></div>
                         @await Component.InvokeAsync("TrendingNews", new { type = Context.Request.Query["type"].ToString() })
                     @await Component.InvokeAsync("AdZone", new { zone = "category.sidebar.bottom" })
                     

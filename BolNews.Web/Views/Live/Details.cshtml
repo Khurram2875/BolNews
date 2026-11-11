@@ -1,4 +1,4 @@
-﻿@model BolNews.Web.ViewModels.LiveEventPageVM
+@model BolNews.Web.ViewModels.LiveEventPageVM
 @{
     ViewData["Title"] = Model.Title;
     var introHtml = BolNews.Web.Helpers.LiveHtml.Render(Model.IntroHtml);
@@ -16,7 +16,7 @@
             }
         </div>
         <div class="bn-live-top__body">
-            <div class="bn-live-top__head">@if (Model.ShowLiveBadge) { <span class="bn-live-badge">LIVE</span> }<h1>@Model.Title</h1></div>
+            <div class="bn-live-top__head">@if (Model.ShowLiveBadge) { <span class="bn-live-badge">@T["LIVE"]</span> }<h1>@Model.Title</h1></div>
             @if (!string.IsNullOrWhiteSpace(introHtml))
             {
                 @* Sanitised rich text from the editors; scrolls inside its own box beside the image *@
@@ -27,8 +27,8 @@
     <div class="row g-4 bn-live-columns">
         <aside class="col-lg-3">
             <div class="bn-live-panel">
-                <h2 class="h4">Timeline</h2>
-                <div class="bn-live-scroll bn-live-scroll--timeline" tabindex="0" role="region" aria-label="Timeline">
+                <h2 class="h4">@T["Timeline"]</h2>
+                <div class="bn-live-scroll bn-live-scroll--timeline" tabindex="0" role="region" aria-label="@T["Timeline"]">
                     <nav class="bn-live-timeline" style="background-color:lightgray">
                         @foreach (var update in Model.Updates)
                         {
@@ -40,8 +40,8 @@
         </aside>
         <section class="col-lg-6">
             <div class="bn-live-panel">
-                <h2 class="h4">Latest updates</h2>
-                <div class="bn-live-scroll" id="bn-live-updates-scroll" tabindex="0" role="region" aria-label="Latest updates">
+                <h2 class="h4">@T["Latest updates"]</h2>
+                <div class="bn-live-scroll" id="bn-live-updates-scroll" tabindex="0" role="region" aria-label="@T["Latest updates"]">
                     @foreach (var update in Model.Updates)
                     {
                         <article class="bn-live-update" id="update-@update.Id">
@@ -56,8 +56,8 @@
         </section>
         <aside class="col-lg-3">
             <div class="bn-live-panel">
-                <h2 class="h4">Related articles</h2>
-                <div class="bn-live-scroll" tabindex="0" role="region" aria-label="Related articles">
+                <h2 class="h4">@T["Related articles"]</h2>
+                <div class="bn-live-scroll" tabindex="0" role="region" aria-label="@T["Related articles"]">
                     <div class="bn-live-related">
                         @foreach (var article in Model.Articles)
                         {

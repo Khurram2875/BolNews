@@ -1,4 +1,4 @@
-﻿@using BolNews.Application.DTOs
+@using BolNews.Application.DTOs
 @model BolNews.Web.Areas.Admin.ViewModels.VideoSectionVM
 
 @{
@@ -14,12 +14,12 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb bn-category-breadcrumb mb-0">
                     <li class="breadcrumb-item">
-                        <a href="/">Home</a>
+                        <a href="/">@T["Home"]</a>
                     </li>
 
                     <li class="breadcrumb-item active"
                         aria-current="page">
-                        <a href="/category/videos">Videos</a>
+                        <a href="/category/videos">@T["Videos"]</a>
                     </li>
                 </ol>
             </nav>
@@ -107,7 +107,7 @@
 
 
                 <nav class="bn-category-pagination"
-                     aria-label="Video pagination">
+                     aria-label="@T["Video pagination"]">
 
                     @if (Model.Page > 1)
                     {
@@ -149,7 +149,7 @@
 
 
                     <div class="bn-story-rail">
-                        <h2>Latest News</h2>
+                        <h2>@T["Latest News"]</h2>
                     </div>
 
                     <div class="mb-4">
@@ -160,7 +160,7 @@
 
 
                     <div class="bn-story-rail">
-                        <h2>Trending</h2>
+                        <h2>@T["Trending"]</h2>
                     </div>
 
                     @await Component.InvokeAsync(

@@ -25,6 +25,7 @@ builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddControllersWithViews(options =>
     options.Filters.AddService<BolNews.Web.Filters.AdminTwoFactorEnrollmentFilter>());
 builder.Services.AddScoped<BolNews.Web.Filters.AdminTwoFactorEnrollmentFilter>();
+builder.Services.AddScoped<UiText>();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<BolNews.Web.Services.ShowCarouselService>();
 builder.Services.AddSession(options =>
@@ -148,6 +149,23 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.UseRouting();
+// Public pages follow the site language (en / ur): sets the request culture so dates, relative times and
+// UiText labels render in Urdu. The admin area always stays English / left-to-right.
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path;
+    if (!path.StartsWithSegments("/Admin", StringComparison.OrdinalIgnoreCase))
+    {
+        var profile = await context.RequestServices.GetRequiredService<SiteProfileService>().GetAsync(context.RequestAborted);
+        if (PublisherThemeCatalog.IsRtl(profile.LanguageCode))
+        {
+            var urdu = new System.Globalization.CultureInfo("ur-PK");
+            System.Globalization.CultureInfo.CurrentCulture = urdu;
+            System.Globalization.CultureInfo.CurrentUICulture = urdu;
+        }
+    }
+    await next();
+});
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();

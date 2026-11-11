@@ -1,4 +1,4 @@
-﻿@model BolNews.Web.ViewModels.FuelPriceWidgetVM
+@model BolNews.Web.ViewModels.FuelPriceWidgetVM
 
 <div class="fuel-price-widget">
 
@@ -19,7 +19,7 @@
     </div>
 
     <div class="fuel-price-item">
-        <div class="fuel-price-label">PETROL</div>
+        <div class="fuel-price-label">@T["PETROL"]</div>
 
         <div class="fuel-price-values">
             <div class="fuel-price-change">
@@ -38,7 +38,7 @@
                     <span class="fuel-price-change-value">0.00</span>
                 }
 
-                <span class="fuel-price-currency">PKR</span>
+                <span class="fuel-price-currency">@T["PKR"]</span>
             </div>
 
             <div class="fuel-price-amount">
@@ -48,7 +48,7 @@
     </div>
 
     <div class="fuel-price-item">
-        <div class="fuel-price-label">DIESEL</div>
+        <div class="fuel-price-label">@T["DIESEL"]</div>
 
         <div class="fuel-price-values">
             <div class="fuel-price-change">
@@ -67,7 +67,7 @@
                     <span class="fuel-price-change-value">0.00</span>
                 }
 
-                <span class="fuel-price-currency">PKR</span>
+                <span class="fuel-price-currency">@T["PKR"]</span>
             </div>
 
             <div class="fuel-price-amount">
