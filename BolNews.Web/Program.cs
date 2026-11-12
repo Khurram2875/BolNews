@@ -1,4 +1,4 @@
-using BolNews.Application.Interfaces;
+﻿using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
 using BolNews.Domain.Entities;
 using BolNews.Infrastructure.Services;
@@ -48,7 +48,23 @@ builder.Services.AddScoped<IGeminiService, GeminiService>();
 builder.Services.AddScoped<IGrammarService, GeminiGrammarService>();
 builder.Services.Configure<LatestNewsOptions>(
     builder.Configuration.GetSection(LatestNewsOptions.SectionName));
-builder.Services.AddScoped<IWordPressArticleReader, WordPressArticleReader>();
+// WordPressMigration:Source = "Rest" reads over the WordPress REST API (no database access needed);
+// anything else keeps the original direct-database reader.
+if (string.Equals(builder.Configuration["WordPressMigration:Source"], "Rest", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.Configure<WordPressRestOptions>(builder.Configuration.GetSection(WordPressRestOptions.SectionName));
+    builder.Services.AddHttpClient(WordPressRestArticleReader.HttpClientName, client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(90);
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("BolNews-CMS-WordPress-Migration/1.0");
+        client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+    });
+    builder.Services.AddScoped<IWordPressArticleReader, WordPressRestArticleReader>();
+}
+else
+{
+    builder.Services.AddScoped<IWordPressArticleReader, WordPressArticleReader>();
+}
 builder.Services.AddScoped<IWordPressAuthorResolver, WordPressAuthorResolver>();
 builder.Services.AddScoped<IWordPressCategoryResolver, WordPressCategoryResolver>();
 

@@ -229,12 +229,16 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
                 // in the migration DTO, so use the WordPress title
                 // and excerpt as sensible CMS SEO defaults.
                 MetaTitle =
-                    wp.PostTitle?.Trim() ?? string.Empty,
+                    !string.IsNullOrWhiteSpace(wp.SeoTitle)
+                        ? wp.SeoTitle.Trim()
+                        : wp.PostTitle?.Trim() ?? string.Empty,
 
                 MetaDescription =
-                    string.IsNullOrWhiteSpace(wp.PostSummary)
-                        ? wp.PostTitle?.Trim() ?? string.Empty
-                        : wp.PostSummary.Trim(),
+                    !string.IsNullOrWhiteSpace(wp.SeoDescription)
+                        ? wp.SeoDescription.Trim()
+                        : string.IsNullOrWhiteSpace(wp.PostSummary)
+                            ? wp.PostTitle?.Trim() ?? string.Empty
+                            : wp.PostSummary.Trim(),
 
                 CategoryId = category.Id,
 

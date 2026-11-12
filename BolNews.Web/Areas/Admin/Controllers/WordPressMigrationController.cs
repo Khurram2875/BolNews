@@ -37,10 +37,12 @@ namespace BolNews.Web.Areas.Admin.Controllers
             _migrationQueue = migrationQueue;
         }
 
-        public async Task<IActionResult> Test()
+        // Dry run: shows what the configured source returns without importing anything.
+        // /Admin/WordPressMigration/Test?from=2026-10-01&to=2026-11-12   (defaults to the last 30 days)
+        public async Task<IActionResult> Test(DateTime? from, DateTime? to)
         {
-            var fromDate = new DateTime(2026, 6, 1);
-            var toDate = new DateTime(2026, 7, 1);
+            var toDate = to ?? DateTime.UtcNow;
+            var fromDate = from ?? toDate.AddDays(-30);
 
             var articles = await _reader.GetArticlesAsync(
                 fromDate,

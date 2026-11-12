@@ -53,5 +53,9 @@ namespace BolNews.Application.DTOs
         public string? PrimaryReporterName { get; set; }
 
         public string? PrimaryReporterSlug { get; set; }
+
+        // Optional SEO fields (REST source, from Yoast). When empty the title/excerpt are used.
+        public string? SeoTitle { get; set; }
+        public string? SeoDescription { get; set; }
     }
 }
