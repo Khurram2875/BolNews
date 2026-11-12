@@ -763,7 +763,7 @@ body.nav-fixed {
     text-align: center;
 }
     .bn-card__body h3 {
-        font-family: "inter", sans-serif !important;
+        font-family: var(--bn-font-family) !important;
         color: #C4161C !important;
         font-size: 16px;
        
@@ -1521,15 +1521,15 @@ body.nav-fixed {
     }
 
     #editor .ql-editor .ql-align-right img {
-        float: left;
-        max-width: 350px;
-        margin: 0 20px 20px 0;
-    }
-
-    #editor .ql-editor .ql-align-left img {
         float: right;
         max-width: 350px;
         margin: 0 0 20px 20px;
+    }
+
+    #editor .ql-editor .ql-align-left img {
+        float: left;
+        max-width: 350px;
+        margin: 0 20px 20px 0;
     }
 
 .selected-image {
@@ -1566,15 +1566,15 @@ body.nav-fixed {
 }
 
 .bn-article-body .ql-align-right img {
-    float: left;
-    max-width: 350px;
-    margin: 0 20px 20px 0;
-}
-
-.bn-article-body .ql-align-left img {
     float: right;
     max-width: 350px;
     margin: 0 0 20px 20px;
+}
+
+.bn-article-body .ql-align-left img {
+    float: left;
+    max-width: 350px;
+    margin: 0 20px 20px 0;
 }
 .bn-article-body img[data-size="small"] {
     max-width: 250px;
@@ -2638,7 +2638,7 @@ body.nav-fixed {
 
 
 body {
-    font-family: "Poppins", Arial, sans-serif;
+    font-family: var(--bn-font-family);
 }
 
 .bn-container,
@@ -2668,7 +2668,7 @@ body {
 .breaking-news-bar {
     height: 36px;
     border-radius: 3px;
-    font-family: "Poppins", Arial, sans-serif;
+    font-family: var(--bn-font-family);
 }
 
 .breaking-news-bar .badge {
@@ -2988,7 +2988,7 @@ body.nav-fixed {
 .bn-category-heading h2 {
     margin: 0;
     color: #d71920;
-    font-family: "Poppins", Arial, sans-serif;
+    font-family: var(--bn-font-family);
     font-size: 20px;
     font-weight: 800;
     line-height: 1;
@@ -2996,7 +2996,7 @@ body.nav-fixed {
 
 .bn-category-heading a {
     color: #111;
-    font-family: "Poppins", Arial, sans-serif;
+    font-family: var(--bn-font-family);
     font-size: 16px;
     font-weight: 800;
     line-height: 1;
@@ -3037,7 +3037,7 @@ body.nav-fixed {
     display: -webkit-box;
     overflow: hidden;
     color: #333;
-    font-family: 'inter';
+    font-family: var(--bn-font-family);
     font-size: 13px;
     font-weight: 600;
     line-height: 1.5;
@@ -3049,7 +3049,7 @@ body.nav-fixed {
     display: block;
     margin-top: 4px;
     color: #111;
-    font-family: 'inter', sans-serif;
+    font-family: var(--bn-font-family);
     font-size: 12px;
     font-weight: 400;
 }
@@ -3059,7 +3059,7 @@ body.nav-fixed {
     border-top: 3px solid var(--bn-accent);
     background: var(--bn-surface);
     color: var(--bn-text-primary);
-    font-family: "Poppins", Arial, sans-serif;
+    font-family: var(--bn-font-family);
 }
 
 .bn-footer__top {
@@ -3220,7 +3220,7 @@ body,
 
 .bn-brand-date,
 .bn-watch-live {
-    font-family: "Poppins", sans-serif;
+    font-family: var(--bn-font-family);
     font-size: 14px;
     line-height: 25px;
 }
@@ -3236,7 +3236,7 @@ body,
 
 .breaking-news-bar .ticker-item,
 .breaking-news-bar .ticker-item a {
-    font-family:"Inter";
+    font-family:var(--bn-font-family);
     font-size: 15px;
     font-weight: 600;
     line-height: 1.35;
@@ -3247,7 +3247,7 @@ body,
 }
 
 .bn-menu-link {
-    font-family: "Inter", sans-serif;
+    font-family: var(--bn-font-family);
     min-height: 31px;
     padding: 8px 12px;
     font-size: 15px;
@@ -3270,7 +3270,7 @@ body,
 }
 
     .bn-top-stories-panel > h2 {
-        font-family: "Belleza", Sans-serif;
+        font-family: var(--bn-font-family);
         margin-bottom: 15px;
         padding: 8px 10px;
         font-size: 20px;
@@ -3283,7 +3283,7 @@ body,
     font-size : 20px;
     font-weight: 600;
     line-height: 1;
-    font-family: "Belleza", sans-serif;
+    font-family: var(--bn-font-family);
     letter-spacing: 1px;
 }
 
@@ -3323,7 +3323,7 @@ body,
 }
 
     .bn-card--featured .bn-card__body h3 {
-        font-family: "inter", sans-serif !important;
+        font-family: var(--bn-font-family) !important;
         color: #C4161C !important;
         font-size: 18px;
         font-weight: 600;
@@ -3339,7 +3339,7 @@ body,
         }    
         .bn-card--featured .bn-card__body p {
             color: #000000 !important;
-            font-family: 'Inter' !important;
+            font-family: var(--bn-font-family) !important;
             font-size: 15px !important;
             font-weight: 500;
             line-height: 28px;
@@ -3358,7 +3358,7 @@ body,
 
     .bn-remainingtop-grid .bn-card__body h4 {
         color: #C4161C !important;
-        font-family: 'inter' !important;
+        font-family: var(--bn-font-family) !important;
         font-size: 14px;
         font-weight: 600;
         line-height: 26px;
@@ -3369,7 +3369,7 @@ body,
         }
     .bn-remainingtop-grid .bn-card__body p {
         color: #000000 !important;
-        font-family: 'Inter' !important;
+        font-family: var(--bn-font-family) !important;
         font-size: 15px !important;
         font-weight: 500;
         line-height: 28px;
@@ -3395,7 +3395,7 @@ body,
 
     .bn-popular-card__body h3 {
         color: #C4161C !important;
-        font-family: "inter" !important;
+        font-family: var(--bn-font-family) !important;
         font-size: 14px;
         font-weight: 600;
         line-height: 26px;
@@ -3414,7 +3414,7 @@ body,
 }
 
 .bn-category-heading h2 {
-    font-family: 'inter' !important;
+    font-family: var(--bn-font-family) !important;
     font-size: 16px;
     font-weight: 600;
 
@@ -4809,7 +4809,7 @@ html[data-theme="dark"] .bn-main .text-muted {
 .bn-live-rich a { color: #0b57d0; text-decoration: underline; overflow-wrap: anywhere; }
 .bn-live-rich img { max-width: 100%; height: auto; border-radius: .35rem; }
 .bn-live-rich .ql-align-center { text-align: center; }
-.bn-live-rich .ql-align-right { text-align: left; }
+.bn-live-rich .ql-align-right { text-align: right; }
 .bn-live-rich .ql-align-justify { text-align: justify; }
 .bn-live-rich .quill-social-embed { display: flex; justify-content: center; max-width: 100%; margin: .75rem 0; overflow: hidden; }
 .bn-live-rich .quill-social-embed iframe { max-width: 100%; }

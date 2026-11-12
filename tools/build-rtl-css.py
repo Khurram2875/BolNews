@@ -79,6 +79,10 @@ def flip_css(css):
     def repl(m):
         prop = m.group("prop")
         newprop = SWAP_PROP.get(prop.lower(), prop)
+        if prop.lower() == "font-family" and "var(" not in m.group("val") and not re.search(r"icon|awesome|glyph|symbol|monospace|mono", m.group("val"), re.I):
+            # Hard-coded Latin faces (Inter, Poppins, Belleza) have no Urdu glyphs: use the site's Urdu font stack.
+            imp = " !important" if "!important" in m.group("val") else ""
+            return f"font-family{m.group('sep')}var(--bn-font-family){imp}{m.group('end')}"
         return f"{newprop}{m.group('sep')}{flip_value(prop, m.group('val'))}{m.group('end')}"
     # Only declarations inside braces; strip comments first so selectors are never matched.
     css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
@@ -86,14 +90,16 @@ def flip_css(css):
     i = 0
     # Walk once: text between '{' and the next '{' or '}' is a declaration block.
     pieces = re.split(r"([{}])", css)
-    result, stack = [], []
+    result, stack, last_sel = [], [], ""
     for idx, piece in enumerate(pieces):
         if piece == "{": stack.append(idx); result.append(piece); continue
         if piece == "}": stack and stack.pop(); result.append(piece); continue
         nxt = pieces[idx + 1] if idx + 1 < len(pieces) else ""
         # a declaration block is a segment directly followed by '}' (leaf); segments followed by '{' are selectors/at-rules
-        if nxt == "}": result.append(DECL.sub(repl, piece))
-        elif nxt == "{": result.append(piece)
+        if nxt == "}":
+            # Author-chosen alignment (Quill's .ql-align-left/right) is physical on purpose: never mirror it.
+            result.append(piece if "ql-align-" in last_sel else DECL.sub(repl, piece))
+        elif nxt == "{": last_sel = piece; result.append(piece)
         else: result.append(DECL.sub(repl, piece) if stack and not piece.strip().startswith("@") and ";" in piece else piece)
     return "".join(result)
 

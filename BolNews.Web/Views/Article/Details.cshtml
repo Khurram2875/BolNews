@@ -47,7 +47,7 @@
 				<article itemscope itemtype="https://schema.org/NewsArticle">
 
 					<!-- Category tag + title -->
-					<div class="mb-3" style="border-top:3px double #00000087; padding-top:5px; padding-left:10px">
+					<div class="mb-3" style="border-top:3px double #00000087; padding-top:5px; padding-inline-start:10px">
 						@* <a href="/@Model.Article.CategorySlug" class="bn-tag d-inline-block mb-3">@Model.Article.CategoryName</a> *@
 						<h1 itemprop="headline" style="
 								font-family:var(--bn-font-body);
@@ -69,7 +69,7 @@
 								font-weight:600;
 								color:#000000;
 								line-height:26px;
-								padding-left:10px;
+								padding-inline-start:10px;
 								margin-bottom:18px;">
 										@Model.Article.Summary
 						</p>
@@ -82,7 +82,7 @@
 							flex-wrap:wrap;
 							gap:16px;
 							padding:12px 0;
-							padding-left:10px;
+							padding-inline-start:10px;
 							margin-bottom:6px;
 							border-bottom:3px double #00000087;">
 
@@ -93,17 +93,17 @@
 
 						@if (Model.Article.PublishedAt.HasValue)
 						{
-							<span class="bn-article-meta-date" style="display:flex;align-items:center;gap:6px;font-family:var(--bn-font-body);font-size:14px;font-weight:500;line-height:26px;color:#000000; padding-left:20px;">
+							<span class="bn-article-meta-date" style="display:flex;align-items:center;gap:6px;font-family:var(--bn-font-body);font-size:14px;font-weight:500;line-height:26px;color:#000000; padding-inline-start:20px;">
 								<svg width="14" height="14" viewBox="0 0 448 512" fill="#C4161C"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-160v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z" /></svg>
 								@Model.Article.PublishedAt.Value.ToString("MMMM dd, yyyy")
 							</span>
 						}
 
 						<a class="bn-article-source-link" href="https://www.google.com/preferences/source?q=@Context.Request.Host.Host" target="_blank" rel="noopener" style="display:flex;align-items:center;">
-							<img src="~/images/googlepreferred.webp" alt="Add @siteProfile.SiteName as a trusted source" loading="lazy" style="height:30px;width:auto;padding-left:20px" />
+							<img src="~/images/googlepreferred.webp" alt="Add @siteProfile.SiteName as a trusted source" loading="lazy" style="height:30px;width:auto;padding-inline-start:20px" />
 						</a>
 						
-						<div class="bn-article-action-group" style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+						<div class="bn-article-action-group" style="display:flex;align-items:center;gap:8px;margin-inline-start:auto;">
 							<button type="button" class="bn-article-bookmark-button" data-bookmark-button
 									data-article-id="@Model.Article.Id"
 									data-article-title="@Model.Article.Title"
