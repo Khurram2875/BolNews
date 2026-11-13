@@ -1,4 +1,4 @@
-using BolNews.Application.DTOs;
+﻿using BolNews.Application.DTOs;
 using BolNews.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -77,7 +77,12 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
 
                 foreach (var post in doc.RootElement.EnumerateArray())
                 {
-                    try { result.Add(Map(post)); }
+                    try
+                    {
+                        var mapped = Map(post);
+                        if (string.IsNullOrWhiteSpace(mapped.AuthorName)) mapped.AuthorName = _options.DefaultAuthorName;
+                        result.Add(mapped);
+                    }
                     catch (Exception ex)
                     {
                         _logger.LogWarning(ex, "WORDPRESS_REST could not map post {Id}", GetInt(post, "id"));
@@ -164,6 +169,9 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
             // Yoast SEO fields (title/description) when the plugin exposes them.
             if (post.TryGetProperty("yoast_head_json", out var yoast) && yoast.ValueKind == JsonValueKind.Object)
             {
+                // Many sites hide /users from the REST API, so the embedded author has no name. Yoast still reports it.
+                if (string.IsNullOrWhiteSpace(dto.AuthorName))
+                    dto.AuthorName = NullIfEmpty(CleanText(GetString(yoast, "author")));
                 dto.SeoTitle = NullIfEmpty(CleanText(GetString(yoast, "title")));
                 dto.SeoDescription = NullIfEmpty(CleanText(GetString(yoast, "description")));
             }

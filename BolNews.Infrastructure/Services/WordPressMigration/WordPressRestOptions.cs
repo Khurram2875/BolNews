@@ -1,4 +1,4 @@
-namespace BolNews.Infrastructure.Services.WordPressMigration
+﻿namespace BolNews.Infrastructure.Services.WordPressMigration
 {
     /// <summary>
     /// Settings for importing from a WordPress site over its public REST API (no database access needed).
@@ -17,6 +17,9 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
         /// <summary>Optional: WordPress user and application password, only needed for private/draft content.</summary>
         public string? Username { get; set; }
         public string? ApplicationPassword { get; set; }
+
+        /// <summary>Author used when WordPress does not reveal one (users endpoint hidden and no Yoast author).</summary>
+        public string DefaultAuthorName { get; set; } = "BOL News Urdu";
 
         /// <summary>Safety cap on pages fetched per run.</summary>
         public int MaxPages { get; set; } = 400;

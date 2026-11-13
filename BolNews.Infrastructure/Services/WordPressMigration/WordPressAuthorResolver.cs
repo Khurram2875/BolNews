@@ -46,7 +46,16 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
                 return existingAuthor;
 
             // 2. Build Identity username/email.
+            // Identity user names/e-mails must be plain ASCII. Urdu (or other non-Latin) author names get a
+            // stable generated login instead; the display name and slug keep the real Urdu name.
             var emailLocalPart = CreateEmailLocalPart(authorName);
+            var isAscii = authorName.All(c => c < 128);
+            if (!isAscii || string.IsNullOrEmpty(emailLocalPart))
+            {
+                using var sha = System.Security.Cryptography.SHA256.Create();
+                var hash = Convert.ToHexString(sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(slug)))[..10].ToLowerInvariant();
+                emailLocalPart = $"wp.author.{hash}";
+            }
 
             var email = $"{emailLocalPart}@{EmailDomain}";
 
