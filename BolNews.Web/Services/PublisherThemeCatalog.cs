@@ -26,7 +26,11 @@ public static class PublisherThemeCatalog
         ["Amiri"] = "'Amiri', 'Noto Naskh Arabic', serif",
         ["Jameel Noori Nastaleeq"] = "'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif",
         ["Alvi Nastaleeq"] = "'Alvi Nastaleeq', 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif",
-        ["Nafees Web Naskh"] = "'Nafees Web Naskh', 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif"
+        ["Nafees Web Naskh"] = "'Nafees Web Naskh', 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif",
+        ["Nafees Naskh"] = "'Nafees Naskh', 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif",
+        ["Al Qalam Fakhar Naveed"] = "'Al Qalam Fakhar Naveed', 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif",
+        ["Haider"] = "'Haider', 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif",
+        ["Shamsheer Unicode"] = "'Shamsheer Unicode', 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif"
     };
 
     /// <summary>
@@ -39,7 +43,11 @@ public static class PublisherThemeCatalog
             ["Jameel Noori Nastaleeq"] = new[] { ("JameelNooriNastaleeq.woff2", "woff2") },
             ["Alvi Nastaleeq"] = new[] { ("AlviNastaleeq.ttf", "truetype") },
             // First file that exists wins, so either a .woff2 or the original .ttf can be dropped in.
-            ["Nafees Web Naskh"] = new[] { ("NafeesWebNaskh.woff2", "woff2"), ("NafeesWebNaskh.ttf", "truetype") }
+            ["Nafees Web Naskh"] = new[] { ("NafeesWebNaskh.woff2", "woff2"), ("NafeesWebNaskh.ttf", "truetype") },
+            ["Nafees Naskh"] = new[] { ("NafeesNaskh.woff2", "woff2"), ("NafeesNaskh.ttf", "truetype") },
+            ["Al Qalam Fakhar Naveed"] = new[] { ("AlQalamFakharNaveed.woff2", "woff2"), ("AlQalamFakharNaveed.ttf", "truetype") },
+            ["Haider"] = new[] { ("Haider.woff2", "woff2"), ("Haider.ttf", "truetype") },
+            ["Shamsheer Unicode"] = new[] { ("ShamsheerUnicode.woff2", "woff2"), ("ShamsheerUnicode.ttf", "truetype") }
         };
 
     private static (string File, string Format)? FindLocalFile(string name) =>
@@ -59,7 +67,8 @@ public static class PublisherThemeCatalog
     private static readonly string[] UrduFonts =
     {
         "Noto Nastaliq Urdu", "Noto Naskh Arabic", "Gulzar", "Lateef", "Scheherazade New", "Amiri",
-        "Jameel Noori Nastaleeq", "Alvi Nastaleeq", "Nafees Web Naskh"
+        "Jameel Noori Nastaleeq", "Alvi Nastaleeq", "Nafees Web Naskh", "Nafees Naskh",
+        "Al Qalam Fakhar Naveed", "Haider", "Shamsheer Unicode"
     };
 
     public static string NormalizeLanguage(string? value) =>

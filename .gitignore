@@ -376,3 +376,7 @@ FodyWeavers.xsd
 
 # Alvi Nastaleeq is licensed for educational/research use only (see the licence inside the font). Do not commit it; copy it to wwwroot/fonts/AlviNastaleeq.ttf on each server only if you hold written permission.
 BolNews.Web/wwwroot/fonts/AlviNastaleeq.ttf
+# Fonts from urdufonts.pk marked "All rights reserved" (no redistribution licence): copy to each server manually.
+BolNews.Web/wwwroot/fonts/AlQalamFakharNaveed.*
+BolNews.Web/wwwroot/fonts/Haider.*
+BolNews.Web/wwwroot/fonts/ShamsheerUnicode.*

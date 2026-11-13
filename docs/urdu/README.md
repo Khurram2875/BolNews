@@ -29,3 +29,5 @@ site setting.
 - A hosted font only shows in the dropdown when its file exists in `wwwroot/fonts`.
 - Alvi Nastaleeq's embedded licence allows educational/research use only and forbids redistribution or modification without written permission. The file is therefore git-ignored: copy it to each server manually, and only if you hold that permission.
 - To add another hosted font: put the file in `wwwroot/fonts`, add it to `FontStacks`, `UrduFonts` and `LocalFonts` in `Services/PublisherThemeCatalog.cs`.
+- **Nafees Naskh** (CRULP, `NafeesNaskh.ttf` + `NafeesNaskh-LICENSE.txt`, committed): the CRULP licence allows free use and redistribution provided the licence text stays with the font and the font is not renamed or modified.
+- **Al Qalam Fakhar Naveed, Haider, Shamsheer Unicode**: downloaded from urdufonts.pk with "All rights reserved" and no redistribution licence, so they are git-ignored. Copy `AlQalamFakharNaveed.ttf`, `Haider.ttf` and `ShamsheerUnicode.ttf` into `wwwroot/fonts/` on each server if you are satisfied with their terms.
