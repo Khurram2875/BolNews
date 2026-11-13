@@ -40,6 +40,19 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
             if (existingCategory != null)
                 return existingCategory;
 
+            // A soft-deleted category still owns its slug (unique index), so inserting a new one would fail with
+            // "Duplicate entry". Bring the deleted category back instead.
+            var deletedCategory =
+                await _categoryRepository.FindBySlugIncludingDeletedAsync(slug);
+
+            if (deletedCategory != null)
+            {
+                deletedCategory.IsDeleted = false;
+                if (!string.IsNullOrWhiteSpace(name)) deletedCategory.Name = name;
+                await _categoryRepository.UpdateAsync(deletedCategory);
+                return deletedCategory;
+            }
+
             // Category does not exist → create it.
             var category = new Category
             {

@@ -38,6 +38,11 @@ namespace BolNews.Persistence.Repositories
                 .Include(c => c.Articles)
                 .FirstOrDefaultAsync(c => c.Slug == slug);
 
+        public async Task<Category?> FindBySlugIncludingDeletedAsync(string slug)
+            => await _context.Categories
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(c => c.Slug == slug);
+
         public async Task<string?> GetSlugByIdAsync(int categoryId)
             => await _context.Categories
                 .Where(c => c.Id == categoryId)

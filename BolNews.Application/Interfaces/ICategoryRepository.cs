@@ -14,6 +14,9 @@ namespace BolNews.Application.Interfaces
         Task<List<Category>> GetParentsWithChildrenAsync();
         Task<Category?> FindByIdAsync(int id);
         Task<Category?> FindBySlugAsync(string slug);
+
+        /// <summary>Like FindBySlugAsync but also returns soft-deleted categories (the slug index is unique across them).</summary>
+        Task<Category?> FindBySlugIncludingDeletedAsync(string slug);
         Task<string?> GetSlugByIdAsync(int categoryId);
         Task AddAsync(Category category);
         Task UpdateAsync(Category category);
