@@ -12,12 +12,12 @@
 body[data-site-lang="ur"] .ql-editor.bn-urdu-editor {
     direction: rtl;
     text-align: right;
-    font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif;
+    font-family: var(--bn-font-urdu, 'Noto Nastaliq Urdu'), 'Noto Naskh Arabic', serif;
     font-size: 1.1rem;
     line-height: 2.2;
 }
 body[data-site-lang="ur"] .ql-editor.bn-urdu-editor.ql-blank::before { right: 15px; left: auto; text-align: right; }
 body[data-site-lang="ur"] input[dir="auto"], body[data-site-lang="ur"] textarea[dir="auto"] {
-    font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif;
+    font-family: var(--bn-font-urdu, 'Noto Nastaliq Urdu'), 'Noto Naskh Arabic', serif;
     line-height: 1.9;
 }

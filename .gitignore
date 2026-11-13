@@ -373,3 +373,6 @@ FodyWeavers.xsd
 /BolNews.Web/wwwroot/images/shows/policy-point.webp
 /BolNews.Web/wwwroot/uploads/media/137
 /BolNews.Web/wwwroot/uploads
+
+# Alvi Nastaleeq is licensed for educational/research use only (see the licence inside the font). Do not commit it; copy it to wwwroot/fonts/AlviNastaleeq.ttf on each server only if you hold written permission.
+BolNews.Web/wwwroot/fonts/AlviNastaleeq.ttf

@@ -1,4 +1,4 @@
-﻿using BolNews.Application.Interfaces;
+using BolNews.Application.Interfaces;
 using BolNews.Application.Services;
 using BolNews.Domain.Entities;
 using BolNews.Infrastructure.Services;
@@ -146,6 +146,7 @@ app.Use(async (context, next) =>
 
     await next();
 });
+BolNews.Web.Services.PublisherThemeCatalog.ConfigureWebRoot(app.Environment.WebRootPath);
 app.UseResponseCompression();
 app.UseStaticFiles(new StaticFileOptions
 {

@@ -21,3 +21,10 @@ site setting.
 - Account/login pages, error text from the server other than polls, and a few admin-only messages are still English.
 - Inline `<style>` blocks inside some views are not mirrored automatically.
 - Not yet run against a real browser session with the full app (no .NET SDK in the build sandbox); check each page type once on a test server.
+
+## Fonts (Publisher Settings → Site font family)
+- Google fonts (loaded on demand): Noto Nastaliq Urdu, Noto Naskh Arabic, Gulzar, Lateef, Scheherazade New, Amiri.
+- Hosted on this site (`BolNews.Web/wwwroot/fonts/`): **Jameel Noori Nastaleeq** (`JameelNooriNastaleeq.woff2`, committed, about 6.9 MB, subset to Urdu/Latin) and **Alvi Nastaleeq** (`AlviNastaleeq.ttf`).
+- A hosted font only shows in the dropdown when its file exists in `wwwroot/fonts`.
+- Alvi Nastaleeq's embedded licence allows educational/research use only and forbids redistribution or modification without written permission. The file is therefore git-ignored: copy it to each server manually, and only if you hold that permission.
+- To add another hosted font: put the file in `wwwroot/fonts`, add it to `FontStacks`, `UrduFonts` and `LocalFonts` in `Services/PublisherThemeCatalog.cs`.
