@@ -179,7 +179,9 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
             {
                 throw new InvalidOperationException(
                     $"Unable to resolve category for WordPress post " +
-                    $"{wp.WordPressPostId}.");
+                    $"{wp.WordPressPostId}: it has no usable category " +
+                    $"(only 'Latest News' or none). Assign a category in WordPress " +
+                    $"or import it manually.");
             }
 
             // ---------------------------------------------------------

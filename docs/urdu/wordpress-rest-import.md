@@ -30,3 +30,12 @@ It returns the mapped articles (title, Urdu slug, category, tags, image URL, Yoa
 
 ## Not covered yet
 Old-URL redirects (`/category/<id>/` to the new article), the `post-featured-video` plugin field, inline images inside content, comments.
+
+## "Latest News" (تازہ ترین) is never the article category
+WordPress files every new post under Latest News as well as its real section. The importer ignores categories listed in `WordPressRest:ExcludedCategorySlugs` (default `latest-news`) and `ExcludedCategoryNames` (default `تازہ ترین`, `Latest News`). The category is the first segment of the post URL when usable, otherwise the first remaining WordPress category. A post that only has Latest News fails with a clear message instead of being filed wrongly.
+
+Check already imported articles:
+```sql
+SELECT a.Id, a.Title, c.Slug FROM Articles a JOIN Categories c ON c.Id = a.CategoryId
+WHERE a.SourceSystem = 'WordPress' AND (c.Slug = 'latest-news' OR c.Name = 'تازہ ترین');
+```

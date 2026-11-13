@@ -18,6 +18,12 @@
         public string? Username { get; set; }
         public string? ApplicationPassword { get; set; }
 
+        /// <summary>WordPress categories that are never used as an article's category (matched by slug).</summary>
+        public List<string> ExcludedCategorySlugs { get; set; } = new() { "latest-news" };
+
+        /// <summary>Same, matched by name (the Urdu "Latest News" label).</summary>
+        public List<string> ExcludedCategoryNames { get; set; } = new() { "تازہ ترین", "Latest News" };
+
         /// <summary>Author used when WordPress does not reveal one (users endpoint hidden and no Yoast author).</summary>
         public string DefaultAuthorName { get; set; } = "BOL News Urdu";
 

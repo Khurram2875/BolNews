@@ -79,7 +79,7 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
                 {
                     try
                     {
-                        var mapped = Map(post);
+                        var mapped = Map(post, _options);
                         if (string.IsNullOrWhiteSpace(mapped.AuthorName)) mapped.AuthorName = _options.DefaultAuthorName;
                         result.Add(mapped);
                     }
@@ -97,7 +97,7 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
 
         // ------------------------------------------------------------------ mapping
 
-        private static WordPressArticleImportDto Map(JsonElement post)
+        private static WordPressArticleImportDto Map(JsonElement post, WordPressRestOptions options)
         {
             var dto = new WordPressArticleImportDto
             {
@@ -140,12 +140,19 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
                 }
             }
 
-            // BOL URLs look like /pakistan/861600/: the first path segment is the primary category.
-            // Prefer it over "latest-news"/"video" style secondary categories.
+            // Every new WordPress post is also filed under "Latest News" (تازہ ترین). That is not a real section: the
+            // CMS builds its own virtual latest-news page. Such categories are never the article's category.
+            bool IsExcluded((int id, string name, string slug) c) =>
+                options.ExcludedCategorySlugs.Any(s => string.Equals(s, c.slug, StringComparison.OrdinalIgnoreCase)) ||
+                options.ExcludedCategoryNames.Any(n => string.Equals(n.Trim(), c.name.Trim(), StringComparison.OrdinalIgnoreCase));
+            var candidates = categories.Where(c => !IsExcluded(c)).ToList();
+
+            // BOL URLs look like /pakistan/861600/: the first path segment is the real (primary) category.
+            // If that is not usable, fall back to the first remaining category WordPress lists.
             var firstSegment = FirstPathSegment(GetString(post, "link"));
-            var primary = categories.FirstOrDefault(c => string.Equals(c.slug, firstSegment, StringComparison.OrdinalIgnoreCase));
-            if (primary.id == 0) primary = categories.FirstOrDefault(c => c.slug != "latest-news");
-            if (primary.id == 0 && categories.Count > 0) primary = categories[0];
+            var primary = candidates.FirstOrDefault(c => string.Equals(c.slug, firstSegment, StringComparison.OrdinalIgnoreCase));
+            if (primary.id == 0 && candidates.Count > 0) primary = candidates[0];
+            // No usable category (only Latest News): left empty on purpose, the import then reports it clearly.
             if (primary.id != 0)
             {
                 dto.WordPressCategoryId = primary.id;
