@@ -25,6 +25,7 @@ site setting.
 ## Fonts (Publisher Settings → Site font family)
 - Google fonts (loaded on demand): Noto Nastaliq Urdu, Noto Naskh Arabic, Gulzar, Lateef, Scheherazade New, Amiri.
 - Hosted on this site (`BolNews.Web/wwwroot/fonts/`): **Jameel Noori Nastaleeq** (`JameelNooriNastaleeq.woff2`, committed, about 6.9 MB, subset to Urdu/Latin) and **Alvi Nastaleeq** (`AlviNastaleeq.ttf`).
+- **Nafees Web Naskh** (CRULP): drop `NafeesWebNaskh.woff2` or `NafeesWebNaskh.ttf` into `wwwroot/fonts/`. Check the licence text shipped with your copy before committing it.
 - A hosted font only shows in the dropdown when its file exists in `wwwroot/fonts`.
 - Alvi Nastaleeq's embedded licence allows educational/research use only and forbids redistribution or modification without written permission. The file is therefore git-ignored: copy it to each server manually, and only if you hold that permission.
 - To add another hosted font: put the file in `wwwroot/fonts`, add it to `FontStacks`, `UrduFonts` and `LocalFonts` in `Services/PublisherThemeCatalog.cs`.

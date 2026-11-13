@@ -25,19 +25,27 @@ public static class PublisherThemeCatalog
         ["Scheherazade New"] = "'Scheherazade New', 'Noto Naskh Arabic', serif",
         ["Amiri"] = "'Amiri', 'Noto Naskh Arabic', serif",
         ["Jameel Noori Nastaleeq"] = "'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif",
-        ["Alvi Nastaleeq"] = "'Alvi Nastaleeq', 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif"
+        ["Alvi Nastaleeq"] = "'Alvi Nastaleeq', 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif",
+        ["Nafees Web Naskh"] = "'Nafees Web Naskh', 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif"
     };
 
     /// <summary>
     /// Fonts served from this site (wwwroot/fonts) instead of Google Fonts: family name -> (file, css format).
     /// A local font only appears in the Publisher Settings list when its file is actually present.
     /// </summary>
-    private static readonly IReadOnlyDictionary<string, (string File, string Format)> LocalFonts =
-        new Dictionary<string, (string, string)>(StringComparer.OrdinalIgnoreCase)
+    private static readonly IReadOnlyDictionary<string, (string File, string Format)[]> LocalFonts =
+        new Dictionary<string, (string, string)[]>(StringComparer.OrdinalIgnoreCase)
         {
-            ["Jameel Noori Nastaleeq"] = ("JameelNooriNastaleeq.woff2", "woff2"),
-            ["Alvi Nastaleeq"] = ("AlviNastaleeq.ttf", "truetype")
+            ["Jameel Noori Nastaleeq"] = new[] { ("JameelNooriNastaleeq.woff2", "woff2") },
+            ["Alvi Nastaleeq"] = new[] { ("AlviNastaleeq.ttf", "truetype") },
+            // First file that exists wins, so either a .woff2 or the original .ttf can be dropped in.
+            ["Nafees Web Naskh"] = new[] { ("NafeesWebNaskh.woff2", "woff2"), ("NafeesWebNaskh.ttf", "truetype") }
         };
+
+    private static (string File, string Format)? FindLocalFile(string name) =>
+        _webRoot != null && LocalFonts.TryGetValue(name, out var options)
+            ? options.Select(o => ((string File, string Format)?)o).FirstOrDefault(o => File.Exists(Path.Combine(_webRoot, "fonts", o!.Value.File)))
+            : null;
 
     private static string? _webRoot;
 
@@ -45,14 +53,13 @@ public static class PublisherThemeCatalog
     public static void ConfigureWebRoot(string? webRootPath) => _webRoot = webRootPath;
 
     private static bool IsAvailable(string name) =>
-        !LocalFonts.TryGetValue(name, out var local) ||
-        (_webRoot != null && File.Exists(Path.Combine(_webRoot, "fonts", local.File)));
+        !LocalFonts.ContainsKey(name) || FindLocalFile(name) != null;
 
     public static IReadOnlyCollection<string> Languages { get; } = new[] { "en", "ur" };
     private static readonly string[] UrduFonts =
     {
         "Noto Nastaliq Urdu", "Noto Naskh Arabic", "Gulzar", "Lateef", "Scheherazade New", "Amiri",
-        "Jameel Noori Nastaleeq", "Alvi Nastaleeq"
+        "Jameel Noori Nastaleeq", "Alvi Nastaleeq", "Nafees Web Naskh"
     };
 
     public static string NormalizeLanguage(string? value) =>
@@ -116,8 +123,9 @@ public static class PublisherThemeCatalog
 
     private static string BuildFontFaceCss(string fontName)
     {
-        if (!LocalFonts.TryGetValue(fontName, out var local) || !IsAvailable(fontName)) return string.Empty;
-        return $"@font-face{{font-family:'{fontName}';src:url('/fonts/{local.File}') format('{local.Format}');font-weight:100 900;font-style:normal;font-display:swap;}}";
+        var local = FindLocalFile(fontName);
+        if (local == null) return string.Empty;
+        return $"@font-face{{font-family:'{fontName}';src:url('/fonts/{local.Value.File}') format('{local.Value.Format}');font-weight:100 900;font-style:normal;font-display:swap;}}";
     }
 
     public static string BuildCssVariables(SiteProfile profile, bool publicSite = true)
