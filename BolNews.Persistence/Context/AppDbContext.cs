@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -90,6 +90,8 @@ namespace BolNews.Persistence.Context
                 entity.Property(x => x.ThemeName).HasMaxLength(40).IsRequired();
                 entity.Property(x => x.FontFamily).HasMaxLength(80).IsRequired();
                 entity.Property(x => x.LanguageCode).HasMaxLength(8).IsRequired().HasDefaultValue("en");
+                entity.Property(x => x.BaseFontSizePx).HasDefaultValue(16);
+                entity.Property(x => x.ArticleFontSizePx).HasDefaultValue(0);
                 entity.Property(x => x.NavigationCategoryIds).HasMaxLength(100);
                 entity.Property(x => x.LiveStreamUrl).HasMaxLength(512).IsRequired();
                 entity.Property(x => x.LiveVideoEmbedUrl).HasMaxLength(1024);

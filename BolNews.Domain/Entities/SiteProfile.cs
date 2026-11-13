@@ -19,6 +19,10 @@ public class SiteProfile
     public string FontFamily { get; set; } = "Inter";
     /// <summary>Public site language: "en" (left-to-right) or "ur" (Urdu, right-to-left).</summary>
     public string LanguageCode { get; set; } = "en";
+    /// <summary>Root font size in px for the public site (rem-based text scales with it). Default 16.</summary>
+    public int BaseFontSizePx { get; set; } = 16;
+    /// <summary>Article body text size in px; 0 keeps the theme default.</summary>
+    public int ArticleFontSizePx { get; set; }
     /// <summary>Comma-separated ordered category IDs for the public navigation. Null uses the legacy default.</summary>
     public string? NavigationCategoryIds { get; set; }
     public string LiveStreamUrl { get; set; } = "/live";

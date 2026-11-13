@@ -3,6 +3,17 @@
 -- Each section is guarded by __EFMigrationsHistory where its source script is; do not reorder.
 
 
+-- ======== BEGIN docs/production-sql/20261113000000_AddSiteProfileFontSizes_Rollback.sql ========
+START TRANSACTION;
+
+ALTER TABLE `SiteProfiles` DROP COLUMN `ArticleFontSizePx`;
+ALTER TABLE `SiteProfiles` DROP COLUMN `BaseFontSizePx`;
+
+DELETE FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261113000000_AddSiteProfileFontSizes';
+
+COMMIT;
+-- ======== END docs/production-sql/20261113000000_AddSiteProfileFontSizes_Rollback.sql ========
+
 -- ======== BEGIN docs/production-sql/20261111000000_AddSiteProfileLanguage_Rollback.sql ========
 START TRANSACTION;
 

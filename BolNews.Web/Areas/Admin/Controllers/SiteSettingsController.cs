@@ -114,6 +114,10 @@ public sealed class SiteSettingsController(SiteProfileService profiles, IWebHost
             ModelState.AddModelError(nameof(model.ThemeName), "Choose a supported theme.");
         if (!PublisherThemeCatalog.FontNames.Contains(model.FontFamily, StringComparer.OrdinalIgnoreCase))
             ModelState.AddModelError(nameof(model.FontFamily), "Choose a supported font family.");
+        if (model.BaseFontSizePx < 12 || model.BaseFontSizePx > 24)
+            ModelState.AddModelError(nameof(model.BaseFontSizePx), "Base text size must be between 12 and 24 px.");
+        if (model.ArticleFontSizePx != 0 && (model.ArticleFontSizePx < 12 || model.ArticleFontSizePx > 40))
+            ModelState.AddModelError(nameof(model.ArticleFontSizePx), "Article text size must be 0 (theme default) or between 12 and 40 px.");
         if (!PublisherThemeCatalog.Languages.Contains(model.LanguageCode, StringComparer.OrdinalIgnoreCase))
             ModelState.AddModelError(nameof(model.LanguageCode), "Choose a supported site language.");
         if (!IsSafeUrlOrPath(model.HeaderLogoUrl) || !IsSafeUrlOrPath(model.FooterLogoUrl) || !IsSafeUrlOrPath(model.FaviconUrl) || !IsSafeUrlOrPath(model.LiveStreamUrl) || !IsSafeUrlOrPath(model.LiveVideoEmbedUrl) || !IsSafeUrlOrPath(model.LiveThumbnailUrl))

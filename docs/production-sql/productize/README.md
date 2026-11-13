@@ -16,3 +16,4 @@ Run `Combined_Upgrade.sql` once (or the individual scripts in this order):
 
 Rollback: `Combined_Rollback.sql` (reverse order). Skip any step already applied (check `__EFMigrationsHistory`).
 Local dev: `Update-Database` applies the same chain.
+10. `docs/production-sql/20261113000000_AddSiteProfileFontSizes.sql` (Urdu branch: base/article text size)

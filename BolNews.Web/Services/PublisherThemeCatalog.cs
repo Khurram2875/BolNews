@@ -50,12 +50,58 @@ public static class PublisherThemeCatalog
             ["Shamsheer Unicode"] = new[] { ("ShamsheerUnicode.woff2", "woff2"), ("ShamsheerUnicode.ttf", "truetype") }
         };
 
-    private static (string File, string Format)? FindLocalFile(string name) =>
-        _webRoot != null && LocalFonts.TryGetValue(name, out var options)
-            ? options.Select(o => ((string File, string Format)?)o).FirstOrDefault(o => File.Exists(Path.Combine(_webRoot, "fonts", o!.Value.File)))
-            : null;
+    private static (string File, string Format)? FindLocalFile(string name)
+    {
+        if (_webRoot != null && LocalFonts.TryGetValue(name, out var options))
+            return options.Select(o => ((string File, string Format)?)o).FirstOrDefault(o => File.Exists(Path.Combine(_webRoot, "fonts", o!.Value.File)));
+        return Discovered().TryGetValue(name, out var d) ? d : null;
+    }
 
     private static string? _webRoot;
+
+    // ---- Fonts dropped into wwwroot/fonts are discovered automatically: "My Font.ttf" appears as "My Font".
+    private static readonly object ScanLock = new();
+    private static DateTime _scannedAt = DateTime.MinValue;
+    private static Dictionary<string, (string File, string Format)> _discovered = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly (string Ext, string Format)[] FontExtensions =
+        { (".woff2", "woff2"), (".woff", "woff"), (".ttf", "truetype"), (".otf", "opentype") };
+
+    private static IReadOnlyDictionary<string, (string File, string Format)> Discovered()
+    {
+        if (_webRoot == null) return _discovered;
+        lock (ScanLock)
+        {
+            if (DateTime.UtcNow - _scannedAt < TimeSpan.FromSeconds(20)) return _discovered;
+            var found = new Dictionary<string, (string, string)>(StringComparer.OrdinalIgnoreCase);
+            var dir = Path.Combine(_webRoot, "fonts");
+            if (Directory.Exists(dir))
+            {
+                foreach (var (ext, format) in FontExtensions) // earlier extensions win (woff2 before ttf)
+                {
+                    foreach (var path in Directory.EnumerateFiles(dir, "*" + ext))
+                    {
+                        var file = Path.GetFileName(path);
+                        var name = Regex.Replace(Path.GetFileNameWithoutExtension(file).Replace('_', ' ').Replace('-', ' '), @"\s+", " ").Trim();
+                        // Only plain names are accepted: the name is written into CSS.
+                        if (name.Length == 0 || name.Length > 60 || !Regex.IsMatch(name, @"^[\p{L}\p{N} .()]+$")) continue;
+                        if (FontStacks.ContainsKey(name) || LocalFonts.ContainsKey(name)) continue;
+                        found.TryAdd(name, (file, format));
+                    }
+                }
+            }
+            _discovered = found;
+            _scannedAt = DateTime.UtcNow;
+            return _discovered;
+        }
+    }
+
+    private static string StackFor(string name) =>
+        FontStacks.TryGetValue(name, out var stack)
+            ? stack
+            : $"'{name}', 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif";
+
+    private static bool IsUrduFont(string name) =>
+        UrduFonts.Contains(name, StringComparer.OrdinalIgnoreCase) || Discovered().ContainsKey(name);
 
     /// <summary>Call once at startup so local fonts can be checked on disk.</summary>
     public static void ConfigureWebRoot(string? webRootPath) => _webRoot = webRootPath;
@@ -85,14 +131,15 @@ public static class PublisherThemeCatalog
         "Noto Nastaliq Urdu", "Noto Naskh Arabic", "Gulzar", "Lateef", "Scheherazade New", "Amiri"
     };
 
-    public static IReadOnlyCollection<string> FontNames => FontStacks.Keys.Where(IsAvailable).OrderBy(name => name).ToArray();
+    public static IReadOnlyCollection<string> FontNames =>
+        FontStacks.Keys.Where(IsAvailable).Concat(Discovered().Keys).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(name => name).ToArray();
     public static IReadOnlyCollection<string> ThemeNames { get; } = new[] { "default", "dark", "editorial", "bold" };
 
     public static string NormalizeTheme(string? value) =>
         ThemeNames.FirstOrDefault(name => string.Equals(name, value, StringComparison.OrdinalIgnoreCase)) ?? "default";
 
     public static string NormalizeFont(string? value) =>
-        FontStacks.Keys.FirstOrDefault(name => string.Equals(name, value, StringComparison.OrdinalIgnoreCase)) ?? "Inter";
+        FontNames.FirstOrDefault(name => string.Equals(name, value, StringComparison.OrdinalIgnoreCase)) ?? "Inter";
 
     public static string GetGoogleFontStylesheetUrl(string? fontName)
     {
@@ -118,7 +165,7 @@ public static class PublisherThemeCatalog
     public static string GetEffectiveFont(SiteProfile profile)
     {
         var font = NormalizeFont(profile.FontFamily);
-        return IsRtl(profile.LanguageCode) && !UrduFonts.Contains(font, StringComparer.OrdinalIgnoreCase)
+        return IsRtl(profile.LanguageCode) && !IsUrduFont(font)
             ? "Noto Nastaliq Urdu"
             : font;
     }
@@ -127,7 +174,7 @@ public static class PublisherThemeCatalog
     private static string GetUrduFont(SiteProfile profile)
     {
         var font = NormalizeFont(profile.FontFamily);
-        return UrduFonts.Contains(font, StringComparer.OrdinalIgnoreCase) ? font : "Noto Nastaliq Urdu";
+        return IsUrduFont(font) ? font : "Noto Nastaliq Urdu";
     }
 
     private static string BuildFontFaceCss(string fontName)
@@ -140,7 +187,7 @@ public static class PublisherThemeCatalog
     public static string BuildCssVariables(SiteProfile profile, bool publicSite = true)
     {
         var theme = NormalizeTheme(profile.ThemeName);
-        var font = FontStacks[publicSite ? GetEffectiveFont(profile) : NormalizeFont(profile.FontFamily)];
+        var font = StackFor(publicSite ? GetEffectiveFont(profile) : NormalizeFont(profile.FontFamily));
         var primary = SafeColor(profile.PrimaryColor, "#d30b12");
         var accent = SafeColor(profile.AccentColor, primary);
         var (background, surface, surfaceAlt, border, text, bodyText, muted, navBackground, navText) = theme switch
@@ -151,12 +198,18 @@ public static class PublisherThemeCatalog
             _ => ("#f5f4f0", "#ffffff", "#f0ede6", "#e0dbd0", "#111111", "#2d2d2d", "#767676", "#111111", "rgba(255,255,255,.82)")
         };
         if (theme == "editorial") navText = "rgba(253,246,227,.82)";
+        var baseSize = Math.Clamp(profile.BaseFontSizePx, 12, 24);
+        var articleSize = profile.ArticleFontSizePx;
+        var sizeCss = (baseSize != 16 ? $"html:root{{font-size:{baseSize}px;}}" : "") +
+                      (articleSize >= 12 && articleSize <= 40
+                          ? $"html .bn-article-body,html .bn-article-body p,html .bn-article-body li{{font-size:{articleSize}px;}}"
+                          : "");
         var urduFont = GetUrduFont(profile);
         var fontFaces = BuildFontFaceCss(urduFont) + BuildFontFaceCss(NormalizeFont(profile.FontFamily));
         var primaryRgb = ToRgb(primary);
         var accentRgb = ToRgb(accent);
 
-        return fontFaces + $":root{{--bn-font-urdu:{FontStacks[urduFont]};--bn-bg:{background};--bn-surface:{surface};--bn-surface-alt:{surfaceAlt};--bn-border:{border};--bn-text-primary:{text};--bn-text-body:{bodyText};--bn-text-muted:{muted};--bn-brand-primary:{primary};--bn-brand-accent:{accent};--bn-brand-accent-hover:{Darken(accent)};--bn-accent:{primary};--bn-accent-hover:{Darken(primary)};--bn-nav-bg:{navBackground};--bn-nav-text:{navText};--bn-nav-text-hover:#ffffff;--bn-nav-active:{primary};--bn-ticker-bg:{accent};--bn-ticker-text:#ffffff;--bn-font-family:{font};--bn-font-body:{font};--bn-font-display:{font};--bn-font-ui:{font};--bn-font-accent:{font};--bs-body-font-family:var(--bn-font-family);--bs-body-bg:var(--bn-bg);--bs-body-color:var(--bn-text-primary);--bs-card-bg:var(--bn-surface);--bs-card-color:var(--bn-text-primary);--bs-border-color:var(--bn-border);--bs-primary-rgb:{primaryRgb};--bs-danger-rgb:{primaryRgb};--bs-link-color-rgb:{accentRgb};--bs-link-hover-color-rgb:{primaryRgb};}}";
+        return fontFaces + sizeCss + $":root{{--bn-font-urdu:{StackFor(urduFont)};--bn-bg:{background};--bn-surface:{surface};--bn-surface-alt:{surfaceAlt};--bn-border:{border};--bn-text-primary:{text};--bn-text-body:{bodyText};--bn-text-muted:{muted};--bn-brand-primary:{primary};--bn-brand-accent:{accent};--bn-brand-accent-hover:{Darken(accent)};--bn-accent:{primary};--bn-accent-hover:{Darken(primary)};--bn-nav-bg:{navBackground};--bn-nav-text:{navText};--bn-nav-text-hover:#ffffff;--bn-nav-active:{primary};--bn-ticker-bg:{accent};--bn-ticker-text:#ffffff;--bn-font-family:{font};--bn-font-body:{font};--bn-font-display:{font};--bn-font-ui:{font};--bn-font-accent:{font};--bs-body-font-family:var(--bn-font-family);--bs-body-bg:var(--bn-bg);--bs-body-color:var(--bn-text-primary);--bs-card-bg:var(--bn-surface);--bs-card-color:var(--bn-text-primary);--bs-border-color:var(--bn-border);--bs-primary-rgb:{primaryRgb};--bs-danger-rgb:{primaryRgb};--bs-link-color-rgb:{accentRgb};--bs-link-hover-color-rgb:{primaryRgb};}}";
     }
 
     private static string SafeColor(string? value, string fallback) =>
