@@ -157,7 +157,11 @@ namespace BolNews.Infrastructure.Services.WordPressMigration
             {
                 throw new InvalidOperationException(
                     $"Unable to resolve author for WordPress post " +
-                    $"{wp.WordPressPostId}.");
+                    $"{wp.WordPressPostId} (WordPress author id " +
+                    $"{wp.WordPressAuthorId?.ToString() ?? "none"}, " +
+                    $"author name '{wp.AuthorName ?? "<null>"}'). " +
+                    $"An empty name means the REST reader did not fill the author: " +
+                    $"check that the latest build is running.");
             }
 
             // ---------------------------------------------------------
