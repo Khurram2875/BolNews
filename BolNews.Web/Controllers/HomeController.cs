@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using BolNews.Application.Common;
 using BolNews.Application.Interfaces;
 using BolNews.Domain.Common;
@@ -324,17 +324,9 @@ namespace BolNews.Web.Controllers
                         allCategoryIds,
                         5);
 
-            var displayOrder = new[]
-            {
-                "pakistan",
-                "world",
-                "business",
-                "sports",
-                "entertainment",
-                "technology",
-                "health",
-                "lifestyle"
-            };
+            // Every parent category is offered to the home page layout (the publisher picks which ones show and in what
+            // order). The default list keeps its original order first; "latest-news" is never a home column.
+            var displayOrder = BolNews.Domain.Entities.HomeLayoutSettings.DefaultCategorySlugs;
 
             var orderedCategories =
                 displayOrder
@@ -345,6 +337,12 @@ namespace BolNews.Web.Controllers
                                 slug,
                                 StringComparison.OrdinalIgnoreCase)))
                     .Where(c => c != null)
+                    .Concat(
+                        categories
+                            .Where(c =>
+                                !displayOrder.Contains(c.Slug, StringComparer.OrdinalIgnoreCase) &&
+                                !string.Equals(c.Slug, "latest-news", StringComparison.OrdinalIgnoreCase))
+                            .OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase))
                     .ToList();
 
             foreach (var category in orderedCategories)

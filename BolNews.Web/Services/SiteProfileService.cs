@@ -30,6 +30,7 @@ public sealed class SiteProfileService(AppDbContext db, IMemoryCache cache, IHtt
     {
         draft.StyleSettingsJson = StyleSettings.Normalize(draft.Style).ToJson();
         draft.CustomBlocksJson = draft.Blocks.ToJson();
+        draft.HomeLayoutJson = draft.HomeLayout.ToJson();
         var token = Guid.NewGuid().ToString("N");
         cache.Set(PreviewKeyPrefix + token, draft, PreviewLifetime);
         return token;
@@ -58,6 +59,7 @@ public sealed class SiteProfileService(AppDbContext db, IMemoryCache cache, IHtt
     {
         input.StyleSettingsJson = StyleSettings.Normalize(input.Style).ToJson();
         input.CustomBlocksJson = input.Blocks.ToJson();
+        input.HomeLayoutJson = input.HomeLayout.ToJson();
         var profile = await db.SiteProfiles.FirstOrDefaultAsync(cancellationToken);
         if (profile is null)
         {
@@ -81,7 +83,7 @@ public sealed class SiteProfileService(AppDbContext db, IMemoryCache cache, IHtt
     {
         var snap = new SiteProfileStyleSnapshot
         {
-            CustomCss = p.CustomCss, StyleSettingsJson = p.StyleSettingsJson, CustomBlocksJson = p.CustomBlocksJson, ThemeName = p.ThemeName,
+            CustomCss = p.CustomCss, StyleSettingsJson = p.StyleSettingsJson, CustomBlocksJson = p.CustomBlocksJson, HomeLayoutJson = p.HomeLayoutJson, ThemeName = p.ThemeName,
             PrimaryColor = p.PrimaryColor, AccentColor = p.AccentColor, FontFamily = p.FontFamily,
             BaseFontSizePx = p.BaseFontSizePx, ArticleFontSizePx = p.ArticleFontSizePx
         };
@@ -119,7 +121,9 @@ public sealed class SiteProfileService(AppDbContext db, IMemoryCache cache, IHtt
         var profile = await db.SiteProfiles.FirstOrDefaultAsync(ct);
         if (profile is null) return false;
         profile.CustomCss = snap.CustomCss; profile.StyleSettingsJson = snap.StyleSettingsJson;
-        if (snap.CustomBlocksJson is not null) profile.CustomBlocksJson = snap.CustomBlocksJson; profile.ThemeName = snap.ThemeName;
+        if (snap.CustomBlocksJson is not null) profile.CustomBlocksJson = snap.CustomBlocksJson;
+        if (snap.HomeLayoutJson is not null) profile.HomeLayoutJson = snap.HomeLayoutJson;
+        profile.ThemeName = snap.ThemeName;
         profile.PrimaryColor = snap.PrimaryColor; profile.AccentColor = snap.AccentColor; profile.FontFamily = snap.FontFamily;
         profile.BaseFontSizePx = snap.BaseFontSizePx; profile.ArticleFontSizePx = snap.ArticleFontSizePx;
         profile.UpdatedAt = DateTime.UtcNow;

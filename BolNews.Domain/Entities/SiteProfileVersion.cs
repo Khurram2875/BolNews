@@ -19,6 +19,8 @@ public class SiteProfileStyleSnapshot
     public string? StyleSettingsJson { get; set; }
     /// <summary>Null in versions saved before custom blocks existed; restoring such a version leaves blocks unchanged.</summary>
     public string? CustomBlocksJson { get; set; }
+    /// <summary>Null in versions saved before home layout settings existed; restoring such a version leaves the layout unchanged.</summary>
+    public string? HomeLayoutJson { get; set; }
     public string ThemeName { get; set; } = "default";
     public string PrimaryColor { get; set; } = "#d30b12";
     public string AccentColor { get; set; } = "#d30b12";

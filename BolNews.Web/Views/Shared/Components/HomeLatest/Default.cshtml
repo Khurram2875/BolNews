@@ -1,0 +1,43 @@
+@using BolNews.Web.Models
+@model HomeSlotsVM
+@{
+    var layout = Model.Layout;
+}
+<aside class="bn-story-rail" aria-label="@T["Latest"]">
+    @if (layout.ShowPoll)
+    {
+        <section id="polls">
+            @await Component.InvokeAsync("PollCard")
+        </section>
+    }
+    @if (layout.ShowLiveEvents)
+    {
+        <section id="liveEvents">
+            @await Component.InvokeAsync("LiveEvents")
+        </section>
+    }
+
+    @if (Model.Latest.Any())
+    {
+        <h2>@T["Latest"]</h2>
+        <div class="bn-latest-list">
+            @foreach (var item in Model.Latest)
+            {
+                <a href="/@item.CategorySlug/@item.Slug"
+                   class="bn-latest-item track-click"
+                   data-article-id="@item.Id">
+                    <img src="@(item.FeaturedImageThumb ?? item.FeaturedImageMedium ?? "/images/placeholder.png")"
+                         alt="@(item.FeaturedImageAltText ?? item.Title)"
+                         width="112"
+                         height="84"
+                         loading="lazy"
+                         decoding="async" />
+                    <span>
+                        <strong>@item.Title</strong>
+                        <small>@item.TimeAgo</small>
+                    </span>
+                </a>
+            }
+        </div>
+    }
+</aside>

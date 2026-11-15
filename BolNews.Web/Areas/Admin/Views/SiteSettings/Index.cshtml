@@ -139,6 +139,76 @@
             </div>
         </div></div>
 
+        <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Home page layout</div><div class="card-body">
+            @{
+                var hl = Model.HomeLayout;
+                var homeCategories = ((IEnumerable<BolNews.Domain.Entities.Category>)ViewBag.NavigationCategories).ToList();
+                var defaultSlugs = BolNews.Domain.Entities.HomeLayoutSettings.DefaultCategorySlugs.ToList();
+                var catRows = homeCategories
+                    .Select(c =>
+                    {
+                        var saved = hl.Categories.FirstOrDefault(r => string.Equals(r.Slug, c.Slug, StringComparison.OrdinalIgnoreCase));
+                        var defaultIndex = defaultSlugs.FindIndex(x => string.Equals(x, c.Slug, StringComparison.OrdinalIgnoreCase));
+                        return new
+                        {
+                            c.Slug, c.Name,
+                            Enabled = hl.CategoriesCustomized ? saved?.Enabled ?? false : defaultIndex >= 0,
+                            Count = saved?.Count ?? 4,
+                            Order = hl.CategoriesCustomized ? saved?.Order ?? 100 : (defaultIndex >= 0 ? defaultIndex + 1 : 100)
+                        };
+                    })
+                    .OrderBy(r => r.Order).ThenBy(r => r.Name)
+                    .ToList();
+            }
+            <p class="text-muted">Choose which blocks appear on the home page, how many stories each holds, and which side the rails sit on. <strong>Pinned stories always show first</strong> and are never removed by these counts. Use <em>Preview unsaved changes</em> to check the result before saving.</p>
+            <div class="row g-3">
+                <div class="col-lg-4"><div class="border rounded p-3 h-100">
+                    <div class="fw-semibold mb-2">Latest rail</div>
+                    <div class="form-check">@Html.CheckBox("HomeLayout.LatestEnabled", hl.LatestEnabled, new { @class = "form-check-input", id = "hl_latest" })<label class="form-check-label" for="hl_latest">Show Latest rail</label></div>
+                    <div class="form-check">@Html.CheckBox("HomeLayout.ShowPoll", hl.ShowPoll, new { @class = "form-check-input", id = "hl_poll" })<label class="form-check-label" for="hl_poll">Show poll card</label></div>
+                    <div class="form-check mb-2">@Html.CheckBox("HomeLayout.ShowLiveEvents", hl.ShowLiveEvents, new { @class = "form-check-input", id = "hl_live" })<label class="form-check-label" for="hl_live">Show live events</label></div>
+                    <label class="form-label small mb-1" for="hl_latest_count">Stories (1–20)</label>
+                    <input id="hl_latest_count" type="number" min="1" max="20" class="form-control form-control-sm" name="HomeLayout.LatestCount" value="@hl.LatestCount" />
+                </div></div>
+                <div class="col-lg-4"><div class="border rounded p-3 h-100">
+                    <div class="fw-semibold mb-2">Top stories panel</div>
+                    <div class="small text-muted mb-2">The main top story is always shown.</div>
+                    <label class="form-label small mb-1" for="hl_top_count">Extra story cards under it (0–6)</label>
+                    <input id="hl_top_count" type="number" min="0" max="6" class="form-control form-control-sm mb-2" name="HomeLayout.TopCardCount" value="@hl.TopCardCount" />
+                    <div class="form-check mb-2">@Html.CheckBox("HomeLayout.ShowTrending", hl.ShowTrending, new { @class = "form-check-input", id = "hl_trending" })<label class="form-check-label" for="hl_trending">Show trending list</label></div>
+                    <label class="form-label small mb-1" for="hl_trending_count">Trending stories (3–10)</label>
+                    <input id="hl_trending_count" type="number" min="3" max="10" class="form-control form-control-sm" name="HomeLayout.TrendingCount" value="@hl.TrendingCount" />
+                </div></div>
+                <div class="col-lg-4"><div class="border rounded p-3 h-100">
+                    <div class="fw-semibold mb-2">Featured rail</div>
+                    <div class="form-check">@Html.CheckBox("HomeLayout.FeaturedEnabled", hl.FeaturedEnabled, new { @class = "form-check-input", id = "hl_featured" })<label class="form-check-label" for="hl_featured">Show Featured rail</label></div>
+                    <div class="form-check mb-2">@Html.CheckBox("HomeLayout.ShowShows", hl.ShowShows, new { @class = "form-check-input", id = "hl_shows" })<label class="form-check-label" for="hl_shows">Show Shows carousel</label></div>
+                    <label class="form-label small mb-1" for="hl_featured_count">Stories (1–15)</label>
+                    <input id="hl_featured_count" type="number" min="1" max="15" class="form-control form-control-sm" name="HomeLayout.FeaturedCount" value="@hl.FeaturedCount" />
+                </div></div>
+            </div>
+            <div class="form-check mt-3">@Html.CheckBox("HomeLayout.FeaturedRailFirst", hl.FeaturedRailFirst, new { @class = "form-check-input", id = "hl_swap" })<label class="form-check-label" for="hl_swap">Swap rail sides — Featured on the start side (left in English, right in Urdu), Latest on the other</label></div>
+
+            <hr />
+            <div class="form-check mb-2">@Html.CheckBox("HomeLayout.CategoriesEnabled", hl.CategoriesEnabled, new { @class = "form-check-input", id = "hl_cats" })<label class="form-check-label fw-semibold" for="hl_cats">Show category columns below the top stories</label></div>
+            <p class="text-muted small">Tick the categories to show, set how many stories each column lists (1–5) and its position (lowest number first; unticked categories can keep 100). The first save of this section replaces the built-in default list (Pakistan, World, Business, Sports, Entertainment, Technology, Health, Lifestyle).</p>
+            <div class="table-responsive"><table class="table table-sm align-middle" style="max-width:640px">
+                <thead><tr><th style="width:70px">Show</th><th>Category</th><th style="width:110px">Stories</th><th style="width:110px">Position</th></tr></thead>
+                <tbody>
+                @for (var i = 0; i < catRows.Count; i++)
+                {
+                    var row = catRows[i];
+                    <tr>
+                        <td>@Html.CheckBox($"HomeLayout.Categories[{i}].Enabled", row.Enabled, new { @class = "form-check-input" })</td>
+                        <td>@row.Name<input type="hidden" name="HomeLayout.Categories[@i].Slug" value="@row.Slug" /></td>
+                        <td><input type="number" min="1" max="5" class="form-control form-control-sm" name="HomeLayout.Categories[@i].Count" value="@row.Count" /></td>
+                        <td><input type="number" min="1" max="99" class="form-control form-control-sm" name="HomeLayout.Categories[@i].Order" value="@row.Order" /></td>
+                    </tr>
+                }
+                </tbody>
+            </table></div>
+        </div></div>
+
         <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Custom HTML blocks</div><div class="card-body">
             <p class="text-muted">Add your own content (promo banners, notices, newsletter links, partner logos) in fixed places on the site. Allowed: paragraphs, headings, bold/italic/underline, lists, links, images, quotes, line breaks and text/background colour. For safety, scripts, iframes/embeds, forms, buttons and custom CSS classes or layout styles are removed when you save. Use <em>Preview unsaved changes</em> to see the result; saved blocks show your cleaned version.</p>
             @foreach (var slot in BolNews.Domain.Entities.CustomBlocks.Slots)

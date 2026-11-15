@@ -1,0 +1,73 @@
+@using BolNews.Web.Models
+@model HomeSlotsVM
+@{
+    var imagePaths = Model.ShowCarouselImages;
+}
+<aside class="bn-story-rail" aria-label="@T["Featured"]">
+    @await Component.InvokeAsync("AdZone", new { zone = "home.sidebar.top" })
+    @if (Model.Featured.Any())
+    {
+        <h2>@T["Featured"]</h2>
+        <div class="bn-latest-list">
+            @foreach (var item in Model.Featured)
+            {
+                <a href="/@item.CategorySlug/@item.Slug"
+                   class="bn-latest-item track-click"
+                   data-article-id="@item.Id">
+                    <img src="@(item.FeaturedImageThumb ?? item.FeaturedImageMedium ?? "/images/placeholder.png")"
+                         alt="@(item.FeaturedImageAltText ?? item.Title)"
+                         width="112"
+                         height="84"
+                         loading="lazy"
+                         decoding="async" />
+                    <span><strong>@item.Title</strong><small>@item.TimeAgo</small></span>
+                </a>
+            }
+        </div>
+    }
+    @if (Model.Layout.ShowShows)
+    {
+        <h2>@T["Shows"]</h2>
+        @if (imagePaths.Any())
+        {
+            <div id="folderImageCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                    @for (int i = 0; i < imagePaths.Count; i++)
+                    {
+                        <button type="button"
+                                data-bs-target="#folderImageCarousel"
+                                data-bs-slide-to="@i"
+                                class="@(i == 0 ? "active" : "")"
+                                aria-current="@(i == 0 ? "true" : "false")">
+                        </button>
+                    }
+                </div>
+
+                <div class="carousel-inner rounded">
+                    @for (int i = 0; i < imagePaths.Count; i++)
+                    {
+                        <div class="carousel-item @(i == 0 ? "active" : "")">
+                            <img loading="lazy"
+                                 decoding="async"
+                                 src="@imagePaths[i]"
+                                 width="280"
+                                 height="280"
+                                 class="d-block w-100 bn-carousel-img"
+                                 alt="News image @(i + 1)" />
+                        </div>
+                    }
+                </div>
+
+                <button class="carousel-control-prev" type="button" data-bs-target="#folderImageCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">@T["Previous"]</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#folderImageCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">@T["Next"]</span>
+                </button>
+            </div>
+        }
+    }
+    @await Component.InvokeAsync("AdZone", new { zone = "home.sidebar.bottom" })
+</aside>

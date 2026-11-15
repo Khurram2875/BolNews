@@ -1,4 +1,5 @@
 @using BolNews.Web.Areas.Admin.ViewModels
+@using BolNews.Web.Services
 @inject BolNews.Web.Services.SiteProfileService SiteProfileService
 @model HomePageVM
 
@@ -14,228 +15,41 @@
     ViewBag.MetaDescription = siteProfile.DefaultMetaDescription;
     // ViewData["Title"] = "Home";
 
-    var secondaryStories = Model.SecondaryStories ?? new List<PublicArticleVM>();
-    string ImageVersion(PublicArticleVM article) => article.UpdatedAt.HasValue ? $"?v={article.UpdatedAt.Value.Ticks}" : string.Empty;
-    var pinnedSecondaryCount = Math.Min(Model.PinnedSecondaryStoryCount, secondaryStories.Count);
-    var pinnedSecondaryStories = secondaryStories.Take(pinnedSecondaryCount).ToList();
-    var unpinnedSecondaryStories = secondaryStories.Skip(pinnedSecondaryCount).ToList();
+    // All slot decisions (pinning, counts, de-duplication) live in HomeLayoutBuilder; this view only renders them.
+    var slots = HomeLayoutBuilder.Build(Model, siteProfile.HomeLayout);
+    var layout = slots.Layout;
 
-    var topStorySlotCount = Math.Min(2, pinnedSecondaryStories.Count);
-    var remainingTopStories = pinnedSecondaryStories.Take(2)
-        .Concat(unpinnedSecondaryStories.Take(2 - topStorySlotCount))
-        .ToList();
-
-    var pinnedLatest = Model.PinnedLatestStories ?? new List<PublicArticleVM>();
-    var latestSlotsRemaining = Math.Max(0, 14 - pinnedLatest.Count);
-    var organicLatestPool = pinnedSecondaryStories.Skip(2)
-        .Concat(unpinnedSecondaryStories.Skip(2 - topStorySlotCount));
-    var latestStories = pinnedLatest.Concat(organicLatestPool.Take(latestSlotsRemaining)).ToList();
-
-    var pinnedFeatured = Model.PinnedFeaturedStories ?? new List<PublicArticleVM>();
-    var featuredSlotsRemaining = Math.Max(0, 10 - pinnedFeatured.Count);
-
-    var usedIds = new HashSet<int>();
-    if (Model.TopStory != null)
-    {
-        usedIds.Add(Model.TopStory.Id);
-    }
-    foreach (var story in remainingTopStories)
-    {
-        usedIds.Add(story.Id);
-    }
-    foreach (var story in latestStories)
-    {
-        usedIds.Add(story.Id);
-    }
-    foreach (var story in pinnedFeatured)
-    {
-        usedIds.Add(story.Id);
-    }
-
-    var organicFeatured = (Model.FeaturedStories ?? new List<PublicArticleVM>())
-        .Where(a => !usedIds.Contains(a.Id))
-        .Take(featuredSlotsRemaining)
-        .ToList();
-
-    var featuredStories = pinnedFeatured.Concat(organicFeatured).ToList();
-
-    var secondaryCards = secondaryStories.Skip(10).Take(12).ToList();
-
-    var imagePaths = Model.ShowCarouselImages;
+    var showLatestRail = layout.LatestEnabled && (slots.Latest.Any() || layout.ShowPoll || layout.ShowLiveEvents);
+    var showFeaturedRail = layout.FeaturedEnabled && (slots.Featured.Any() || (layout.ShowShows && slots.ShowCarouselImages.Any()));
+    var firstRailIsFeatured = layout.FeaturedRailFirst;
+    var hasFirstRail = firstRailIsFeatured ? showFeaturedRail : showLatestRail;
+    var hasSecondRail = firstRailIsFeatured ? showLatestRail : showFeaturedRail;
+    var heroLayoutClass = hasFirstRail && hasSecondRail ? "" : hasFirstRail ? " bn-home-hero--left-only" : hasSecondRail ? " bn-home-hero--right-only" : " bn-home-hero--center-only";
 }
 
 <h1 class="visually-hidden">@siteProfile.SiteName – @siteProfile.Tagline</h1>
 <div class="bn-container bn-container--home">
-    @if (Model.TopStory != null)
+    @if (slots.TopStory != null)
     {
-        <section  class="bn-home-hero bn-home-hero--three" aria-label="@T["Top stories"]">
-            @if (latestStories.Any())
+        <section class="bn-home-hero bn-home-hero--three@(heroLayoutClass)" aria-label="@T["Top stories"]">
+            @if (!firstRailIsFeatured && showLatestRail)
             {
-                <aside class="bn-story-rail" aria-label="@T["Latest"]">
-                    
-                       @*  @await Component.InvokeAsync("FuelPrice") *@
-                        @* @await Component.InvokeAsync("LiveEvents") *@
-                         <section id="polls">
-                        @await Component.InvokeAsync("PollCard")
-                    </section>
-                        <section id="liveEvents">
-                        @await Component.InvokeAsync("LiveEvents")
-                    </section>
-
-                   
-                    <h2>@T["Latest"]</h2>
-                    <div class="bn-latest-list">
-                        @foreach (var item in latestStories)
-                        {
-                            <a href="/@item.CategorySlug/@item.Slug"
-                               class="bn-latest-item track-click"
-                               data-article-id="@item.Id">
-                                <img src="@(item.FeaturedImageThumb ?? item.FeaturedImageMedium ?? "/images/placeholder.png")"
-                                     alt="@(item.FeaturedImageAltText ?? item.Title)"
-                                     width="112"
-                                     height="84"
-                                     loading="lazy"
-                                     decoding="async" />
-                                <span>
-                                    <strong>@item.Title</strong>
-                                    <small>@item.TimeAgo</small>
-                                </span>
-                            </a>
-                        }
-                    </div>
-                </aside>
+                @await Component.InvokeAsync("HomeLatest", new { slots })
+            }
+            @if (firstRailIsFeatured && showFeaturedRail)
+            {
+                @await Component.InvokeAsync("HomeFeatured", new { slots })
             }
 
-            <article class="bn-top-stories-panel">
-                <h2>@T["Top Stories"]</h2>
-                <a href="/@Model.TopStory.CategorySlug/@Model.TopStory.Slug"
-                   class="bn-card bn-card--featured track-click"
-                   data-article-id="@Model.TopStory.Id">
-                    <div class="bn-card__image-wrap">
-                        <img src="@(Model.TopStory.FeaturedImageXl ?? Model.TopStory.FeaturedImageLarge ?? Model.TopStory.FeaturedImageMedium ?? Model.TopStory.FeaturedImageThumb ?? "/images/placeholder.png")@ImageVersion(Model.TopStory)"
-                             srcset="@(Model.TopStory.FeaturedImageMedium != null ? Model.TopStory.FeaturedImageMedium + " 400w, " : "")@(Model.TopStory.FeaturedImageLarge != null ? Model.TopStory.FeaturedImageLarge + " 800w, " : "")@(Model.TopStory.FeaturedImageXl != null ? Model.TopStory.FeaturedImageXl + " 1200w" : "")"
-                             sizes="(max-width: 767px) 100vw, (max-width: 1199px) 55vw, 800px"
-                             alt="@(Model.TopStory.FeaturedImageAltText ?? Model.TopStory.Title)"
-                             width="1200"
-                             height="675"
-                             loading="eager"
-                             fetchpriority="high"
-                             decoding="async" />
-                    </div>
-                    <div class="bn-card__body">
-                        <h3>@Model.TopStory.Title</h3>
-                        @if (!string.IsNullOrWhiteSpace(Model.TopStory.Summary))
-                        {
-                            <p>@Model.TopStory.Summary</p>
-                        }
-                    </div>
-                </a>
-                <hr />
-                @if (remainingTopStories != null && remainingTopStories.Any())
-                {
-                    <div class="bn-remainingtop-grid">
-                        @foreach (var story in remainingTopStories)
-                        {
-                            <a href="/@story.CategorySlug/@story.Slug"
-                               class="bn-card track-click"
-                               data-article-id="@story.Id">
-                                <div class="bn-card__image-wrap">
-                                    <img src="@(story.FeaturedImageMedium ?? story.FeaturedImageThumb ?? "/images/placeholder.png")"
-                                         srcset="@(story.FeaturedImageMedium != null ? story.FeaturedImageMedium + " 400w, " : "")@(story.FeaturedImageLarge != null ? story.FeaturedImageLarge + " 800w" : "")"
-                                         sizes="(max-width: 767px) 100vw, 450px"
-                                         alt="@(story.FeaturedImageAltText ?? story.Title)"
-                                         width="450"
-                                         height="253"
-                                         loading="lazy"
-                                         decoding="async" />
-                                </div>
-                                <div class="bn-card__body">
-                                    <h4>@story.Title</h4>
-                                    @if (!string.IsNullOrWhiteSpace(story.Summary))
-                                    {
-                                        <p>@story.Summary</p>
-                                    }
-                                </div>
-                            </a>
-                        }
-                    </div>
-                }
+            @await Component.InvokeAsync("HomeTopStories", new { slots })
 
-                @await Component.InvokeAsync("SmartTrending", new { count = 6 })
-            </article>
-
-            @if (featuredStories.Any())
+            @if (firstRailIsFeatured && showLatestRail)
             {
-                <aside class="bn-story-rail" aria-label="@T["Featured"]">
-                    @await Component.InvokeAsync("AdZone", new { zone = "home.sidebar.top" })
-                    @* <div class="d-none d-md-block">
-                        @await Component.InvokeAsync("FuelPrice")
-                    </div>
-                    @* @await Component.InvokeAsync("LiveEvents") *@
-                    
-                    @if (featuredStories.Any())
-                    {
-                        <h2>@T["Featured"]</h2>
-                        <div class="bn-latest-list">
-                            @foreach (var item in featuredStories)
-                            {
-                                <a href="/@item.CategorySlug/@item.Slug"
-                                   class="bn-latest-item track-click"
-                                   data-article-id="@item.Id">
-                                    <img src="@(item.FeaturedImageThumb ?? item.FeaturedImageMedium ?? "/images/placeholder.png")"
-                                         alt="@(item.FeaturedImageAltText ?? item.Title)"
-                                         width="112"
-                                         height="84"
-                                         loading="lazy"
-                                         decoding="async" />
-                                    <span><strong>@item.Title</strong><small>@item.TimeAgo</small></span>
-                                </a>
-                            }
-                        </div>
-                    }
-                    <h2>@T["Shows"]</h2>
-                    @if (imagePaths.Any())
-                    {
-                        <div id="folderImageCarousel" class="carousel slide" data-bs-ride="carousel">
-                            <div class="carousel-indicators">
-                                @for (int i = 0; i < imagePaths.Count; i++)
-                                {
-                                    <button type="button"
-                                            data-bs-target="#folderImageCarousel"
-                                            data-bs-slide-to="@i"
-                                            class="@(i == 0 ? "active" : "")"
-                                            aria-current="@(i == 0 ? "true" : "false")">
-                                    </button>
-                                }
-                            </div>
-
-                            <div class="carousel-inner rounded">
-                                @for (int i = 0; i < imagePaths.Count; i++)
-                                {
-                                    <div class="carousel-item @(i == 0 ? "active" : "")">
-                                        <img loading="lazy"
-                                             decoding="async"
-                                             src="@imagePaths[i]"
-                                             width="280"
-                                             height="280"
-                                             class="d-block w-100 bn-carousel-img"
-                                             alt="News image @(i + 1)" />
-                                    </div>
-                                }
-                            </div>
-
-                            <button class="carousel-control-prev" type="button" data-bs-target="#folderImageCarousel" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">@T["Previous"]</span>
-                            </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#folderImageCarousel" data-bs-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">@T["Next"]</span>
-                            </button>
-                        </div>
-                    }
-                    @await Component.InvokeAsync("AdZone", new { zone = "home.sidebar.bottom" })
-                </aside>
+                @await Component.InvokeAsync("HomeLatest", new { slots })
+            }
+            @if (!firstRailIsFeatured && showFeaturedRail)
+            {
+                @await Component.InvokeAsync("HomeFeatured", new { slots })
             }
         </section>
     }
@@ -243,41 +57,4 @@
 
 @await Component.InvokeAsync("AdZone", new { zone = "home.content" })
 
-@if (Model.CategorySections.Count > 2)
-{
-    <section class="bn-category-section" aria-label="@T["Category stories"]">
-        <div class="bn-category-grid">
-            @foreach (var cat in Model.CategorySections)
-            {
-                <section class="bn-category-column" aria-labelledby="category-@cat.CategorySlug">
-                    <header class="bn-category-heading">
-                        <h2 id="category-@cat.CategorySlug">@cat.CategoryName</h2>
-                        <a href="/category/@cat.CategorySlug">@T["More"]</a>
-                    </header>
-
-                    <div class="bn-category-list">
-                        @foreach (var item in cat.Articles.Take(4))
-                        {
-                            <a href="/@item.CategorySlug/@item.Slug"
-                               class="bn-category-item track-click"
-                               data-article-id="@item.Id">
-                                <img class="lazy-image"
-                                     src="/images/placeholder.png"
-                                     data-src="@item.FeaturedImageThumb"
-                                     alt="@item.Title"
-                                     width="118"
-                                     height="100"
-                                     loading="lazy"
-                                     decoding="async" />
-                                <span>
-                                    <strong>@item.Title</strong>
-                                    <small>@item.TimeAgo</small>
-                                </span>
-                            </a>
-                        }
-                    </div>
-                </section>
-            }
-        </div>
-    </section>
-}
+@await Component.InvokeAsync("HomeCategories", new { slots })

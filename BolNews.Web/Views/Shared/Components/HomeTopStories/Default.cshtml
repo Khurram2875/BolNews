@@ -1,0 +1,67 @@
+@using BolNews.Web.Models
+@using BolNews.Web.Areas.Admin.ViewModels
+@model HomeSlotsVM
+@{
+    var top = Model.TopStory!;
+    string ImageVersion(PublicArticleVM article) => article.UpdatedAt.HasValue ? $"?v={article.UpdatedAt.Value.Ticks}" : string.Empty;
+}
+<article class="bn-top-stories-panel">
+    <h2>@T["Top Stories"]</h2>
+    <a href="/@top.CategorySlug/@top.Slug"
+       class="bn-card bn-card--featured track-click"
+       data-article-id="@top.Id">
+        <div class="bn-card__image-wrap">
+            <img src="@(top.FeaturedImageXl ?? top.FeaturedImageLarge ?? top.FeaturedImageMedium ?? top.FeaturedImageThumb ?? "/images/placeholder.png")@ImageVersion(top)"
+                 srcset="@(top.FeaturedImageMedium != null ? top.FeaturedImageMedium + " 400w, " : "")@(top.FeaturedImageLarge != null ? top.FeaturedImageLarge + " 800w, " : "")@(top.FeaturedImageXl != null ? top.FeaturedImageXl + " 1200w" : "")"
+                 sizes="(max-width: 767px) 100vw, (max-width: 1199px) 55vw, 800px"
+                 alt="@(top.FeaturedImageAltText ?? top.Title)"
+                 width="1200"
+                 height="675"
+                 loading="eager"
+                 fetchpriority="high"
+                 decoding="async" />
+        </div>
+        <div class="bn-card__body">
+            <h3>@top.Title</h3>
+            @if (!string.IsNullOrWhiteSpace(top.Summary))
+            {
+                <p>@top.Summary</p>
+            }
+        </div>
+    </a>
+    <hr />
+    @if (Model.TopCards.Any())
+    {
+        <div class="bn-remainingtop-grid">
+            @foreach (var story in Model.TopCards)
+            {
+                <a href="/@story.CategorySlug/@story.Slug"
+                   class="bn-card track-click"
+                   data-article-id="@story.Id">
+                    <div class="bn-card__image-wrap">
+                        <img src="@(story.FeaturedImageMedium ?? story.FeaturedImageThumb ?? "/images/placeholder.png")"
+                             srcset="@(story.FeaturedImageMedium != null ? story.FeaturedImageMedium + " 400w, " : "")@(story.FeaturedImageLarge != null ? story.FeaturedImageLarge + " 800w" : "")"
+                             sizes="(max-width: 767px) 100vw, 450px"
+                             alt="@(story.FeaturedImageAltText ?? story.Title)"
+                             width="450"
+                             height="253"
+                             loading="lazy"
+                             decoding="async" />
+                    </div>
+                    <div class="bn-card__body">
+                        <h4>@story.Title</h4>
+                        @if (!string.IsNullOrWhiteSpace(story.Summary))
+                        {
+                            <p>@story.Summary</p>
+                        }
+                    </div>
+                </a>
+            }
+        </div>
+    }
+
+    @if (Model.Layout.ShowTrending)
+    {
+        @await Component.InvokeAsync("SmartTrending", new { count = Model.Layout.TrendingCount })
+    }
+</article>

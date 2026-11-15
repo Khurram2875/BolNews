@@ -54,6 +54,7 @@ public sealed class SiteSettingsController(SiteProfileService profiles, IWebHost
         draft.LanguageCode = PublisherThemeCatalog.NormalizeLanguage(model.LanguageCode);
         draft.Style = model.Style;
         draft.Blocks = CleanBlocks(model.Blocks, out _);
+        draft.HomeLayout = HomeLayoutSettings.Normalize(model.HomeLayout);
 
         var token = profiles.StorePreview(draft);
         Response.Cookies.Append(SiteProfileService.PreviewCookie, token, new CookieOptions
@@ -219,6 +220,7 @@ public sealed class SiteSettingsController(SiteProfileService profiles, IWebHost
         model.Style = StyleSettings.Normalize(model.Style);
         foreach (var problem in model.Style.Validate())
             ModelState.AddModelError(string.Empty, problem);
+        model.HomeLayout = HomeLayoutSettings.Normalize(model.HomeLayout);
         model.Blocks = CleanBlocks(model.Blocks, out var blockProblems);
         foreach (var problem in blockProblems)
             ModelState.AddModelError(string.Empty, problem);

@@ -1,4 +1,4 @@
-﻿/* =====================================================   BOLNEWS — SITE.CSS
+/* =====================================================   BOLNEWS — SITE.CSS
    Theme system using CSS custom properties
    4 themes: default | dark | editorial | bold
    ============================================================ */
@@ -3372,6 +3372,18 @@ body,
 
 .bn-home-hero--three {
     grid-template-columns: 292px minmax(0, 1fr) 292px;
+}
+
+/* Home layout settings: one or both rails switched off. The base rule above assumes rail | panel | rail. */
+@media (min-width: 992px) {
+    .bn-home-hero--three.bn-home-hero--left-only { grid-template-columns: 292px minmax(0, 1fr); }
+    .bn-home-hero--three.bn-home-hero--right-only { grid-template-columns: minmax(0, 1fr) 292px; }
+    .bn-home-hero--three.bn-home-hero--center-only { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .bn-home-hero--three.bn-home-hero--left-only { grid-template-columns: 245px minmax(0, 1fr); }
+    .bn-home-hero--three.bn-home-hero--right-only { grid-template-columns: minmax(0, 1fr) 245px; }
 }
 
 .bn-top-stories-panel {

@@ -1,0 +1,40 @@
+@using BolNews.Web.Models
+@model HomeSlotsVM
+@if (Model.Categories.Count > 2 || (Model.Layout.CategoriesCustomized && Model.Categories.Count > 0))
+{
+    <section class="bn-category-section" aria-label="@T["Category stories"]">
+        <div class="bn-category-grid">
+            @foreach (var cat in Model.Categories)
+            {
+                <section class="bn-category-column" aria-labelledby="category-@cat.CategorySlug">
+                    <header class="bn-category-heading">
+                        <h2 id="category-@cat.CategorySlug">@cat.CategoryName</h2>
+                        <a href="/category/@cat.CategorySlug">@T["More"]</a>
+                    </header>
+
+                    <div class="bn-category-list">
+                        @foreach (var item in cat.Articles)
+                        {
+                            <a href="/@item.CategorySlug/@item.Slug"
+                               class="bn-category-item track-click"
+                               data-article-id="@item.Id">
+                                <img class="lazy-image"
+                                     src="/images/placeholder.png"
+                                     data-src="@item.FeaturedImageThumb"
+                                     alt="@item.Title"
+                                     width="118"
+                                     height="100"
+                                     loading="lazy"
+                                     decoding="async" />
+                                <span>
+                                    <strong>@item.Title</strong>
+                                    <small>@item.TimeAgo</small>
+                                </span>
+                            </a>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+    </section>
+}
