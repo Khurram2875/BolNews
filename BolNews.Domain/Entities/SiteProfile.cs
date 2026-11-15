@@ -43,6 +43,16 @@ public class SiteProfile
         get => _style ??= StyleSettings.FromJson(StyleSettingsJson);
         set => _style = StyleSettings.Normalize(value);
     }
+    public string? CustomBlocksJson { get; set; }
+
+    private CustomBlocks? _blocks;
+    /// <summary>Parsed view of <see cref="CustomBlocksJson"/>; not stored as a column.</summary>
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public CustomBlocks Blocks
+    {
+        get => _blocks ??= CustomBlocks.FromJson(CustomBlocksJson);
+        set => _blocks = value ?? new CustomBlocks();
+    }
     public string? AdScriptUrl { get; set; } = "https://avads.live/s/av-bolnews.js";
     public string? WhatsAppUrl { get; set; } = "https://whatsapp.com/channel/0029Vb7ZANWGJP8NYx9M4g0I";
     public string? FacebookUrl { get; set; } = "https://www.facebook.com/BOLNETWORK/";

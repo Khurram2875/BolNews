@@ -187,10 +187,12 @@
 						</figure>
 					}
 
+					@await Component.InvokeAsync("CustomBlock", new { slot = "ArticleAbove" })
 					<!-- Article body -->
 					<div class="bn-article-body" itemprop="articleBody">
 						@Html.Raw(Model.Article.Content)
 					</div>
+					@await Component.InvokeAsync("CustomBlock", new { slot = "ArticleBelow" })
 
 					@if (Model.Article.ArticleTags.Any())
 					{
@@ -215,6 +217,7 @@
 			
 			<aside class="col-lg-4">
 				<div style="position:sticky;top:70px;">
+					@await Component.InvokeAsync("CustomBlock", new { slot = "ArticleSidebar" })
 					<!-- Sidebar Ad — Top -->
 					@await Component.InvokeAsync("AdZone", new { zone = "article.sidebar.top" })
 					<!-- Latest news widget -->

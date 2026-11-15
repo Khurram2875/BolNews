@@ -3,6 +3,16 @@
 -- Each section is guarded by __EFMigrationsHistory where its source script is; do not reorder.
 
 
+-- ======== BEGIN docs/production-sql/20261115010000_AddPublisherCustomBlocks_Rollback.sql ========
+START TRANSACTION;
+
+ALTER TABLE `SiteProfiles` DROP COLUMN `CustomBlocksJson`;
+
+DELETE FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261115010000_AddPublisherCustomBlocks';
+
+COMMIT;
+-- ======== END docs/production-sql/20261115010000_AddPublisherCustomBlocks_Rollback.sql ========
+
 -- ======== BEGIN docs/production-sql/20261115000000_AddPublisherStyleControls_Rollback.sql ========
 START TRANSACTION;
 

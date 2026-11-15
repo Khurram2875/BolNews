@@ -3,6 +3,7 @@ using BolNews.Application.Common.Helpers;
 using BolNews.Application.Interfaces;
 using BolNews.Domain.Common;
 using BolNews.Domain.Entities;
+using BolNews.Web.Helpers;
 using BolNews.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -52,6 +53,7 @@ public sealed class SiteSettingsController(SiteProfileService profiles, IWebHost
         draft.FontFamily = PublisherThemeCatalog.NormalizeFont(model.FontFamily);
         draft.LanguageCode = PublisherThemeCatalog.NormalizeLanguage(model.LanguageCode);
         draft.Style = model.Style;
+        draft.Blocks = CleanBlocks(model.Blocks, out _);
 
         var token = profiles.StorePreview(draft);
         Response.Cookies.Append(SiteProfileService.PreviewCookie, token, new CookieOptions
@@ -63,6 +65,25 @@ public sealed class SiteSettingsController(SiteProfileService profiles, IWebHost
         if (!path.StartsWith('/') || path.StartsWith("//") || path.StartsWith("/\\") || path.StartsWith("/Admin", StringComparison.OrdinalIgnoreCase))
             path = "/";
         return LocalRedirect(path);
+    }
+
+    /// <summary>Runs every slot through the allow-list sanitiser (no scripts, iframes, forms or inline layout styles).</summary>
+    private static CustomBlocks CleanBlocks(CustomBlocks? posted, out List<string> problems)
+    {
+        problems = new List<string>();
+        var clean = new CustomBlocks();
+        foreach (var (key, label, _) in CustomBlocks.Slots)
+        {
+            var raw = posted?.Get(key);
+            if (raw is { Length: > CustomBlocks.MaxLength })
+            {
+                problems.Add($"{label}: block is longer than {CustomBlocks.MaxLength:N0} characters.");
+                raw = raw[..CustomBlocks.MaxLength];
+            }
+            var cleaned = LiveHtml.Sanitize(raw);
+            clean.Set(key, LiveHtml.HasContent(cleaned) ? cleaned : null);
+        }
+        return clean;
     }
 
     [HttpGet]
@@ -197,6 +218,9 @@ public sealed class SiteSettingsController(SiteProfileService profiles, IWebHost
             ModelState.AddModelError(nameof(model.CustomCss), "Custom CSS must be 100,000 characters or fewer.");
         model.Style = StyleSettings.Normalize(model.Style);
         foreach (var problem in model.Style.Validate())
+            ModelState.AddModelError(string.Empty, problem);
+        model.Blocks = CleanBlocks(model.Blocks, out var blockProblems);
+        foreach (var problem in blockProblems)
             ModelState.AddModelError(string.Empty, problem);
         foreach (var (field, url) in new[]
         {

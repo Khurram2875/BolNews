@@ -139,6 +139,17 @@
             </div>
         </div></div>
 
+        <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Custom HTML blocks</div><div class="card-body">
+            <p class="text-muted">Add your own content (promo banners, notices, newsletter links, partner logos) in fixed places on the site. Allowed: paragraphs, headings, bold/italic/underline, lists, links, images, quotes, line breaks and text/background colour. For safety, scripts, iframes/embeds, forms, buttons and custom CSS classes or layout styles are removed when you save. Use <em>Preview unsaved changes</em> to see the result; saved blocks show your cleaned version.</p>
+            @foreach (var slot in BolNews.Domain.Entities.CustomBlocks.Slots)
+            {
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="Blocks_@slot.Key">@slot.Label <span class="text-muted fw-normal">— @slot.Where</span></label>
+                    <textarea id="Blocks_@slot.Key" name="Blocks.@slot.Key" class="form-control font-monospace" rows="4" maxlength="20000" placeholder="&lt;p&gt;&lt;strong&gt;Subscribe&lt;/strong&gt; to our &lt;a href=&quot;/newsletter&quot;&gt;newsletter&lt;/a&gt;&lt;/p&gt;">@Model.Blocks.Get(slot.Key)</textarea>
+                </div>
+            }
+        </div></div>
+
         <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Custom frontend styles</div><div class="card-body">
             <label asp-for="CustomCss" class="form-label">Additional CSS</label>
             <textarea asp-for="CustomCss" class="form-control font-monospace" rows="12" placeholder=".bn-brand-logo img { max-height: 70px; }"></textarea>

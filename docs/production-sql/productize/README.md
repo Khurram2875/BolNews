@@ -18,3 +18,4 @@ Rollback: `Combined_Rollback.sql` (reverse order). Skip any step already applied
 Local dev: `Update-Database` applies the same chain.
 10. `docs/production-sql/20261113000000_AddSiteProfileFontSizes.sql` (Urdu branch: base/article text size)
 11. `docs/production-sql/20261115000000_AddPublisherStyleControls.sql` (Publisher style controls + version history)
+12. `docs/production-sql/20261115010000_AddPublisherCustomBlocks.sql` (Publisher custom HTML blocks)

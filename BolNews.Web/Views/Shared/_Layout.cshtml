@@ -1,4 +1,4 @@
-﻿@using BolNews.Application.Interfaces
+@using BolNews.Application.Interfaces
 @using BolNews.Domain.Entities
 @using BolNews.Web.Interfaces
 @using BolNews.Web.SEO
@@ -185,7 +185,11 @@
     
     <div id="Bolnews_Anchor_ATF"></div>
 
+    @await Component.InvokeAsync("CustomBlock", new { slot = "HeaderAbove" })
+
     <partial name="_Header" />
+
+    @await Component.InvokeAsync("CustomBlock", new { slot = "HeaderBelow" })
 
     @* Sample ad placement: top leaderboard immediately after header, before homepage/content. *@
     @await Component.InvokeAsync("AdZone", new { zone = "site.top" })
@@ -197,7 +201,11 @@
     @* Sample ad placement: bottom BTF immediately before footer. *@
     @await Component.InvokeAsync("AdZone", new { zone = "site.bottom" })
 
+    @await Component.InvokeAsync("CustomBlock", new { slot = "FooterTop" })
+
     <partial name="_Footer" />
+
+    @await Component.InvokeAsync("CustomBlock", new { slot = "FooterBottom" })
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

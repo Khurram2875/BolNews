@@ -1343,6 +1343,9 @@ namespace BolNews.Persistence.Migrations
                     b.Property<string>("CustomCss")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("CustomBlocksJson")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("StyleSettingsJson")
                         .HasColumnType("longtext");
 

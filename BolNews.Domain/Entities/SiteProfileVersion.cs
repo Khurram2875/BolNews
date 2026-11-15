@@ -17,6 +17,8 @@ public class SiteProfileStyleSnapshot
 {
     public string? CustomCss { get; set; }
     public string? StyleSettingsJson { get; set; }
+    /// <summary>Null in versions saved before custom blocks existed; restoring such a version leaves blocks unchanged.</summary>
+    public string? CustomBlocksJson { get; set; }
     public string ThemeName { get; set; } = "default";
     public string PrimaryColor { get; set; } = "#d30b12";
     public string AccentColor { get; set; } = "#d30b12";
