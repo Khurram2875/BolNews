@@ -1084,6 +1084,19 @@ namespace BolNews.Persistence.Migrations
                     b.ToTable("PollVotes", (string)null);
                 });
 
+            modelBuilder.Entity("BolNews.Domain.Entities.SiteProfileVersion", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    b.Property<DateTime>("CreatedAt").HasColumnType("datetime(6)");
+                    b.Property<string>("CreatedBy").HasMaxLength(256).HasColumnType("varchar(256)");
+                    b.Property<string>("Note").IsRequired().HasMaxLength(200).HasColumnType("varchar(200)");
+                    b.Property<string>("SnapshotJson").IsRequired().HasColumnType("longtext");
+                    b.HasKey("Id");
+                    b.HasIndex("CreatedAt");
+                    b.ToTable("SiteProfileVersions", (string)null);
+                });
+
             modelBuilder.Entity("BolNews.Domain.Entities.SiteSetting", b =>
                 {
                     b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
@@ -1328,6 +1341,9 @@ namespace BolNews.Persistence.Migrations
                         .HasColumnType("varchar(300)");
 
                     b.Property<string>("CustomCss")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("StyleSettingsJson")
                         .HasColumnType("longtext");
 
                     b.Property<string>("DefaultMetaDescription")

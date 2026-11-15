@@ -10,6 +10,7 @@
         <p class="text-muted mb-0">Configure this installation’s name, brand, theme, metadata, and legal page text.</p>
     </div>
     @if (TempData["SuccessMessage"] is string success) { <div class="alert alert-success">@success</div> }
+    @if (TempData["ErrorMessage"] is string failure) { <div class="alert alert-danger">@failure</div> }
     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
     <form asp-action="Index" method="post">
         @Html.AntiForgeryToken()
@@ -95,6 +96,49 @@
             <div class="col-12"><label asp-for="AdScriptUrl" class="form-label">Ad provider script URL</label><input asp-for="AdScriptUrl" class="form-control" placeholder="https://..." /><div class="form-text">Leave blank to disable the provider script. Ad unit div IDs are managed separately under Ad Placements.</div></div>
         </div></div>
 
+        <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Style controls</div><div class="card-body">
+            <p class="text-muted">Adjust headline and heading looks without writing CSS. Leave a box empty to keep the theme default. Colours use <code>#RRGGBB</code>.</p>
+            @{
+                var style = BolNews.Domain.Entities.StyleSettings.Normalize(Model.Style);
+                var weights = new[] { 100, 200, 300, 400, 500, 600, 700, 800, 900 };
+                var elements = new[]
+                {
+                    (Field: "ArticleHeadline", Label: "Article headline (H1 on article page)", S: style.ArticleHeadline),
+                    (Field: "BodyH1", Label: "Heading 1 inside article text", S: style.BodyH1),
+                    (Field: "BodyH2", Label: "Heading 2 inside article text", S: style.BodyH2),
+                    (Field: "BodyH3", Label: "Heading 3 inside article text", S: style.BodyH3),
+                    (Field: "BodyH4", Label: "Heading 4 inside article text", S: style.BodyH4),
+                    (Field: "SectionTitle", Label: "Section titles on home/category pages", S: style.SectionTitle)
+                };
+            }
+            <div class="table-responsive"><table class="table table-sm align-middle">
+                <thead><tr><th>Element</th><th style="width:110px">Size (px)</th><th style="width:130px">Weight</th><th style="width:150px">Colour</th><th style="width:120px">Line height</th></tr></thead>
+                <tbody>
+                @foreach (var el in elements)
+                {
+                    <tr>
+                        <td>@el.Label</td>
+                        <td><input type="number" min="10" max="80" class="form-control form-control-sm" name="Style.@(el.Field).SizePx" value="@el.S.SizePx" /></td>
+                        <td><select class="form-select form-select-sm" name="Style.@(el.Field).Weight">
+                            <option value="">Default</option>
+                            @foreach (var w in weights) { <option value="@w" selected="@(el.S.Weight == w)">@w</option> }
+                        </select></td>
+                        <td><div class="input-group input-group-sm">
+                            <input type="color" class="form-control form-control-color" value="@(string.IsNullOrWhiteSpace(el.S.Color) ? "#000000" : el.S.Color)" data-color-picker="@el.Field" />
+                            <input type="text" class="form-control" maxlength="7" placeholder="default" name="Style.@(el.Field).Color" value="@el.S.Color" data-color-text="@el.Field" />
+                        </div></td>
+                        <td><input type="number" step="0.05" min="1" max="3.5" class="form-control form-control-sm" name="Style.@(el.Field).LineHeight" value="@(el.S.LineHeight?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))" /></td>
+                    </tr>
+                }
+                </tbody>
+            </table></div>
+            <div class="row g-3">
+                <div class="col-md-4"><label class="form-label">Article text line height</label><input type="number" step="0.05" min="1" max="3.5" class="form-control" name="Style.ArticleLineHeight" value="@(style.ArticleLineHeight?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))" /></div>
+                <div class="col-md-4"><label class="form-label">Article link colour</label><input type="text" class="form-control" maxlength="7" placeholder="default" name="Style.ArticleLinkColor" value="@style.ArticleLinkColor" /></div>
+                <div class="col-md-4"><label class="form-label">Corner roundness (px, 0–32)</label><input type="number" min="0" max="32" class="form-control" name="Style.CornerRadiusPx" value="@style.CornerRadiusPx" /><div class="form-text">Cards, buttons and images. Empty keeps the theme default.</div></div>
+            </div>
+        </div></div>
+
         <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Custom frontend styles</div><div class="card-body">
             <label asp-for="CustomCss" class="form-label">Additional CSS</label>
             <textarea asp-for="CustomCss" class="form-control font-monospace" rows="12" placeholder=".bn-brand-logo img { max-height: 70px; }"></textarea>
@@ -128,9 +172,60 @@
         </div></div>
         <button class="btn btn-danger" type="submit">Save publisher settings</button>
     </form>
+
+    @{ var versions = ViewBag.Versions as List<BolNews.Domain.Entities.SiteProfileVersion> ?? new(); }
+    <div class="card shadow-sm mb-4 mt-4"><div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        <span>Style version history <span class="text-muted fw-normal">(last 20 saves)</span></span>
+        <form asp-action="ResetStyle" method="post" onsubmit="return confirm('Reset style controls, custom CSS and text sizes to the theme defaults? You can still restore the previous state from this list.');">
+            <button class="btn btn-sm btn-outline-danger" type="submit">Reset style to default</button>
+        </form>
+    </div><div class="card-body p-0">
+        @if (versions.Count == 0)
+        {
+            <p class="text-muted p-3 mb-0">No versions yet. A version is recorded each time you save and something style-related changed.</p>
+        }
+        else
+        {
+            <table class="table table-sm mb-0 align-middle">
+                <thead><tr><th>#</th><th>When (UTC)</th><th>By</th><th>Note</th><th>Contents</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var v in versions)
+                {
+                    BolNews.Domain.Entities.SiteProfileStyleSnapshot? snap = null;
+                    try { snap = System.Text.Json.JsonSerializer.Deserialize<BolNews.Domain.Entities.SiteProfileStyleSnapshot>(v.SnapshotJson); } catch (System.Text.Json.JsonException) { }
+                    <tr>
+                        <td>@v.Id</td>
+                        <td>@v.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@v.CreatedBy</td>
+                        <td>@v.Note</td>
+                        <td class="small text-muted">
+                            @if (snap is not null)
+                            {
+                                <span>@snap.ThemeName, @snap.FontFamily, @snap.PrimaryColor, base @(snap.BaseFontSizePx)px</span>
+                                @if (!string.IsNullOrWhiteSpace(snap.StyleSettingsJson) && snap.StyleSettingsJson != "{}") { <span> · style controls</span> }
+                                @if (!string.IsNullOrWhiteSpace(snap.CustomCss)) { <span> · custom CSS (@snap.CustomCss.Length chars)</span> }
+                            }
+                        </td>
+                        <td class="text-end">
+                            <form asp-action="RestoreVersion" asp-route-id="@v.Id" method="post" onsubmit="return confirm('Restore version #@(v.Id)? Current style settings will be replaced (and kept in history).');">
+                                <button class="btn btn-sm btn-outline-primary" type="submit">Restore</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div></div>
 </div>
 
 @section Scripts {
+    <script>
+        document.querySelectorAll('[data-color-picker]').forEach(p => {
+            const t = document.querySelector('[data-color-text="' + p.dataset.colorPicker + '"]');
+            p.addEventListener('input', () => { t.value = p.value; });
+        });
+    </script>
     <script>
         (() => {
             const categorySlots = [...document.querySelectorAll('[data-navigation-order]')];

@@ -32,6 +32,17 @@ public class SiteProfile
     public string DefaultMetaTitle { get; set; } = "Bol News - Latest News, Politics, Sports and Entertainment";
     public string DefaultMetaDescription { get; set; } = "Latest news from Bol News";
     public string? CustomCss { get; set; }
+    /// <summary>JSON of <see cref="StyleSettings"/> (typography/colour controls). Null = theme defaults.</summary>
+    public string? StyleSettingsJson { get; set; }
+
+    private StyleSettings? _style;
+    /// <summary>Parsed view of <see cref="StyleSettingsJson"/> used by the admin form; not stored as a column.</summary>
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public StyleSettings Style
+    {
+        get => _style ??= StyleSettings.FromJson(StyleSettingsJson);
+        set => _style = StyleSettings.Normalize(value);
+    }
     public string? AdScriptUrl { get; set; } = "https://avads.live/s/av-bolnews.js";
     public string? WhatsAppUrl { get; set; } = "https://whatsapp.com/channel/0029Vb7ZANWGJP8NYx9M4g0I";
     public string? FacebookUrl { get; set; } = "https://www.facebook.com/BOLNETWORK/";

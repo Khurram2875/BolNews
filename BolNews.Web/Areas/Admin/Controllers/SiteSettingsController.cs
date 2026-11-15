@@ -26,6 +26,22 @@ public sealed class SiteSettingsController(SiteProfileService profiles, IWebHost
     }
 
     [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> RestoreVersion(int id, CancellationToken cancellationToken)
+    {
+        var ok = await profiles.RestoreAsync(id, User.Identity?.Name, cancellationToken);
+        TempData[ok ? "SuccessMessage" : "ErrorMessage"] = ok ? $"Style version #{id} restored. Changes are visible immediately." : "That version could not be restored.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetStyle(CancellationToken cancellationToken)
+    {
+        await profiles.ResetStyleAsync(User.Identity?.Name, cancellationToken);
+        TempData["SuccessMessage"] = "Style controls, custom CSS and text sizes were reset to the theme defaults. The previous state is in version history.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
     [RequestSizeLimit(3_000_000)]
     [RequestFormLimits(MultipartBodyLengthLimit = 3_000_000)]
     public async Task<IActionResult> UploadBrandAsset(IFormFile? upload, string? target, CancellationToken cancellationToken)
@@ -132,6 +148,9 @@ public sealed class SiteSettingsController(SiteProfileService profiles, IWebHost
             ModelState.AddModelError(nameof(model.AdScriptUrl), "The ad provider script must be an HTTPS URL.");
         if (model.CustomCss?.Length > 100_000)
             ModelState.AddModelError(nameof(model.CustomCss), "Custom CSS must be 100,000 characters or fewer.");
+        model.Style = StyleSettings.Normalize(model.Style);
+        foreach (var problem in model.Style.Validate())
+            ModelState.AddModelError(string.Empty, problem);
         foreach (var (field, url) in new[]
         {
             (nameof(model.WhatsAppUrl), model.WhatsAppUrl), (nameof(model.FacebookUrl), model.FacebookUrl),
@@ -150,13 +169,14 @@ public sealed class SiteSettingsController(SiteProfileService profiles, IWebHost
         model.ThemeName = PublisherThemeCatalog.NormalizeTheme(model.ThemeName);
         model.FontFamily = PublisherThemeCatalog.NormalizeFont(model.FontFamily);
         model.LanguageCode = PublisherThemeCatalog.NormalizeLanguage(model.LanguageCode);
-        await profiles.SaveAsync(model, cancellationToken);
+        await profiles.SaveAsync(model, cancellationToken, User.Identity?.Name);
         TempData["SuccessMessage"] = "Publisher settings saved. Changes are visible immediately.";
         return RedirectToAction(nameof(Index));
     }
 
     private async Task PopulateOptionsAsync(string? navigationCategoryIds, CancellationToken cancellationToken, IReadOnlyCollection<int>? postedIds = null)
     {
+        ViewBag.Versions = await profiles.GetVersionsAsync(cancellationToken);
         ViewBag.Themes = PublisherThemeCatalog.ThemeNames;
         ViewBag.FontFamilies = PublisherThemeCatalog.FontNames;
         var allCategories = await categories.GetParentCategoriesWithChildrenAsync();

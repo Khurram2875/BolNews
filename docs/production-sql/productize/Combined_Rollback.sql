@@ -3,6 +3,17 @@
 -- Each section is guarded by __EFMigrationsHistory where its source script is; do not reorder.
 
 
+-- ======== BEGIN docs/production-sql/20261115000000_AddPublisherStyleControls_Rollback.sql ========
+START TRANSACTION;
+
+DROP TABLE `SiteProfileVersions`;
+ALTER TABLE `SiteProfiles` DROP COLUMN `StyleSettingsJson`;
+
+DELETE FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261115000000_AddPublisherStyleControls';
+
+COMMIT;
+-- ======== END docs/production-sql/20261115000000_AddPublisherStyleControls_Rollback.sql ========
+
 -- ======== BEGIN docs/production-sql/20261113000000_AddSiteProfileFontSizes_Rollback.sql ========
 START TRANSACTION;
 

@@ -45,6 +45,7 @@ namespace BolNews.Persistence.Context
         public DbSet<LiveEventArticle> LiveEventArticles { get; set; }
         public DbSet<LiveEventCandidate> LiveEventCandidates { get; set; }
         public DbSet<SiteSetting> SiteSettings { get; set; }
+        public DbSet<SiteProfileVersion> SiteProfileVersions { get; set; }
         public DbSet<Poll> Polls { get; set; }
         public DbSet<PollOption> PollOptions { get; set; }
         public DbSet<PollVote> PollVotes { get; set; }
@@ -90,6 +91,7 @@ namespace BolNews.Persistence.Context
                 entity.Property(x => x.ThemeName).HasMaxLength(40).IsRequired();
                 entity.Property(x => x.FontFamily).HasMaxLength(80).IsRequired();
                 entity.Property(x => x.LanguageCode).HasMaxLength(8).IsRequired().HasDefaultValue("en");
+                entity.Property(x => x.StyleSettingsJson).HasColumnType("longtext");
                 entity.Property(x => x.BaseFontSizePx).HasDefaultValue(16);
                 entity.Property(x => x.ArticleFontSizePx).HasDefaultValue(0);
                 entity.Property(x => x.NavigationCategoryIds).HasMaxLength(100);
