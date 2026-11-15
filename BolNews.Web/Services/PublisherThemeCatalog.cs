@@ -98,7 +98,7 @@ public static class PublisherThemeCatalog
     private static string StackFor(string name) =>
         FontStacks.TryGetValue(name, out var stack)
             ? stack
-            : $"'{name}', 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif";
+            : $"'{name}', 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
 
     private static bool IsUrduFont(string name) =>
         UrduFonts.Contains(name, StringComparer.OrdinalIgnoreCase) || Discovered().ContainsKey(name);
@@ -177,11 +177,17 @@ public static class PublisherThemeCatalog
         return IsUrduFont(font) ? font : "Noto Nastaliq Urdu";
     }
 
+    private const string ArabicScriptRange = "U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F,U+2010-2011,U+25CC";
+
     private static string BuildFontFaceCss(string fontName)
     {
         var local = FindLocalFile(fontName);
         if (local == null) return string.Empty;
-        return $"@font-face{{font-family:'{fontName}';src:url('/fonts/{local.Value.File}') format('{local.Value.Format}');font-weight:100 900;font-style:normal;font-display:swap;}}";
+        // Urdu fonts are limited to Arabic-script characters. Many of them have an empty or zero-width space and no real
+        // Latin letters, which made English text (admin labels, numbers) run together. Spaces, Latin letters and
+        // digits now come from the fallback fonts in the stack instead.
+        var range = IsUrduFont(fontName) ? $"unicode-range:{ArabicScriptRange};" : "";
+        return $"@font-face{{font-family:'{fontName}';src:url('/fonts/{local.Value.File}') format('{local.Value.Format}');font-weight:100 900;font-style:normal;font-display:swap;{range}}}";
     }
 
     public static string BuildCssVariables(SiteProfile profile, bool publicSite = true)
