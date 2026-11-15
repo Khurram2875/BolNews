@@ -19,37 +19,39 @@
     var slots = HomeLayoutBuilder.Build(Model, siteProfile.HomeLayout);
     var layout = slots.Layout;
 
-    var showLatestRail = layout.LatestEnabled && (slots.Latest.Any() || layout.ShowPoll || layout.ShowLiveEvents);
-    var showFeaturedRail = layout.FeaturedEnabled && (slots.Featured.Any() || (layout.ShowShows && slots.ShowCarouselImages.Any()));
-    var firstRailIsFeatured = layout.FeaturedRailFirst;
-    var hasFirstRail = firstRailIsFeatured ? showFeaturedRail : showLatestRail;
-    var hasSecondRail = firstRailIsFeatured ? showLatestRail : showFeaturedRail;
-    var heroLayoutClass = hasFirstRail && hasSecondRail ? "" : hasFirstRail ? " bn-home-hero--left-only" : hasSecondRail ? " bn-home-hero--right-only" : " bn-home-hero--center-only";
+    var showLatestRail = layout.LatestEnabled && (slots.Latest.Any() || layout.HasWidgetIn("latest"));
+    var showFeaturedRail = layout.FeaturedEnabled && (slots.Featured.Any() || layout.HasWidgetIn("featured") || (layout.ShowShows && slots.ShowCarouselImages.Any()));
+
+    // Columns in the publisher's order; a switched-off rail simply has no column.
+    var columns = layout.Columns
+        .Where(c => c == "top" || (c == "latest" && showLatestRail) || (c == "featured" && showFeaturedRail))
+        .ToList();
+    var isDefaultOrder = string.Join(',', columns) == "latest,top,featured";
+    var heroLayoutClass = isDefaultOrder ? "" : " bn-home-hero--custom";
+    var heroLayoutStyle = isDefaultOrder ? "" :
+        "--bn-hero-cols:" + string.Join(' ', columns.Select(c => c == "top" ? "minmax(0,1fr)" : "292px")) +
+        ";--bn-hero-cols-md:" + string.Join(' ', columns.Select(c => c == "top" ? "minmax(0,1fr)" : "245px")) + ";";
 }
 
 <h1 class="visually-hidden">@siteProfile.SiteName – @siteProfile.Tagline</h1>
 <div class="bn-container bn-container--home">
     @if (slots.TopStory != null)
     {
-        <section class="bn-home-hero bn-home-hero--three@(heroLayoutClass)" aria-label="@T["Top stories"]">
-            @if (!firstRailIsFeatured && showLatestRail)
+        <section class="bn-home-hero bn-home-hero--three@(heroLayoutClass)" style="@heroLayoutStyle" aria-label="@T["Top stories"]">
+            @foreach (var column in columns)
             {
-                @await Component.InvokeAsync("HomeLatest", new { slots })
-            }
-            @if (firstRailIsFeatured && showFeaturedRail)
-            {
-                @await Component.InvokeAsync("HomeFeatured", new { slots })
-            }
-
-            @await Component.InvokeAsync("HomeTopStories", new { slots })
-
-            @if (firstRailIsFeatured && showLatestRail)
-            {
-                @await Component.InvokeAsync("HomeLatest", new { slots })
-            }
-            @if (!firstRailIsFeatured && showFeaturedRail)
-            {
-                @await Component.InvokeAsync("HomeFeatured", new { slots })
+                if (column == "latest")
+                {
+                    @await Component.InvokeAsync("HomeLatest", new { slots })
+                }
+                else if (column == "featured")
+                {
+                    @await Component.InvokeAsync("HomeFeatured", new { slots })
+                }
+                else
+                {
+                    @await Component.InvokeAsync("HomeTopStories", new { slots })
+                }
             }
         </section>
     }

@@ -23,8 +23,15 @@ public class HomeLayoutSettings
 
     public bool LatestEnabled { get; set; } = true;
     public int LatestCount { get; set; } = 14;
-    public bool ShowPoll { get; set; } = true;
-    public bool ShowLiveEvents { get; set; } = true;
+
+    /// <summary>Where the poll card sits: latest-top, latest-bottom, featured-top, featured-bottom or hidden.</summary>
+    public string PollPlacement { get; set; } = "latest-top";
+    /// <summary>Where the live events card sits (same values as <see cref="PollPlacement"/>).</summary>
+    public string LivePlacement { get; set; } = "latest-top";
+
+    // Older saved layouts used on/off switches; they are read once and folded into the placements by Normalize.
+    public bool? ShowPoll { get; set; }
+    public bool? ShowLiveEvents { get; set; }
 
     public int TopCardCount { get; set; } = 2;
     public bool ShowTrending { get; set; } = true;
@@ -34,8 +41,19 @@ public class HomeLayoutSettings
     public int FeaturedCount { get; set; } = 10;
     public bool ShowShows { get; set; } = true;
 
-    /// <summary>When true the Featured rail is on the start side (left in English, right in Urdu) and Latest on the other.</summary>
-    public bool FeaturedRailFirst { get; set; }
+    public static readonly string[] Placements = { "latest-top", "latest-bottom", "featured-top", "featured-bottom", "hidden" };
+
+    /// <summary>Column order from the start side (left in English, right in Urdu): any order of top, latest, featured.</summary>
+    public string ColumnOrder { get; set; } = "latest,top,featured";
+
+    // Older saved layouts used a swap switch; folded into ColumnOrder by Normalize.
+    public bool? FeaturedRailFirst { get; set; }
+
+    public IReadOnlyList<string> Columns => ColumnOrder.Split(',');
+
+    /// <summary>True when the poll or live events card is placed in the given rail ("latest" or "featured").</summary>
+    public bool HasWidgetIn(string rail) =>
+        PollPlacement.StartsWith(rail + "-", StringComparison.Ordinal) || LivePlacement.StartsWith(rail + "-", StringComparison.Ordinal);
 
     public bool CategoriesEnabled { get; set; } = true;
 
@@ -61,6 +79,18 @@ public class HomeLayoutSettings
         s.TopCardCount = Math.Clamp(s.TopCardCount, 0, 6);
         s.TrendingCount = Math.Clamp(s.TrendingCount, 3, 10);
         s.FeaturedCount = Math.Clamp(s.FeaturedCount, 1, 15);
+        if (s.ShowPoll == false) s.PollPlacement = "hidden";
+        if (s.ShowLiveEvents == false) s.LivePlacement = "hidden";
+        s.ShowPoll = null; s.ShowLiveEvents = null;
+        if (!Placements.Contains(s.PollPlacement)) s.PollPlacement = "latest-top";
+        if (!Placements.Contains(s.LivePlacement)) s.LivePlacement = "latest-top";
+
+        if (s.FeaturedRailFirst == true && s.ColumnOrder == "latest,top,featured") s.ColumnOrder = "featured,top,latest";
+        s.FeaturedRailFirst = null;
+        var parts = (s.ColumnOrder ?? "").Split(',', StringSplitOptions.TrimEntries).Select(x => x.ToLowerInvariant()).ToList();
+        var valid = parts.Count == 3 && parts.Distinct().Count() == 3 && parts.All(p => p is "top" or "latest" or "featured");
+        s.ColumnOrder = valid ? string.Join(',', parts) : "latest,top,featured";
+
         s.Categories ??= new();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         s.Categories = s.Categories

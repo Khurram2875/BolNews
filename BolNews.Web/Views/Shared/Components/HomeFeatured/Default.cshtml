@@ -4,6 +4,7 @@
     var imagePaths = Model.ShowCarouselImages;
 }
 <aside class="bn-story-rail" aria-label="@T["Featured"]">
+    @await Component.InvokeAsync("HomeRailWidgets", new { slots = Model, place = "featured-top" })
     @await Component.InvokeAsync("AdZone", new { zone = "home.sidebar.top" })
     @if (Model.Featured.Any())
     {
@@ -69,5 +70,6 @@
             </div>
         }
     }
+    @await Component.InvokeAsync("HomeRailWidgets", new { slots = Model, place = "featured-bottom" })
     @await Component.InvokeAsync("AdZone", new { zone = "home.sidebar.bottom" })
 </aside>

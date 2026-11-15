@@ -1,21 +1,7 @@
 @using BolNews.Web.Models
 @model HomeSlotsVM
-@{
-    var layout = Model.Layout;
-}
 <aside class="bn-story-rail" aria-label="@T["Latest"]">
-    @if (layout.ShowPoll)
-    {
-        <section id="polls">
-            @await Component.InvokeAsync("PollCard")
-        </section>
-    }
-    @if (layout.ShowLiveEvents)
-    {
-        <section id="liveEvents">
-            @await Component.InvokeAsync("LiveEvents")
-        </section>
-    }
+    @await Component.InvokeAsync("HomeRailWidgets", new { slots = Model, place = "latest-top" })
 
     @if (Model.Latest.Any())
     {
@@ -40,4 +26,6 @@
             }
         </div>
     }
+
+    @await Component.InvokeAsync("HomeRailWidgets", new { slots = Model, place = "latest-bottom" })
 </aside>

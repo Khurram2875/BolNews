@@ -1,0 +1,17 @@
+@using BolNews.Web.Models
+@model HomeSlotsVM
+@{
+    string place = ViewBag.Place;
+}
+@if (Model.Layout.PollPlacement == place)
+{
+    <section id="polls">
+        @await Component.InvokeAsync("PollCard")
+    </section>
+}
+@if (Model.Layout.LivePlacement == place)
+{
+    <section id="liveEvents">
+        @await Component.InvokeAsync("LiveEvents")
+    </section>
+}

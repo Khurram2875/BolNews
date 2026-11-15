@@ -160,13 +160,11 @@
                     .OrderBy(r => r.Order).ThenBy(r => r.Name)
                     .ToList();
             }
-            <p class="text-muted">Choose which blocks appear on the home page, how many stories each holds, and which side the rails sit on. <strong>Pinned stories always show first</strong> and are never removed by these counts. Use <em>Preview unsaved changes</em> to check the result before saving.</p>
+            <p class="text-muted">Choose which blocks appear on the home page, how many stories each holds, the column order, and where the poll and live events cards go. <strong>Pinned stories always show first</strong> and are never removed by these counts. Use <em>Preview unsaved changes</em> to check the result before saving.</p>
             <div class="row g-3">
                 <div class="col-lg-4"><div class="border rounded p-3 h-100">
                     <div class="fw-semibold mb-2">Latest rail</div>
-                    <div class="form-check">@Html.CheckBox("HomeLayout.LatestEnabled", hl.LatestEnabled, new { @class = "form-check-input", id = "hl_latest" })<label class="form-check-label" for="hl_latest">Show Latest rail</label></div>
-                    <div class="form-check">@Html.CheckBox("HomeLayout.ShowPoll", hl.ShowPoll, new { @class = "form-check-input", id = "hl_poll" })<label class="form-check-label" for="hl_poll">Show poll card</label></div>
-                    <div class="form-check mb-2">@Html.CheckBox("HomeLayout.ShowLiveEvents", hl.ShowLiveEvents, new { @class = "form-check-input", id = "hl_live" })<label class="form-check-label" for="hl_live">Show live events</label></div>
+                    <div class="form-check mb-2">@Html.CheckBox("HomeLayout.LatestEnabled", hl.LatestEnabled, new { @class = "form-check-input", id = "hl_latest" })<label class="form-check-label" for="hl_latest">Show Latest rail</label></div>
                     <label class="form-label small mb-1" for="hl_latest_count">Stories (1–20)</label>
                     <input id="hl_latest_count" type="number" min="1" max="20" class="form-control form-control-sm" name="HomeLayout.LatestCount" value="@hl.LatestCount" />
                 </div></div>
@@ -187,7 +185,47 @@
                     <input id="hl_featured_count" type="number" min="1" max="15" class="form-control form-control-sm" name="HomeLayout.FeaturedCount" value="@hl.FeaturedCount" />
                 </div></div>
             </div>
-            <div class="form-check mt-3">@Html.CheckBox("HomeLayout.FeaturedRailFirst", hl.FeaturedRailFirst, new { @class = "form-check-input", id = "hl_swap" })<label class="form-check-label" for="hl_swap">Swap rail sides — Featured on the start side (left in English, right in Urdu), Latest on the other</label></div>
+            @{
+                var orders = new (string Value, string Label)[]
+                {
+                    ("latest,top,featured", "Latest  |  Top stories  |  Featured (default)"),
+                    ("featured,top,latest", "Featured  |  Top stories  |  Latest"),
+                    ("top,latest,featured", "Top stories  |  Latest  |  Featured"),
+                    ("top,featured,latest", "Top stories  |  Featured  |  Latest"),
+                    ("latest,featured,top", "Latest  |  Featured  |  Top stories"),
+                    ("featured,latest,top", "Featured  |  Latest  |  Top stories")
+                };
+                var placements = new (string Value, string Label)[]
+                {
+                    ("latest-top", "Top of the Latest column"),
+                    ("latest-bottom", "Bottom of the Latest column"),
+                    ("featured-top", "Top of the Featured column"),
+                    ("featured-bottom", "Bottom of the Featured column"),
+                    ("hidden", "Hidden")
+                };
+            }
+            <div class="row g-3 mt-1">
+                <div class="col-lg-4">
+                    <label class="form-label fw-semibold" for="hl_order">Column order (start side first)</label>
+                    <select id="hl_order" name="HomeLayout.ColumnOrder" class="form-select">
+                        @foreach (var o in orders) { <option value="@o.Value" selected="@(hl.ColumnOrder == o.Value)">@o.Label</option> }
+                    </select>
+                    <div class="form-text">The first column is on the left in English and on the right in Urdu. A switched-off column leaves a gap-free layout.</div>
+                </div>
+                <div class="col-lg-4">
+                    <label class="form-label fw-semibold" for="hl_poll_place">Poll card position</label>
+                    <select id="hl_poll_place" name="HomeLayout.PollPlacement" class="form-select">
+                        @foreach (var o in placements) { <option value="@o.Value" selected="@(hl.PollPlacement == o.Value)">@o.Label</option> }
+                    </select>
+                </div>
+                <div class="col-lg-4">
+                    <label class="form-label fw-semibold" for="hl_live_place">Live events card position</label>
+                    <select id="hl_live_place" name="HomeLayout.LivePlacement" class="form-select">
+                        @foreach (var o in placements) { <option value="@o.Value" selected="@(hl.LivePlacement == o.Value)">@o.Label</option> }
+                    </select>
+                    <div class="form-text">A card in a column that is switched off is not shown.</div>
+                </div>
+            </div>
 
             <hr />
             <div class="form-check mb-2">@Html.CheckBox("HomeLayout.CategoriesEnabled", hl.CategoriesEnabled, new { @class = "form-check-input", id = "hl_cats" })<label class="form-check-label fw-semibold" for="hl_cats">Show category columns below the top stories</label></div>
