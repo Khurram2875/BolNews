@@ -12,7 +12,7 @@
     @if (TempData["SuccessMessage"] is string success) { <div class="alert alert-success">@success</div> }
     @if (TempData["ErrorMessage"] is string failure) { <div class="alert alert-danger">@failure</div> }
     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-    <form asp-action="Index" method="post">
+    <form asp-action="Index" method="post" id="siteSettingsForm">
         @Html.AntiForgeryToken()
         <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Publisher identity</div><div class="card-body row g-3">
             <div class="col-md-6"><label asp-for="SiteName" class="form-label">Publisher name</label><input asp-for="SiteName" class="form-control" /></div>
@@ -171,7 +171,24 @@
             }
         </div></div>
         <button class="btn btn-danger" type="submit">Save publisher settings</button>
+        <button class="btn btn-outline-secondary ms-2" type="submit" formaction="@Url.Action("Preview", "SiteSettings", new { area = "Admin" })" formtarget="bnPreviewFrame" formnovalidate onclick="bnShowPreview()">Preview unsaved changes</button>
     </form>
+
+    <div class="card shadow-sm mb-4" id="bnPreviewCard" style="display:none"><div class="card-header fw-semibold d-flex flex-wrap gap-2 justify-content-between align-items-center">
+        <span>Live preview <span class="text-muted fw-normal">(unsaved — nothing is published until you click Save)</span></span>
+        <span class="d-flex gap-2 align-items-center">
+            <label class="small text-muted mb-0" for="previewPathInput">Page</label>
+            <input id="previewPathInput" form="siteSettingsForm" name="previewPath" class="form-control form-control-sm" style="width:260px" value="/" placeholder="/ or /category-slug or /article-url" />
+            <div class="btn-group btn-group-sm" role="group" aria-label="Preview width">
+                <button type="button" class="btn btn-outline-secondary" data-preview-width="100%">Desktop</button>
+                <button type="button" class="btn btn-outline-secondary" data-preview-width="768px">Tablet</button>
+                <button type="button" class="btn btn-outline-secondary" data-preview-width="390px">Phone</button>
+            </div>
+            <a class="btn btn-sm btn-outline-danger" asp-action="StopPreview">End preview</a>
+        </span>
+    </div><div class="card-body p-0 bg-light text-center">
+        <iframe name="bnPreviewFrame" id="bnPreviewFrame" title="Site preview" style="width:100%;height:720px;border:0;background:#fff;margin:0 auto;display:block"></iframe>
+    </div></div>
 
     @{ var versions = ViewBag.Versions as List<BolNews.Domain.Entities.SiteProfileVersion> ?? new(); }
     <div class="card shadow-sm mb-4 mt-4"><div class="card-header fw-semibold d-flex justify-content-between align-items-center">
@@ -220,6 +237,15 @@
 </div>
 
 @section Scripts {
+    <script>
+        function bnShowPreview() {
+            document.getElementById('bnPreviewCard').style.display = '';
+            setTimeout(() => document.getElementById('bnPreviewCard').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+        }
+        document.querySelectorAll('[data-preview-width]').forEach(b => b.addEventListener('click', () => {
+            document.getElementById('bnPreviewFrame').style.width = b.dataset.previewWidth;
+        }));
+    </script>
     <script>
         document.querySelectorAll('[data-color-picker]').forEach(p => {
             const t = document.querySelector('[data-color-text="' + p.dataset.colorPicker + '"]');

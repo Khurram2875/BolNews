@@ -178,6 +178,10 @@
 
 </head>
 <body data-auto-refresh="@(ViewData["EnableTimedRefresh"] is true ? "true" : "false")">
+    @if (SiteProfileService.GetPreviewDraft() is not null)
+    {
+        <div style="position:fixed;bottom:8px;left:8px;z-index:99999;background:#111;color:#fff;font:12px/1.4 sans-serif;padding:5px 10px;border-radius:4px;opacity:.9">Preview of unsaved settings — not published. <a href="/Admin/SiteSettings/StopPreview" target="_top" style="color:#ffd54f">End preview</a></div>
+    }
     
     <div id="Bolnews_Anchor_ATF"></div>
 

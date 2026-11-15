@@ -25,6 +25,53 @@ public sealed class SiteSettingsController(SiteProfileService profiles, IWebHost
         return View(model);
     }
 
+    /// <summary>Shows the public site with the posted, unsaved settings. Nothing is saved.</summary>
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Preview(SiteProfile model, List<int?> navigationCategoryOrder, string? previewPath, CancellationToken cancellationToken)
+    {
+        var problems = new List<string>();
+        model.Style = StyleSettings.Normalize(model.Style);
+        problems.AddRange(model.Style.Validate());
+        if (!IsColor(model.PrimaryColor) || !IsColor(model.AccentColor)) problems.Add("Brand colors must use the #RRGGBB format.");
+        if (model.BaseFontSizePx < 12 || model.BaseFontSizePx > 24) problems.Add("Base text size must be between 12 and 24 px.");
+        if (model.ArticleFontSizePx != 0 && (model.ArticleFontSizePx < 12 || model.ArticleFontSizePx > 40)) problems.Add("Article text size must be 0 or between 12 and 40 px.");
+        if (problems.Count > 0)
+        {
+            var list = string.Concat(problems.Select(p => "<li>" + System.Net.WebUtility.HtmlEncode(p) + "</li>"));
+            return Content("<!doctype html><meta charset=\"utf-8\"><body style=\"font-family:sans-serif;padding:16px\"><h3>Preview not available</h3><ul>" + list + "</ul>", "text/html; charset=utf-8");
+        }
+
+        // Start from the saved profile so fields not on the form keep their saved values, then apply the posted draft.
+        var saved = await profiles.GetAsync(cancellationToken);
+        var draft = new SiteProfile();
+        foreach (var prop in typeof(SiteProfile).GetProperties().Where(p => p.CanRead && p.CanWrite && p.GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute), true).Length == 0))
+            prop.SetValue(draft, prop.GetValue(model));
+        draft.Id = saved.Id;
+        draft.NavigationCategoryIds = string.Join(',', navigationCategoryOrder.Where(id => id.HasValue).Select(id => id!.Value).Distinct().Take(9));
+        draft.ThemeName = PublisherThemeCatalog.NormalizeTheme(model.ThemeName);
+        draft.FontFamily = PublisherThemeCatalog.NormalizeFont(model.FontFamily);
+        draft.LanguageCode = PublisherThemeCatalog.NormalizeLanguage(model.LanguageCode);
+        draft.Style = model.Style;
+
+        var token = profiles.StorePreview(draft);
+        Response.Cookies.Append(SiteProfileService.PreviewCookie, token, new CookieOptions
+        {
+            HttpOnly = true, SameSite = SameSiteMode.Lax, Path = "/", IsEssential = true,
+            Expires = DateTimeOffset.UtcNow.AddMinutes(30), Secure = Request.IsHttps
+        });
+        var path = string.IsNullOrWhiteSpace(previewPath) ? "/" : previewPath.Trim();
+        if (!path.StartsWith('/') || path.StartsWith("//") || path.StartsWith("/\\") || path.StartsWith("/Admin", StringComparison.OrdinalIgnoreCase))
+            path = "/";
+        return LocalRedirect(path);
+    }
+
+    [HttpGet]
+    public IActionResult StopPreview()
+    {
+        Response.Cookies.Delete(SiteProfileService.PreviewCookie, new CookieOptions { Path = "/" });
+        return RedirectToAction(nameof(Index));
+    }
+
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> RestoreVersion(int id, CancellationToken cancellationToken)
     {

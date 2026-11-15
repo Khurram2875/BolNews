@@ -6,12 +6,39 @@ using System.Text.Json;
 
 namespace BolNews.Web.Services;
 
-public sealed class SiteProfileService(AppDbContext db, IMemoryCache cache)
+public sealed class SiteProfileService(AppDbContext db, IMemoryCache cache, IHttpContextAccessor http)
 {
+    public const string PreviewCookie = "bn_preview";
+    private const string PreviewKeyPrefix = "productization:site-profile:preview:";
+    private static readonly TimeSpan PreviewLifetime = TimeSpan.FromMinutes(30);
     private const string CacheKey = "productization:site-profile:v1";
+
+    /// <summary>The unsaved draft being previewed by the current admin request, or null.</summary>
+    public SiteProfile? GetPreviewDraft()
+    {
+        var ctx = http.HttpContext;
+        if (ctx is null || !ctx.Request.Cookies.TryGetValue(PreviewCookie, out var token)) return null;
+        if (token.Length != 32 || !token.All(Uri.IsHexDigit)) return null;
+        // Preview only affects the public site, never the admin area, and only for signed-in admins.
+        if (ctx.Request.Path.StartsWithSegments("/Admin", StringComparison.OrdinalIgnoreCase)) return null;
+        if (ctx.User.Identity?.IsAuthenticated != true || !ctx.User.IsInRole(BolNews.Domain.Common.Roles.Admin)) return null;
+        return cache.TryGetValue(PreviewKeyPrefix + token, out SiteProfile? draft) ? draft : null;
+    }
+
+    /// <summary>Keeps an unsaved profile in memory for a short time and returns the token that selects it.</summary>
+    public string StorePreview(SiteProfile draft)
+    {
+        draft.StyleSettingsJson = StyleSettings.Normalize(draft.Style).ToJson();
+        var token = Guid.NewGuid().ToString("N");
+        cache.Set(PreviewKeyPrefix + token, draft, PreviewLifetime);
+        return token;
+    }
 
     public async Task<SiteProfile> GetAsync(CancellationToken cancellationToken = default)
     {
+        var draft = GetPreviewDraft();
+        if (draft is not null) return draft;
+
         if (cache.TryGetValue(CacheKey, out SiteProfile? cached) && cached is not null)
             return cached;
 
