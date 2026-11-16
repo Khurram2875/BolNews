@@ -33,6 +33,13 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAnalyticsService, AnalyticsService>();
         services.AddScoped<IAdService, AdService>();
         services.AddScoped<SiteProfileService>();
+        services.AddHttpClient(BolNews.Web.Services.Tts.TtsHttp.ClientName, c => c.Timeout = TimeSpan.FromSeconds(120));
+        services.AddSingleton<BolNews.Web.Services.Tts.TtsKeyProtector>();
+        services.AddSingleton<BolNews.Web.Services.Tts.TtsUsageTracker>();
+        services.AddScoped<BolNews.Web.Services.Tts.ITtsProvider, BolNews.Web.Services.Tts.ElevenLabsTtsProvider>();
+        services.AddScoped<BolNews.Web.Services.Tts.ITtsProvider, BolNews.Web.Services.Tts.AzureTtsProvider>();
+        services.AddScoped<BolNews.Web.Services.Tts.ITtsProvider, BolNews.Web.Services.Tts.GoogleTtsProvider>();
+        services.AddScoped<BolNews.Web.Services.Tts.ArticleAudioService>();
         services.AddScoped<AdPlacementService>();
         services.AddScoped<IArticleRevisionService, ArticleRevisionService>();
         services.AddScoped<IArticleDiffService, ArticleDiffService>();

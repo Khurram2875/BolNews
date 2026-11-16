@@ -60,6 +60,7 @@ public sealed class SiteProfileService(AppDbContext db, IMemoryCache cache, IHtt
         input.StyleSettingsJson = StyleSettings.Normalize(input.Style).ToJson();
         input.CustomBlocksJson = input.Blocks.ToJson();
         input.HomeLayoutJson = input.HomeLayout.ToJson();
+        input.TtsSettingsJson = input.Tts.ToJson();
         var profile = await db.SiteProfiles.FirstOrDefaultAsync(cancellationToken);
         if (profile is null)
         {

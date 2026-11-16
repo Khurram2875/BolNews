@@ -116,6 +116,8 @@
 							</button>
 							<button type="button" class="bn-article-audio-button" data-article-audio-button
 									data-auto-scroll="@(siteProfile.Style.ReadAloudAutoScroll ? "true" : "false")"
+									@(siteProfile.Tts.IsConfigured ? Html.Raw($"data-audio-endpoint=\"/article-audio/{Model.Article.Id}\"") : Html.Raw(""))
+									data-msg-preparing="@T["Preparing audio…"]"
 									data-label-listen="@T["Listen to article"]" data-label-stop="@T["Stop reading article"]"
 									data-msg-reading="@T["Reading article aloud."]" data-msg-stopped="@T["Article audio stopped."]"
 									data-msg-unsupported="@T["Text to speech is not available in this browser."]"

@@ -254,6 +254,66 @@
             </table></div>
         </div></div>
 
+        <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Article read-aloud voice</div><div class="card-body">
+            @{
+                var tts = Model.Tts;
+                var ttsProviders = ViewBag.TtsProviders as List<BolNews.Web.Services.Tts.ITtsProvider> ?? new();
+                var langCode = Model.LanguageCode == "ur" ? "ur" : "en";
+                long ttsUsed = ViewBag.TtsUsed is long u ? u : 0;
+            }
+            @if (tts.IsConfigured)
+            {
+                <div class="alert alert-success py-2">Provider audio is <strong>active</strong>: visitors hear the audio below, created once per article and reused until the article text changes. Browser voices are used only if the provider fails.</div>
+            }
+            else
+            {
+                <div class="alert alert-secondary py-2">No provider is active, so article read-aloud uses the visitor's <strong>browser voices</strong> (free; quality and Urdu availability depend on the visitor's device).</div>
+            }
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label" for="tts_provider">Provider</label>
+                    <select id="tts_provider" name="Tts.Provider" class="form-select">
+                        <option value="" selected="@(tts.Provider == "")">None — use browser voices</option>
+                        @foreach (var p in ttsProviders) { <option value="@p.Id" selected="@(tts.Provider == p.Id)" data-needs-region="@(p.NeedsRegion ? "1" : "0")" data-model="@p.DefaultModel" data-voice-help="@p.VoiceHelp" data-key-help="@p.KeyHelp" data-default-voice="@p.DefaultVoice(langCode)">@p.Label</option> }
+                    </select>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label" for="tts_key">API key</label>
+                    <input id="tts_key" type="password" name="Tts.NewApiKey" class="form-control" autocomplete="new-password" placeholder="@(tts.HasApiKey ? "A key is saved (hidden). Type a new one to replace it." : "Paste the provider API key")" />
+                    <div class="form-text" id="tts_key_help">The key is stored encrypted and is never shown again.</div>
+                    @if (tts.HasApiKey)
+                    {
+                        <div class="form-check mt-1">@Html.CheckBox("Tts.ClearApiKey", false, new { @class = "form-check-input", id = "tts_clear" })<label class="form-check-label" for="tts_clear">Remove the saved key</label></div>
+                    }
+                </div>
+                <div class="col-md-4" id="tts_region_wrap">
+                    <label class="form-label" for="tts_region">Region</label>
+                    <input id="tts_region" name="Tts.Region" class="form-control" value="@tts.Region" placeholder="e.g. southeastasia" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="tts_voice">Voice</label>
+                    <input id="tts_voice" name="Tts.Voice" class="form-control" value="@tts.Voice" />
+                    <div class="form-text" id="tts_voice_help"></div>
+                </div>
+                <div class="col-md-4" id="tts_model_wrap">
+                    <label class="form-label" for="tts_model">Model</label>
+                    <input id="tts_model" name="Tts.Model" class="form-control" value="@tts.Model" />
+                    <div class="form-text">Empty = provider default. For Urdu on ElevenLabs use a model that lists Urdu (eleven_v4).</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="tts_limit">Monthly character limit</label>
+                    <input id="tts_limit" type="number" min="0" class="form-control" name="Tts.MonthlyCharacterLimit" value="@tts.MonthlyCharacterLimit" />
+                    <div class="form-text">0 = no limit. Used this month: @ttsUsed.ToString("N0") characters. When the limit is reached, new articles fall back to browser voices.</div>
+                </div>
+            </div>
+            <div class="mt-3 d-flex flex-wrap align-items-center gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="tts_test" @(tts.IsConfigured ? "" : "disabled")>Test saved voice</button>
+                <audio id="tts_test_audio" controls hidden></audio>
+                <span class="small" id="tts_test_msg" role="status"></span>
+            </div>
+            <p class="text-muted small mt-2 mb-0">Audio is created the first time someone listens to an article (not before), saved on this server under <code>uploads/audio</code>, and recreated only after the article text or voice changes. Save the settings before using Test.</p>
+        </div></div>
+
         <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Custom HTML blocks</div><div class="card-body">
             <p class="text-muted">Add your own content (promo banners, notices, newsletter links, partner logos) in fixed places on the site. Allowed: paragraphs, headings, bold/italic/underline, lists, links, images, quotes, line breaks and text/background colour. For safety, scripts, iframes/embeds, forms, buttons and custom CSS classes or layout styles are removed when you save. Use <em>Preview unsaved changes</em> to see the result; saved blocks show your cleaned version.</p>
             @foreach (var slot in BolNews.Domain.Entities.CustomBlocks.Slots)
@@ -363,6 +423,37 @@
 </div>
 
 @section Scripts {
+    <script>
+        (function () {
+            const sel = document.getElementById('tts_provider');
+            if (!sel) return;
+            function sync() {
+                const o = sel.options[sel.selectedIndex];
+                const on = !!sel.value;
+                document.getElementById('tts_region_wrap').style.display = on && o.dataset.needsRegion === '1' ? '' : 'none';
+                document.getElementById('tts_model_wrap').style.display = on && o.dataset.model ? '' : 'none';
+                document.getElementById('tts_key_help').textContent = (o.dataset.keyHelp || '') + ' The key is stored encrypted and is never shown again.';
+                const v = document.getElementById('tts_voice');
+                v.placeholder = o.dataset.defaultVoice || 'required';
+                document.getElementById('tts_voice_help').textContent = o.dataset.voiceHelp || '';
+            }
+            sel.addEventListener('change', sync); sync();
+
+            const btn = document.getElementById('tts_test');
+            btn.addEventListener('click', async () => {
+                const msg = document.getElementById('tts_test_msg'), audio = document.getElementById('tts_test_audio');
+                msg.textContent = 'Contacting provider…'; msg.className = 'small text-muted'; btn.disabled = true;
+                try {
+                    const res = await fetch('@Url.Action("TestVoice", "SiteSettings", new { area = "Admin" })', { credentials: 'same-origin' });
+                    if (!res.ok) throw new Error(await res.text());
+                    audio.src = URL.createObjectURL(await res.blob()); audio.hidden = false; await audio.play();
+                    msg.textContent = 'Voice works.'; msg.className = 'small text-success';
+                } catch (e) {
+                    msg.textContent = e.message || 'Test failed.'; msg.className = 'small text-danger';
+                } finally { btn.disabled = false; }
+            });
+        })();
+    </script>
     <script>
         function bnShowPreview() {
             document.getElementById('bnPreviewCard').style.display = '';

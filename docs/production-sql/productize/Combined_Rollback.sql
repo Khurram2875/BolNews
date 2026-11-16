@@ -3,6 +3,16 @@
 -- Each section is guarded by __EFMigrationsHistory where its source script is; do not reorder.
 
 
+-- ======== BEGIN docs/production-sql/20261116000000_AddPublisherTts_Rollback.sql ========
+START TRANSACTION;
+
+ALTER TABLE `SiteProfiles` DROP COLUMN `TtsSettingsJson`;
+
+DELETE FROM `__EFMigrationsHistory` WHERE `MigrationId` = '20261116000000_AddPublisherTts';
+
+COMMIT;
+-- ======== END docs/production-sql/20261116000000_AddPublisherTts_Rollback.sql ========
+
 -- ======== BEGIN docs/production-sql/20261115020000_AddPublisherHomeLayout_Rollback.sql ========
 START TRANSACTION;
 

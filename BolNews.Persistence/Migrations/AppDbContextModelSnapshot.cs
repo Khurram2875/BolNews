@@ -1349,6 +1349,9 @@ namespace BolNews.Persistence.Migrations
                     b.Property<string>("HomeLayoutJson")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("TtsSettingsJson")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("StyleSettingsJson")
                         .HasColumnType("longtext");
 

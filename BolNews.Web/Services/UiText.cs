@@ -25,7 +25,7 @@ public sealed class UiText
         ["No articles yet"] = "ابھی کوئی خبر نہیں", ["Page not found"] = "صفحہ نہیں ملا", ["Something went wrong"] = "کچھ غلط ہو گیا",
         ["Return to home"] = "ہوم پر واپس جائیں", ["Back to Home"] = "ہوم پر واپس جائیں", ["Access denied"] = "رسائی ممنوع", ["Access Denied"] = "رسائی ممنوع",
         ["Menu"] = "مینو", ["Advertisement"] = "اشتہار", ["Social links"] = "سوشل لنکس", ["Save article"] = "خبر محفوظ کریں",
-        ["Listen to article"] = "خبر سنیں", ["Stop reading article"] = "پڑھنا بند کریں",
+        ["Listen to article"] = "خبر سنیں", ["Stop reading article"] = "پڑھنا بند کریں", ["Preparing audio…"] = "آڈیو تیار ہو رہی ہے…",
         ["Reading article aloud."] = "خبر پڑھی جا رہی ہے۔", ["Article audio stopped."] = "آڈیو بند کر دی گئی۔",
         ["Text to speech is not available in this browser."] = "اس براؤزر میں خبر سننے کی سہولت دستیاب نہیں۔",
         ["No article text is available to read."] = "پڑھنے کے لیے خبر کا متن دستیاب نہیں۔",

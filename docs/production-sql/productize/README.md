@@ -20,3 +20,4 @@ Local dev: `Update-Database` applies the same chain.
 11. `docs/production-sql/20261115000000_AddPublisherStyleControls.sql` (Publisher style controls + version history)
 12. `docs/production-sql/20261115010000_AddPublisherCustomBlocks.sql` (Publisher custom HTML blocks)
 13. `docs/production-sql/20261115020000_AddPublisherHomeLayout.sql` (Publisher home page layout settings)
+14. `docs/production-sql/20261116000000_AddPublisherTts.sql` (Publisher text-to-speech settings)

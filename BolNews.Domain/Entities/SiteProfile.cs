@@ -63,6 +63,16 @@ public class SiteProfile
         get => _homeLayout ??= HomeLayoutSettings.FromJson(HomeLayoutJson);
         set => _homeLayout = HomeLayoutSettings.Normalize(value);
     }
+    /// <summary>Server text-to-speech settings (JSON; the API key inside is encrypted).</summary>
+    public string? TtsSettingsJson { get; set; }
+
+    private TtsSettings? _tts;
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public TtsSettings Tts
+    {
+        get => _tts ??= TtsSettings.FromJson(TtsSettingsJson);
+        set => _tts = TtsSettings.Normalize(value);
+    }
     public string? AdScriptUrl { get; set; } = "https://avads.live/s/av-bolnews.js";
     public string? WhatsAppUrl { get; set; } = "https://whatsapp.com/channel/0029Vb7ZANWGJP8NYx9M4g0I";
     public string? FacebookUrl { get; set; } = "https://www.facebook.com/BOLNETWORK/";

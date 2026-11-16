@@ -5,6 +5,7 @@ using BolNews.Domain.Common;
 using BolNews.Domain.Entities;
 using BolNews.Web.Helpers;
 using BolNews.Web.Services;
+using BolNews.Web.Services.Tts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SixLabors.ImageSharp;
@@ -13,7 +14,9 @@ namespace BolNews.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Authorize(Roles = Roles.Admin)]
-public sealed class SiteSettingsController(SiteProfileService profiles, IWebHostEnvironment environment, ICategoryService categories) : Controller
+public sealed class SiteSettingsController(
+    SiteProfileService profiles, IWebHostEnvironment environment, ICategoryService categories,
+    TtsKeyProtector keyProtector, ArticleAudioService audio, TtsUsageTracker ttsUsage) : Controller
 {
     private static readonly HashSet<string> BrandImageExtensions = new(StringComparer.OrdinalIgnoreCase)
         { ".jpg", ".jpeg", ".png", ".webp" };
@@ -55,6 +58,7 @@ public sealed class SiteSettingsController(SiteProfileService profiles, IWebHost
         draft.Style = model.Style;
         draft.Blocks = CleanBlocks(model.Blocks, out _);
         draft.HomeLayout = HomeLayoutSettings.Normalize(model.HomeLayout);
+        draft.TtsSettingsJson = saved.TtsSettingsJson; // previews never touch or expose the text-to-speech key
 
         var token = profiles.StorePreview(draft);
         Response.Cookies.Append(SiteProfileService.PreviewCookie, token, new CookieOptions
@@ -238,6 +242,7 @@ public sealed class SiteSettingsController(SiteProfileService profiles, IWebHost
         if (!ModelState.IsValid)
             return View(model);
 
+        model.Tts = MergeTts(model.Tts, (await profiles.GetAsync(cancellationToken)).Tts);
         model.Id = 1;
         model.ThemeName = PublisherThemeCatalog.NormalizeTheme(model.ThemeName);
         model.FontFamily = PublisherThemeCatalog.NormalizeFont(model.FontFamily);
@@ -247,9 +252,54 @@ public sealed class SiteSettingsController(SiteProfileService profiles, IWebHost
         return RedirectToAction(nameof(Index));
     }
 
+    /// <summary>Applies the posted text-to-speech choices to the saved ones. The key is stored encrypted, never echoed back, and only replaced when a new one is typed.</summary>
+    private TtsSettings MergeTts(TtsSettings? posted, TtsSettings saved)
+    {
+        var result = TtsSettings.Normalize(posted);
+        var newKey = result.NewApiKey;
+        var clear = result.ClearApiKey;
+        result.NewApiKey = null;
+        result.ClearApiKey = false;
+
+        var providerChanged = !string.IsNullOrEmpty(result.Provider) && !string.Equals(result.Provider, saved.Provider, StringComparison.Ordinal) && saved.HasApiKey;
+        result.ApiKeyProtected = (clear || providerChanged) ? null : saved.ApiKeyProtected;
+        if (!string.IsNullOrWhiteSpace(newKey))
+            result.ApiKeyProtected = keyProtector.Protect(newKey);
+        return result;
+    }
+
+    /// <summary>Speaks a short sample with the saved provider settings so the publisher can confirm key, voice and region work.</summary>
+    [HttpGet]
+    public async Task<IActionResult> TestVoice(CancellationToken cancellationToken)
+    {
+        var profile = await profiles.GetAsync(cancellationToken);
+        var tts = profile.Tts;
+        if (!tts.IsConfigured || audio.Provider(tts.Provider) is not { } provider)
+            return StatusCode(400, "Save a provider, API key and voice first (Azure also needs a region; ElevenLabs needs a voice ID).");
+        var apiKey = keyProtector.Unprotect(tts.ApiKeyProtected);
+        if (apiKey is null)
+            return StatusCode(400, "The saved API key could not be read. Enter it again and save.");
+
+        var language = profile.LanguageCode == "ur" ? "ur" : "en";
+        var sample = language == "ur"
+            ? "یہ آواز کی جانچ کے لیے ایک مختصر جملہ ہے۔"
+            : "This is a short sentence to test the selected voice.";
+        try
+        {
+            var bytes = await ArticleAudioService.SynthesizeAsync(provider, sample, tts, apiKey, language, cancellationToken);
+            return File(bytes, "audio/mpeg");
+        }
+        catch (TtsException ex)
+        {
+            return StatusCode(502, ex.Message);
+        }
+    }
+
     private async Task PopulateOptionsAsync(string? navigationCategoryIds, CancellationToken cancellationToken, IReadOnlyCollection<int>? postedIds = null)
     {
         ViewBag.Versions = await profiles.GetVersionsAsync(cancellationToken);
+        ViewBag.TtsProviders = HttpContext.RequestServices.GetServices<ITtsProvider>().ToList();
+        ViewBag.TtsUsed = ttsUsage.UsedThisMonth();
         ViewBag.Themes = PublisherThemeCatalog.ThemeNames;
         ViewBag.FontFamilies = PublisherThemeCatalog.FontNames;
         var allCategories = await categories.GetParentCategoriesWithChildrenAsync();

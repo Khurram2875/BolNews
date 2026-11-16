@@ -21,7 +21,16 @@
     const playIcon = button.querySelector('[data-audio-icon-play]');
     const stopIcon = button.querySelector('[data-audio-icon-stop]');
 
-    if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
+    const hasSpeech = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+    // When the publisher has set up a text-to-speech provider the page offers server audio; browser voices stay as the fallback.
+    const endpoint = button.dataset.audioEndpoint || '';
+    let mode = 'speech';
+    let audioEl = null;
+    let audioFailed = false;
+    let loading = false;
+    let lastSegment = -1;
+
+    if (!hasSpeech && !endpoint) {
         button.hidden = true;
         if (status) status.textContent = text('msgUnsupported') || 'Text to speech is not available in this browser.';
         return;
@@ -39,7 +48,7 @@
         button.title = label;
         playIcon.hidden = isActive;
         stopIcon.hidden = !isActive;
-        if (!isActive) clearHighlight();
+        if (!isActive) { clearHighlight(); lastSegment = -1; }
         if (status) status.textContent = isActive ? (text('msgReading') || 'Reading article aloud.') : (text('msgStopped') || 'Article audio stopped.');
     }
 
@@ -195,14 +204,78 @@
         window.speechSynthesis.speak(utterance);
     }
 
+    function onAudioTime() {
+        if (!audioEl || !audioEl.duration || !segments.length) return;
+        // Provider audio has no word timings, so the sentence is estimated from how far through the audio we are.
+        const total = segments.reduce((sum, segment) => sum + segment.text.length, 0);
+        const target = (audioEl.currentTime / audioEl.duration) * total;
+        let acc = 0;
+        let index = segments.length - 1;
+        for (let i = 0; i < segments.length; i++) {
+            acc += segments[i].text.length;
+            if (target < acc) { index = i; break; }
+        }
+        if (index !== lastSegment) {
+            lastSegment = index;
+            highlightSegment(index);
+        }
+    }
+
+    async function startProviderAudio() {
+        loading = true;
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+        try {
+            if (!audioEl) {
+                showNote(text('msgPreparing') || 'Preparing audio…');
+                const response = await fetch(endpoint, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+                if (!response.ok) throw new Error('unavailable');
+                const data = await response.json();
+                const element = new Audio(data.url);
+                element.preload = 'auto';
+                element.addEventListener('timeupdate', onAudioTime);
+                element.addEventListener('ended', () => { element.currentTime = 0; setActive(false); });
+                element.addEventListener('error', () => { audioFailed = true; audioEl = null; setActive(false); });
+                audioEl = element;
+            }
+            segments = collectSegments();
+            lastSegment = -1;
+            mode = 'audio';
+            await audioEl.play();
+            showNote('');
+            setActive(true);
+            return true;
+        } catch {
+            audioFailed = true;
+            audioEl = null;
+            showNote('');
+            return false;
+        } finally {
+            loading = false;
+            button.disabled = false;
+            button.removeAttribute('aria-busy');
+        }
+    }
+
     button.addEventListener('click', async () => {
+        if (loading) return;
         if (active) {
-            window.speechSynthesis.cancel();
+            if (mode === 'audio' && audioEl) audioEl.pause();
+            else if (hasSpeech) window.speechSynthesis.cancel();
             setActive(false);
             return;
         }
 
         showNote('');
+        if (endpoint && !audioFailed && await startProviderAudio()) return;
+
+        mode = 'speech';
+        if (!hasSpeech) {
+            const unsupported = text('msgUnsupported') || 'Text to speech is not available in this browser.';
+            if (status) status.textContent = unsupported;
+            showNote(unsupported);
+            return;
+        }
         segments = collectSegments();
         chunks = segments.flatMap((segment, index) => splitIntoChunks(segment.text).map(text => ({ text, segment: index })));
         if (!chunks.length) {
@@ -229,5 +302,8 @@
         speakNextChunk();
     });
 
-    window.addEventListener('pagehide', () => window.speechSynthesis.cancel(), { once: true });
+    window.addEventListener('pagehide', () => {
+        if (hasSpeech) window.speechSynthesis.cancel();
+        if (audioEl) audioEl.pause();
+    }, { once: true });
 })();

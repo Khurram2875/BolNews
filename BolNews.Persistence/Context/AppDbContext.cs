@@ -94,6 +94,7 @@ namespace BolNews.Persistence.Context
                 entity.Property(x => x.StyleSettingsJson).HasColumnType("longtext");
                 entity.Property(x => x.CustomBlocksJson).HasColumnType("longtext");
                 entity.Property(x => x.HomeLayoutJson).HasColumnType("longtext");
+                entity.Property(x => x.TtsSettingsJson).HasColumnType("longtext");
                 entity.Property(x => x.BaseFontSizePx).HasDefaultValue(16);
                 entity.Property(x => x.ArticleFontSizePx).HasDefaultValue(0);
                 entity.Property(x => x.NavigationCategoryIds).HasMaxLength(100);
