@@ -118,7 +118,7 @@
         if (!segment || !hasHighlights) return;
         CSS.highlights.set(HIGHLIGHT_NAME, new Highlight(segment.range));
         const rect = segment.range.getBoundingClientRect();
-        if (rect.top < 90 || rect.bottom > window.innerHeight - 90) {
+        if (button.dataset.autoScroll !== 'false' && (rect.top < 90 || rect.bottom > window.innerHeight - 90)) {
             const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             const target = segment.range.startContainer.parentElement;
             if (target) target.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });

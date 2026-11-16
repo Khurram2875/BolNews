@@ -137,6 +137,13 @@
                 <div class="col-md-4"><label class="form-label">Article link colour</label><input type="text" class="form-control" maxlength="7" placeholder="default" name="Style.ArticleLinkColor" value="@style.ArticleLinkColor" /></div>
                 <div class="col-md-4"><label class="form-label">Corner roundness (px, 0–32)</label><input type="number" min="0" max="32" class="form-control" name="Style.CornerRadiusPx" value="@style.CornerRadiusPx" /><div class="form-text">Cards, buttons and images. Empty keeps the theme default.</div></div>
             </div>
+            <div class="row g-3 mt-1">
+                <div class="col-md-4"><label class="form-label">Read-aloud highlight colour</label><div class="input-group">
+                    <input type="color" class="form-control form-control-color" value="@(string.IsNullOrWhiteSpace(style.ReadAloudHighlightColor) ? "#FFC800" : style.ReadAloudHighlightColor)" data-color-picker="ReadAloud" />
+                    <input type="text" class="form-control" maxlength="7" placeholder="default (yellow)" name="Style.ReadAloudHighlightColor" value="@style.ReadAloudHighlightColor" data-color-text="ReadAloud" /></div>
+                    <div class="form-text">Colour of the sentence highlighted while an article is read aloud.</div></div>
+                <div class="col-md-8 d-flex align-items-end"><div class="form-check mb-2">@Html.CheckBox("Style.ReadAloudAutoScroll", style.ReadAloudAutoScroll, new { @class = "form-check-input", id = "ra_scroll" })<label class="form-check-label" for="ra_scroll">Scroll the page to follow the sentence being read aloud</label></div></div>
+            </div>
         </div></div>
 
         <div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Home page layout</div><div class="card-body">

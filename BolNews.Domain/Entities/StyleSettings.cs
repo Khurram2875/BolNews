@@ -29,6 +29,10 @@ public class StyleSettings
     public decimal? ArticleLineHeight { get; set; }
     public string? ArticleLinkColor { get; set; }
     public int? CornerRadiusPx { get; set; }
+    /// <summary>Colour of the sentence highlighted during read-aloud (#RRGGBB); empty keeps the default yellow.</summary>
+    public string? ReadAloudHighlightColor { get; set; }
+    /// <summary>Whether the page scrolls to follow the sentence being read.</summary>
+    public bool ReadAloudAutoScroll { get; set; } = true;
 
     private static readonly JsonSerializerOptions Options = new() { WriteIndented = false };
 
@@ -74,6 +78,7 @@ public class StyleSettings
         }
         if (ArticleLineHeight is < 1m or > 3.5m) errors.Add("Article line height must be 1.0–3.5.");
         if (!Hex(ArticleLinkColor)) errors.Add("Article link colour must look like #RRGGBB.");
+        if (!Hex(ReadAloudHighlightColor)) errors.Add("Read-aloud highlight colour must look like #RRGGBB.");
         if (CornerRadiusPx is < 0 or > 32) errors.Add("Corner roundness must be 0–32 px.");
         return errors;
     }

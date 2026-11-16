@@ -36,6 +36,14 @@ public static class PublisherStyleCss
             sb.Append($"html .bn-article-body,html .bn-article-body p,html .bn-article-body li{{line-height:{N(style.ArticleLineHeight.Value)}!important;}}");
         if (Hex(style.ArticleLinkColor))
             sb.Append($"html .bn-article-body a{{color:{style.ArticleLinkColor}!important;}}");
+        if (Hex(style.ReadAloudHighlightColor))
+        {
+            var c = style.ReadAloudHighlightColor!;
+            var r = Convert.ToInt32(c.Substring(1, 2), 16);
+            var g = Convert.ToInt32(c.Substring(3, 2), 16);
+            var b = Convert.ToInt32(c.Substring(5, 2), 16);
+            sb.Append($"html:root{{--bn-tts-highlight:rgba({r},{g},{b},0.4);}}");
+        }
         if (style.CornerRadiusPx is >= 0 and <= 32)
         {
             var r = style.CornerRadiusPx.Value;
