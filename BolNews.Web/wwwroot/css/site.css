@@ -5397,3 +5397,9 @@ html[data-theme="dark"] .bn-main .text-muted {
         transition: none;
     }
 }
+
+/* Read-aloud: sentence being spoken (CSS Custom Highlight API; ignored by browsers without it). */
+::highlight(bn-tts) {
+    background-color: var(--bn-tts-highlight, rgba(255, 200, 0, 0.35));
+    color: inherit;
+}

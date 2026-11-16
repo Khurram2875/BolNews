@@ -27,7 +27,7 @@
         return;
     }
 
-    let chunks = [];
+    let chunks = []; // { text, segment }
     let nextChunk = 0;
     let active = false;
 
@@ -39,22 +39,90 @@
         button.title = label;
         playIcon.hidden = isActive;
         stopIcon.hidden = !isActive;
+        if (!isActive) clearHighlight();
         if (status) status.textContent = isActive ? (text('msgReading') || 'Reading article aloud.') : (text('msgStopped') || 'Article audio stopped.');
     }
 
-    const joiner = isUrdu ? '\u06D4 ' : '. ';
+    const EXCLUDE = 'script, style, iframe, video, audio, button, form, noscript, .bn-ad-slot, .bn-ad-code-block, [aria-label="Advertisement"]';
+    const BLOCK = 'p, h1, h2, h3, h4, h5, h6, li, blockquote, figcaption, div, td, th';
+    const hasHighlights = typeof CSS !== 'undefined' && CSS.highlights && typeof Highlight !== 'undefined';
+    const HIGHLIGHT_NAME = 'bn-tts';
+    let segments = [];
 
-    function getArticleText() {
-        const title = document.querySelector('h1[itemprop="headline"]')?.innerText?.trim() ?? '';
-        const summary = document.querySelector('article > p')?.innerText?.trim() ?? '';
-        const body = document.querySelector('.bn-article-body');
-        if (!body) return [title, summary].filter(Boolean).join(joiner);
+    function locate(map, offset, preferEnd) {
+        for (const entry of map) {
+            if (offset < entry.end || (preferEnd && offset === entry.end)) {
+                return { node: entry.node, offset: offset - entry.start };
+            }
+        }
+        const last = map[map.length - 1];
+        return { node: last.node, offset: last.end - last.start };
+    }
 
-        const cleanBody = body.cloneNode(true);
-        cleanBody.querySelectorAll('script, style, iframe, video, audio, button, form, .bn-ad-slot, .bn-ad-code-block, [aria-label="Advertisement"]')
-            .forEach(element => element.remove());
-        const content = (cleanBody.innerText || cleanBody.textContent || '').trim();
-        return [title, summary, content].filter(Boolean).join(joiner);
+    // One segment per spoken sentence, each with a DOM range so the exact text can be highlighted.
+    function collectSegments() {
+        const roots = [
+            document.querySelector('h1[itemprop="headline"]'),
+            document.querySelector('article > p'),
+            document.querySelector('.bn-article-body')
+        ].filter(Boolean);
+
+        const result = [];
+        for (const root of roots) {
+            const groups = new Map();
+            const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+            for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+                const parent = node.parentElement;
+                if (!parent || parent.closest(EXCLUDE) || !node.nodeValue) continue;
+                const block = parent.closest(BLOCK) || root;
+                if (!groups.has(block)) groups.set(block, []);
+                groups.get(block).push(node);
+            }
+
+            for (const nodes of groups.values()) {
+                let full = '';
+                const map = [];
+                for (const node of nodes) {
+                    map.push({ node, start: full.length, end: full.length + node.nodeValue.length });
+                    full += node.nodeValue;
+                }
+                if (!full.trim()) continue;
+
+                const regex = new RegExp(sentenceRegex.source, 'g');
+                let match;
+                while ((match = regex.exec(full)) !== null) {
+                    const raw = match[0];
+                    const lead = raw.length - raw.trimStart().length;
+                    const spoken = raw.replace(/\s+/g, ' ').trim();
+                    if (!/[\p{L}\p{N}]/u.test(spoken)) continue;
+                    const start = locate(map, match.index + lead, false);
+                    const end = locate(map, match.index + raw.trimEnd().length, true);
+                    const range = document.createRange();
+                    try {
+                        range.setStart(start.node, start.offset);
+                        range.setEnd(end.node, end.offset);
+                    } catch { continue; }
+                    result.push({ text: spoken, range });
+                }
+            }
+        }
+        return result;
+    }
+
+    function clearHighlight() {
+        if (hasHighlights) CSS.highlights.delete(HIGHLIGHT_NAME);
+    }
+
+    function highlightSegment(index) {
+        const segment = segments[index];
+        if (!segment || !hasHighlights) return;
+        CSS.highlights.set(HIGHLIGHT_NAME, new Highlight(segment.range));
+        const rect = segment.range.getBoundingClientRect();
+        if (rect.top < 90 || rect.bottom > window.innerHeight - 90) {
+            const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const target = segment.range.startContainer.parentElement;
+            if (target) target.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+        }
     }
 
     function splitIntoChunks(text, maxLength = 220) {
@@ -117,9 +185,11 @@
             return;
         }
 
-        const utterance = new SpeechSynthesisUtterance(chunks[nextChunk++]);
+        const chunk = chunks[nextChunk++];
+        const utterance = new SpeechSynthesisUtterance(chunk.text);
         utterance.lang = voice ? voice.lang : speechLang;
         if (voice) utterance.voice = voice;
+        utterance.onstart = () => highlightSegment(chunk.segment);
         utterance.onend = speakNextChunk;
         utterance.onerror = () => setActive(false);
         window.speechSynthesis.speak(utterance);
@@ -133,7 +203,8 @@
         }
 
         showNote('');
-        chunks = splitIntoChunks(getArticleText());
+        segments = collectSegments();
+        chunks = segments.flatMap((segment, index) => splitIntoChunks(segment.text).map(text => ({ text, segment: index })));
         if (!chunks.length) {
             const empty = text('msgEmpty') || 'No article text is available to read.';
             if (status) status.textContent = empty;
