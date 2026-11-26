@@ -33,6 +33,8 @@ public class StyleSettings
     public string? ReadAloudHighlightColor { get; set; }
     /// <summary>Whether the page scrolls to follow the sentence being read.</summary>
     public bool ReadAloudAutoScroll { get; set; } = true;
+    /// <summary>Master switch for the publisher's additional CSS. Turning it off restores the built-in look without deleting the CSS.</summary>
+    public bool CustomCssEnabled { get; set; } = true;
 
     private static readonly JsonSerializerOptions Options = new() { WriteIndented = false };
 

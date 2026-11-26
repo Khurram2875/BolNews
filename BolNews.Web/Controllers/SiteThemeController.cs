@@ -12,6 +12,10 @@ public sealed class SiteThemeController(SiteProfileService siteProfileService) :
     {
         var profile = await siteProfileService.GetAsync(cancellationToken);
         Response.Headers["X-Content-Type-Options"] = "nosniff";
-        return Content(profile.CustomCss ?? string.Empty, "text/css; charset=utf-8");
+        // Never serve CSS that is switched off or that fails the safety check (for example data saved before the check existed).
+        var css = profile.CustomCss ?? string.Empty;
+        if (!profile.Style.CustomCssEnabled || CustomCssValidator.Validate(css).Count > 0)
+            css = string.Empty;
+        return Content(css, "text/css; charset=utf-8");
     }
 }

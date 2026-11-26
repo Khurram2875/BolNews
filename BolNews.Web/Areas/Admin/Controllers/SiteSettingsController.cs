@@ -37,6 +37,7 @@ public sealed class SiteSettingsController(
         model.Style = StyleSettings.Normalize(model.Style);
         problems.AddRange(model.Style.Validate());
         if (!IsColor(model.PrimaryColor) || !IsColor(model.AccentColor)) problems.Add("Brand colors must use the #RRGGBB format.");
+        problems.AddRange(CustomCssValidator.Validate(model.CustomCss));
         if (model.BaseFontSizePx < 12 || model.BaseFontSizePx > 24) problems.Add("Base text size must be between 12 and 24 px.");
         if (model.ArticleFontSizePx != 0 && (model.ArticleFontSizePx < 12 || model.ArticleFontSizePx > 40)) problems.Add("Article text size must be 0 or between 12 and 40 px.");
         if (problems.Count > 0)
@@ -219,8 +220,8 @@ public sealed class SiteSettingsController(
             ModelState.AddModelError(string.Empty, "Footer links must use one Label|/local-path or Label|https://external-url per line.");
         if (!string.IsNullOrWhiteSpace(model.AdScriptUrl) && !IsHttpsUrl(model.AdScriptUrl))
             ModelState.AddModelError(nameof(model.AdScriptUrl), "The ad provider script must be an HTTPS URL.");
-        if (model.CustomCss?.Length > 100_000)
-            ModelState.AddModelError(nameof(model.CustomCss), "Custom CSS must be 100,000 characters or fewer.");
+        foreach (var problem in CustomCssValidator.Validate(model.CustomCss))
+            ModelState.AddModelError(nameof(model.CustomCss), problem);
         model.Style = StyleSettings.Normalize(model.Style);
         foreach (var problem in model.Style.Validate())
             ModelState.AddModelError(string.Empty, problem);

@@ -117,7 +117,10 @@
     else { <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /> }
     @if (siteIsRtl) { <link rel="stylesheet" href="~/css/site.rtl.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/rtl.css" asp-append-version="true" /> }
     else { <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" /> }
-    <link rel="stylesheet" href="/site-theme.css" />
+    @if (!Context.Request.Query.ContainsKey("nocss"))
+    {
+        <link rel="stylesheet" href="/site-theme.css" />
+    }
     <link rel="stylesheet" href="~/BolNews.Web.styles.css" asp-append-version="true" />
     <style>@Html.Raw(publisherThemeCss)</style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
