@@ -14,11 +14,22 @@ using BolNews.Web.Hubs;
 using BolNews.Web.Interfaces;
 using BolNews.Web.Middleware;
 using BolNews.Web.Services;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Azure.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Optional: keep the encryption keys (login cookies, saved API keys) in a fixed folder so they survive restarts.
+// The installer sets DataProtection__KeyPath; when it is not set the framework default applies, as before.
+var dataProtectionKeyPath = builder.Configuration["DataProtection:KeyPath"];
+if (!string.IsNullOrWhiteSpace(dataProtectionKeyPath))
+{
+    var dataProtection = builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeyPath));
+    var dataProtectionApp = builder.Configuration["DataProtection:ApplicationName"];
+    if (!string.IsNullOrWhiteSpace(dataProtectionApp)) dataProtection.SetApplicationName(dataProtectionApp);
+}
 
 builder.Services.AddApplicationServices(builder.Configuration);
 

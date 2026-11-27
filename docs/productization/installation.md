@@ -1,59 +1,46 @@
 # Fresh installation
 
-The CMS supports a fresh MySQL or MariaDB database through the interactive `BolNews.Installer` utility. It creates the schema from the EF Core migrations shipped with the application, creates the first CMS Admin account, and writes the application connection string to `appsettings.Production.json`.
+The `cms-installer` program (project `BolNews.Installer`) sets up a complete website on a **Debian or Ubuntu** server. It asks every question first, then installs and configures everything and checks that the site answers.
+
+## What it does
+
+1. Detects the published website folder (the one that holds the `.dll`, its `.runtimeconfig.json` and `wwwroot`).
+2. Checks the .NET runtime. With a self-contained website nothing needs installing; otherwise it installs `aspnetcore-runtime-8.0` through apt.
+3. Installs **MariaDB** if no MariaDB/MySQL server is present, and starts it.
+4. Creates the database and two users limited to it (no global privileges): `<name>_app` (data access, used by the website) and `<name>_migrator` (all rights on this one database, for upgrades). On the same server it logs in as the system administrator through the local socket, so no manual SQL is needed. Passwords are generated randomly.
+5. Creates the tables, seeds defaults, sets the site language and creates the first CMS administrator.
+6. Installs **Apache** if missing and enables `proxy`, `proxy_http`, `headers` (and `ssl` when HTTPS is chosen).
+7. Writes `/etc/apache2/sites-available/<name>.conf` and enables it. It runs `apache2ctl configtest` first; if Apache rejects it, the new site is removed again and other sites stay untouched. Existing files are never overwritten without asking (a backup is kept).
+8. Writes the secure settings file `/etc/<name>/<name>.env` (mode 600, root only): the connection string, `DataProtection__KeyPath`, public address and every API key the user chose to save (Gemini, ChatGPT, RapidAPI, Weather, Forex, optional SMTP). Keys that were skipped appear as commented placeholders.
+9. Creates `/etc/systemd/system/<name>.service` on a free local port, starts it and waits until the site answers.
+
+`<name>` is the database name (lower-case, 2 to 24 characters). The product name never appears in anything the installer creates.
 
 ## Requirements
 
-- .NET 8 runtime (or publish the installer self-contained for the target operating system).
-- A reachable MySQL/MariaDB server and a database administrator account allowed to create databases and users, grant permissions, and apply schema changes.
-- The installer and application configuration path must be protected. The generated production settings file contains the application database password.
+- Debian or Ubuntu with internet access (or a local apt mirror), run as root (`sudo`).
+- The published website copied to a folder such as `/var/www/aspnetapp/` **before** starting the installer.
 
-## Install steps
+## Steps
 
-1. Publish the CMS and installer for the server's operating system. From the repository root, for example:
+```sh
+tools/package-release.sh linux-x64 ./release      # on the build machine
+# copy release/cms-release.tar.gz to the server and unpack it, then:
+sudo mkdir -p /var/www/aspnetapp && sudo cp -r website/. /var/www/aspnetapp/
+sudo ./installer/cms-installer                    # add --dry-run to rehearse without changing anything
+```
 
-   ```sh
-   dotnet publish BolNews.Web/BolNews.Web.csproj -c Release -o ./publish
-   dotnet publish BolNews.Installer/BolNews.Installer.csproj -c Release -o ./installer
-   ```
+Options: `--app-dir /var/www/aspnetapp` skips the folder search; `--dry-run` asks the questions and prints every command and file it would create.
 
-   Copy both output folders to the server. The installer needs the `BolNews.Persistence` migrations assembly and its dependencies; its publish output includes them.
+The installer does not close unexpectedly: typing mistakes are asked again, a failed step offers *try again / skip (optional steps) / stop*, Ctrl+C stops cleanly, and every run is logged to `/var/log/<name>-installer.log` (no passwords). It can be run again safely: users and files are updated in place and already-saved API keys can be kept by pressing Enter.
 
-2. Run the installer interactively:
+## Encryption keys
 
-   ```sh
-   cd /var/www/aspnetapp
-   dotnet /path/to/installer/BolNews.Installer.dll
-   ```
-
-   The prompts ask for the database server/port, new database name, a database administrator account, an application database username/password, and the first CMS administrator's email/password. Passwords are entered without echoing them to the terminal. The database administrator credential is used only during installation; it is not written to the application config.
-
-3. At the final prompt, enter the full path to the deployed app's `appsettings.Production.json`, normally `/var/www/aspnetapp/appsettings.Production.json`. The installer writes `ConnectionStrings:DefaultConnection` there and restricts the file to owner read/write on Linux. If you ran the installer as root, give the file to the web service account:
-
-   ```sh
-   sudo chown www-data:www-data /var/www/aspnetapp/appsettings.Production.json
-   sudo chmod 600 /var/www/aspnetapp/appsettings.Production.json
-   ```
-
-   Substitute the actual service account and application path. Do not place the file in source control or a public download directory.
-
-4. The installer creates the database and application DB user, creates the schema from the current EF model when the database is empty, and records the included migration history. This is required because the earliest migrations were written for an already-existing BOL schema and do not create its original tables. For databases that already contain CMS tables, the installer applies pending EF migrations normally. It then seeds the default publisher/ad configuration and creates the CMS Admin account. It grants the application database user data access only; schema changes are performed by the installer using the database administrator connection. Configure the service with `ASPNETCORE_ENVIRONMENT=Production`, ensure the application process can read the config file, and restart the service.
-
-5. Sign in using the administrator email/password chosen during installation. Complete the publisher branding, policy, ad placement, email, and other environment-specific settings before opening the site to readers.
+`DataProtection__KeyPath` points to `/var/lib/<name>/keys`, owned by the service account. This keeps login cookies and the encrypted TTS provider key valid across restarts. Back this folder up with the database.
 
 ## Connection string
 
-The installer generates the MySQL connection string from the entered host, port, database, and dedicated application user. It stores it at:
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=...;Port=3306;Database=...;User ID=...;Password=...;..."
-  }
-}
-```
-
-Use this same value for future deployments of that installation, or move it to a protected secret store/environment variable named `ConnectionStrings__DefaultConnection`. Environment variables override the JSON file. Do not copy production credentials into customer-specific source branches.
+The installer stores the connection string in the settings file `/etc/<name>/<name>.env` as `ConnectionStrings__DefaultConnection` (environment variables override `appsettings*.json`). The upgrade user's connection is kept separately in `/etc/<name>/<name>-migrator.env`, which the website never reads. Do not copy production credentials into customer-specific source branches.
 
 ## Recovery and reruns
 
@@ -65,5 +52,5 @@ If installation stops after creating the database, rerun using the same database
 
 - Restrict database network access to the CMS hosts and use TLS when the DB server is remote.
 - Use a unique, high-entropy password for the DB application user and CMS administrator.
-- The DB application user is created for host `%` for compatibility with separately hosted web/database servers. Restrict its permitted source hosts in MySQL/MariaDB firewall or account configuration after install.
+- On a local database the users are created only for `localhost` and `127.0.0.1`. When you choose a remote database server you decide the allowed host (default `%`); restrict it where you can.
 - Keep the installer available only to deployment operators; remove temporary installer copies after installation if they are not part of the release process.

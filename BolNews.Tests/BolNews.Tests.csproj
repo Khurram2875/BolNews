@@ -24,6 +24,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<!-- Installer text generators and validators are plain code; compile them into the tests instead of referencing the installer program. -->
+		<Compile Include="..\BolNews.Installer\Generators.cs" Link="Installer\Generators.cs" />
+		<Compile Include="..\BolNews.Installer\Naming.cs" Link="Installer\Naming.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\BolNews.Application\BolNews.Application.csproj" />
 		<ProjectReference Include="..\BolNews.Domain\BolNews.Domain.csproj" />
 		<ProjectReference Include="..\BolNews.Persistence\BolNews.Persistence.csproj" />
