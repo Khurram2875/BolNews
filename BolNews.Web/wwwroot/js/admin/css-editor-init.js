@@ -19,6 +19,7 @@
     onChange: value => { textarea.value = value; updateCount(value); }
   });
   textarea.style.display = 'none';
+  window.bnCssEditorInstance = editor;
 
   const countEl = document.getElementById('bnCssCount');
   function updateCount(value) {
