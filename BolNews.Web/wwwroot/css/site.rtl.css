@@ -3264,6 +3264,8 @@ body,
     grid-template-columns: 292px minmax(0, 1fr) 292px;
 }
 
+.bn-home-hero--three > * { min-width: 0; }
+
 
 @media (min-width: 992px) {
     .bn-home-hero--three.bn-home-hero--custom { grid-template-columns: var(--bn-hero-cols); }

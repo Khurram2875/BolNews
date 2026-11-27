@@ -3373,6 +3373,8 @@ body,
 .bn-home-hero--three {
     grid-template-columns: 292px minmax(0, 1fr) 292px;
 }
+/* Grid items may shrink below their content width, so a wide card can no longer spill over the next column. */
+.bn-home-hero--three > * { min-width: 0; }
 
 /* Home layout settings: custom column order and/or a rail switched off. Column widths come from inline CSS variables. */
 @media (min-width: 992px) {

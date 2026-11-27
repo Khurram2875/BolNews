@@ -233,6 +233,18 @@
                     <div class="form-text">A card in a column that is switched off is not shown.</div>
                 </div>
             </div>
+            <div class="row g-3 mt-1">
+                <div class="col-lg-4">
+                    <label class="form-label fw-semibold" for="hl_side_w">Side column width, desktop (px)</label>
+                    <input id="hl_side_w" type="number" min="220" max="420" step="2" class="form-control" name="HomeLayout.SideColumnWidth" value="@hl.SideColumnWidth" />
+                    <div class="form-text">Width of the Latest and Featured columns on screens 1200px and wider. Default 292, allowed 220 to 420. The Top stories column takes the rest.</div>
+                </div>
+                <div class="col-lg-4">
+                    <label class="form-label fw-semibold" for="hl_side_w_md">Side column width, small desktop (px)</label>
+                    <input id="hl_side_w_md" type="number" min="180" max="340" step="2" class="form-control" name="HomeLayout.SideColumnWidthMd" value="@hl.SideColumnWidthMd" />
+                    <div class="form-text">Used between 992px and 1199px wide. Default 245, allowed 180 to 340. Below 992px the columns stack.</div>
+                </div>
+            </div>
 
             <hr />
             <div class="form-check mb-2">@Html.CheckBox("HomeLayout.CategoriesEnabled", hl.CategoriesEnabled, new { @class = "form-check-input", id = "hl_cats" })<label class="form-check-label fw-semibold" for="hl_cats">Show category columns below the top stories</label></div>

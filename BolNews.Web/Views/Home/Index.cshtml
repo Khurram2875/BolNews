@@ -26,11 +26,11 @@
     var columns = layout.Columns
         .Where(c => c == "top" || (c == "latest" && showLatestRail) || (c == "featured" && showFeaturedRail))
         .ToList();
-    var isDefaultOrder = string.Join(',', columns) == "latest,top,featured";
+    var isDefaultOrder = string.Join(',', columns) == "latest,top,featured" && !layout.HasCustomWidths;
     var heroLayoutClass = isDefaultOrder ? "" : " bn-home-hero--custom";
     var heroLayoutStyle = isDefaultOrder ? "" :
-        "--bn-hero-cols:" + string.Join(' ', columns.Select(c => c == "top" ? "minmax(0,1fr)" : "292px")) +
-        ";--bn-hero-cols-md:" + string.Join(' ', columns.Select(c => c == "top" ? "minmax(0,1fr)" : "245px")) + ";";
+        "--bn-hero-cols:" + string.Join(' ', columns.Select(c => c == "top" ? "minmax(0,1fr)" : layout.SideColumnWidth + "px")) +
+        ";--bn-hero-cols-md:" + string.Join(' ', columns.Select(c => c == "top" ? "minmax(0,1fr)" : layout.SideColumnWidthMd + "px")) + ";";
 }
 
 <h1 class="visually-hidden">@siteProfile.SiteName – @siteProfile.Tagline</h1>

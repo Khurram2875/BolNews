@@ -49,6 +49,16 @@ public class HomeLayoutSettings
     // Older saved layouts used a swap switch; folded into ColumnOrder by Normalize.
     public bool? FeaturedRailFirst { get; set; }
 
+    public const int DefaultSideWidth = 292;
+    public const int DefaultSideWidthMd = 245;
+
+    /// <summary>Width in pixels of the Latest and Featured columns on desktop screens (992px and up).</summary>
+    public int SideColumnWidth { get; set; } = DefaultSideWidth;
+    /// <summary>Width in pixels of the Latest and Featured columns on small desktop / large tablet screens (992 to 1199px).</summary>
+    public int SideColumnWidthMd { get; set; } = DefaultSideWidthMd;
+
+    public bool HasCustomWidths => SideColumnWidth != DefaultSideWidth || SideColumnWidthMd != DefaultSideWidthMd;
+
     public IReadOnlyList<string> Columns => ColumnOrder.Split(',');
 
     /// <summary>True when the poll or live events card is placed in the given rail ("latest" or "featured").</summary>
@@ -79,6 +89,8 @@ public class HomeLayoutSettings
         s.TopCardCount = Math.Clamp(s.TopCardCount, 0, 6);
         s.TrendingCount = Math.Clamp(s.TrendingCount, 3, 10);
         s.FeaturedCount = Math.Clamp(s.FeaturedCount, 1, 15);
+        s.SideColumnWidth = Math.Clamp(s.SideColumnWidth, 220, 420);
+        s.SideColumnWidthMd = Math.Clamp(s.SideColumnWidthMd, 180, 340);
         if (s.ShowPoll == false) s.PollPlacement = "hidden";
         if (s.ShowLiveEvents == false) s.LivePlacement = "hidden";
         s.ShowPoll = null; s.ShowLiveEvents = null;
