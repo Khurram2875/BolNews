@@ -186,8 +186,10 @@ public static class PublisherThemeCatalog
         // Urdu fonts are limited to Arabic-script characters. Many of them have an empty or zero-width space and no real
         // Latin letters, which made English text (admin labels, numbers) run together. Spaces, Latin letters and
         // digits now come from the fallback fonts in the stack instead.
+        // These local files hold a single (regular) weight. Declaring it honestly as 400 lets the browser draw bold itself
+        // when a heavier weight is chosen; declaring a 100-900 range told it the font was variable, so it never did.
         var range = IsUrduFont(fontName) ? $"unicode-range:{ArabicScriptRange};" : "";
-        return $"@font-face{{font-family:'{fontName}';src:url('/fonts/{local.Value.File}') format('{local.Value.Format}');font-weight:100 900;font-style:normal;font-display:swap;{range}}}";
+        return $"@font-face{{font-family:'{fontName}';src:url('/fonts/{local.Value.File}') format('{local.Value.Format}');font-weight:400;font-style:normal;font-display:swap;{range}}}";
     }
 
     public static string BuildCssVariables(SiteProfile profile, bool publicSite = true)
